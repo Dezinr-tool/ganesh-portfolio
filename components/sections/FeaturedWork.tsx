@@ -1,160 +1,153 @@
 "use client";
 
-import { motion, useInView, useReducedMotion } from "framer-motion";
-import { GlassButton } from "@/components/ui/GlassButton";
+import { useGSAP } from "@gsap/react";
+import {
+  animateCardsOnScroll,
+  animateHeadingOnScroll,
+} from "@/lib/gsap-scroll";
+import { useReducedMotion } from "framer-motion";
+import Image from "next/image";
 import Link from "next/link";
-import { useRef, type RefObject } from "react";
-
-const EASE = [0.25, 0.1, 0.25, 1] as const;
+import { useRef } from "react";
 
 const PROJECTS = [
   {
-    title: "Paisabazaar Design System",
-    tags: ["B2B", "Fintech", "Design System"],
-    description:
-      "Built a scalable design system powering loan comparison flows across web and mobile for India's largest fintech marketplace.",
-    gradient: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+    title: "LumeX",
+    tags: ["SaaS", "Dashboard Design"],
+    image:
+      "https://images.unsplash.com/photo-1618005180814-d1db67ed6b6a?w=1400&q=85&auto=format&fit=crop",
+    href: "#work",
   },
   {
-    title: "Testbook Learning Platform",
-    tags: ["D2C", "EdTech", "Mobile"],
-    description:
-      "Redesigned the mobile learning experience for exam prep — improving engagement and completion rates across core study flows.",
-    gradient: "linear-gradient(135deg, #f093fb 0%, #f5576c 100%)",
+    title: "Planza",
+    tags: ["Framer Website"],
+    image:
+      "https://images.unsplash.com/photo-1529156069898-49953e39b3ac?w=1400&q=85&auto=format&fit=crop",
+    href: "#work",
   },
   {
-    title: "Think9 SuperU App",
-    tags: ["D2C", "Consumer", "Strategy"],
-    description:
-      "Led product strategy and UX for a consumer wellness app — from positioning and onboarding to feature prioritization.",
-    gradient: "linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)",
+    title: "Horizon Atlas",
+    tags: ["Travel", "Web Design"],
+    image:
+      "https://images.unsplash.com/photo-1449824913935-59a10b8d2000?w=1400&q=85&auto=format&fit=crop",
+    href: "#work",
+  },
+  {
+    title: "NeuroSync",
+    tags: ["Healthcare", "Mobile App"],
+    image:
+      "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?w=1400&q=85&auto=format&fit=crop",
+    href: "#work",
   },
 ] as const;
 
-function ProjectCard({
-  project,
-  index,
-  isInView,
-  reducedMotion,
-}: {
-  project: (typeof PROJECTS)[number];
-  index: number;
-  isInView: boolean;
-  reducedMotion: boolean;
-}) {
+function ArrowIcon() {
   return (
-    <motion.li
-      initial={{ opacity: reducedMotion ? 1 : 0, y: reducedMotion ? 0 : 32 }}
-      animate={{
-        opacity: reducedMotion || isInView ? 1 : 0,
-        y: reducedMotion || isInView ? 0 : 32,
-      }}
-      transition={{
-        duration: 0.55,
-        ease: EASE,
-        delay: reducedMotion ? 0 : isInView ? 0.15 + index * 0.12 : 0,
-      }}
-      style={{ height: "100%" }}
-    >
-      <Link
-        href="/work"
-        className="group flex h-full flex-col overflow-hidden rounded-2xl bg-white transition-[transform,box-shadow] duration-300 hover:-translate-y-2 hover:shadow-[0_20px_40px_rgba(0,0,0,0.1)]"
-      >
-        {/* Gradient thumbnail */}
-        <div
-          className="h-[240px] w-full shrink-0"
-          style={{ background: project.gradient }}
-          aria-hidden="true"
-        />
-
-        <div className="flex flex-1 flex-col p-6">
-          <h3 className="text-xl font-bold text-foreground">{project.title}</h3>
-
-          <div className="mt-3 flex flex-wrap gap-2">
-            {project.tags.map((tag) => (
-              <span
-                key={tag}
-                className="rounded-full bg-accent-soft px-3 py-1 text-[13px] font-medium text-accent"
-              >
-                {tag}
-              </span>
-            ))}
-          </div>
-
-          <p className="text-body-copy mt-4 flex-1">{project.description}</p>
-
-          <p className="text-accent-link mt-5 group-hover:text-accent-hover">
-            View Case Study →
-          </p>
-        </div>
-      </Link>
-    </motion.li>
+    <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
+      <path
+        d="M2.5 7h9M7.5 3.5L11 7l-3.5 3.5"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
   );
 }
 
 export function FeaturedWork() {
   const sectionRef = useRef<HTMLElement>(null);
-  const isInView = useInView(sectionRef as RefObject<HTMLElement>, {
-    once: true,
-    amount: 0.2,
-  });
+  const headingRef = useRef<HTMLDivElement>(null);
+  const cardsRef = useRef<HTMLUListElement>(null);
   const reducedMotion = useReducedMotion() ?? false;
+
+  useGSAP(
+    () => {
+      const section = sectionRef.current;
+      const heading = headingRef.current;
+      const cards = cardsRef.current?.children;
+
+      if (!section || !heading) return;
+
+      animateHeadingOnScroll(heading, section, reducedMotion);
+
+      if (cards?.length) {
+        animateCardsOnScroll(cards, section, reducedMotion, 0.12);
+      }
+    },
+    { scope: sectionRef, dependencies: [reducedMotion] },
+  );
 
   return (
     <section
       ref={sectionRef}
       id="work"
-      className="section-padding relative z-10 bg-muted text-foreground"
-      aria-label="Selected work"
+      className="section-padding relative z-10 bg-background text-foreground"
+      aria-label="Featured work"
     >
-      <div className="mx-auto max-w-6xl">
-        {/* Section header */}
-        <motion.div
-          initial={{ opacity: reducedMotion ? 1 : 0, y: reducedMotion ? 0 : 20 }}
-          animate={{
-            opacity: reducedMotion || isInView ? 1 : 0,
-            y: reducedMotion || isInView ? 0 : 20,
+      <div className="mx-auto max-w-[1400px]">
+        <div
+          ref={headingRef}
+          style={{
+            display: "flex",
+            flexWrap: "wrap",
+            alignItems: "center",
+            justifyContent: "space-between",
+            gap: "1rem",
+            width: "100%",
           }}
-          transition={{ duration: 0.6, ease: EASE }}
-          style={{ textAlign: "center" }}
         >
-          <p className="text-section-label">Selected Work</p>
-          <h2 className="text-section-heading mt-4">
-            Projects that made an impact
+          <h2 className="text-[clamp(1.75rem,3vw,2.25rem)] font-bold tracking-[-0.02em] text-foreground">
+            Featured works
           </h2>
-        </motion.div>
+          <Link
+            href="#work"
+            className="inline-flex items-center gap-2 rounded-full bg-[#f0f0f0] px-5 py-2.5 text-[14px] font-medium text-foreground no-underline transition-colors duration-200 hover:bg-[#e5e5e5] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-foreground"
+          >
+            All Works
+            <ArrowIcon />
+          </Link>
+        </div>
 
-        {/* Project cards */}
-        <ul className="mt-14 grid grid-cols-1 gap-6 md:grid-cols-3 md:gap-8">
-          {PROJECTS.map((project, index) => (
-            <ProjectCard
-              key={project.title}
-              project={project}
-              index={index}
-              isInView={isInView}
-              reducedMotion={reducedMotion}
-            />
+        <ul
+          ref={cardsRef}
+          className="mt-10 grid grid-cols-1 gap-5 sm:grid-cols-2 sm:gap-6 md:mt-12 md:gap-7"
+        >
+          {PROJECTS.map((project) => (
+            <li key={project.title}>
+              <Link
+                href={project.href}
+                className="group relative block aspect-[4/3] overflow-hidden rounded-[2rem] bg-[#e8e8e8] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#111]"
+              >
+                <Image
+                  src={project.image}
+                  alt={`${project.title} project preview`}
+                  fill
+                  sizes="(max-width: 640px) 100vw, 50vw"
+                  className="object-cover transition-transform duration-500 ease-out group-hover:scale-[1.03]"
+                />
+                <div
+                  className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/55 via-black/10 to-transparent"
+                  aria-hidden="true"
+                />
+                <div className="absolute inset-x-0 bottom-0 p-6 md:p-8">
+                  <h3 className="text-[clamp(1.75rem,3.2vw,2.5rem)] font-bold leading-[1.1] tracking-[-0.02em] text-white">
+                    {project.title}
+                  </h3>
+                  <ul className="mt-3 flex flex-wrap gap-2">
+                    {project.tags.map((tag) => (
+                      <li key={tag}>
+                        <span className="inline-block rounded-full border border-white/40 bg-black/25 px-3 py-1 text-[13px] font-medium leading-none text-white backdrop-blur-sm">
+                          {tag}
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </Link>
+            </li>
           ))}
         </ul>
-
-        {/* View all CTA */}
-        <motion.div
-          initial={{ opacity: reducedMotion ? 1 : 0, y: reducedMotion ? 0 : 16 }}
-          animate={{
-            opacity: reducedMotion || isInView ? 1 : 0,
-            y: reducedMotion || isInView ? 0 : 16,
-          }}
-          transition={{
-            duration: 0.5,
-            ease: EASE,
-            delay: reducedMotion ? 0 : isInView ? 0.5 : 0,
-          }}
-          style={{ display: "flex", justifyContent: "center", marginTop: "3rem" }}
-        >
-          <GlassButton href="/work" variant="outline">
-            View All Work →
-          </GlassButton>
-        </motion.div>
       </div>
     </section>
   );

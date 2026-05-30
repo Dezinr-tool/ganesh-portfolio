@@ -1,10 +1,16 @@
 "use client";
 
-import { motion, useInView, useReducedMotion } from "framer-motion";
+import { useGSAP } from "@gsap/react";
+import {
+  animateRevealOnScroll,
+  registerGsapPlugins,
+  SCROLL_START,
+  setRevealVisible,
+} from "@/lib/gsap-scroll";
+import gsap from "gsap";
+import { useReducedMotion } from "framer-motion";
 import { GlassButton } from "@/components/ui/GlassButton";
-import { useRef, type RefObject } from "react";
-
-const EASE = [0.25, 0.1, 0.25, 1] as const;
+import { useRef } from "react";
 
 const HEADING_WORDS = [
   "Let's",
@@ -14,7 +20,6 @@ const HEADING_WORDS = [
   "together",
 ] as const;
 
-/** Pulsing green availability dot — reuses Hero pulse CSS */
 function GreenDot() {
   return (
     <span
@@ -27,66 +32,74 @@ function GreenDot() {
   );
 }
 
-function AnimatedHeading({
-  isInView,
-  reducedMotion,
-}: {
-  isInView: boolean;
-  reducedMotion: boolean;
-}) {
-  if (reducedMotion) {
-    return (
-      <h2
-        className="text-white"
-        style={{
-          fontSize: "clamp(2.5rem, 5vw, 4rem)",
-          fontWeight: 800,
-          lineHeight: 1.1,
-        }}
-      >
-        Let&apos;s build something remarkable together
-      </h2>
-    );
-  }
-
-  return (
-    <h2
-      className="text-white"
-      style={{
-        fontSize: "clamp(2.5rem, 5vw, 4rem)",
-        fontWeight: 800,
-        lineHeight: 1.1,
-      }}
-    >
-      {HEADING_WORDS.map((word, index) => (
-        <span key={word} className="mr-[0.25em] inline-block last:mr-0">
-          <motion.span
-            initial={{ opacity: 0, y: 12 }}
-            animate={{
-              opacity: isInView ? 1 : 0,
-              y: isInView ? 0 : 12,
-            }}
-            transition={{
-              duration: 0.45,
-              ease: EASE,
-              delay: isInView ? 0.08 + index * 0.07 : 0,
-            }}
-          >
-            {word}
-          </motion.span>
-        </span>
-      ))}
-    </h2>
-  );
-}
-
 export function ContactCTA() {
   const sectionRef = useRef<HTMLElement>(null);
-  const isInView = useInView(sectionRef as RefObject<HTMLElement>, {
-    once: true,
-    amount: 0.35,
-  });
+  const labelRef = useRef<HTMLDivElement>(null);
+  const headingRef = useRef<HTMLHeadingElement>(null);
+  const bodyRef = useRef<HTMLParagraphElement>(null);
+  const actionsRef = useRef<HTMLDivElement>(null);
   const reducedMotion = useReducedMotion() ?? false;
+
+  useGSAP(
+    () => {
+      const section = sectionRef.current;
+      const label = labelRef.current;
+      const heading = headingRef.current;
+      const body = bodyRef.current;
+      const actions = actionsRef.current;
+      const words = heading?.querySelectorAll("[data-heading-word]");
+
+      if (!section) return;
+
+      if (label) {
+        animateRevealOnScroll(label, {
+          trigger: section,
+          y: 24,
+          reducedMotion,
+        });
+      }
+
+      if (words?.length) {
+        if (reducedMotion) {
+          setRevealVisible(words);
+        } else {
+          registerGsapPlugins();
+          gsap.set(words, { opacity: 0, y: 24 });
+          gsap.to(words, {
+            opacity: 1,
+            y: 0,
+            duration: 0.7,
+            ease: "power3.out",
+            stagger: 0.08,
+            scrollTrigger: {
+              trigger: section,
+              start: SCROLL_START,
+              once: true,
+            },
+          });
+        }
+      }
+
+      if (body) {
+        animateRevealOnScroll(body, {
+          trigger: section,
+          y: 24,
+          delay: 0.15,
+          reducedMotion,
+        });
+      }
+
+      if (actions) {
+        animateRevealOnScroll(actions, {
+          trigger: section,
+          y: 32,
+          delay: 0.25,
+          reducedMotion,
+        });
+      }
+    },
+    { scope: sectionRef, dependencies: [reducedMotion] },
+  );
 
   return (
     <section
@@ -96,62 +109,64 @@ export function ContactCTA() {
       aria-label="Contact"
     >
       <div className="mx-auto flex max-w-6xl flex-col items-center gap-12 md:flex-row md:items-center md:justify-between md:gap-16">
-        {/* Left — copy */}
         <div className="max-w-xl text-center md:text-left">
-          <motion.div
-            initial={{ opacity: reducedMotion ? 1 : 0 }}
-            animate={{ opacity: reducedMotion || isInView ? 1 : 0 }}
-            transition={{ duration: 0.5, ease: EASE }}
-            style={{ display: "flex" }}
-          >
+          <div ref={labelRef}>
             <p className="text-section-label-on-dark flex items-center justify-center gap-2 md:justify-start">
               <GreenDot />
               Available for Projects
             </p>
-          </motion.div>
+          </div>
 
           <div className="mt-6">
-            <AnimatedHeading isInView={isInView} reducedMotion={reducedMotion} />
+            <h2
+              ref={headingRef}
+              className="text-white"
+              style={{
+                fontSize: "clamp(2.5rem, 5vw, 4rem)",
+                fontWeight: 800,
+                lineHeight: 1.1,
+              }}
+            >
+              {HEADING_WORDS.map((word) => (
+                <span
+                  key={word}
+                  data-heading-word
+                  className="mr-[0.25em] inline-block last:mr-0"
+                >
+                  {word}
+                </span>
+              ))}
+            </h2>
           </div>
 
-          <motion.div
-            initial={{ opacity: reducedMotion ? 1 : 0, y: reducedMotion ? 0 : 12 }}
-            animate={{
-              opacity: reducedMotion || isInView ? 1 : 0,
-              y: reducedMotion || isInView ? 0 : 12,
-            }}
-            transition={{ duration: 0.5, ease: EASE, delay: reducedMotion ? 0 : 0.4 }}
+          <p
+            ref={bodyRef}
+            className="mt-5 text-[16px] leading-[1.6] text-text-muted"
           >
-            <p className="mt-5 text-[16px] leading-[1.6] text-text-muted">
-              Open to consulting, design leadership, and product strategy engagements.
-              Let&apos;s talk about your next big idea.
-            </p>
-          </motion.div>
+            Open to consulting, design leadership, and product strategy engagements.
+            Let&apos;s talk about your next big idea.
+          </p>
         </div>
 
-        {/* Right — action buttons */}
-        <motion.div
-          initial={{ opacity: reducedMotion ? 1 : 0, y: reducedMotion ? 0 : 24 }}
-          animate={{
-            opacity: reducedMotion || isInView ? 1 : 0,
-            y: reducedMotion || isInView ? 0 : 24,
-          }}
-          transition={{
-            duration: 0.55,
-            ease: EASE,
-            delay: reducedMotion ? 0 : isInView ? 0.35 : 0,
-          }}
-          style={{ width: "100%" }}
-        >
-          <div className="flex w-full shrink-0 flex-col items-center gap-4 sm:flex-row sm:justify-center md:w-auto md:flex-col md:items-stretch">
-          <GlassButton href="mailto:hello@designbyganesh.com" variant="primary">
-            Get in Touch →
-          </GlassButton>
-          <GlassButton href="/cv.pdf" variant="outline-light" download>
-            Download CV
-          </GlassButton>
+        <div ref={actionsRef} className="w-full">
+          <div className="flex w-full shrink-0 flex-col items-stretch gap-3 sm:flex-row sm:justify-center md:w-auto md:flex-col">
+            <GlassButton
+              href="mailto:hello@designbyganesh.com"
+              variant="dark"
+              className="w-full justify-center sm:w-auto"
+            >
+              Get in Touch →
+            </GlassButton>
+            <GlassButton
+              href="/cv.pdf"
+              variant="dark"
+              download
+              className="w-full justify-center sm:w-auto"
+            >
+              Download CV
+            </GlassButton>
           </div>
-        </motion.div>
+        </div>
       </div>
     </section>
   );

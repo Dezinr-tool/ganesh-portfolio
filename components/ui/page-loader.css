@@ -1,0 +1,156 @@
+.page-loader {
+  --loader-bg: #f5f5f5;
+  --loader-text: #0a0a0a;
+  --hero-radius: clamp(220px, 32vw, 380px);
+  --sub-radius: clamp(168px, 22vw, 300px);
+
+  background-color: var(--loader-bg);
+  height: 100dvh;
+  left: 0;
+  overflow: visible;
+  pointer-events: none;
+  position: fixed;
+  top: 0;
+  width: 100%;
+  z-index: 100000;
+  will-change: transform;
+}
+
+.page-loader__viewport {
+  align-items: center;
+  display: flex;
+  height: 100%;
+  justify-content: center;
+  overflow: visible;
+  perspective: clamp(1000px, 92vw, 1400px);
+  perspective-origin: 50% 44%;
+  transform-style: preserve-3d;
+  width: 100%;
+}
+
+.page-loader__scene {
+  height: clamp(200px, 32vh, 340px);
+  position: relative;
+  transform: rotateX(10deg);
+  transform-origin: 50% 50%;
+  transform-style: preserve-3d;
+  width: min(96vw, 1100px);
+}
+
+.page-loader__cylinder-group {
+  height: 0;
+  left: 50%;
+  position: absolute;
+  top: 50%;
+  transform-style: preserve-3d;
+  width: 0;
+}
+
+.page-loader__cylinder-group--hero {
+  margin-top: -3.5rem;
+}
+
+.page-loader__cylinder-group--sub {
+  margin-top: 2.75rem;
+}
+
+.page-loader__cylinder {
+  height: 0;
+  left: 0;
+  position: absolute;
+  top: 0;
+  transform-origin: center center;
+  transform-style: preserve-3d;
+  width: 0;
+}
+
+.page-loader__cylinder--hero {
+  --glyph-radius: var(--hero-radius);
+}
+
+.page-loader__cylinder--sub {
+  --glyph-radius: var(--sub-radius);
+}
+
+.page-loader__glyph {
+  backface-visibility: visible;
+  color: var(--loader-text);
+  display: inline-block;
+  left: 50%;
+  position: absolute;
+  text-transform: uppercase;
+  top: 50%;
+  transform-origin: center center;
+  transform-style: preserve-3d;
+  white-space: pre;
+  will-change: transform;
+}
+
+.page-loader__glyph--hero {
+  font-family: var(--font-mohave), Mohave, sans-serif;
+  font-size: clamp(34px, 6.2vw, 76px);
+  font-stretch: 95%;
+  font-weight: 700;
+  letter-spacing: -0.1em;
+  line-height: 1;
+}
+
+.page-loader__glyph--sub {
+  font-family: var(--font-mohave), Mohave, sans-serif;
+  font-size: clamp(9px, 1.05vw, 15px);
+  font-weight: 400;
+  letter-spacing: -0.1em;
+  line-height: 1;
+  opacity: 0.88;
+}
+
+.page-loader__counter {
+  bottom: clamp(28px, 5vh, 56px);
+  color: var(--loader-text);
+  font-family: var(--font-mohave), Mohave, sans-serif;
+  font-size: clamp(20px, 2vw, 28px);
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+  left: 50%;
+  letter-spacing: -0.04em;
+  line-height: 1;
+  opacity: 0;
+  position: absolute;
+  transform: translateX(-50%);
+}
+
+@media (max-width: 1100px) {
+  .page-loader__scene {
+    transform: rotateX(9deg);
+    width: 94vw;
+  }
+
+  .page-loader__glyph--hero {
+    font-size: clamp(26px, 7.2vw, 44px);
+    letter-spacing: -0.1em;
+  }
+
+  .page-loader__glyph--sub {
+    font-size: clamp(8px, 2.4vw, 12px);
+    letter-spacing: -0.09em;
+  }
+
+  .page-loader__cylinder-group--hero {
+    margin-top: -2.5rem;
+  }
+
+  .page-loader__cylinder-group--sub {
+    margin-top: 2rem;
+  }
+
+  .page-loader__counter {
+    bottom: 24px;
+    font-size: 20px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .page-loader {
+    display: none;
+  }
+}

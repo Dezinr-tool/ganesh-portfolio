@@ -311,7 +311,7 @@ export function Hero() {
               funded Indian startups.
             </p>
             <div data-hero-reveal className="flex justify-end">
-              <GlassButton href="#calendar" variant="glass">
+              <GlassButton href="#calendar">
                 <svg
                   width="16"
                   height="16"

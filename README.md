@@ -16,6 +16,18 @@ bun dev
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
+Keep the terminal running while you browse — closing it stops the server and the browser will show `ERR_CONNECTION_REFUSED`.
+
+### Local dev troubleshooting
+
+If you see **connection refused**, **500**, or missing `.next` manifest errors:
+
+1. Stop any old dev servers: `lsof -ti:3000 | xargs kill -9`
+2. Clear the cache: `rm -rf .next`
+3. Start again: `npm run dev` (uses webpack; do not use bare `next dev` with Turbopack on this project)
+
+If port 3000 is taken, Next.js may use another port (e.g. 3003) — check the terminal output and open that URL.
+
 You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
 
 This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.

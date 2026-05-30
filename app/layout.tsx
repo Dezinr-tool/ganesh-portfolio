@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
-import { Header } from "@/components/layout/Header";
+import { PageLoader } from "@/components/ui/PageLoader";
 import { mohave } from "./fonts";
 import "./globals.css";
 
@@ -25,8 +25,8 @@ export default function RootLayout({
       lang="en"
       className={`${inter.variable} ${mohave.variable} h-full`}
     >
-      <body className="min-h-full font-sans antialiased">
-        <Header />
+      <body className="relative min-h-full font-sans antialiased">
+        <PageLoader />
         {children}
       </body>
     </html>
