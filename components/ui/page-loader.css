@@ -1,6 +1,10 @@
+html.page-loader-active {
+  overflow: hidden;
+}
+
 .page-loader {
-  --loader-bg: #f5f5f5;
-  --loader-text: #0a0a0a;
+  --loader-bg: #0a0a0a;
+  --loader-text: #f0f0f0;
   --hero-radius: clamp(180px, 26.2vw, 312px);
   --sub-radius: clamp(138px, 18vw, 246px);
 
@@ -8,7 +12,7 @@
   height: 100dvh;
   left: 0;
   overflow: visible;
-  pointer-events: none;
+  pointer-events: auto;
   position: fixed;
   top: 0;
   width: 100%;
@@ -87,7 +91,7 @@
 }
 
 .page-loader__glyph--hero {
-  font-family: var(--font-mohave), Mohave, sans-serif;
+  font-family: var(--font-display);
   font-size: clamp(34px, 6.2vw, 76px);
   font-stretch: 95%;
   font-weight: 700;
@@ -96,7 +100,7 @@
 }
 
 .page-loader__glyph--sub {
-  font-family: var(--font-mohave), Mohave, sans-serif;
+  font-family: var(--font-display);
   font-size: clamp(9px, 1.05vw, 15px);
   font-weight: 400;
   letter-spacing: 0;
@@ -107,7 +111,7 @@
 .page-loader__counter {
   bottom: clamp(28px, 5vh, 56px);
   color: var(--loader-text);
-  font-family: var(--font-mohave), Mohave, sans-serif;
+  font-family: var(--font-display);
   font-size: clamp(20px, 2vw, 28px);
   font-variant-numeric: tabular-nums;
   font-weight: 700;

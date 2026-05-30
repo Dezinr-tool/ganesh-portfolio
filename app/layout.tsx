@@ -1,18 +1,51 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
+import { SmoothScroll } from "@/components/providers/SmoothScroll";
+import { BackToTop } from "@/components/ui/BackToTop";
 import { PageLoader } from "@/components/ui/PageLoader";
-import { mohave } from "./fonts";
+import { ScrollProgress } from "@/components/ui/ScrollProgress";
+import { breton, inter, machine } from "./fonts";
 import "./globals.css";
 
-const inter = Inter({
-  subsets: ["latin"],
-  variable: "--font-inter",
-});
+const siteUrl = "https://designbyganesh.com";
+const title = "Ganesh Das — Design & Strategy Partner";
+const description =
+  "Design & Strategy Partner for Startups. Ganesh Das helps founders build products people love — D2C, B2B & B2B2C specialist with 14+ years across funded Indian startups.";
 
 export const metadata: Metadata = {
-  title: "Ganesh Das — Design & Strategy Partner",
-  description:
-    "Design & Strategy Partner for Startups. Ganesh Das helps founders build products people love — D2C, B2B & B2B2C specialist with 14+ years across funded Indian startups.",
+  metadataBase: new URL(siteUrl),
+  title,
+  description,
+  alternates: { canonical: "/" },
+  openGraph: {
+    title,
+    description,
+    url: siteUrl,
+    siteName: "Ganesh Das",
+    locale: "en_US",
+    type: "website",
+    images: [
+      {
+        url: "/ganesh-profile.jpg",
+        width: 1200,
+        height: 630,
+        alt: "Ganesh Das — Design & Strategy Partner",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title,
+    description,
+    images: ["/ganesh-profile.jpg"],
+  },
+  robots: { index: true, follow: true },
+};
+
+export const viewport = {
+  themeColor: "#0a0a0a",
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover",
 };
 
 export default function RootLayout({
@@ -23,11 +56,18 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${inter.variable} ${mohave.variable} h-full`}
+      className={`${inter.variable} ${breton.variable} ${machine.variable} h-full`}
     >
-      <body className="relative min-h-full font-sans antialiased">
-        <PageLoader />
-        {children}
+      <body className="relative min-h-full bg-[#0a0a0a] font-sans text-[#f0f0f0] antialiased">
+        <a href="#main-content" className="skip-link">
+          Skip to content
+        </a>
+        <SmoothScroll>
+          <ScrollProgress />
+          <PageLoader />
+          {children}
+          <BackToTop />
+        </SmoothScroll>
       </body>
     </html>
   );

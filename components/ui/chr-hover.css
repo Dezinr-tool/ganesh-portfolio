@@ -1,0 +1,71 @@
+.chr-hover {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 0;
+  cursor: default;
+  text-decoration: none;
+  color: inherit;
+}
+
+a.chr-hover {
+  cursor: pointer;
+}
+
+.chr-hover .ch-wrap {
+  position: relative;
+  overflow: hidden;
+  display: inline-block;
+  vertical-align: top;
+}
+
+.chr-hover .ch-top,
+.chr-hover .ch-bot {
+  display: block;
+  line-height: 1.2;
+  transition:
+    transform 0.55s cubic-bezier(0.87, 0, 0.13, 1),
+    opacity 0.35s ease;
+  transition-delay: calc(var(--i, 0) * 24ms);
+}
+
+.chr-hover .ch-bot {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  width: 100%;
+  opacity: 0.72;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .chr-hover:hover .ch-top {
+    transform: translateY(-100%);
+  }
+
+  .chr-hover:hover .ch-bot {
+    transform: translateY(-100%);
+    opacity: 1;
+  }
+}
+
+.chr-hover:focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: 4px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .chr-hover .ch-top,
+  .chr-hover .ch-bot {
+    transition: none;
+  }
+
+  .chr-hover:hover .ch-top,
+  .chr-hover:hover .ch-bot {
+    transform: none;
+  }
+}
+
+@media not ((hover: hover) and (pointer: fine)) {
+  .chr-hover .ch-bot {
+    display: none;
+  }
+}

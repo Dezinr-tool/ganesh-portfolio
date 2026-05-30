@@ -18,7 +18,7 @@ const VARIANT_CLASS: Record<ButtonVariant, string> = {
 
 const SIZE_CLASS: Record<ButtonSize, string> = {
   default: "min-h-12 px-6 py-3 text-[0.9375rem] leading-tight tracking-wide",
-  sm: "min-h-10 px-4 py-2.5 text-[0.6875rem] uppercase leading-tight tracking-[0.12em]",
+  sm: "min-h-11 px-4 py-2.5 text-[0.6875rem] uppercase leading-tight tracking-[0.12em]",
 };
 
 export type GlassButtonProps = {

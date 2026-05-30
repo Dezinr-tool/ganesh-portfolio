@@ -81,3 +81,111 @@ export function animateCardsOnScroll(
 ) {
   animateRevealOnScroll(targets, { trigger, y: 32, stagger, reducedMotion });
 }
+
+/** Word or line spans — staggered fade/slide on scroll */
+export function animateSplitStaggerOnScroll(
+  targets: gsap.TweenTarget,
+  options: RevealOptions = {},
+) {
+  const {
+    stagger = 0.06,
+    y = 20,
+    duration = 0.65,
+    ...rest
+  } = options;
+
+  animateRevealOnScroll(targets, {
+    ...rest,
+    stagger,
+    y,
+    duration,
+  });
+}
+
+export function animateHeadingWordsOnScroll(
+  words: gsap.TweenTarget,
+  trigger: Element | null,
+  reducedMotion = false,
+  stagger = 0.08,
+) {
+  animateSplitStaggerOnScroll(words, {
+    trigger,
+    stagger,
+    y: 24,
+    duration: 0.7,
+    reducedMotion,
+  });
+}
+
+export function animateLineStaggerOnScroll(
+  lines: gsap.TweenTarget,
+  trigger: Element | null,
+  reducedMotion = false,
+  stagger = 0.12,
+) {
+  animateSplitStaggerOnScroll(lines, {
+    trigger,
+    stagger,
+    y: 28,
+    duration: 0.75,
+    reducedMotion,
+  });
+}
+
+/** Subtle body copy — smaller travel, softer timing */
+export function animateBodyCopyOnScroll(
+  target: gsap.TweenTarget,
+  trigger: Element | null,
+  reducedMotion = false,
+  delay = 0.1,
+) {
+  animateRevealOnScroll(target, {
+    trigger,
+    y: 16,
+    duration: 0.6,
+    delay,
+    reducedMotion,
+  });
+}
+
+/** Hero / loader timeline — split text reveal (not scroll-triggered) */
+export function revealSplitInTimeline(
+  tl: gsap.core.Timeline,
+  targets: gsap.TweenTarget,
+  position: string | number,
+  options: {
+    stagger?: number;
+    duration?: number;
+    y?: number;
+    ease?: string;
+  } = {},
+) {
+  const {
+    stagger = 0.05,
+    duration = 0.55,
+    y = 18,
+    ease = "power2.out",
+  } = options;
+
+  gsap.set(targets, { opacity: 0, y });
+
+  tl.to(
+    targets,
+    {
+      opacity: 1,
+      y: 0,
+      duration,
+      stagger,
+      ease,
+    },
+    position,
+  );
+}
+
+/** Split a string into word tokens for JSX rendering */
+export function splitWords(text: string): { word: string; key: string }[] {
+  return text.split(/\s+/).filter(Boolean).map((word, index) => ({
+    word,
+    key: `${word}-${index}`,
+  }));
+}

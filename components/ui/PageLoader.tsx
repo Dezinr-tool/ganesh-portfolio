@@ -1,6 +1,5 @@
 "use client";
 
-import { mohave } from "@/app/fonts";
 import gsap from "gsap";
 import {
   useCallback,
@@ -64,8 +63,9 @@ async function waitForLoaderFonts(): Promise<void> {
     }
 
     try {
-      await document.fonts.load('700 72px "Mohave"');
-      await document.fonts.load('400 14px "Mohave"');
+      await document.fonts.load('300 72px "Breton"');
+      await document.fonts.load('400 120px "other"');
+      await document.fonts.load('400 16px "Inter"');
     } catch {
       /* font load can fail in strict privacy modes */
     }
@@ -141,22 +141,26 @@ export function PageLoader() {
     if (exitStartedRef.current) return;
     exitStartedRef.current = true;
     markSessionLoaded();
+    document.documentElement.classList.remove("page-loader-active");
     setPhase("hidden");
   }, []);
 
   useLayoutEffect(() => {
     if (readSessionLoaded()) {
+      document.documentElement.classList.remove("page-loader-active");
       // eslint-disable-next-line react-hooks/set-state-in-effect -- avoid loader flash before paint
       setPhase("hidden");
       return;
     }
 
     if (prefersReducedMotion()) {
+      document.documentElement.classList.remove("page-loader-active");
       markSessionLoaded();
       setPhase("hidden");
       return;
     }
 
+    document.documentElement.classList.add("page-loader-active");
     setPhase("active");
   }, []);
 
@@ -316,6 +320,7 @@ export function PageLoader() {
     return () => {
       cancelled = true;
       cleanups.forEach((cleanup) => cleanup());
+      document.documentElement.classList.remove("page-loader-active");
     };
   }, [phase, handleExitComplete]);
 
@@ -324,7 +329,7 @@ export function PageLoader() {
   return (
     <div
       ref={rootRef}
-      className={`page-loader ${mohave.variable}`}
+      className="page-loader"
       role="status"
       aria-live="polite"
       aria-label="Loading site"
