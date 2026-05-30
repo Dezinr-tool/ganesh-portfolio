@@ -84,8 +84,15 @@ async function waitForNextFrame(): Promise<void> {
   });
 }
 
-function cylinderGlyphStyle(index: number, count: number): CSSProperties {
-  const angle = (index / count) * 360;
+const HERO_ARC_DEGREES = 360;
+const SUB_ARC_DEGREES = 360;
+
+function cylinderGlyphStyle(
+  index: number,
+  count: number,
+  arcDegrees: number,
+): CSSProperties {
+  const angle = (index / count) * arcDegrees;
   return {
     transform: `rotateY(${angle}deg) translateZ(var(--glyph-radius)) translate(-50%, -50%)`,
   };
@@ -94,9 +101,11 @@ function cylinderGlyphStyle(index: number, count: number): CSSProperties {
 function CylinderText({
   text,
   glyphClassName,
+  arcDegrees,
 }: {
   text: string;
   glyphClassName: string;
+  arcDegrees: number;
 }) {
   const chars = [...text];
 
@@ -106,7 +115,7 @@ function CylinderText({
         <span
           key={`${index}-${char}`}
           className={`page-loader__glyph ${glyphClassName}`}
-          style={cylinderGlyphStyle(index, chars.length)}
+          style={cylinderGlyphStyle(index, chars.length, arcDegrees)}
           aria-hidden="true"
         >
           {char === " " ? "\u00A0" : char}
@@ -198,7 +207,8 @@ export function PageLoader() {
       counterValueRef.current.value = 0;
       counterEl.textContent = "0%";
 
-      gsap.set([heroGroup, subGroup], { y: "40vh" });
+      gsap.set(root, { y: 0, opacity: 1, overflow: "visible" });
+      gsap.set([heroGroup, subGroup], { y: "100vh" });
       gsap.set(counterEl, { opacity: 0 });
       gsap.set([heroCylinder, subCylinder], { rotateY: 0 });
 
@@ -229,20 +239,15 @@ export function PageLoader() {
         },
       });
 
-      timeline.to(heroGroup, {
-        y: 0,
-        duration: 2.5,
-        delay: 1,
-        ease: "power4.out",
-      });
       timeline.to(
-        subGroup,
+        [heroGroup, subGroup],
         {
           y: 0,
-          duration: 2,
+          duration: 2.5,
+          delay: 1,
           ease: "power4.out",
+          stagger: 0.08,
         },
-        "-=2",
       );
 
       timeline.to(
@@ -269,35 +274,36 @@ export function PageLoader() {
 
       timeline.to(counterEl, {
         opacity: 0,
-        duration: 0.3,
+        duration: 0.35,
+        ease: "power2.out",
+      });
+
+      timeline.add(() => {
+        heroSpin.kill();
+        subSpin.kill();
+        gsap.set(root, { overflow: "hidden" });
       });
 
       timeline.to(
-        subGroup,
+        [heroGroup, subGroup],
         {
-          y: "60vh",
-          duration: 1.2,
+          y: "110vh",
+          duration: 1.1,
           ease: "power4.in",
+          stagger: 0.06,
         },
-        "+=0.1",
+        "+=0.05",
       );
-      timeline.to(
-        heroGroup,
-        {
-          y: "60vh",
-          duration: 1.2,
-          ease: "power4.in",
-        },
-        "-=1.1",
-      );
+
       timeline.to(
         root,
         {
           y: "-100%",
-          duration: 0.9,
+          opacity: 0,
+          duration: 0.85,
           ease: "power4.inOut",
         },
-        "-=0.4",
+        "-=0.55",
       );
 
       cleanups.push(() => {
@@ -337,6 +343,7 @@ export function PageLoader() {
               <CylinderText
                 text={HERO_TEXT}
                 glyphClassName="page-loader__glyph--hero"
+                arcDegrees={HERO_ARC_DEGREES}
               />
             </div>
           </div>
@@ -353,6 +360,7 @@ export function PageLoader() {
               <CylinderText
                 text={SUB_TEXT}
                 glyphClassName="page-loader__glyph--sub"
+                arcDegrees={SUB_ARC_DEGREES}
               />
             </div>
           </div>

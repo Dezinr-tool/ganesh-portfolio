@@ -1,8 +1,8 @@
 .page-loader {
   --loader-bg: #f5f5f5;
   --loader-text: #0a0a0a;
-  --hero-radius: clamp(220px, 32vw, 380px);
-  --sub-radius: clamp(168px, 22vw, 300px);
+  --hero-radius: clamp(180px, 26.2vw, 312px);
+  --sub-radius: clamp(138px, 18vw, 246px);
 
   background-color: var(--loader-bg);
   height: 100dvh;
@@ -13,7 +13,7 @@
   top: 0;
   width: 100%;
   z-index: 100000;
-  will-change: transform;
+  will-change: transform, opacity;
 }
 
 .page-loader__viewport {
@@ -91,7 +91,7 @@
   font-size: clamp(34px, 6.2vw, 76px);
   font-stretch: 95%;
   font-weight: 700;
-  letter-spacing: -0.1em;
+  letter-spacing: 0;
   line-height: 1;
 }
 
@@ -99,7 +99,7 @@
   font-family: var(--font-mohave), Mohave, sans-serif;
   font-size: clamp(9px, 1.05vw, 15px);
   font-weight: 400;
-  letter-spacing: -0.1em;
+  letter-spacing: 0;
   line-height: 1;
   opacity: 0.88;
 }
@@ -127,12 +127,12 @@
 
   .page-loader__glyph--hero {
     font-size: clamp(26px, 7.2vw, 44px);
-    letter-spacing: -0.1em;
+    letter-spacing: 0;
   }
 
   .page-loader__glyph--sub {
     font-size: clamp(8px, 2.4vw, 12px);
-    letter-spacing: -0.09em;
+    letter-spacing: 0;
   }
 
   .page-loader__cylinder-group--hero {
