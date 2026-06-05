@@ -7,12 +7,16 @@
     "dev:clean": "rm -rf .next && next dev --webpack",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "init-db": "tsx scripts/init-db.ts"
   },
   "dependencies": {
     "@gsap/react": "^2.1.2",
+    "@react-pdf/renderer": "^4.5.1",
     "@sanity/image-url": "^2.1.1",
     "@sanity/vision": "^5.28.0",
+    "@vercel/postgres": "^0.10.0",
+    "dotenv": "^17.4.2",
     "framer-motion": "^11.0.0",
     "gsap": "^3.15.0",
     "lenis": "^1.3.23",
@@ -31,6 +35,7 @@
     "eslint": "^9",
     "eslint-config-next": "16.2.6",
     "tailwindcss": "^4",
+    "tsx": "^4.22.4",
     "typescript": "^5"
   }
 }

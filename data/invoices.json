@@ -1,0 +1,27 @@
+[
+  {
+    "id": "7b461996-2598-4aea-af30-e1f9a5eea9eb",
+    "invoiceNumber": "INV-001",
+    "issueDate": "2026-06-05",
+    "dueDate": "2026-07-05",
+    "clientName": "test",
+    "clientEmail": "test@gmail.com",
+    "clientCompany": "sss",
+    "lineItems": [
+      {
+        "id": "a127782b-c1d5-4bc6-941d-7ac2b6e64624",
+        "description": "ss",
+        "quantity": 1,
+        "rate": 1250,
+        "amount": 1250
+      }
+    ],
+    "subtotal": 1250,
+    "taxPercent": null,
+    "taxAmount": 0,
+    "total": 1250,
+    "notes": "ssss",
+    "status": "Unpaid",
+    "createdAt": "2026-06-05T17:37:08.073Z"
+  }
+]
