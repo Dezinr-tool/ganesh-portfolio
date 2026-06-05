@@ -58,6 +58,16 @@ const ALTER_AGREEMENTS_ADD_SIGNATURES = `
   ALTER TABLE agreements ADD COLUMN IF NOT EXISTS client_signature TEXT;
 `;
 
+const CREATE_EA_CALENDAR_TOKENS_TABLE = `
+  CREATE TABLE IF NOT EXISTS ea_calendar_tokens (
+    id TEXT PRIMARY KEY DEFAULT 'default',
+    access_token TEXT,
+    refresh_token TEXT,
+    expiry_date BIGINT,
+    updated_at TIMESTAMPTZ DEFAULT NOW()
+  );
+`;
+
 async function initDb() {
   console.log("Creating invoices table if it doesn't exist…");
   await sql.query(CREATE_INVOICES_TABLE);
@@ -74,6 +84,10 @@ async function initDb() {
   console.log("Adding signature columns to agreements if missing…");
   await sql.query(ALTER_AGREEMENTS_ADD_SIGNATURES);
   console.log("Done. agreements signature columns are ready.");
+
+  console.log("Creating ea_calendar_tokens table if it doesn't exist…");
+  await sql.query(CREATE_EA_CALENDAR_TOKENS_TABLE);
+  console.log("Done. ea_calendar_tokens table is ready.");
 }
 
 initDb().catch((error) => {

@@ -3,8 +3,10 @@ import path from "path";
 import { randomUUID } from "crypto";
 import { google } from "googleapis";
 import type { calendar_v3 } from "googleapis";
+import { sql } from "@/lib/db";
 
 const TOKEN_PATH = path.join(process.cwd(), ".calendar-tokens.json");
+const TOKEN_ROW_ID = "default";
 const IST_TIMEZONE = "Asia/Kolkata";
 
 const SCOPES = ["https://www.googleapis.com/auth/calendar"];
@@ -89,31 +91,100 @@ export function createOAuth2Client() {
 
 export async function loadTokens(): Promise<CalendarTokens | null> {
   try {
-    log("loadTokens: reading", { path: TOKEN_PATH });
-    const raw = await fs.readFile(TOKEN_PATH, "utf8");
-    const tokens = JSON.parse(raw) as CalendarTokens;
-    log("loadTokens: success", {
-      hasAccessToken: !!tokens.access_token,
-      hasRefreshToken: !!tokens.refresh_token,
-      expiryDate: tokens.expiry_date
-        ? new Date(tokens.expiry_date).toISOString()
-        : null,
-    });
-    return tokens;
+    const tokens = await loadTokensFromDb();
+    if (tokens) return tokens;
+
+    return await migrateTokensFromFile();
   } catch (error) {
     log("loadTokens: failed", {
-      path: TOKEN_PATH,
       error: error instanceof Error ? error.message : String(error),
     });
     return null;
   }
 }
 
+async function loadTokensFromDb(): Promise<CalendarTokens | null> {
+  log("loadTokens: reading from database");
+  const { rows } = await sql<{
+    access_token: string | null;
+    refresh_token: string | null;
+    expiry_date: string | null;
+  }>`
+    SELECT access_token, refresh_token, expiry_date
+    FROM ea_calendar_tokens
+    WHERE id = ${TOKEN_ROW_ID}
+    LIMIT 1
+  `;
+
+  if (rows.length === 0) {
+    log("loadTokens: no tokens in database");
+    return null;
+  }
+
+  const row = rows[0];
+  const tokens: CalendarTokens = {
+    access_token: row.access_token,
+    refresh_token: row.refresh_token,
+    expiry_date: row.expiry_date != null ? Number(row.expiry_date) : null,
+  };
+
+  log("loadTokens: success", {
+    hasAccessToken: !!tokens.access_token,
+    hasRefreshToken: !!tokens.refresh_token,
+    expiryDate: tokens.expiry_date
+      ? new Date(tokens.expiry_date).toISOString()
+      : null,
+  });
+
+  return tokens;
+}
+
+async function migrateTokensFromFile(): Promise<CalendarTokens | null> {
+  try {
+    log("loadTokens: checking legacy file", { path: TOKEN_PATH });
+    const raw = await fs.readFile(TOKEN_PATH, "utf8");
+    const tokens = JSON.parse(raw) as CalendarTokens;
+
+    if (!tokens.refresh_token && !tokens.access_token) {
+      return null;
+    }
+
+    log("loadTokens: migrating legacy file tokens to database");
+    await upsertTokens(tokens);
+    return tokens;
+  } catch {
+    return null;
+  }
+}
+
+async function upsertTokens(tokens: CalendarTokens): Promise<void> {
+  await sql`
+    INSERT INTO ea_calendar_tokens (id, access_token, refresh_token, expiry_date, updated_at)
+    VALUES (
+      ${TOKEN_ROW_ID},
+      ${tokens.access_token ?? null},
+      ${tokens.refresh_token ?? null},
+      ${tokens.expiry_date ?? null},
+      NOW()
+    )
+    ON CONFLICT (id) DO UPDATE SET
+      access_token = EXCLUDED.access_token,
+      refresh_token = COALESCE(EXCLUDED.refresh_token, ea_calendar_tokens.refresh_token),
+      expiry_date = EXCLUDED.expiry_date,
+      updated_at = NOW()
+  `;
+}
+
 export async function saveTokens(tokens: CalendarTokens): Promise<void> {
-  const existing = (await loadTokens()) ?? {};
-  const merged = { ...existing, ...tokens };
-  await fs.writeFile(TOKEN_PATH, JSON.stringify(merged, null, 2), "utf8");
-  log("saveTokens: wrote tokens", {
+  const existing = (await loadTokensFromDb()) ?? {};
+  const merged: CalendarTokens = {
+    ...existing,
+    ...tokens,
+    refresh_token: tokens.refresh_token ?? existing.refresh_token ?? null,
+  };
+
+  await upsertTokens(merged);
+  log("saveTokens: wrote tokens to database", {
     hasAccessToken: !!merged.access_token,
     hasRefreshToken: !!merged.refresh_token,
   });
@@ -154,7 +225,7 @@ export async function getAuthenticatedClient() {
   const tokens = await loadTokens();
 
   if (!tokens) {
-    log("getAuthenticatedClient: no tokens file");
+    log("getAuthenticatedClient: no tokens in database");
     return null;
   }
 
