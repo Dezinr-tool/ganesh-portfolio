@@ -21,10 +21,59 @@ const CREATE_INVOICES_TABLE = `
   );
 `;
 
+const CREATE_AGREEMENTS_TABLE = `
+  CREATE TABLE IF NOT EXISTS agreements (
+    id UUID PRIMARY KEY,
+    title TEXT NOT NULL,
+    client_name TEXT NOT NULL,
+    client_company TEXT NOT NULL,
+    client_email TEXT NOT NULL,
+    client_representative TEXT NOT NULL,
+    project_overview TEXT NOT NULL,
+    scope_of_work JSONB NOT NULL,
+    deliverables JSONB NOT NULL,
+    timeline TEXT NOT NULL,
+    hourly_rate NUMERIC(10,2),
+    fixed_cost NUMERIC(10,2),
+    advance_percent INTEGER DEFAULT 50,
+    payment_notes TEXT,
+    status TEXT NOT NULL DEFAULT 'draft',
+    ganesh_signed_at TIMESTAMPTZ,
+    client_signed_at TIMESTAMPTZ,
+    client_sign_token TEXT UNIQUE,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+  );
+`;
+
+const CREATE_SETTINGS_TABLE = `
+  CREATE TABLE IF NOT EXISTS settings (
+    key TEXT PRIMARY KEY,
+    value TEXT NOT NULL,
+    updated_at TIMESTAMPTZ DEFAULT NOW()
+  );
+`;
+
+const ALTER_AGREEMENTS_ADD_SIGNATURES = `
+  ALTER TABLE agreements ADD COLUMN IF NOT EXISTS ganesh_signature TEXT;
+  ALTER TABLE agreements ADD COLUMN IF NOT EXISTS client_signature TEXT;
+`;
+
 async function initDb() {
   console.log("Creating invoices table if it doesn't exist…");
   await sql.query(CREATE_INVOICES_TABLE);
   console.log("Done. invoices table is ready.");
+
+  console.log("Creating agreements table if it doesn't exist…");
+  await sql.query(CREATE_AGREEMENTS_TABLE);
+  console.log("Done. agreements table is ready.");
+
+  console.log("Creating settings table if it doesn't exist…");
+  await sql.query(CREATE_SETTINGS_TABLE);
+  console.log("Done. settings table is ready.");
+
+  console.log("Adding signature columns to agreements if missing…");
+  await sql.query(ALTER_AGREEMENTS_ADD_SIGNATURES);
+  console.log("Done. agreements signature columns are ready.");
 }
 
 initDb().catch((error) => {

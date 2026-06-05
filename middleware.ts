@@ -11,7 +11,10 @@ export async function middleware(request: NextRequest) {
   const isAuthed = await verifyDashboardAuthCookie(cookie);
 
   const requiresAuth =
-    pathname.startsWith("/dashboard") || pathname.startsWith("/api/invoices");
+    pathname.startsWith("/dashboard") ||
+    pathname.startsWith("/api/invoices") ||
+    pathname.startsWith("/api/agreements") ||
+    pathname.startsWith("/api/settings");
 
   if (pathname.startsWith("/dashboard/login")) {
     if (isAuthed) {
@@ -33,5 +36,10 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/dashboard/:path*", "/api/invoices/:path*"],
+  matcher: [
+    "/dashboard/:path*",
+    "/api/invoices/:path*",
+    "/api/agreements/:path*",
+    "/api/settings",
+  ],
 };

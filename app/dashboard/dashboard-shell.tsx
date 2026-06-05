@@ -25,6 +25,12 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
             <Link href="/dashboard/invoices" className="hover:text-white">
               Invoices
             </Link>
+            <Link href="/dashboard/agreements" className="hover:text-white">
+              Agreements
+            </Link>
+            <Link href="/dashboard/settings" className="hover:text-white">
+              Settings
+            </Link>
           </nav>
         </div>
       </header>
