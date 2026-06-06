@@ -30,6 +30,10 @@ const DEFAULT_MESSAGES: ChatMessage[] = [];
 type LangMode = "en" | "hi" | "auto";
 type VoiceState = "idle" | "listening" | "processing" | "speaking";
 
+type WebkitWindow = Window & {
+  webkitAudioContext?: typeof AudioContext;
+};
+
 const SILENCE_MS = 1500;
 
 const EMAIL_PROMPT_PATTERN =
@@ -138,6 +142,9 @@ export default function EAChatPage() {
   const [showEmailInput, setShowEmailInput] = useState(false);
   const [emailInput, setEmailInput] = useState("");
   const [emailError, setEmailError] = useState("");
+  const [autoplayBlocked, setAutoplayBlocked] = useState<Set<number>>(
+    () => new Set(),
+  );
 
   const messagesRef = useRef(messages);
   const recognitionRef = useRef<SpeechRecognitionInstance | null>(null);
@@ -147,8 +154,9 @@ export default function EAChatPage() {
   const voiceModeRef = useRef(false);
   const langRef = useRef(lang);
   const historyRef = useRef<HTMLDivElement>(null);
-  const audioRef = useRef<HTMLAudioElement | null>(null);
-  const audioUrlRef = useRef<string | null>(null);
+  const audioContextRef = useRef<AudioContext | null>(null);
+  const activeSourceRef = useRef<AudioBufferSourceNode | null>(null);
+  const userGestureRef = useRef(false);
   const isBusyRef = useRef(false);
   const voiceStateRef = useRef<VoiceState>("idle");
   const inputRef = useRef<HTMLInputElement>(null);
@@ -241,43 +249,86 @@ export default function EAChatPage() {
   }, [clearSilenceTimer]);
 
   const stopSpeaking = useCallback(() => {
-    if (audioRef.current) {
-      audioRef.current.pause();
-      audioRef.current.currentTime = 0;
-      audioRef.current = null;
-    }
-    if (audioUrlRef.current) {
-      URL.revokeObjectURL(audioUrlRef.current);
-      audioUrlRef.current = null;
+    if (activeSourceRef.current) {
+      try {
+        activeSourceRef.current.stop();
+      } catch {
+        // already stopped
+      }
+      activeSourceRef.current = null;
     }
   }, []);
 
-  const playAudioBlob = useCallback((blob: Blob): Promise<void> => {
-    return new Promise((resolve) => {
-      const url = URL.createObjectURL(blob);
-      audioUrlRef.current = url;
-      const audio = new Audio(url);
-      audioRef.current = audio;
+  const ensureAudioContext = useCallback(async (): Promise<AudioContext | null> => {
+    if (typeof window === "undefined") return null;
 
-      const cleanup = () => {
-        URL.revokeObjectURL(url);
-        audioUrlRef.current = null;
-        audioRef.current = null;
-        resolve();
-      };
+    if (!audioContextRef.current) {
+      const AudioCtx =
+        window.AudioContext ?? (window as WebkitWindow).webkitAudioContext;
+      if (!AudioCtx) return null;
+      audioContextRef.current = new AudioCtx();
+    }
 
-      audio.onended = cleanup;
-      audio.onerror = cleanup;
-      void audio.play().catch(cleanup);
-    });
+    const ctx = audioContextRef.current;
+    if (ctx.state === "suspended") {
+      await ctx.resume();
+    }
+
+    return ctx;
   }, []);
+
+  const markUserGesture = useCallback(async () => {
+    userGestureRef.current = true;
+    await ensureAudioContext();
+  }, [ensureAudioContext]);
+
+  const playAudioBlob = useCallback(
+    async (blob: Blob): Promise<boolean> => {
+      if (!userGestureRef.current) {
+        return false;
+      }
+
+      const ctx = await ensureAudioContext();
+      if (!ctx) return false;
+
+      stopSpeaking();
+
+      try {
+        const arrayBuffer = await blob.arrayBuffer();
+        const audioBuffer = await ctx.decodeAudioData(arrayBuffer);
+
+        return await new Promise<boolean>((resolve) => {
+          const source = ctx.createBufferSource();
+          source.buffer = audioBuffer;
+          source.connect(ctx.destination);
+          activeSourceRef.current = source;
+
+          source.onended = () => {
+            if (activeSourceRef.current === source) {
+              activeSourceRef.current = null;
+            }
+            resolve(true);
+          };
+
+          source.start(0);
+        });
+      } catch {
+        return false;
+      }
+    },
+    [ensureAudioContext, stopSpeaking],
+  );
 
   const speak = useCallback(
-    async (text: string): Promise<void> => {
+    async (text: string): Promise<boolean> => {
       stopSpeaking();
       setVoiceState("speaking");
 
       try {
+        if (userGestureRef.current) {
+          await ensureAudioContext();
+        }
+
         const res = await fetch("/api/ea/speak", {
           method: "POST",
           credentials: "include",
@@ -289,19 +340,50 @@ export default function EAChatPage() {
 
         if (res.ok && contentType.includes("audio")) {
           const blob = await res.blob();
-          await playAudioBlob(blob);
+          return await playAudioBlob(blob);
         }
       } catch {
         // ElevenLabs unavailable — text response still shown, no voice
       }
+
+      return false;
     },
-    [stopSpeaking, playAudioBlob],
+    [stopSpeaking, ensureAudioContext, playAudioBlob],
+  );
+
+  const replayMessage = useCallback(
+    async (text: string, messageIndex: number) => {
+      if (isBusyRef.current) return;
+
+      isBusyRef.current = true;
+      await markUserGesture();
+      setAutoplayBlocked((prev) => {
+        const next = new Set(prev);
+        next.delete(messageIndex);
+        return next;
+      });
+
+      try {
+        const played = await speak(text);
+        if (!played) {
+          setAutoplayBlocked((prev) => new Set(prev).add(messageIndex));
+        }
+      } finally {
+        setVoiceState("idle");
+        isBusyRef.current = false;
+      }
+    },
+    [markUserGesture, speak],
   );
 
   const sendMessage = useCallback(
     async (text: string, fromVoice = false) => {
       const trimmed = text.trim();
       if (!trimmed || isBusyRef.current) return;
+
+      if (fromVoice) {
+        await markUserGesture();
+      }
 
       isBusyRef.current = true;
       voiceModeRef.current = fromVoice;
@@ -368,8 +450,13 @@ export default function EAChatPage() {
         setEmailInput("");
       }
 
+      const assistantIndex = withReply.length - 1;
+
       try {
-        await speak(reply);
+        const played = await speak(reply);
+        if (!played) {
+          setAutoplayBlocked((prev) => new Set(prev).add(assistantIndex));
+        }
       } finally {
         setVoiceState("idle");
         isBusyRef.current = false;
@@ -383,7 +470,7 @@ export default function EAChatPage() {
         }
       }
     },
-    [stopListening, stopSpeaking, speak],
+    [markUserGesture, stopListening, stopSpeaking, speak],
   );
 
   const startListeningRef = useRef<(() => void) | null>(null);
@@ -462,6 +549,7 @@ export default function EAChatPage() {
 
   const handleTextSend = (event?: React.FormEvent | React.KeyboardEvent) => {
     event?.preventDefault();
+    void markUserGesture();
     const value = inputRef.current?.value ?? input;
     const trimmed = value.trim();
     if (!trimmed || isBusyRef.current) return;
@@ -473,6 +561,7 @@ export default function EAChatPage() {
 
   const handleEmailSend = (event?: React.FormEvent | React.KeyboardEvent) => {
     event?.preventDefault();
+    void markUserGesture();
     const trimmed = emailInput.trim();
     if (!trimmed || isBusyRef.current) return;
 
@@ -490,6 +579,7 @@ export default function EAChatPage() {
   };
 
   const toggleMic = () => {
+    void markUserGesture();
     if (showEmailInput) return;
     if (voiceState === "listening") {
       stopListening();
@@ -512,6 +602,8 @@ export default function EAChatPage() {
       clearSilenceTimer();
       recognitionRef.current?.abort();
       stopSpeaking();
+      void audioContextRef.current?.close();
+      audioContextRef.current = null;
     };
   }, [clearSilenceTimer, stopSpeaking]);
 
@@ -618,6 +710,20 @@ export default function EAChatPage() {
                   }`}
                 >
                   {msg.content}
+                  {msg.role === "assistant" ? (
+                    <button
+                      type="button"
+                      onClick={() => void replayMessage(msg.content, i)}
+                      disabled={isProcessing || isSpeaking}
+                      className={`mt-2 block text-xs transition-colors disabled:opacity-40 ${
+                        autoplayBlocked.has(i)
+                          ? "text-amber-400 hover:text-amber-300"
+                          : "text-zinc-600 hover:text-zinc-400"
+                      }`}
+                    >
+                      🔊 Tap to hear
+                    </button>
+                  ) : null}
                 </div>
               </div>
             ))}

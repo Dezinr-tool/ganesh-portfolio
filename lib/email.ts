@@ -21,6 +21,7 @@ export async function sendAgreementToClient(
   await resend.emails.send({
     from: FROM_EMAIL,
     to: clientEmail,
+    replyTo: GANESH_EMAIL,
     subject: `Agreement: ${title}`,
     html: `
       <p>Hi ${clientName},</p>
@@ -40,6 +41,7 @@ export async function sendSignedConfirmationToGanesh(
   await resend.emails.send({
     from: FROM_EMAIL,
     to: GANESH_EMAIL,
+    replyTo: GANESH_EMAIL,
     subject: `Agreement Signed: ${title}`,
     html: `
       <p>Hi Ganesh,</p>
