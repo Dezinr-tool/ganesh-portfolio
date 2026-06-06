@@ -15,19 +15,21 @@ export async function sendAgreementToClient(
   clientName: string,
   title: string,
   token: string,
+  fromEmail?: string,
 ) {
   if (!process.env.RESEND_API_KEY) {
     throw new Error("RESEND_API_KEY is not configured.");
   }
 
-  if (!process.env.RESEND_FROM_EMAIL) {
+  const from = fromEmail ?? process.env.RESEND_FROM_EMAIL;
+  if (!from) {
     throw new Error("RESEND_FROM_EMAIL is not configured.");
   }
 
   const signUrl = `${SITE_URL}/sign/${token}`;
 
   const { data, error } = await resend.emails.send({
-    from: process.env.RESEND_FROM_EMAIL,
+    from,
     to: clientEmail,
     replyTo: GANESH_EMAIL,
     subject: `Agreement: ${title}`,

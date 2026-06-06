@@ -38,6 +38,7 @@ export async function POST(
       agreement.clientName,
       agreement.title,
       agreement.clientSignToken,
+      "onboarding@resend.dev", // TODO: revert to RESEND_FROM_EMAIL after testing
     );
 
     return NextResponse.json(agreement);
