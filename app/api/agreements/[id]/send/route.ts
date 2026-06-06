@@ -34,7 +34,7 @@ export async function POST(
     }
 
     await sendAgreementToClient(
-      agreement.clientEmail,
+      "ganeshdesigncraft@icloud.com", // TODO: revert to agreement.clientEmail after testing
       agreement.clientName,
       agreement.title,
       agreement.clientSignToken,
