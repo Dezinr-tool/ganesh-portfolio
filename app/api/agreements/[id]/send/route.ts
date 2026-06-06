@@ -43,9 +43,10 @@ export async function POST(
     return NextResponse.json(agreement);
   } catch (error) {
     console.error("Failed to send agreement:", error);
-    return NextResponse.json(
-      { error: "Failed to send agreement to client." },
-      { status: 500 },
-    );
+    const message =
+      error instanceof Error
+        ? error.message
+        : "Failed to send agreement to client.";
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }
