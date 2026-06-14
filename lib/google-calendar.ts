@@ -140,12 +140,11 @@ export function getCalendarOAuthRedirectUri(origin?: string): string {
     return `${protocol}//${host}/api/ea/calendar/callback`;
   }
 
-  if (origin && isProductionSiteOrigin(origin)) {
-    const { protocol, hostname } = new URL(origin);
-    return `${protocol}//${hostname}/api/ea/calendar/callback`;
-  }
-
-  if (process.env.VERCEL_ENV === "production") {
+  // Production: always use canonical www URI (must match Google Console exactly).
+  if (
+    process.env.VERCEL_ENV === "production" ||
+    (origin && isProductionSiteOrigin(origin))
+  ) {
     return PRODUCTION_CALENDAR_OAUTH_REDIRECT_URIS[0];
   }
 
