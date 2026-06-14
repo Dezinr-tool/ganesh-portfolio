@@ -277,13 +277,16 @@ export async function signAsGanesh(
   return row ? rowToAgreement(row) : null;
 }
 
-export async function sendToClient(id: string): Promise<Agreement | null> {
-  const token = uuidv4();
+export async function sendToClient(
+  id: string,
+  token?: string,
+): Promise<Agreement | null> {
+  const signToken = token ?? uuidv4();
 
   const { rows } = await sql<AgreementRow>`
     UPDATE agreements
     SET
-      client_sign_token = ${token},
+      client_sign_token = ${signToken},
       status = 'sent'
     WHERE id = ${id}
     RETURNING

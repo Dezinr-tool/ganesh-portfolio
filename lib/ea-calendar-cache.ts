@@ -2,49 +2,54 @@ import {
   getTodayEventsContext,
   isCalendarConnected,
 } from "@/lib/google-calendar";
+import { deleteCached, getCached, setCache } from "@/lib/calendarCache";
 
-const CONNECTION_TTL_MS = 5 * 60 * 1000;
-const EVENTS_TTL_MS = 2 * 60 * 1000;
+function connectionKey(sessionId: string): string {
+  return `calendar:connected:${sessionId}`;
+}
 
-let connectionCache: { value: boolean; expiresAt: number } | null = null;
-let eventsCache: { value: string | null; expiresAt: number } | null = null;
+function eventsKey(sessionId: string): string {
+  return `calendar:events:${sessionId}`;
+}
 
-export async function getCachedCalendarConnected(): Promise<boolean> {
-  const now = Date.now();
+export async function getCachedCalendarConnected(
+  sessionId: string,
+): Promise<boolean> {
+  const key = connectionKey(sessionId);
+  const cached = getCached<boolean>(key);
+  if (cached !== null) return cached;
 
-  if (connectionCache && connectionCache.expiresAt > now) {
-    return connectionCache.value;
-  }
-
-  const value = await isCalendarConnected();
-  connectionCache = { value, expiresAt: now + CONNECTION_TTL_MS };
+  const value = await isCalendarConnected(sessionId);
+  setCache(key, value);
   return value;
 }
 
 export async function getCachedCalendarEventsContext(
+  sessionId: string,
   forceFresh = false,
 ): Promise<string | null> {
-  const now = Date.now();
+  const key = eventsKey(sessionId);
 
-  if (!forceFresh && eventsCache && eventsCache.expiresAt > now) {
-    return eventsCache.value;
+  if (!forceFresh) {
+    const cached = getCached<string | null>(key);
+    if (cached !== null) return cached;
   }
 
-  const connected = await getCachedCalendarConnected();
+  const connected = await getCachedCalendarConnected(sessionId);
   if (!connected) {
-    eventsCache = { value: null, expiresAt: now + EVENTS_TTL_MS };
+    setCache(key, null);
     return null;
   }
 
-  const value = await getTodayEventsContext();
-  eventsCache = { value, expiresAt: now + EVENTS_TTL_MS };
+  const value = await getTodayEventsContext(sessionId);
+  setCache(key, value);
   return value;
 }
 
-export function invalidateCalendarEventsCache(): void {
-  eventsCache = null;
+export function invalidateCalendarEventsCache(sessionId: string): void {
+  deleteCached(eventsKey(sessionId));
 }
 
-export function invalidateCalendarConnectionCache(): void {
-  connectionCache = null;
+export function invalidateCalendarConnectionCache(sessionId: string): void {
+  deleteCached(connectionKey(sessionId));
 }

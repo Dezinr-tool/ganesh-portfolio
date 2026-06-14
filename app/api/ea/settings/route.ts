@@ -17,7 +17,6 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const settings = await saveEASettings({ eaName: body.eaName });
 
-    console.log("[ea/settings POST] saved:", settings);
     return NextResponse.json(settings);
   } catch (error) {
     console.error("[ea/settings POST] error:", error);

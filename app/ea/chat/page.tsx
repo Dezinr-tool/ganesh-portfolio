@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
 import { EANav } from "../_components/ea-nav";
 import {
   loadChatMessages,
@@ -8,6 +9,12 @@ import {
   saveChatMessages,
 } from "@/lib/ea-client-storage";
 import { DEFAULT_EA_NAME } from "@/lib/ea-settings-helpers";
+import { extractMemoriesFromMessage } from "@/lib/memory-extractor";
+import {
+  isGreetingMessage,
+  hasSchedulingIntent,
+  shouldShowGuestEmailInput,
+} from "@/lib/ea-scheduling-ui";
 
 type ChatMessage = {
   role: "user" | "assistant";
@@ -30,27 +37,18 @@ const DEFAULT_MESSAGES: ChatMessage[] = [];
 type LangMode = "en" | "hi" | "auto";
 type VoiceState = "idle" | "listening" | "processing" | "speaking";
 
+type MemoryItem = {
+  id: string;
+  content: string;
+  category: string;
+  createdAt: string;
+};
+
 type WebkitWindow = Window & {
   webkitAudioContext?: typeof AudioContext;
 };
 
 const SILENCE_MS = 1500;
-
-const EMAIL_PROMPT_PATTERN =
-  /\b(email address|email id|attendee email|guest email|their email|recipient email|invite email|ईमेल|email do|email bhej|email bhejo|email share)\b/i;
-
-function isAskingForEmail(text: string): boolean {
-  const normalized = text.toLowerCase();
-  if (EMAIL_PROMPT_PATTERN.test(normalized)) return true;
-
-  return (
-    /\bemail\b/i.test(text) &&
-    (/\?/.test(text) ||
-      /\b(what|which|need|share|send|enter|type|provide|give|batao|dedo)\b/i.test(
-        normalized,
-      ))
-  );
-}
 
 function isValidEmail(value: string): boolean {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim());
@@ -130,13 +128,15 @@ function WaveformBars() {
 }
 
 export default function EAChatPage() {
+  const router = useRouter();
   const [messages, setMessages] = useState<ChatMessage[]>(DEFAULT_MESSAGES);
   const [hydrated, setHydrated] = useState(false);
   const [lang, setLang] = useState<LangMode>("auto");
   const [voiceState, setVoiceState] = useState<VoiceState>("idle");
   const [liveTranscript, setLiveTranscript] = useState("");
   const [input, setInput] = useState("");
-  const [speechSupported, setSpeechSupported] = useState(true);
+  const [mounted, setMounted] = useState(false);
+  const [speechSupported, setSpeechSupported] = useState(false);
   const [calendarConfirmation, setCalendarConfirmation] =
     useState<CalendarEventCreated | null>(null);
   const [showEmailInput, setShowEmailInput] = useState(false);
@@ -145,6 +145,12 @@ export default function EAChatPage() {
   const [autoplayBlocked, setAutoplayBlocked] = useState<Set<number>>(
     () => new Set(),
   );
+  const [showVoiceBanner, setShowVoiceBanner] = useState(false);
+  const [voiceEnabled, setVoiceEnabled] = useState(false);
+  const [memoryCount, setMemoryCount] = useState(0);
+  const [showMemoryPanel, setShowMemoryPanel] = useState(false);
+  const [memories, setMemories] = useState<MemoryItem[]>([]);
+  const [memoryLoading, setMemoryLoading] = useState(false);
 
   const messagesRef = useRef(messages);
   const recognitionRef = useRef<SpeechRecognitionInstance | null>(null);
@@ -154,6 +160,7 @@ export default function EAChatPage() {
   const voiceModeRef = useRef(false);
   const langRef = useRef(lang);
   const historyRef = useRef<HTMLDivElement>(null);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
   const audioContextRef = useRef<AudioContext | null>(null);
   const activeSourceRef = useRef<AudioBufferSourceNode | null>(null);
   const userGestureRef = useRef(false);
@@ -166,6 +173,92 @@ export default function EAChatPage() {
   useEffect(() => {
     messagesRef.current = messages;
   }, [messages]);
+
+  useEffect(() => {
+    const timer = window.setTimeout(() => {
+      setMounted(true);
+      setSpeechSupported(!!getSpeechRecognition());
+      setShowVoiceBanner(/iPhone|iPad|iPod|Android/i.test(navigator.userAgent));
+    }, 0);
+    return () => window.clearTimeout(timer);
+  }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    void (async () => {
+      try {
+        const res = await fetch("/api/ea/profile", { credentials: "include" });
+        if (!res.ok || cancelled) return;
+        const data = await res.json();
+        if (data.needsOnboarding && !cancelled) {
+          router.replace("/ea/onboarding");
+        }
+      } catch {
+        // Profile API unavailable — chat works with default profile
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [router]);
+
+  const loadMemories = useCallback(async () => {
+    setMemoryLoading(true);
+    try {
+      const res = await fetch("/api/ea/memory?limit=20", {
+        credentials: "include",
+      });
+      if (!res.ok) return;
+      const data = await res.json();
+      setMemories(Array.isArray(data.memories) ? data.memories : []);
+      setMemoryCount(typeof data.count === "number" ? data.count : 0);
+    } catch {
+      // keep existing count
+    } finally {
+      setMemoryLoading(false);
+    }
+  }, []);
+
+  const persistImportantMemories = useCallback(
+    async (userText: string, assistantText: string) => {
+      const extracted = extractMemoriesFromMessage(userText, assistantText);
+      if (extracted.length === 0) return;
+
+      await Promise.all(
+        extracted.map((memory) =>
+          fetch("/api/ea/memory", {
+            method: "POST",
+            credentials: "include",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              content: memory.content,
+              category: memory.category,
+              source: "conversation",
+              importance: memory.importance,
+            }),
+          }),
+        ),
+      );
+    },
+    [],
+  );
+
+  const handleDeleteMemory = useCallback(
+    async (id: string) => {
+      try {
+        const res = await fetch(`/api/ea/memory/${id}`, {
+          method: "DELETE",
+          credentials: "include",
+        });
+        if (res.ok) void loadMemories();
+      } catch {
+        // ignore
+      }
+    },
+    [loadMemories],
+  );
 
   useEffect(() => {
     let cancelled = false;
@@ -184,28 +277,52 @@ export default function EAChatPage() {
 
       if (cancelled) return;
 
-      const stored = loadChatMessages<ChatMessage>();
-      if (stored) {
-        setMessages(stored);
-        messagesRef.current = stored;
+      let loaded: ChatMessage[] | null = null;
+
+      try {
+        const convRes = await fetch("/api/ea/conversations", {
+          credentials: "include",
+        });
+        if (convRes.ok) {
+          const convData = await convRes.json();
+          if (Array.isArray(convData.messages) && convData.messages.length > 0) {
+            loaded = convData.messages as ChatMessage[];
+          }
+        }
+      } catch {
+        // fall back to localStorage
+      }
+
+      if (cancelled) return;
+
+      if (loaded) {
+        setMessages(loaded);
+        messagesRef.current = loaded;
       } else {
-        const initial = [
-          {
-            role: "assistant" as const,
-            content: `Hi Ganesh — I'm ${name}, your Executive Assistant. Tap the mic to speak.`,
-          },
-        ];
-        setMessages(initial);
-        messagesRef.current = initial;
+        const stored = loadChatMessages<ChatMessage>();
+        if (stored) {
+          setMessages(stored);
+          messagesRef.current = stored;
+        } else {
+          const initial = [
+            {
+              role: "assistant" as const,
+              content: `Hi Ganesh — I'm ${name}, your Executive Assistant. Tap the mic to speak.`,
+            },
+          ];
+          setMessages(initial);
+          messagesRef.current = initial;
+        }
       }
       setHydrated(true);
+      void loadMemories();
     }
 
     void loadSettingsAndMessages();
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [loadMemories]);
 
   useEffect(() => {
     if (!hydrated) return;
@@ -225,14 +342,10 @@ export default function EAChatPage() {
   }, [showEmailInput]);
 
   useEffect(() => {
-    setSpeechSupported(!!getSpeechRecognition());
-  }, []);
-
-  useEffect(() => {
-    historyRef.current?.scrollTo({
-      top: historyRef.current.scrollHeight,
-      behavior: "smooth",
+    const frame = requestAnimationFrame(() => {
+      messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
     });
+    return () => cancelAnimationFrame(frame);
   }, [messages, liveTranscript, voiceState]);
 
   const clearSilenceTimer = useCallback(() => {
@@ -279,6 +392,8 @@ export default function EAChatPage() {
 
   const markUserGesture = useCallback(async () => {
     userGestureRef.current = true;
+    setVoiceEnabled(true);
+    setShowVoiceBanner(false);
     await ensureAudioContext();
   }, [ensureAudioContext]);
 
@@ -381,6 +496,36 @@ export default function EAChatPage() {
       const trimmed = text.trim();
       if (!trimmed || isBusyRef.current) return;
 
+      if (trimmed === "/clear") {
+        isBusyRef.current = true;
+        try {
+          await fetch("/api/ea/conversations/clear", {
+            method: "DELETE",
+            credentials: "include",
+          });
+          const cleared = [
+            {
+              role: "assistant" as const,
+              content: "Conversation history cleared.",
+            },
+          ];
+          setMessages(cleared);
+          messagesRef.current = cleared;
+          saveChatMessages(cleared);
+        } catch {
+          setMessages([
+            {
+              role: "assistant" as const,
+              content: "Could not clear history. Try again.",
+            },
+          ]);
+        } finally {
+          setInput("");
+          isBusyRef.current = false;
+        }
+        return;
+      }
+
       if (fromVoice) {
         await markUserGesture();
       }
@@ -396,6 +541,13 @@ export default function EAChatPage() {
       const userMessage: ChatMessage = { role: "user", content: trimmed };
       const history = messagesRef.current;
       const nextMessages = [...history, userMessage];
+
+      if (isGreetingMessage(trimmed)) {
+        setShowEmailInput(false);
+        setEmailInput("");
+        setEmailError("");
+        setCalendarConfirmation(null);
+      }
 
       setMessages(nextMessages);
       setInput("");
@@ -426,9 +578,22 @@ export default function EAChatPage() {
           notifyCalendarUpdated();
         } else if (res.ok && data.calendarPending) {
           setTimeout(() => notifyCalendarUpdated(), 3000);
+        } else if (!hasSchedulingIntent(trimmed)) {
+          setCalendarConfirmation(null);
         }
+
+        if (res.ok) {
+          await persistImportantMemories(trimmed, reply);
+          await loadMemories();
+        }
+
+        askingForEmail =
+          res.ok &&
+          (data.needsGuestEmail === true ||
+            shouldShowGuestEmailInput(history, trimmed, reply));
       } catch {
         reply = "Connection error. Please try again.";
+        askingForEmail = false;
       }
 
       const withReply = [
@@ -438,15 +603,13 @@ export default function EAChatPage() {
       setMessages(withReply);
       messagesRef.current = withReply;
 
-      askingForEmail = isAskingForEmail(reply);
       setShowEmailInput(askingForEmail);
       setEmailError("");
       if (askingForEmail) {
         voiceModeRef.current = false;
         stopListening();
         setTimeout(() => emailInputRef.current?.focus(), 100);
-      } else if (isValidEmail(trimmed)) {
-        setShowEmailInput(false);
+      } else {
         setEmailInput("");
       }
 
@@ -470,7 +633,7 @@ export default function EAChatPage() {
         }
       }
     },
-    [markUserGesture, stopListening, stopSpeaking, speak],
+    [markUserGesture, stopListening, stopSpeaking, speak, loadMemories, persistImportantMemories],
   );
 
   const startListeningRef = useRef<(() => void) | null>(null);
@@ -512,6 +675,7 @@ export default function EAChatPage() {
       }
       setLiveTranscript(transcriptRef.current + interim);
       latestTranscriptRef.current = transcriptRef.current + interim;
+      setInput(transcriptRef.current + interim);
 
       clearSilenceTimer();
       silenceTimerRef.current = setTimeout(() => {
@@ -545,7 +709,9 @@ export default function EAChatPage() {
     }
   }, [stopListening, stopSpeaking, clearSilenceTimer, sendMessage]);
 
-  startListeningRef.current = startListening;
+  useEffect(() => {
+    startListeningRef.current = startListening;
+  }, [startListening]);
 
   const handleTextSend = (event?: React.FormEvent | React.KeyboardEvent) => {
     event?.preventDefault();
@@ -612,7 +778,7 @@ export default function EAChatPage() {
   const isProcessing = voiceState === "processing";
 
   return (
-    <div className="flex h-screen flex-col bg-black text-zinc-100">
+    <div className="flex h-screen min-h-0 flex-col bg-black text-zinc-100">
       <style>{`
         @keyframes waveform {
           0%, 100% { height: 20%; }
@@ -624,30 +790,116 @@ export default function EAChatPage() {
         }
       `}</style>
 
-      <EANav />
-
-      {/* Language selector */}
-      <div className="mx-auto flex w-full max-w-lg items-center justify-center gap-1 px-6 pt-4">
-        {(["en", "hi", "auto"] as const).map((code) => (
-          <button
-            key={code}
-            type="button"
-            onClick={() => setLang(code)}
-            className={`rounded-full px-4 py-1 text-xs font-medium uppercase tracking-wide transition-colors ${
-              lang === code
-                ? "bg-white text-black"
-                : "text-zinc-500 hover:text-zinc-300"
-            }`}
-          >
-            {code}
-          </button>
-        ))}
+      <div className="shrink-0">
+        <EANav />
       </div>
 
-      <div className="mx-auto flex w-full max-w-lg flex-1 flex-col overflow-hidden px-6 pb-4">
+      <div className="mx-auto flex w-full min-h-0 max-w-lg flex-1 flex-col px-6 pb-4">
+      {mounted && showVoiceBanner && !voiceEnabled ? (
+        <button
+          type="button"
+          onClick={() => void markUserGesture()}
+          className="mx-auto mt-3 flex w-full max-w-lg shrink-0 items-center justify-center gap-2 rounded-xl border border-amber-500/40 bg-amber-500/10 px-4 py-3 text-sm font-medium text-amber-300 transition-colors hover:bg-amber-500/20"
+        >
+          🔊 Tap to enable voice
+        </button>
+      ) : null}
+
+      {/* Language selector */}
+      <div className="mx-auto flex w-full max-w-lg shrink-0 items-center justify-between gap-2 pt-4">
+        <button
+          type="button"
+          onClick={() => {
+            setShowMemoryPanel(true);
+            void loadMemories();
+          }}
+          className="rounded-full border border-zinc-800 bg-zinc-900/80 px-3 py-1 text-xs text-zinc-400 transition-colors hover:border-zinc-700 hover:text-zinc-200"
+        >
+          🧠 {memoryCount} {memoryCount === 1 ? "memory" : "memories"}
+        </button>
+        <div className="flex items-center gap-1">
+          {(["en", "hi", "auto"] as const).map((code) => (
+            <button
+              key={code}
+              type="button"
+              onClick={() => setLang(code)}
+              className={`rounded-full px-4 py-1 text-xs font-medium uppercase tracking-wide transition-colors ${
+                lang === code
+                  ? "bg-white text-black"
+                  : "text-zinc-500 hover:text-zinc-300"
+              }`}
+            >
+              {code}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {showMemoryPanel ? (
+        <>
+          <button
+            type="button"
+            aria-label="Close memories"
+            className="fixed inset-0 z-40 bg-black/60"
+            onClick={() => setShowMemoryPanel(false)}
+          />
+          <div className="fixed inset-x-0 bottom-0 z-50 mx-auto max-h-[70vh] w-full max-w-lg overflow-y-auto rounded-t-2xl border border-zinc-800 bg-zinc-950 p-4 shadow-2xl">
+            <div className="mb-4 flex items-center justify-between">
+              <h2 className="text-sm font-medium text-white">Saved memories</h2>
+              <button
+                type="button"
+                onClick={() => setShowMemoryPanel(false)}
+                className="text-xs text-zinc-500 hover:text-zinc-300"
+              >
+                Close
+              </button>
+            </div>
+            {memoryLoading ? (
+              <p className="text-sm text-zinc-500">Loading…</p>
+            ) : memories.length === 0 ? (
+              <p className="text-sm text-zinc-500">
+                No memories yet. Tell Virtual EA to remember something, or add one in
+                Settings.
+              </p>
+            ) : (
+              <ul className="space-y-3">
+                {memories.map((memory) => (
+                  <li
+                    key={memory.id}
+                    className="rounded-xl border border-zinc-800 bg-black/40 p-3"
+                  >
+                    <div className="flex items-start justify-between gap-2">
+                      <p className="text-sm text-zinc-200">{memory.content}</p>
+                      <button
+                        type="button"
+                        onClick={() => void handleDeleteMemory(memory.id)}
+                        className="shrink-0 text-xs text-zinc-500 hover:text-red-400"
+                      >
+                        Delete
+                      </button>
+                    </div>
+                    <div className="mt-2 flex items-center gap-2">
+                      <span className="rounded-full bg-zinc-800 px-2 py-0.5 text-[10px] uppercase tracking-wide text-zinc-400">
+                        {memory.category}
+                      </span>
+                      <span className="text-[10px] text-zinc-600">
+                        {new Date(memory.createdAt).toLocaleDateString("en-IN", {
+                          month: "short",
+                          day: "numeric",
+                        })}
+                      </span>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+        </>
+      ) : null}
+
         {/* Calendar confirmation */}
         {calendarConfirmation ? (
-          <div className="mb-4 rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-4 py-3">
+          <div className="mb-4 shrink-0 rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-4 py-3">
             <p className="text-xs font-medium uppercase tracking-wide text-emerald-400">
               Meeting scheduled
             </p>
@@ -694,7 +946,9 @@ export default function EAChatPage() {
         {/* Conversation history */}
         <div
           ref={historyRef}
-          className="min-h-0 flex-1 overflow-y-auto py-4 scrollbar-thin"
+          data-lenis-prevent
+          className="relative z-10 h-0 min-h-0 flex-1 touch-pan-y overflow-y-auto overscroll-y-contain py-4 [-webkit-overflow-scrolling:touch]"
+          style={{ overflowY: "auto" }}
         >
           <div className="space-y-3">
             {messages.map((msg, i) => (
@@ -737,28 +991,30 @@ export default function EAChatPage() {
                 </div>
               </div>
             ) : null}
+            <div ref={messagesEndRef} aria-hidden="true" className="h-px shrink-0" />
           </div>
         </div>
 
+        <div className="shrink-0">
         {/* Live transcript */}
         <div className="mb-4 min-h-[2.5rem] text-center">
-          {isListening && liveTranscript ? (
+          {mounted && isListening && liveTranscript ? (
             <p className="text-base font-light text-white/90">{liveTranscript}</p>
-          ) : isListening ? (
+          ) : mounted && isListening ? (
             <p className="text-sm text-zinc-600">Listening…</p>
           ) : null}
         </div>
 
         {/* Mic button */}
         <div className="flex flex-col items-center pb-6">
-          {!speechSupported ? (
+          {mounted && !speechSupported ? (
             <p className="mb-4 text-center text-xs text-zinc-500">
               Voice not supported in this browser. Use text input below.
             </p>
           ) : null}
 
           <div className="relative flex h-36 w-36 items-center justify-center">
-            {isListening ? (
+            {mounted && isListening ? (
               <>
                 <span
                   className="absolute inset-0 rounded-full border border-white/20"
@@ -804,9 +1060,9 @@ export default function EAChatPage() {
           <p className="mt-4 text-xs text-zinc-600">
             {showEmailInput
               ? "Type the email below — voice won't work for email addresses"
-              : isListening
+              : mounted && isListening
               ? "Speak — I'll send when you pause"
-              : isSpeaking
+              : mounted && isSpeaking
                 ? "EA is speaking"
                 : isProcessing
                   ? "Thinking…"
@@ -883,6 +1139,7 @@ export default function EAChatPage() {
             </button>
           </div>
         </form>
+        </div>
       </div>
     </div>
   );

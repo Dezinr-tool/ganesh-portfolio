@@ -1,48 +1,105 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Virtual EA
 
-## Getting Started
+AI-powered executive assistant. Lives at [designbyganesh.com/ea](https://designbyganesh.com/ea)
 
-First, run the development server:
+Virtual EA handles chat, calendar scheduling, meeting summaries, action items, AI memory, and voice — built on Next.js, Neon Postgres, Anthropic Claude, Google Calendar, ElevenLabs, and Resend.
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+The default assistant name is **Virtual EA** — users can customize it in Settings.
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+---
 
-Keep the terminal running while you browse — closing it stops the server and the browser will show `ERR_CONNECTION_REFUSED`.
+## Local setup
 
-### Local dev troubleshooting
+1. Clone the repo
+2. `cp .env.example .env.local`
+3. Fill in env vars (see lists below)
+4. `npm install`
+5. `npm run db:init`
+6. `npm run dev`
 
-If you see **connection refused**, **500**, or missing `.next` manifest errors:
+Open [http://localhost:3000/ea/login](http://localhost:3000/ea/login) and sign in with `EA_PASSWORD`.
 
-1. Stop any old dev servers: `lsof -ti:3000 | xargs kill -9`
-2. Clear the cache: `rm -rf .next`
-3. Start again: `npm run dev` (uses webpack; do not use bare `next dev` with Turbopack on this project)
+---
 
-If port 3000 is taken, Next.js may use another port (e.g. 3003) — check the terminal output and open that URL.
+## Required env vars
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+| Variable | Description |
+|----------|-------------|
+| `ANTHROPIC_API_KEY` | Claude API — chat, meeting analysis, follow-up drafts |
+| `DATABASE_URL` | Neon Postgres connection string |
+| `EA_PASSWORD` | Password for `/ea/login` (legacy single-user auth) |
+| `ELEVENLABS_API_KEY` | Text-to-speech for Virtual EA voice output |
+| `RESEND_API_KEY` | Transactional email (agreements, follow-ups) |
+| `GOOGLE_CLIENT_ID` | Google OAuth — Calendar sync |
+| `GOOGLE_CLIENT_SECRET` | Google OAuth — Calendar sync |
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+---
 
-## Learn More
+## Optional env vars
 
-To learn more about Next.js, take a look at the following resources:
+| Variable | Enables |
+|----------|---------|
+| `OPENAI_API_KEY` | Whisper audio transcription (mock transcript if missing) |
+| `STRIPE_SECRET_KEY` | Stripe checkout (billing currently disabled in app) |
+| `STRIPE_WEBHOOK_SECRET` | Stripe webhook handler |
+| `STRIPE_STARTER_PRICE_ID` | Starter plan checkout |
+| `STRIPE_PRO_PRICE_ID` | Pro plan checkout |
+| `RESEND_FROM_EMAIL` | Custom sender address (defaults to `onboarding@resend.dev`) |
+| `NEXT_PUBLIC_SITE_URL` | OAuth redirects and email links (e.g. `https://designbyganesh.com`) |
+| `DASHBOARD_PASSWORD` | Portfolio admin dashboard at `/dashboard` |
+| `NEXT_PUBLIC_SANITY_PROJECT_ID` | Sanity CMS for portfolio content |
+| `NEXT_PUBLIC_SANITY_DATASET` | Sanity dataset (default: `production`) |
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Run `npm run check-env` to verify your `.env.local` before deploy.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+---
 
-## Deploy on Vercel
+## Scripts
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+| Command | Description |
+|---------|-------------|
+| `npm run dev` | Start dev server |
+| `npm run build` | Production build |
+| `npm run lint` | ESLint |
+| `npm run check-env` | Validate required env vars |
+| `npm run db:init` | Create all database tables (run once per environment) |
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+---
+
+## Deploy to Vercel
+
+1. Push to GitHub
+2. Connect the repo in [Vercel](https://vercel.com)
+3. Add all env vars in the Vercel dashboard (copy from `.env.example`)
+4. Deploy — then run `npm run db:init` once against the production `DATABASE_URL`
+5. In Google Cloud Console, add the production OAuth redirect URI:
+   - `https://your-domain.com/api/ea/calendar/callback`
+
+---
+
+## Vercel deploy checklist
+
+- [ ] All required env vars added
+- [ ] Google OAuth redirect URI updated to production URL
+- [ ] Resend domain verified for production `RESEND_FROM_EMAIL`
+- [ ] `npm run db:init` run on production DB
+- [ ] `npm run check-env` passes locally with production values
+- [ ] Test login → chat flow at `/ea/login`
+- [ ] Test Google Calendar connect from `/ea/dashboard`
+- [ ] Test voice on mobile (tap to enable audio)
+
+---
+
+## Project structure
+
+| Path | Purpose |
+|------|---------|
+| `app/ea/` | Virtual EA UI — chat, dashboard, meetings, settings |
+| `app/max/` | Marketing landing, privacy, terms |
+| `app/api/ea/` | EA API routes |
+| `lib/agents/` | Agent router (calendar, chat, meeting_analysis) |
+| `lib/memory-store.ts` | AI memory persistence |
+| `lib/google-calendar.ts` | Calendar OAuth + events |
+| `scripts/` | DB init + env check scripts |
+
+Portfolio pages (`/`, `/dashboard`, Sanity studio) live alongside Virtual EA under the same Next.js app.

@@ -3,6 +3,9 @@ import { after, NextRequest, NextResponse } from "next/server";
 import type { CalendarEventItem } from "@/lib/google-calendar";
 import {
   createCalendarEvent,
+  findConflictingEvents,
+  formatEventTime,
+  getDailyBriefing,
   mergeAttendeeEmails,
   normalizeDateTime,
 } from "@/lib/google-calendar";
@@ -12,31 +15,30 @@ import {
   invalidateCalendarEventsCache,
 } from "@/lib/ea-calendar-cache";
 import { loadEASettings } from "@/lib/ea-settings";
-
-const MODEL = "claude-haiku-4-5";
-
-const BASE_SYSTEM_PROMPT = `You are Ganesh's personal executive assistant. He is a Design Manager at Brucira with 8+ years experience. You help with scheduling, meeting prep, follow-ups, tasks, and quick strategic thinking.
-
-## How you talk
-- Sound like a real person, not a bot. Warm, friendly, proactive, and energetic.
-- Use conversational Indian English — natural, relaxed, and human.
-- Start with quick acknowledgments when it fits: "Sure!", "Got it!", "Absolutely!", "On it!", "Haan, done!"
-- Sprinkle light Hinglish naturally when it feels right — e.g. "bilkul", "haan", "theek hai" — but don't overdo it.
-- Keep it short and punchy. Simple queries: 2–3 sentences max. No walls of text.
-- Never sound robotic, stiff, or overly formal. No corporate jargon unless Ganesh uses it first.
-- Be helpful and a step ahead — suggest the obvious next move when useful.
-
-## Voice vs text (important)
-Ganesh sees your full reply on screen, but only the first 1–2 sentences are read aloud. Keep your spoken part under 20 words total.
-- Sentence 1: quick confirmation (e.g. "Done! Meeting scheduled." or "Sure — what's their email?")
-- Sentence 2 (optional): one key detail only (e.g. "Meet link sent to rahul@gmail.com.")
-- Put all other details in the text — times, dates, bullet lists, full Meet URLs, guest lists — these show on screen but are NOT read aloud.
-- When asking for an email address, ask clearly in one short sentence so the email input field appears.
-
-## Calendar & scheduling
-When the user asks to schedule a meeting or block time, you MUST call the create_calendar_event tool — never claim a meeting is scheduled unless the tool was called. The tool queues the event instantly; confirm scheduling in your reply but never invent a Google Meet link (it appears on their calendar shortly). Use ISO 8601 datetimes in Asia/Kolkata timezone (e.g. 2026-06-06T15:00:00+05:30). Default meeting duration is 30 minutes unless specified otherwise.
-
-When scheduling with other people, include attendee emails in the attendees field. Extract emails from the conversation (e.g. "call with rahul@gmail.com" → add rahul@gmail.com). If someone wants a meeting with another person but hasn't given an email, ask for it before calling create_calendar_event. Solo focus blocks or personal reminders don't need attendees.`;
+import { AGENTS, routeMessage, type AgentKey } from "@/lib/agents/router";
+import { getSystemPrompt, isCoachModeQuery, type ChatAgentKey } from "@/src/lib/ea/personality";
+import {
+  getEffectiveUserProfile,
+  logMessageSentiment,
+} from "@/src/lib/ea/userProfile";
+import { resolveEaSessionId } from "@/lib/ea-api-auth";
+import { saveConversationMessage } from "@/lib/ea-conversations-store";
+import { extractMemoriesFromMessage } from "@/lib/memory-extractor";
+import { getRecentMemories, saveMemory } from "@/lib/memory-store";
+import {
+  generateWeeklyInsights,
+  formatGeneratedWeeklyForPrompt,
+} from "@/lib/insights-generator";
+import {
+  loadGaneshContextForPrompt,
+} from "@/lib/ganesh-context-loader";
+import {
+  isGreetingMessage,
+  hasSchedulingIntent,
+  hasCalendarContextIntent,
+  shouldShowGuestEmailInput,
+  type ChatTurn,
+} from "@/lib/ea-scheduling-ui";
 
 type ChatMessage = {
   role: "user" | "assistant";
@@ -44,6 +46,29 @@ type ChatMessage = {
 };
 
 type AnthropicMessage = Anthropic.MessageParam;
+
+const HISTORY_LIMIT = 10;
+
+const AGENT_MAX_TOKENS: Record<AgentKey, number> = {
+  chat: 300,
+  calendar: 300,
+  meeting_analysis: 1024,
+};
+
+function getAgentMaxTokens(agentKey: AgentKey): number {
+  return AGENT_MAX_TOKENS[agentKey];
+}
+
+function shouldEnableCalendarTools(
+  agentKey: AgentKey,
+  calendarConnected: boolean,
+  schedulingContext: boolean,
+): boolean {
+  if (!calendarConnected) return false;
+  if (agentKey === "calendar") return true;
+  if (agentKey === "chat" && schedulingContext) return true;
+  return false;
+}
 
 const CALENDAR_TOOL: Anthropic.Tool = {
   name: "create_calendar_event",
@@ -74,56 +99,26 @@ const CALENDAR_TOOL: Anthropic.Tool = {
   },
 };
 
-const SCHEDULING_INTENT_PATTERN =
-  /\b(schedule|scheduled|book|meeting|calendar|call with|block time|set up a call|arrange|random call|google meet|fix karo|meeting rakh|calendar mein|call lagao|schedule kar|book kar|milna hai|call hai)\b/i;
-
 const SCHEDULING_CLAIM_PATTERN =
-  /\b(scheduled|booked|added to your calendar|meeting set|schedule ho gaya|calendar pe daal|google meet|meet\.google\.com|✅|done!|ho gaya)\b/i;
+  /\b(scheduled|booked|added to your calendar|meeting set|schedule ho gaya|calendar pe daal|meet\.google\.com\/)\b/i;
 
-const CALENDAR_QUERY_PATTERN =
-  /\b(what'?s on my calendar|my schedule|today'?s meetings|today'?s schedule|upcoming meetings|calendar events|meetings today|what do i have today|free time|am i free|mera schedule|aaj ka schedule|calendar kya hai|calendar dikhao|schedule kya hai)\b/i;
+const BRIEFING_PATTERN =
+  /\b(aaj kya hai|brief karo|daily briefing|aaj ka schedule|today'?s briefing|morning brief)\b/i;
 
-function needsCalendarData(text: string): boolean {
-  return hasSchedulingIntent(text) || CALENDAR_QUERY_PATTERN.test(text);
+function wantsCoachingInsights(text: string): boolean {
+  return isCoachModeQuery(text);
 }
 
-function buildSystemPrompt(
-  language: string | undefined,
-  calendarConnected: boolean,
-  calendarContext: string | null,
-  eaName: string,
-): string {
-  const now = new Date();
-  const dateContext = `Today's date is ${now.toLocaleDateString("en-IN", {
-    weekday: "long",
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-  })}. Current time is ${now.toLocaleTimeString("en-IN", {
-    timeZone: "Asia/Kolkata",
-  })} IST.`;
-
-  const identity = `Your name is ${eaName}. Respond as ${eaName}.`;
-
-  const langHint =
-    language === "hi"
-      ? "\n\nRespond primarily in Hindi (Devanagari). Keep the same warm, conversational tone — natural and human, not formal."
-      : language === "en"
-        ? "\n\nRespond in conversational Indian English. Warm, punchy, and natural."
-        : "\n\nMatch Ganesh's language. Default to conversational Indian English with light Hinglish when it feels natural.";
-
-  const calendarHint = calendarConnected
-    ? "\n\nGoogle Calendar is connected. You can schedule events with create_calendar_event."
-    : "\n\nGoogle Calendar is NOT connected. If asked to schedule, tell Ganesh to connect calendar from the dashboard.";
-
-  const base = `${dateContext}\n\n${identity}\n\n${BASE_SYSTEM_PROMPT}${langHint}${calendarHint}`;
-
-  if (!calendarContext) return base;
-
-  return `${base}
-
-## Calendar context
-${calendarContext}`;
+function buildCachedSystem(
+  systemPrompt: string,
+): Anthropic.MessageCreateParams["system"] {
+  return [
+    {
+      type: "text",
+      text: systemPrompt,
+      cache_control: { type: "ephemeral" },
+    },
+  ];
 }
 
 function getConversationText(
@@ -143,12 +138,12 @@ function getFullConversationText(
   return [...history.map((m) => m.content), userMessage].join("\n");
 }
 
-function hasSchedulingIntent(text: string): boolean {
-  return SCHEDULING_INTENT_PATTERN.test(text);
-}
-
 function responseClaimsCalendarAction(text: string): boolean {
   return SCHEDULING_CLAIM_PATTERN.test(text);
+}
+
+function wantsBriefing(text: string): boolean {
+  return BRIEFING_PATTERN.test(text);
 }
 
 function extractText(content: Anthropic.ContentBlock[]): string {
@@ -157,6 +152,10 @@ function extractText(content: Anthropic.ContentBlock[]): string {
     .map((block) => block.text)
     .join("\n")
     .trim();
+}
+
+function sliceHistory(messages: ChatMessage[]): ChatMessage[] {
+  return messages.slice(-HISTORY_LIMIT);
 }
 
 type PendingCalendarCreate = {
@@ -171,7 +170,6 @@ type PendingCalendarCreate = {
 function buildFinalMessage(
   text: string,
   calendarEvent: CalendarEventItem | null,
-  calendarPending: boolean,
 ): string {
   if (
     calendarEvent?.meetLink &&
@@ -181,26 +179,19 @@ function buildFinalMessage(
     return `${text}\n\nGoogle Meet: ${calendarEvent.meetLink}`;
   }
 
-  if (
-    !calendarEvent &&
-    !calendarPending &&
-    responseClaimsCalendarAction(text)
-  ) {
-    return "Sorry — that didn't actually save to your Google Calendar. Tell me the title, time, and guest email once more and I'll book it properly.";
-  }
-
   return text;
 }
 
 type ToolHandlerContext = {
+  sessionId: string;
   conversationText: string;
   pendingCreates: PendingCalendarCreate[];
 };
 
-function handleCreateCalendarEventTool(
+async function handleCreateCalendarEventTool(
   toolUse: Anthropic.ToolUseBlock,
   context: ToolHandlerContext,
-): Anthropic.ToolResultBlockParam {
+): Promise<Anthropic.ToolResultBlockParam> {
   const input = toolUse.input as {
     title?: string;
     start?: string;
@@ -209,8 +200,6 @@ function handleCreateCalendarEventTool(
     location?: string;
     attendees?: string[];
   };
-
-  console.log("[ea/chat] create_calendar_event input (queued):", input);
 
   if (!input.title || !input.start || !input.end) {
     const message = "Missing required event fields.";
@@ -223,12 +212,41 @@ function handleCreateCalendarEventTool(
     };
   }
 
+  const start = normalizeDateTime(input.start);
+  const end = normalizeDateTime(input.end);
+
+  const conflicts = await findConflictingEvents(
+    context.sessionId,
+    start,
+    end,
+  );
+  if (conflicts.length > 0) {
+    const conflictList = conflicts
+      .map((c) => `${c.title} (${formatEventTime(c)})`)
+      .join(", ");
+    return {
+      type: "tool_result",
+      tool_use_id: toolUse.id,
+      content: JSON.stringify({
+        success: false,
+        conflict: true,
+        message: `Time slot conflicts with: ${conflictList}. Suggest an alternative time to the user.`,
+        conflictingEvents: conflicts.map((c) => ({
+          title: c.title,
+          start: c.start,
+          end: c.end,
+        })),
+      }),
+      is_error: true,
+    };
+  }
+
   const attendees = mergeAttendeeEmails(input.attendees, context.conversationText);
 
   context.pendingCreates.push({
     title: input.title,
-    start: normalizeDateTime(input.start),
-    end: normalizeDateTime(input.end),
+    start,
+    end,
     description: input.description,
     location: input.location,
     attendees,
@@ -246,15 +264,15 @@ function handleCreateCalendarEventTool(
   };
 }
 
-function processToolUses(
+async function processToolUses(
   toolUses: Anthropic.ToolUseBlock[],
   context: ToolHandlerContext,
-): Anthropic.ToolResultBlockParam[] {
+): Promise<Anthropic.ToolResultBlockParam[]> {
   const toolResults: Anthropic.ToolResultBlockParam[] = [];
 
   for (const toolUse of toolUses) {
     if (toolUse.name === "create_calendar_event") {
-      toolResults.push(handleCreateCalendarEventTool(toolUse, context));
+      toolResults.push(await handleCreateCalendarEventTool(toolUse, context));
     } else {
       console.warn("[ea/chat] unknown tool:", toolUse.name);
       toolResults.push({
@@ -269,18 +287,16 @@ function processToolUses(
   return toolResults;
 }
 
-function scheduleCalendarCreates(pendingCreates: PendingCalendarCreate[]): void {
+function scheduleCalendarCreates(
+  sessionId: string,
+  pendingCreates: PendingCalendarCreate[],
+): void {
   if (pendingCreates.length === 0) return;
 
   after(async () => {
     for (const pending of pendingCreates) {
       try {
-        const event = await createCalendarEvent(pending);
-        console.log("[ea/chat] background calendar create success:", {
-          id: event.id,
-          title: event.title,
-          meetLink: event.meetLink,
-        });
+        await createCalendarEvent(sessionId, pending);
       } catch (err) {
         console.error(
           "[ea/chat] background calendar create failed:",
@@ -288,15 +304,58 @@ function scheduleCalendarCreates(pendingCreates: PendingCalendarCreate[]): void 
         );
       }
     }
-    invalidateCalendarEventsCache();
+    invalidateCalendarEventsCache(sessionId);
+  });
+}
+
+function persistConversation(
+  sessionId: string,
+  userMessage: string,
+  assistantMessage: string,
+): void {
+  after(async () => {
+    try {
+      await saveConversationMessage(sessionId, "user", userMessage);
+      await saveConversationMessage(sessionId, "assistant", assistantMessage);
+      await logMessageSentiment(sessionId, "user", userMessage);
+      await logMessageSentiment(sessionId, "assistant", assistantMessage);
+    } catch (err) {
+      console.error("[ea/chat] failed to persist conversation:", err);
+    }
+  });
+}
+
+function persistExtractedMemories(
+  sessionId: string,
+  userMessage: string,
+  assistantMessage: string,
+): void {
+  after(async () => {
+    try {
+      const extracted = extractMemoriesFromMessage(userMessage, assistantMessage);
+      for (const memory of extracted) {
+        await saveMemory(
+          sessionId,
+          memory.content,
+          memory.category,
+          "conversation",
+          memory.importance,
+        );
+      }
+    } catch (err) {
+      console.error("[ea/chat] failed to persist memories:", err);
+    }
   });
 }
 
 async function runAssistantTurn(
   anthropic: Anthropic,
   systemPrompt: string,
+  model: string,
+  maxTokens: number,
   messages: AnthropicMessage[],
-  calendarConnected: boolean,
+  calendarToolsEnabled: boolean,
+  sessionId: string,
   conversationText: string,
   pendingCreates: PendingCalendarCreate[],
   toolChoice?: Anthropic.MessageCreateParams["tool_choice"],
@@ -307,17 +366,22 @@ async function runAssistantTurn(
 }> {
   let currentMessages = messages;
   const toolContext: ToolHandlerContext = {
+    sessionId,
     conversationText,
     pendingCreates,
   };
 
+  const cachedSystem = buildCachedSystem(systemPrompt);
+
   let response = await anthropic.messages.create({
-    model: MODEL,
-    max_tokens: 300,
+    model,
+    max_tokens: maxTokens,
     stream: false,
-    system: systemPrompt,
-    tools: calendarConnected ? [CALENDAR_TOOL] : undefined,
-    tool_choice: calendarConnected ? (toolChoice ?? { type: "auto" }) : undefined,
+    system: cachedSystem,
+    tools: calendarToolsEnabled ? [CALENDAR_TOOL] : undefined,
+    tool_choice: calendarToolsEnabled
+      ? (toolChoice ?? { type: "auto" })
+      : undefined,
     messages: currentMessages,
   });
 
@@ -326,9 +390,7 @@ async function runAssistantTurn(
       (block): block is Anthropic.ToolUseBlock => block.type === "tool_use",
     );
 
-    console.log("[ea/chat] tool_use blocks:", toolUses.map((t) => t.name));
-
-    const toolResults = processToolUses(toolUses, toolContext);
+    const toolResults = await processToolUses(toolUses, toolContext);
 
     currentMessages = [
       ...currentMessages,
@@ -337,12 +399,12 @@ async function runAssistantTurn(
     ];
 
     response = await anthropic.messages.create({
-      model: MODEL,
-      max_tokens: 300,
+      model,
+      max_tokens: maxTokens,
       stream: false,
-      system: systemPrompt,
-      tools: calendarConnected ? [CALENDAR_TOOL] : undefined,
-      tool_choice: calendarConnected ? { type: "auto" } : undefined,
+      system: cachedSystem,
+      tools: calendarToolsEnabled ? [CALENDAR_TOOL] : undefined,
+      tool_choice: calendarToolsEnabled ? { type: "auto" } : undefined,
       messages: currentMessages,
     });
   }
@@ -355,12 +417,29 @@ async function runAssistantTurn(
 }
 
 export async function POST(request: NextRequest) {
-  console.log("[POST /api/ea/chat]", {
-    url: request.url,
-    hasEaAuthCookie: request.cookies.has("ea_auth"),
-  });
-
   try {
+    // Billing disabled — daily message limit enforcement commented out:
+    // const eaToken = request.cookies.get(EA_TOKEN_COOKIE)?.value;
+    // if (eaToken) {
+    //   const user = await getSessionUser(eaToken);
+    //   if (user) {
+    //     const usage = await getDailyUsage(user.id);
+    //     const plan = normalizePlan(user.plan);
+    //     const limitCheck = checkLimit(plan, "messagesPerDay", usage);
+    //     if (!limitCheck.allowed) {
+    //       return NextResponse.json(
+    //         {
+    //           error:
+    //             "Daily limit reached. Upgrade your plan for more messages.",
+    //           upgrade: true,
+    //         },
+    //         { status: 429 },
+    //       );
+    //     }
+    //     await trackMessage(user.id);
+    //   }
+    // }
+
     const { messages, userMessage, language } = await request.json();
 
     if (!userMessage?.trim()) {
@@ -378,28 +457,76 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const history: ChatMessage[] = Array.isArray(messages) ? messages : [];
+    const rawHistory: ChatMessage[] = Array.isArray(messages) ? messages : [];
+    const history = sliceHistory(rawHistory);
     const trimmedUserMessage = userMessage.trim();
     const conversationText = getConversationText(history, trimmedUserMessage);
     const fullConversationText = getFullConversationText(
       history,
       trimmedUserMessage,
     );
-    const needsCalendar = needsCalendarData(fullConversationText);
-    const schedulingContext = hasSchedulingIntent(fullConversationText);
 
-    const calendarConnected = await getCachedCalendarConnected();
-    const calendarContext = needsCalendar
-      ? await getCachedCalendarEventsContext(schedulingContext)
-      : null;
+    const agentKey = routeMessage(fullConversationText);
+    const chatAgentKey: ChatAgentKey =
+      agentKey === "calendar" ? "calendar" : "chat";
+    const agent = AGENTS[chatAgentKey];
+    const model = agent.model;
+    const maxTokens = getAgentMaxTokens(chatAgentKey);
 
-    console.log("[ea/chat] calendar:", {
-      needsCalendar,
+    const sessionId = await resolveEaSessionId(request);
+
+    const userMessagesOnly = getConversationText(history, trimmedUserMessage);
+    const schedulingContext = hasSchedulingIntent(userMessagesOnly);
+    const isGreeting = isGreetingMessage(trimmedUserMessage);
+    const briefingRequested = wantsBriefing(userMessagesOnly);
+    const coachingRequested = wantsCoachingInsights(fullConversationText);
+    const coachMode = coachingRequested;
+
+    const calendarContextRequested =
+      !isGreeting &&
+      (hasCalendarContextIntent(userMessagesOnly) || briefingRequested);
+
+    const calendarConnected =
+      calendarContextRequested && sessionId
+        ? await getCachedCalendarConnected(sessionId)
+        : false;
+
+    const calendarToolsEnabled = shouldEnableCalendarTools(
+      chatAgentKey,
       calendarConnected,
-      hasContext: calendarContext !== null,
-    });
+      schedulingContext,
+    );
 
-    let currentMessages: AnthropicMessage[] = [
+    const calendarContext =
+      calendarContextRequested && calendarConnected && sessionId
+        ? await getCachedCalendarEventsContext(sessionId, schedulingContext)
+        : null;
+
+    let briefingContext: string | null = null;
+    if (briefingRequested && calendarConnected && sessionId) {
+      const briefing = await getDailyBriefing(sessionId);
+      if (briefing) {
+        briefingContext = briefing.summary;
+        if (briefing.conflicts.length > 0) {
+          briefingContext += `\nConflicts: ${briefing.conflicts.map((c) => `${c.eventA} overlaps ${c.eventB} at ${c.time}`).join("; ")}`;
+        }
+      }
+    }
+
+    let coachingContext: string | null = null;
+    if (coachingRequested) {
+      const sessionIdForInsights = await resolveEaSessionId(request);
+      if (sessionIdForInsights) {
+        try {
+          const insights = await generateWeeklyInsights(sessionIdForInsights);
+          coachingContext = formatGeneratedWeeklyForPrompt(insights);
+        } catch (err) {
+          console.error("[ea/chat] failed to load coaching insights:", err);
+        }
+      }
+    }
+
+    const currentMessages: AnthropicMessage[] = [
       ...history
         .filter((m) => m.role === "user" || m.role === "assistant")
         .map((m) => ({
@@ -411,11 +538,55 @@ export async function POST(request: NextRequest) {
 
     const anthropic = new Anthropic({ apiKey });
     const eaSettings = await loadEASettings();
-    const systemPrompt = buildSystemPrompt(
-      language,
-      calendarConnected,
-      calendarContext,
-      eaSettings.eaName,
+
+    const userProfile = sessionId
+      ? await getEffectiveUserProfile(sessionId)
+      : null;
+
+    const recentMemories = sessionId
+      ? await getRecentMemories(sessionId, 5)
+      : [];
+
+    let ganeshContext: string | null = null;
+    try {
+      const profile = await loadGaneshContextForPrompt();
+      if (profile.trim()) {
+        ganeshContext = profile.trim();
+      }
+    } catch (err) {
+      console.error("[ea/chat] failed to load ganesh context:", err);
+    }
+
+    const wantsCalendarHelp =
+      calendarContextRequested &&
+      (chatAgentKey === "calendar" ||
+        (chatAgentKey === "chat" && schedulingContext));
+
+    const systemPrompt = getSystemPrompt(
+      userProfile ?? {
+        sessionId: "anonymous",
+        name: "Ganesh",
+        role: "Design Manager",
+        industry: "Design / Technology",
+        communicationStyle: "casual",
+        timezone: "Asia/Kolkata",
+        workStyle: null,
+        onboardingCompleted: true,
+      },
+      {
+        eaName: eaSettings.eaName,
+        agentKey: chatAgentKey,
+        language,
+        calendarConnected,
+        calendarContext,
+        briefingContext: briefingRequested ? briefingContext : null,
+        memoryLines: recentMemories.map((m) => m.content),
+        ganeshContext,
+        coachingContext,
+        coachMode,
+        wantsCalendarHelp,
+        isGreeting,
+      },
     );
 
     const pendingCreates: PendingCalendarCreate[] = [];
@@ -424,8 +595,11 @@ export async function POST(request: NextRequest) {
       await runAssistantTurn(
         anthropic,
         systemPrompt,
+        model,
+        maxTokens,
         currentMessages,
-        calendarConnected,
+        calendarToolsEnabled,
+        sessionId ?? "anonymous",
         conversationText,
         pendingCreates,
       );
@@ -433,27 +607,27 @@ export async function POST(request: NextRequest) {
     const initialText = extractText(response.content);
 
     if (
-      calendarConnected &&
+      calendarToolsEnabled &&
       queuedCreates.length === 0 &&
-      (schedulingContext || responseClaimsCalendarAction(initialText))
+      schedulingContext &&
+      responseClaimsCalendarAction(initialText)
     ) {
-      console.log(
-        "[ea/chat] scheduling intent detected but no calendar event — forcing tool",
-      );
-
       const retry = await runAssistantTurn(
         anthropic,
         systemPrompt,
+        model,
+        maxTokens,
         [
           ...workingMessages,
           { role: "assistant", content: response.content },
           {
             role: "user",
             content:
-              "Call create_calendar_event NOW using the meeting details from our conversation. Use the correct date from today’s context. Do not reply with text until the tool succeeds.",
+              "Call create_calendar_event NOW using the meeting details from our conversation. Use the correct date from today's context. Do not reply with text until the tool succeeds.",
           },
         ],
-        calendarConnected,
+        calendarToolsEnabled,
+        sessionId ?? "anonymous",
         conversationText,
         pendingCreates,
         { type: "tool", name: "create_calendar_event" },
@@ -468,7 +642,6 @@ export async function POST(request: NextRequest) {
     const message = buildFinalMessage(
       extractText(response.content),
       null,
-      calendarPending,
     );
 
     if (!message) {
@@ -478,19 +651,33 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    console.log("[ea/chat] response ready:", {
-      calendarPending,
-      queuedCount: queuedCreates.length,
-      schedulingContext,
-    });
+    const chatHistory: ChatTurn[] = history.filter(
+      (m): m is ChatTurn =>
+        m.role === "user" || m.role === "assistant",
+    );
+    const needsGuestEmail = shouldShowGuestEmailInput(
+      chatHistory,
+      trimmedUserMessage,
+      message,
+    );
 
-    scheduleCalendarCreates(queuedCreates);
+    if (sessionId) {
+      scheduleCalendarCreates(sessionId, queuedCreates);
+    }
+
+    if (sessionId) {
+      persistConversation(sessionId, trimmedUserMessage, message);
+      persistExtractedMemories(sessionId, trimmedUserMessage, message);
+    }
 
     return NextResponse.json({
       message,
+      agent: agentKey,
+      model,
       calendarEvent: null,
       calendarPending,
       calendarUpdated: calendarPending,
+      needsGuestEmail,
     });
   } catch (error) {
     console.error("ea chat error:", error);

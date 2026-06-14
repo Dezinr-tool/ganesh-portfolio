@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import {
   SignatureCanvas,
   type SignatureCanvasRef,
@@ -25,9 +25,8 @@ export function SignGaneshButton({
   const [error, setError] = useState<string | null>(null);
   const [hasDrawnSignature, setHasDrawnSignature] = useState(false);
 
-  useEffect(() => {
-    if (!open) return;
-
+  function openModal() {
+    setOpen(true);
     setLoadingDefault(true);
     setError(null);
     setHasDrawnSignature(false);
@@ -37,7 +36,7 @@ export function SignGaneshButton({
       .then((data) => setDefaultSignature(data.signature ?? null))
       .catch(() => setDefaultSignature(null))
       .finally(() => setLoadingDefault(false));
-  }, [open]);
+  }
 
   if (alreadySigned) {
     return (
@@ -92,7 +91,7 @@ export function SignGaneshButton({
     <>
       <button
         type="button"
-        onClick={() => setOpen(true)}
+        onClick={openModal}
         className="rounded-md bg-white px-4 py-2 text-sm font-medium text-neutral-950"
       >
         Sign as Ganesh Das

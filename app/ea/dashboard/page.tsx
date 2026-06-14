@@ -3,6 +3,12 @@
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useCallback, useEffect, useState } from "react";
 import { EANav } from "../_components/ea-nav";
+import {
+  ActionItemsPanel,
+  mapApiTasks,
+  totalTaskCount,
+  type GroupedTasks,
+} from "./_components/action-items-panel";
 import { useEASettings } from "../_components/use-ea-settings";
 import { notifyCalendarUpdated } from "@/lib/ea-client-storage";
 
@@ -330,35 +336,65 @@ function DashboardContent() {
   const [loading, setLoading] = useState(true);
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
   const [editingEvent, setEditingEvent] = useState<CalendarEvent | null>(null);
+  const [tasks, setTasks] = useState<GroupedTasks>({
+    my_task: [],
+    assigned_task: [],
+    team_task: [],
+  });
+  const [tasksLoading, setTasksLoading] = useState(true);
 
-  useEffect(() => {
-    const calendarStatus = searchParams.get("calendar");
-    if (calendarStatus === "connected") {
-      setStatusMessage("Google Calendar connected.");
-    } else if (calendarStatus === "error") {
-      setStatusMessage("Failed to connect Google Calendar.");
-    }
-  }, [searchParams]);
+  const calendarStatus = searchParams.get("calendar");
+  const oauthStatusMessage =
+    calendarStatus === "connected"
+      ? "Google Calendar connected."
+      : calendarStatus === "error"
+        ? "Failed to connect Google Calendar."
+        : null;
+  const displayStatusMessage = statusMessage ?? oauthStatusMessage;
 
   const loadCalendar = useCallback(() => {
-    setLoading(true);
-    fetch("/api/ea/calendar", { credentials: "include" })
-      .then((res) => res.json())
-      .then((data) => {
+    void (async () => {
+      setLoading(true);
+      try {
+        const res = await fetch("/api/ea/calendar", { credentials: "include" });
+        const data = await res.json();
         setConnected(data.connected ?? false);
         setTodayEvents(data.today ?? []);
         setUpcomingEvents(data.upcoming ?? []);
         if (data.error) {
           setStatusMessage(data.error);
         }
-      })
-      .catch(() => setStatusMessage("Could not load calendar."))
-      .finally(() => setLoading(false));
+      } catch {
+        setStatusMessage("Could not load calendar.");
+      } finally {
+        setLoading(false);
+      }
+    })();
+  }, []);
+
+  const loadTasks = useCallback(() => {
+    void (async () => {
+      setTasksLoading(true);
+      try {
+        const res = await fetch("/api/ea/action-items", {
+          credentials: "include",
+        });
+        const data = await res.json();
+        if (res.ok) {
+          setTasks(mapApiTasks(data));
+        }
+      } catch {
+        // ignore
+      } finally {
+        setTasksLoading(false);
+      }
+    })();
   }, []);
 
   useEffect(() => {
     loadCalendar();
-  }, [loadCalendar]);
+    loadTasks();
+  }, [loadCalendar, loadTasks]);
 
   useEffect(() => {
     const onCalendarUpdated = () => loadCalendar();
@@ -370,11 +406,21 @@ function DashboardContent() {
     };
   }, [loadCalendar]);
 
+  const pendingTasks = totalTaskCount(tasks);
+
   const stats = [
     { label: "Today's Meetings", value: todayEvents.length },
-    { label: "Pending Action Items", value: 0 },
+    { label: "Pending Action Items", value: pendingTasks },
     { label: "Notes Saved", value: 0 },
   ];
+
+  const nextMeeting =
+    todayEvents.find((event) => {
+      if (event.isAllDay) return true;
+      return new Date(event.end).getTime() > Date.now();
+    }) ??
+    upcomingEvents[0] ??
+    null;
 
   return (
     <div className="min-h-screen bg-black text-zinc-100">
@@ -388,11 +434,11 @@ function DashboardContent() {
           </p>
         </div>
 
-        {statusMessage ? (
+        {displayStatusMessage ? (
           <p
-            className={`mb-6 text-sm ${statusMessage.includes("Failed") || statusMessage.includes("Could not") ? "text-red-400" : "text-emerald-400"}`}
+            className={`mb-6 text-sm ${displayStatusMessage.includes("Failed") || displayStatusMessage.includes("Could not") ? "text-red-400" : "text-emerald-400"}`}
           >
-            {statusMessage}
+            {displayStatusMessage}
           </p>
         ) : null}
 
@@ -408,18 +454,45 @@ function DashboardContent() {
           ))}
         </div>
 
+        {nextMeeting ? (
+          <div className="mt-6 rounded-xl border border-zinc-800 bg-zinc-950 p-6">
+            <p className="text-xs font-medium uppercase tracking-wider text-zinc-500">
+              Next meeting
+            </p>
+            <p className="mt-2 text-lg font-light text-white">
+              {nextMeeting.title}
+            </p>
+            <p className="mt-1 text-sm text-zinc-400">
+              {nextMeeting.isAllDay
+                ? "All day"
+                : new Date(nextMeeting.start).toLocaleString("en-IN", {
+                    weekday: "short",
+                    month: "short",
+                    day: "numeric",
+                    hour: "2-digit",
+                    minute: "2-digit",
+                  })}
+            </p>
+          </div>
+        ) : null}
+
+        <ActionItemsPanel tasks={tasks} loading={tasksLoading} />
+
         <section className="mt-10">
           <div className="mb-4 flex items-center justify-between">
             <h2 className="text-sm font-medium text-white">
               Today&apos;s Schedule
             </h2>
             {!connected && !loading ? (
-              <a
-                href="/api/ea/calendar/auth"
+              <button
+                type="button"
+                onClick={() => {
+                  window.location.href = "/api/ea/calendar/auth";
+                }}
                 className="rounded-lg border border-zinc-700 px-4 py-2 text-sm text-white transition-colors hover:border-zinc-500 hover:bg-zinc-900"
               >
                 Connect Google Calendar
-              </a>
+              </button>
             ) : null}
           </div>
 

@@ -21,7 +21,7 @@ export default function EALogin() {
       body: JSON.stringify({ password }),
     });
     if (res.ok) {
-      router.push('/ea/dashboard');
+      router.push('/ea/chat');
     } else {
       setError('Wrong password');
       setLoading(false);

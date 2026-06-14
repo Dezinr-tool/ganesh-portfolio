@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { randomUUID } from "crypto";
 import { getAgreementById, sendToClient } from "@/lib/agreements-store";
 import { sendAgreementToClient } from "@/lib/email";
 
@@ -24,7 +25,9 @@ export async function POST(
       );
     }
 
-    const agreement = await sendToClient(id);
+    const token = randomUUID();
+
+    const agreement = await sendToClient(id, token);
 
     if (!agreement || !agreement.clientSignToken) {
       return NextResponse.json(
@@ -34,11 +37,10 @@ export async function POST(
     }
 
     await sendAgreementToClient(
-      "ganeshdesigncraft@icloud.com", // TODO: revert to agreement.clientEmail after testing
-      agreement.clientName,
-      agreement.title,
+      existing.clientEmail,
+      existing.clientName,
+      existing.title,
       agreement.clientSignToken,
-      "onboarding@resend.dev", // TODO: revert to RESEND_FROM_EMAIL after testing
     );
 
     return NextResponse.json(agreement);

@@ -7,14 +7,17 @@ import { useReducedMotion } from "framer-motion";
 import gsap from "gsap";
 import Lenis from "lenis";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
+import { usePathname } from "next/navigation";
 import { useEffect } from "react";
 import "lenis/dist/lenis.css";
 
 export function SmoothScroll({ children }: { children: React.ReactNode }) {
+  const pathname = usePathname();
   const reducedMotion = useReducedMotion() ?? false;
+  const isEaRoute = pathname.startsWith("/ea");
 
   useEffect(() => {
-    if (reducedMotion) {
+    if (reducedMotion || isEaRoute) {
       setLenisInstance(null);
       return;
     }
@@ -77,7 +80,7 @@ export function SmoothScroll({ children }: { children: React.ReactNode }) {
       ScrollTrigger.scrollerProxy(window, {});
       ScrollTrigger.clearScrollMemory();
     };
-  }, [reducedMotion]);
+  }, [reducedMotion, isEaRoute]);
 
   return children;
 }

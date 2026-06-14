@@ -89,6 +89,10 @@ const ALTER_INVOICES_ADD_CLIENT_ADDRESS = `
   ALTER TABLE invoices ADD COLUMN IF NOT EXISTS client_address TEXT NOT NULL DEFAULT '';
 `;
 
+const ALTER_EA_CALENDAR_TOKENS_ADD_EMAIL = `
+  ALTER TABLE ea_calendar_tokens ADD COLUMN IF NOT EXISTS account_email TEXT;
+`;
+
 async function initDb() {
   console.log("Creating invoices table if it doesn't exist…");
   await sql.query(CREATE_INVOICES_TABLE);
@@ -117,6 +121,10 @@ async function initDb() {
   console.log("Creating ea_calendar_tokens table if it doesn't exist…");
   await sql.query(CREATE_EA_CALENDAR_TOKENS_TABLE);
   console.log("Done. ea_calendar_tokens table is ready.");
+
+  console.log("Adding account_email column to ea_calendar_tokens if missing…");
+  await sql.query(ALTER_EA_CALENDAR_TOKENS_ADD_EMAIL);
+  console.log("Done. ea_calendar_tokens account_email column is ready.");
 
   console.log("Creating ea_conversations table if it doesn't exist…");
   await sql.query(CREATE_EA_CONVERSATIONS_TABLE);

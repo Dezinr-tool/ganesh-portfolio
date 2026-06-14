@@ -9,7 +9,9 @@ import {
 } from "@/lib/ea-client-storage";
 
 export function useEASettings() {
-  const [eaName, setEaName] = useState(DEFAULT_EA_NAME);
+  const [eaName, setEaName] = useState(
+    () => loadLocalEASettings()?.eaName ?? DEFAULT_EA_NAME,
+  );
   const [loading, setLoading] = useState(true);
 
   const refresh = useCallback(async () => {
@@ -31,16 +33,36 @@ export function useEASettings() {
   }, []);
 
   useEffect(() => {
-    const local = loadLocalEASettings();
-    if (local?.eaName) setEaName(local.eaName);
+    let cancelled = false;
 
-    void refresh();
+    void (async () => {
+      try {
+        const res = await fetch("/api/ea/settings", { credentials: "include" });
+        const data = await res.json();
+        if (cancelled) return;
+        const name =
+          typeof data.eaName === "string" && data.eaName.trim()
+            ? data.eaName.trim()
+            : DEFAULT_EA_NAME;
+        setEaName(name);
+        saveLocalEASettings({ eaName: name });
+      } catch {
+        if (cancelled) return;
+        const local = loadLocalEASettings();
+        if (local?.eaName) setEaName(local.eaName);
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    })();
 
     const onUpdated = () => {
       void refresh();
     };
     window.addEventListener("ea-settings-updated", onUpdated);
-    return () => window.removeEventListener("ea-settings-updated", onUpdated);
+    return () => {
+      cancelled = true;
+      window.removeEventListener("ea-settings-updated", onUpdated);
+    };
   }, [refresh]);
 
   return { eaName, loading, refresh };

@@ -1,19 +1,8 @@
 import Anthropic from "@anthropic-ai/sdk";
 import { NextRequest, NextResponse } from "next/server";
+import { buildMeetingAnalysisSystemPrompt } from "@/lib/meeting-analysis-prompt";
+import { AGENTS } from "@/lib/agents/router";
 import { loadEASettings } from "@/lib/ea-settings";
-
-const MODEL = "claude-sonnet-4-5";
-
-function buildSystemPrompt(eaName: string): string {
-  return `You are ${eaName}, an executive assistant for Ganesh, a Design Manager. Extract from meeting notes: 1) Brief summary 2) Action items with owners 3) Key decisions made.
-
-Respond ONLY with valid JSON in this exact format:
-{
-  "summary": "brief summary string",
-  "actionItems": ["action item with owner", ...],
-  "decisions": ["key decision", ...]
-}`;
-}
 
 export async function POST(request: NextRequest) {
   try {
@@ -36,6 +25,7 @@ export async function POST(request: NextRequest) {
 
     const anthropic = new Anthropic({ apiKey });
     const { eaName } = await loadEASettings();
+    const agent = AGENTS.meeting_analysis;
 
     const userContent = [
       title ? `Meeting: ${title}` : null,
@@ -46,9 +36,9 @@ export async function POST(request: NextRequest) {
       .join("\n\n");
 
     const response = await anthropic.messages.create({
-      model: MODEL,
+      model: agent.model,
       max_tokens: 2048,
-      system: buildSystemPrompt(eaName),
+      system: buildMeetingAnalysisSystemPrompt(eaName),
       messages: [{ role: "user", content: userContent }],
     });
 
@@ -72,6 +62,8 @@ export async function POST(request: NextRequest) {
       summary: parsed.summary ?? "",
       actionItems: Array.isArray(parsed.actionItems) ? parsed.actionItems : [],
       decisions: Array.isArray(parsed.decisions) ? parsed.decisions : [],
+      agent: "meeting_analysis",
+      model: agent.model,
     });
   } catch (error) {
     console.error("process-meeting error:", error);

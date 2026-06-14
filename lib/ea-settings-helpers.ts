@@ -1,4 +1,4 @@
-export const DEFAULT_EA_NAME = "Max";
+export const DEFAULT_EA_NAME = "Virtual EA";
 
 export type EASettings = {
   eaName: string;

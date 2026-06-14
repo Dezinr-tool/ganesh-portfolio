@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { resolveEaSessionId } from "@/lib/ea-api-auth";
 import {
   deleteCalendarEvent,
   isCalendarConnected,
@@ -10,10 +11,14 @@ type RouteContext = { params: Promise<{ id: string }> };
 
 export async function PATCH(request: NextRequest, context: RouteContext) {
   try {
-    const { id } = await context.params;
-    console.log("[ea/calendar PATCH]", id);
+    const sessionId = await resolveEaSessionId(request);
+    if (!sessionId) {
+      return NextResponse.json({ error: "Unauthorized." }, { status: 401 });
+    }
 
-    if (!(await isCalendarConnected())) {
+    const { id } = await context.params;
+
+    if (!(await isCalendarConnected(sessionId))) {
       return NextResponse.json(
         { error: "Google Calendar not connected." },
         { status: 400 },
@@ -30,7 +35,7 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
       );
     }
 
-    const event = await updateCalendarEvent(id, {
+    const event = await updateCalendarEvent(sessionId, id, {
       title: title.trim(),
       start: normalizeDateTime(start),
       end: normalizeDateTime(end),
@@ -39,7 +44,6 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
       attendees: Array.isArray(attendees) ? attendees : undefined,
     });
 
-    console.log("[ea/calendar PATCH] updated:", event.id);
     return NextResponse.json({ event });
   } catch (error) {
     console.error("[ea/calendar PATCH] error:", error);
@@ -50,20 +54,23 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
   }
 }
 
-export async function DELETE(_request: NextRequest, context: RouteContext) {
+export async function DELETE(request: NextRequest, context: RouteContext) {
   try {
-    const { id } = await context.params;
-    console.log("[ea/calendar DELETE]", id);
+    const sessionId = await resolveEaSessionId(request);
+    if (!sessionId) {
+      return NextResponse.json({ error: "Unauthorized." }, { status: 401 });
+    }
 
-    if (!(await isCalendarConnected())) {
+    const { id } = await context.params;
+
+    if (!(await isCalendarConnected(sessionId))) {
       return NextResponse.json(
         { error: "Google Calendar not connected." },
         { status: 400 },
       );
     }
 
-    await deleteCalendarEvent(id);
-    console.log("[ea/calendar DELETE] success:", id);
+    await deleteCalendarEvent(sessionId, id);
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error("[ea/calendar DELETE] error:", error);

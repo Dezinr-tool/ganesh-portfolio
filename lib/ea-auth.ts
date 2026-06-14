@@ -17,3 +17,9 @@ export function verifyEaAuthCookie(cookieValue: string | undefined): boolean {
   const password = process.env.EA_PASSWORD;
   return !!password && cookieValue === password;
 }
+
+/** Stable session identifier from EA auth cookie — used for conversation persistence. */
+export function getEaSessionId(cookieValue: string | undefined): string | null {
+  if (!verifyEaAuthCookie(cookieValue)) return null;
+  return cookieValue ?? null;
+}

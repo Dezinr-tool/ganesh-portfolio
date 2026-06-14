@@ -15,20 +15,16 @@ export async function sendAgreementToClient(
   clientName: string,
   title: string,
   token: string,
-  fromEmail?: string,
 ) {
   if (!process.env.RESEND_API_KEY) {
     throw new Error("RESEND_API_KEY is not configured.");
   }
 
-  const from = fromEmail ?? process.env.RESEND_FROM_EMAIL;
-  if (!from) {
-    throw new Error("RESEND_FROM_EMAIL is not configured.");
-  }
+  const from = FROM_EMAIL;
 
   const signUrl = `${SITE_URL}/sign/${token}`;
 
-  const { data, error } = await resend.emails.send({
+  const { error } = await resend.emails.send({
     from,
     to: clientEmail,
     replyTo: GANESH_EMAIL,
@@ -46,8 +42,6 @@ export async function sendAgreementToClient(
     console.error("[sendAgreementToClient] Resend error:", error);
     throw new Error(error.message);
   }
-
-  console.log("[sendAgreementToClient] Email sent:", data?.id);
 }
 
 export async function sendSignedConfirmationToGanesh(

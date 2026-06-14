@@ -33,6 +33,9 @@ export async function middleware(request: NextRequest) {
     if (pathname === "/api/ea/settings" && request.method === "GET") {
       return NextResponse.next();
     }
+    if (pathname === "/api/ea/calendar/callback") {
+      return NextResponse.next();
+    }
     if (!isEaAuthed) {
       if (pathname.startsWith("/api/ea")) {
         return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
