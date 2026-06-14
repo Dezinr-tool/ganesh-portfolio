@@ -13,12 +13,12 @@ import {
 
 type LineItemRow = InvoiceLineItem;
 
-function createEmptyLineItem(): LineItemRow {
+function createEmptyLineItem(hourlyRate: number): LineItemRow {
   return {
     id: crypto.randomUUID(),
     description: "",
-    quantity: 1,
-    rate: 0,
+    effortHrs: 0,
+    rate: hourlyRate,
     amount: 0,
   };
 }
@@ -41,8 +41,10 @@ export default function InvoiceForm() {
   const [clientName, setClientName] = useState("");
   const [clientEmail, setClientEmail] = useState("");
   const [clientCompany, setClientCompany] = useState("");
+  const [clientAddress, setClientAddress] = useState("");
+  const [hourlyRate, setHourlyRate] = useState(0);
   const [lineItems, setLineItems] = useState<LineItemRow[]>([
-    createEmptyLineItem(),
+    createEmptyLineItem(0),
   ]);
   const [taxPercent, setTaxPercent] = useState<string>("");
   const [notes, setNotes] = useState("");
@@ -62,6 +64,27 @@ export default function InvoiceForm() {
       .finally(() => setLoadingNumber(false));
   }, []);
 
+  useEffect(() => {
+    fetch("/api/settings")
+      .then((res) => res.json())
+      .then((data) => {
+        if (typeof data.hourlyRate === "number") {
+          setHourlyRate(data.hourlyRate);
+        }
+      })
+      .catch(() => setError("Could not load hourly rate."));
+  }, []);
+
+  useEffect(() => {
+    setLineItems((items) =>
+      items.map((item) => ({
+        ...item,
+        rate: hourlyRate,
+        amount: calculateLineAmount(item.effortHrs, hourlyRate),
+      })),
+    );
+  }, [hourlyRate]);
+
   const parsedTaxPercent = taxPercent === "" ? null : Number(taxPercent);
 
   const totals = useMemo(
@@ -80,11 +103,9 @@ export default function InvoiceForm() {
 
         const updated = { ...item, [field]: value };
 
-        if (field === "quantity" || field === "rate") {
-          const quantity =
-            field === "quantity" ? Number(value) : updated.quantity;
-          const rate = field === "rate" ? Number(value) : updated.rate;
-          updated.amount = calculateLineAmount(quantity, rate);
+        if (field === "effortHrs") {
+          updated.rate = hourlyRate;
+          updated.amount = calculateLineAmount(Number(value), hourlyRate);
         }
 
         return updated;
@@ -93,7 +114,7 @@ export default function InvoiceForm() {
   }
 
   function addLineItem() {
-    setLineItems((items) => [...items, createEmptyLineItem()]);
+    setLineItems((items) => [...items, createEmptyLineItem(hourlyRate)]);
   }
 
   function removeLineItem(id: string) {
@@ -117,6 +138,7 @@ export default function InvoiceForm() {
           clientName,
           clientEmail,
           clientCompany,
+          clientAddress,
           lineItems,
           subtotal: totals.subtotal,
           taxPercent: parsedTaxPercent,
@@ -227,6 +249,18 @@ export default function InvoiceForm() {
               className={inputClassName}
             />
           </div>
+          <div className="sm:col-span-2">
+            <label htmlFor="clientAddress" className="mb-1.5 block text-sm text-neutral-300">
+              Client address
+            </label>
+            <textarea
+              id="clientAddress"
+              rows={3}
+              value={clientAddress}
+              onChange={(e) => setClientAddress(e.target.value)}
+              className={`${inputClassName} resize-none`}
+            />
+          </div>
         </div>
       </section>
 
@@ -244,8 +278,8 @@ export default function InvoiceForm() {
 
         <div className="mt-4 space-y-3">
           <div className="hidden grid-cols-12 gap-3 text-xs uppercase tracking-wide text-neutral-500 sm:grid">
-            <div className="col-span-5">Description</div>
-            <div className="col-span-2">Qty</div>
+            <div className="col-span-4">Description</div>
+            <div className="col-span-3">Effort (hrs)</div>
             <div className="col-span-2">Rate</div>
             <div className="col-span-2">Amount</div>
             <div className="col-span-1" />
@@ -256,7 +290,7 @@ export default function InvoiceForm() {
               key={item.id}
               className="grid gap-3 rounded-md border border-neutral-800 bg-neutral-950 p-3 sm:grid-cols-12 sm:border-0 sm:bg-transparent sm:p-0"
             >
-              <div className="sm:col-span-5">
+              <div className="sm:col-span-4">
                 <label className="mb-1 block text-xs text-neutral-500 sm:hidden">
                   Description
                 </label>
@@ -271,18 +305,18 @@ export default function InvoiceForm() {
                   className={inputClassName}
                 />
               </div>
-              <div className="sm:col-span-2">
+              <div className="sm:col-span-3">
                 <label className="mb-1 block text-xs text-neutral-500 sm:hidden">
-                  Quantity
+                  Effort (hrs)
                 </label>
                 <input
                   type="number"
                   min="0"
-                  step="1"
+                  step="0.5"
                   required
-                  value={item.quantity}
+                  value={item.effortHrs}
                   onChange={(e) =>
-                    updateLineItem(item.id, "quantity", Number(e.target.value))
+                    updateLineItem(item.id, "effortHrs", Number(e.target.value))
                   }
                   className={inputClassName}
                 />
@@ -292,15 +326,10 @@ export default function InvoiceForm() {
                   Rate
                 </label>
                 <input
-                  type="number"
-                  min="0"
-                  step="0.01"
-                  required
-                  value={item.rate}
-                  onChange={(e) =>
-                    updateLineItem(item.id, "rate", Number(e.target.value))
-                  }
-                  className={inputClassName}
+                  type="text"
+                  readOnly
+                  value={formatCurrency(hourlyRate)}
+                  className={`${inputClassName} text-neutral-400`}
                 />
               </div>
               <div className="sm:col-span-2">

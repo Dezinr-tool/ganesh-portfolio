@@ -40,14 +40,14 @@ export async function POST(request: Request) {
     const hasValidLineItems = body.lineItems.every(
       (item) =>
         item.description?.trim() &&
-        item.quantity > 0 &&
+        item.effortHrs > 0 &&
         item.rate >= 0 &&
         item.amount >= 0,
     );
 
     if (!hasValidLineItems) {
       return NextResponse.json(
-        { error: "Each line item needs a description, quantity, and rate." },
+        { error: "Each line item needs a description and effort (hrs)." },
         { status: 400 },
       );
     }
@@ -58,6 +58,7 @@ export async function POST(request: Request) {
       clientName: body.clientName.trim(),
       clientEmail: body.clientEmail.trim(),
       clientCompany: body.clientCompany?.trim() ?? "",
+      clientAddress: body.clientAddress?.trim() ?? "",
       lineItems: body.lineItems,
       subtotal: body.subtotal,
       taxPercent: body.taxPercent ?? null,

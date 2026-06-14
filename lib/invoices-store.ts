@@ -14,6 +14,7 @@ type InvoiceRow = {
   client_name: string;
   client_email: string;
   client_company: string;
+  client_address: string;
   issue_date: Date | string;
   due_date: Date | string;
   line_items: InvoiceLineItem[] | string;
@@ -24,6 +25,18 @@ type InvoiceRow = {
   status: string;
   created_at: Date | string;
 };
+
+type StoredLineItem = InvoiceLineItem & { quantity?: number };
+
+function normalizeLineItems(items: StoredLineItem[]): InvoiceLineItem[] {
+  return items.map((item) => ({
+    id: item.id,
+    description: item.description,
+    effortHrs: item.effortHrs ?? item.quantity ?? 0,
+    rate: item.rate,
+    amount: item.amount,
+  }));
+}
 
 function toDateString(value: Date | string): string {
   if (value instanceof Date) {
@@ -61,10 +74,11 @@ function rowToInvoice(row: InvoiceRow): Invoice {
       ? 0
       : Math.round(subtotal * (taxPercent / 100) * 100) / 100;
 
-  const lineItems =
+  const lineItems = normalizeLineItems(
     typeof row.line_items === "string"
-      ? (JSON.parse(row.line_items) as InvoiceLineItem[])
-      : row.line_items;
+      ? (JSON.parse(row.line_items) as StoredLineItem[])
+      : row.line_items,
+  );
 
   return {
     id: row.id,
@@ -74,6 +88,7 @@ function rowToInvoice(row: InvoiceRow): Invoice {
     clientName: row.client_name,
     clientEmail: row.client_email,
     clientCompany: row.client_company,
+    clientAddress: row.client_address ?? "",
     lineItems,
     subtotal,
     taxPercent,
@@ -93,6 +108,7 @@ export async function readInvoices(): Promise<Invoice[]> {
       client_name,
       client_email,
       client_company,
+      client_address,
       issue_date,
       due_date,
       line_items,
@@ -117,6 +133,7 @@ export async function getInvoiceById(id: string): Promise<Invoice | null> {
       client_name,
       client_email,
       client_company,
+      client_address,
       issue_date,
       due_date,
       line_items,
@@ -163,6 +180,7 @@ export async function createInvoice(input: CreateInvoiceInput): Promise<Invoice>
       client_name,
       client_email,
       client_company,
+      client_address,
       issue_date,
       due_date,
       line_items,
@@ -177,6 +195,7 @@ export async function createInvoice(input: CreateInvoiceInput): Promise<Invoice>
       ${input.clientName},
       ${input.clientEmail},
       ${input.clientCompany},
+      ${input.clientAddress ?? ""},
       ${input.issueDate},
       ${input.dueDate},
       ${JSON.stringify(input.lineItems)},
@@ -192,6 +211,7 @@ export async function createInvoice(input: CreateInvoiceInput): Promise<Invoice>
       client_name,
       client_email,
       client_company,
+      client_address,
       issue_date,
       due_date,
       line_items,
@@ -225,6 +245,7 @@ export async function updateInvoiceStatus(
       client_name,
       client_email,
       client_company,
+      client_address,
       issue_date,
       due_date,
       line_items,

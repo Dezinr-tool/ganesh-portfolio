@@ -271,6 +271,9 @@ export function InvoicePdf({ invoice }: InvoicePdfProps) {
           {invoice.clientCompany ? (
             <Text style={styles.clientLine}>{invoice.clientCompany}</Text>
           ) : null}
+          {invoice.clientAddress ? (
+            <Text style={styles.clientLine}>{invoice.clientAddress}</Text>
+          ) : null}
         </View>
 
         <View>

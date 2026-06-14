@@ -1,6 +1,7 @@
 import { sql } from "@/lib/db";
 
 export const GANESH_DEFAULT_SIGNATURE_KEY = "ganesh_default_signature";
+export const HOURLY_RATE_KEY = "hourly_rate";
 
 export async function getSetting(key: string): Promise<string | null> {
   const { rows } = await sql<{ value: string }>`
@@ -25,4 +26,15 @@ export async function getDefaultSignature(): Promise<string | null> {
 
 export async function saveDefaultSignature(base64: string): Promise<void> {
   await setSetting(GANESH_DEFAULT_SIGNATURE_KEY, base64);
+}
+
+export async function getHourlyRate(): Promise<number> {
+  const value = await getSetting(HOURLY_RATE_KEY);
+  if (value === null) return 0;
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? parsed : 0;
+}
+
+export async function setHourlyRate(rate: number): Promise<void> {
+  await setSetting(HOURLY_RATE_KEY, String(rate));
 }

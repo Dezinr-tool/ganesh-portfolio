@@ -3,7 +3,7 @@ export type InvoiceStatus = "Paid" | "Unpaid";
 export type InvoiceLineItem = {
   id: string;
   description: string;
-  quantity: number;
+  effortHrs: number;
   rate: number;
   amount: number;
 };
@@ -16,6 +16,7 @@ export type Invoice = {
   clientName: string;
   clientEmail: string;
   clientCompany: string;
+  clientAddress: string;
   lineItems: InvoiceLineItem[];
   subtotal: number;
   taxPercent: number | null;
@@ -52,8 +53,8 @@ export function formatDate(date: string): string {
   }).format(new Date(date));
 }
 
-export function calculateLineAmount(quantity: number, rate: number): number {
-  return Math.round(quantity * rate * 100) / 100;
+export function calculateLineAmount(effortHrs: number, rate: number): number {
+  return Math.round(effortHrs * rate * 100) / 100;
 }
 
 export function calculateTotals(

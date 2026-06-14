@@ -9,6 +9,7 @@ const CREATE_INVOICES_TABLE = `
     client_name TEXT NOT NULL,
     client_email TEXT NOT NULL,
     client_company TEXT NOT NULL DEFAULT '',
+    client_address TEXT NOT NULL DEFAULT '',
     issue_date DATE NOT NULL,
     due_date DATE NOT NULL,
     line_items JSONB NOT NULL,
@@ -68,10 +69,33 @@ const CREATE_EA_CALENDAR_TOKENS_TABLE = `
   );
 `;
 
+const CREATE_EA_CONVERSATIONS_TABLE = `
+  CREATE TABLE IF NOT EXISTS ea_conversations (
+    id UUID PRIMARY KEY,
+    session_id TEXT NOT NULL,
+    role TEXT NOT NULL,
+    content TEXT NOT NULL,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+  );
+`;
+
+const CREATE_EA_CONVERSATIONS_INDEX = `
+  CREATE INDEX IF NOT EXISTS idx_ea_conversations_session_created
+  ON ea_conversations (session_id, created_at DESC);
+`;
+
+const ALTER_INVOICES_ADD_CLIENT_ADDRESS = `
+  ALTER TABLE invoices ADD COLUMN IF NOT EXISTS client_address TEXT NOT NULL DEFAULT '';
+`;
+
 async function initDb() {
   console.log("Creating invoices table if it doesn't exist…");
   await sql.query(CREATE_INVOICES_TABLE);
   console.log("Done. invoices table is ready.");
+
+  console.log("Adding client_address column to invoices if missing…");
+  await sql.query(ALTER_INVOICES_ADD_CLIENT_ADDRESS);
+  console.log("Done. invoices client_address column is ready.");
 
   console.log("Creating agreements table if it doesn't exist…");
   await sql.query(CREATE_AGREEMENTS_TABLE);
@@ -88,6 +112,11 @@ async function initDb() {
   console.log("Creating ea_calendar_tokens table if it doesn't exist…");
   await sql.query(CREATE_EA_CALENDAR_TOKENS_TABLE);
   console.log("Done. ea_calendar_tokens table is ready.");
+
+  console.log("Creating ea_conversations table if it doesn't exist…");
+  await sql.query(CREATE_EA_CONVERSATIONS_TABLE);
+  await sql.query(CREATE_EA_CONVERSATIONS_INDEX);
+  console.log("Done. ea_conversations table is ready.");
 }
 
 initDb().catch((error) => {

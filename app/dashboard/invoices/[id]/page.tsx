@@ -91,6 +91,11 @@ export default async function InvoiceDetailPage({
                 {invoice.clientCompany}
               </p>
             ) : null}
+            {invoice.clientAddress ? (
+              <p className="mt-1 whitespace-pre-wrap text-sm text-neutral-300">
+                {invoice.clientAddress}
+              </p>
+            ) : null}
             <p className="mt-1 text-sm text-neutral-400">{invoice.clientEmail}</p>
           </div>
           <div className="sm:text-right">
@@ -108,7 +113,7 @@ export default async function InvoiceDetailPage({
             <thead>
               <tr className="border-b border-neutral-800 text-left text-xs uppercase tracking-wide text-neutral-500">
                 <th className="pb-3 pr-4 font-medium">Description</th>
-                <th className="pb-3 pr-4 font-medium">Qty</th>
+                <th className="pb-3 pr-4 font-medium">Effort (hrs)</th>
                 <th className="pb-3 pr-4 font-medium">Rate</th>
                 <th className="pb-3 font-medium text-right">Amount</th>
               </tr>
@@ -120,7 +125,7 @@ export default async function InvoiceDetailPage({
                     {item.description}
                   </td>
                   <td className="py-4 pr-4 text-sm text-neutral-400">
-                    {item.quantity}
+                    {item.effortHrs}
                   </td>
                   <td className="py-4 pr-4 text-sm text-neutral-400">
                     {formatCurrency(item.rate)}
