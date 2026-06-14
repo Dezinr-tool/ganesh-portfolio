@@ -342,6 +342,7 @@ function DashboardContent() {
     team_task: [],
   });
   const [tasksLoading, setTasksLoading] = useState(true);
+  const [pendingFollowups, setPendingFollowups] = useState(0);
 
   const calendarStatus = searchParams.get("calendar");
   const oauthStatusMessage =
@@ -391,10 +392,25 @@ function DashboardContent() {
     })();
   }, []);
 
+  const loadFollowups = useCallback(() => {
+    void (async () => {
+      try {
+        const res = await fetch("/api/ea/followups", { credentials: "include" });
+        const data = await res.json();
+        if (res.ok) {
+          setPendingFollowups(data.pendingCount ?? 0);
+        }
+      } catch {
+        // ignore
+      }
+    })();
+  }, []);
+
   useEffect(() => {
     loadCalendar();
     loadTasks();
-  }, [loadCalendar, loadTasks]);
+    loadFollowups();
+  }, [loadCalendar, loadTasks, loadFollowups]);
 
   useEffect(() => {
     const onCalendarUpdated = () => loadCalendar();
@@ -411,6 +427,11 @@ function DashboardContent() {
   const stats = [
     { label: "Today's Meetings", value: todayEvents.length },
     { label: "Pending Action Items", value: pendingTasks },
+    {
+      label: "Pending Follow-ups",
+      value: pendingFollowups,
+      href: "/ea/followups",
+    },
     { label: "Notes Saved", value: 0 },
   ];
 
@@ -442,14 +463,27 @@ function DashboardContent() {
           </p>
         ) : null}
 
-        <div className="grid gap-4 sm:grid-cols-3">
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {stats.map((stat) => (
             <div
               key={stat.label}
               className="rounded-xl border border-zinc-800 bg-zinc-950 p-6"
             >
-              <p className="text-3xl font-light text-white">{stat.value}</p>
-              <p className="mt-2 text-sm text-zinc-500">{stat.label}</p>
+              {"href" in stat && stat.href ? (
+                <button
+                  type="button"
+                  onClick={() => router.push(stat.href!)}
+                  className="block w-full text-left"
+                >
+                  <p className="text-3xl font-light text-white">{stat.value}</p>
+                  <p className="mt-2 text-sm text-zinc-500">{stat.label}</p>
+                </button>
+              ) : (
+                <>
+                  <p className="text-3xl font-light text-white">{stat.value}</p>
+                  <p className="mt-2 text-sm text-zinc-500">{stat.label}</p>
+                </>
+              )}
             </div>
           ))}
         </div>

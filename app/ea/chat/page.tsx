@@ -13,7 +13,6 @@ import { extractMemoriesFromMessage } from "@/lib/memory-extractor";
 import {
   isGreetingMessage,
   hasSchedulingIntent,
-  shouldShowGuestEmailInput,
 } from "@/lib/ea-scheduling-ui";
 
 type ChatMessage = {
@@ -587,10 +586,7 @@ export default function EAChatPage() {
           await loadMemories();
         }
 
-        askingForEmail =
-          res.ok &&
-          (data.needsGuestEmail === true ||
-            shouldShowGuestEmailInput(history, trimmed, reply));
+        askingForEmail = res.ok && data.needsGuestEmail === true;
       } catch {
         reply = "Connection error. Please try again.";
         askingForEmail = false;

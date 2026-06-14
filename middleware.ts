@@ -19,7 +19,7 @@ export async function middleware(request: NextRequest) {
   const eaCookie = request.cookies.get(EA_AUTH_COOKIE)?.value;
   const isEaAuthed = hasEaMiddlewareAuth(eaToken, eaCookie);
 
-  if (pathname.startsWith("/ea/login")) {
+  if (pathname.startsWith("/ea/login") || pathname.startsWith("/ea/signup")) {
     if (isEaAuthed) {
       return NextResponse.redirect(new URL("/ea/chat", request.url));
     }
@@ -32,6 +32,9 @@ export async function middleware(request: NextRequest) {
 
   if (pathname.startsWith("/ea") || pathname.startsWith("/api/ea")) {
     if (pathname === "/api/ea/auth") {
+      return NextResponse.next();
+    }
+    if (pathname === "/api/ea/login" || pathname === "/api/ea/signup") {
       return NextResponse.next();
     }
     if (pathname === "/api/ea/settings" && request.method === "GET") {

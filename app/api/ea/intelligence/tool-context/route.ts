@@ -5,7 +5,13 @@ import {
   type ToolContextInput,
 } from "@/lib/intelligence-insights";
 
-const VALID_TOOLS = new Set(["moodboard", "ia", "proposal", "presentation"]);
+const VALID_TOOLS = new Set([
+  "moodboard",
+  "ia",
+  "proposal",
+  "presentation",
+  "design_audit",
+]);
 
 export async function POST(request: NextRequest) {
   const auth = await requireEaSession(request);
@@ -19,7 +25,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         {
           error:
-            "Invalid tool. Use: moodboard, ia, proposal, presentation.",
+            "Invalid tool. Use: moodboard, ia, proposal, presentation, design_audit.",
         },
         { status: 400 },
       );

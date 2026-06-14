@@ -56,7 +56,7 @@ export default function MaxLandingPage() {
           </p>
           <div className="mt-8 flex flex-wrap justify-center gap-3">
             <Link
-              href="/signup"
+              href="/ea/signup"
               className="rounded-lg bg-white px-6 py-3 font-medium text-black hover:bg-zinc-200"
             >
               Start free trial
@@ -131,7 +131,7 @@ export default function MaxLandingPage() {
         <section className="border-t border-zinc-800/80 py-20 text-center">
           <h2 className="text-2xl font-light text-white">Ready to try Virtual EA?</h2>
           <Link
-            href="/signup"
+            href="/ea/signup"
             className="mt-6 inline-block rounded-lg bg-white px-8 py-3 font-medium text-black hover:bg-zinc-200"
           >
             Start free trial

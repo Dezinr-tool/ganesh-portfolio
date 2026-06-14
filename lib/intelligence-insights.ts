@@ -117,7 +117,7 @@ Return ONLY the narrative paragraph, no JSON.`,
 }
 
 export type ToolContextInput = {
-  tool: "moodboard" | "ia" | "proposal" | "presentation";
+  tool: "moodboard" | "ia" | "proposal" | "presentation" | "design_audit";
   projectBrief?: string;
   clientName?: string;
   projectType?: string;
@@ -162,6 +162,18 @@ export async function buildToolContext(
       keyPoints: items.slice(0, 5).map((i) => i.insight),
       avoid: [],
     },
+    design_audit: {
+      clientGoals: clientItems.slice(0, 3).map((i) => i.insight),
+      userFeedback: items
+        .filter((i) => i.category === "client" || i.category === "emotional")
+        .slice(0, 3)
+        .map((i) => i.insight),
+      painPoints: businessItems
+        .filter((i) => i.sentiment !== null && i.sentiment < 0)
+        .slice(0, 3)
+        .map((i) => i.insight),
+      designContext: designItems.slice(0, 3).map((i) => i.insight),
+    },
   };
 
   const apiKey = process.env.ANTHROPIC_API_KEY;
@@ -190,7 +202,8 @@ Expected shapes:
 - moodboard: { styleDirection[], clientContext[], avoid[], moodKeywords[] }
 - ia: { userPatterns[], clientExpectations[], projectComplexity, suggestedStructure[] }
 - proposal: { clientDecisionStyle, pricingSensitivity, valueDrivers[], riskFactors[], winFactors[] }
-- presentation: { tone, keyPoints[], avoid[] }`,
+- presentation: { tone, keyPoints[], avoid[] }
+- design_audit: { clientGoals[], userFeedback[], painPoints[], designContext[] }`,
         },
       ],
     });

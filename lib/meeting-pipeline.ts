@@ -15,6 +15,13 @@ import {
   type ProcessedMeetingResult,
 } from "@/lib/meeting-processor";
 import { saveMemory } from "@/lib/memory-store";
+import { extractMemoriesFromTranscript } from "@/lib/memory-extractor";
+import {
+  generateFollowUpDraft,
+  parseAttendeesFromMeeting,
+} from "@/lib/followup-generator";
+import { createFollowUp } from "@/lib/followups-store";
+import { getEffectiveUserProfile } from "@/src/lib/ea/userProfile";
 
 const HIGH_IMPORTANCE_THRESHOLD = 7;
 
@@ -29,7 +36,10 @@ export type IntelligencePersistResult = {
 };
 
 export type FullMeetingProcessResult = ProcessedMeetingResult &
-  IntelligencePersistResult;
+  IntelligencePersistResult & {
+    transcriptMemoriesSaved: number;
+    followUpDraftsCreated: number;
+  };
 
 function buildExtractionContext(meeting: EAMeeting) {
   return {
@@ -67,6 +77,83 @@ async function syncHighImportanceMemories(
   );
 
   return important.length;
+}
+
+async function persistTranscriptMemories(
+  sessionId: string,
+  transcript: string,
+  meeting: EAMeeting,
+): Promise<number> {
+  const memories = extractMemoriesFromTranscript(transcript, {
+    meetingTitle: meeting.title ?? undefined,
+    projectName: meeting.title ?? undefined,
+  });
+
+  if (memories.length === 0) return 0;
+
+  await Promise.all(
+    memories.map((memory) =>
+      saveMemory(
+        sessionId,
+        memory.content,
+        memory.category,
+        "meeting",
+        memory.importance,
+        {
+          clientName: memory.clientName ?? null,
+          projectName: memory.projectName ?? null,
+          sentimentScore: memory.sentimentScore ?? null,
+        },
+      ),
+    ),
+  );
+
+  return memories.length;
+}
+
+async function autoDraftFollowUps(
+  sessionId: string,
+  meeting: EAMeeting,
+  transcript: string,
+  summary: string,
+  actionItems: string[],
+  attendees: string[],
+): Promise<number> {
+  const parsedAttendees = parseAttendeesFromMeeting(meeting, attendees);
+  if (parsedAttendees.length === 0) return 0;
+
+  const profile = await getEffectiveUserProfile(sessionId);
+  const senderName = profile.name.trim() || "Ganesh";
+  let created = 0;
+
+  for (const attendee of parsedAttendees) {
+    try {
+      const draft = await generateFollowUpDraft(meeting, attendee, {
+        transcript,
+        summary,
+        actionItems,
+        senderName,
+      });
+
+      await createFollowUp(sessionId, {
+        meetingId: meeting.id,
+        recipientEmail: attendee.email,
+        recipientName: attendee.name ?? null,
+        subject: draft.subject,
+        body: draft.body,
+        status: "draft",
+      });
+      created += 1;
+    } catch (err) {
+      console.error(
+        "[meeting-pipeline] follow-up draft failed:",
+        attendee.email,
+        err instanceof Error ? err.message : err,
+      );
+    }
+  }
+
+  return created;
 }
 
 async function persistIntelligenceExtraction(
@@ -126,7 +213,24 @@ export async function processMeetingFull(
     extraction,
   );
 
-  return { ...summaryResult, ...intelligence };
+  const [transcriptMemoriesSaved, followUpDraftsCreated] = await Promise.all([
+    persistTranscriptMemories(sessionId, trimmed, meeting),
+    autoDraftFollowUps(
+      sessionId,
+      meeting,
+      trimmed,
+      summaryResult.summary,
+      summaryResult.actionItems,
+      summaryResult.attendees,
+    ),
+  ]);
+
+  return {
+    ...summaryResult,
+    ...intelligence,
+    transcriptMemoriesSaved,
+    followUpDraftsCreated,
+  };
 }
 
 /** Mark meeting as processing before async transcript upload handlers run. */

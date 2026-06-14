@@ -13,11 +13,11 @@ export function MaxShell({ children }: MaxShellProps) {
             Virtual EA
           </Link>
           <div className="flex gap-3">
-            <Link href="/login" className="text-sm text-zinc-400 hover:text-white">
+            <Link href="/ea/login" className="text-sm text-zinc-400 hover:text-white">
               Sign in
             </Link>
             <Link
-              href="/signup"
+              href="/ea/signup"
               className="rounded-lg bg-white px-4 py-2 text-sm font-medium text-black hover:bg-zinc-200"
             >
               Start free trial

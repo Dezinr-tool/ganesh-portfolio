@@ -18,7 +18,11 @@
     "db:check-memories-schema": "tsx scripts/check-ea-memories-schema.ts",
     "qa:ea-memory": "tsx scripts/qa-ea-memory.ts",
     "check-env": "npx ts-node scripts/check-env.ts",
-    "db:init": "npx ts-node scripts/init-all-tables.ts"
+    "db:init": "npx ts-node scripts/init-all-tables.ts",
+    "db:clear-test-seed": "tsx scripts/clear-test-seed-data.ts",
+    "qa:virtual-ea": "tsx scripts/qa-virtual-ea.ts",
+    "qa:moodboard": "tsx scripts/qa-moodboard.ts",
+    "qa:design-audit": "tsx scripts/qa-design-audit.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.100.1",
@@ -56,6 +60,7 @@
     "@types/uuid": "^10.0.0",
     "eslint": "^9",
     "eslint-config-next": "16.2.6",
+    "playwright": "^1.52.0",
     "tailwindcss": "^4",
     "ts-node": "^10.9.2",
     "tsx": "^4.22.4",

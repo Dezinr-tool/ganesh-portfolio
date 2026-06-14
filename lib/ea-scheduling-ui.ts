@@ -6,7 +6,7 @@ export const CALENDAR_CONTEXT_INTENT_PATTERN =
   /\b(meetings?|schedule|scheduled|scheduling|calendar|calls?|appointment|appointments|book(?:ing)?)\b/i;
 
 const GREETING_PATTERN =
-  /^(hi+|hello+|hey+|hiya|howdy|namaste|good\s+(morning|afternoon|evening)|sup|yo)\b[\s,!.-]*$/i;
+  /^(hi+|hello+|hey+|hiya|howdy|namaste|good\s+(morning|afternoon|evening)|sup|yo|kya\s+haal|kaise\s+ho|kaisa\s+hai|sab\s+(?:theek|thik)|what'?s\s+up)\b[\s,!.-]*$/i;
 
 const GUEST_EMAIL_REQUEST_PATTERN =
   /\b(what(?:'s| is)(?: the| their)? (?:guest|attendee|invitee?)(?:'s)? email|guest email|attendee email(?: address)?|their email address|email (?:address )?(?:for|of|to invite)(?: the)? (?:guest|attendee|them)|share (?:their|the) email|enter (?:the|their|guest) email|email id (?:do|dedo|bhej|share|batao)|invite (?:them|him|her) — (?:what|need) email)\b/i;
@@ -40,14 +40,6 @@ export function hasCalendarContextIntent(text: string): boolean {
   return CALENDAR_CONTEXT_INTENT_PATTERN.test(text);
 }
 
-function userMessagesText(history: ChatTurn[], latestUser?: string): string {
-  const parts = history
-    .filter((m) => m.role === "user")
-    .map((m) => m.content);
-  if (latestUser) parts.push(latestUser);
-  return parts.join("\n");
-}
-
 function conversationText(history: ChatTurn[], latestUser?: string): string {
   const parts = history.map((m) => m.content);
   if (latestUser) parts.push(latestUser);
@@ -71,20 +63,36 @@ export function hasMeetingSubjectInConversation(conversation: string): boolean {
   );
 }
 
-/** Guest email field — only after user asked to schedule, title+time exist, EA asks for email. */
+const EMAIL_IN_TEXT_PATTERN =
+  /\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}\b/;
+
+function recentSchedulingTurns(
+  history: ChatTurn[],
+  userMessage: string,
+  limit = 6,
+): ChatTurn[] {
+  const recent = history.slice(-limit);
+  return [...recent, { role: "user" as const, content: userMessage }];
+}
+
+/** Guest email field — only in a confirmed scheduling flow when EA explicitly asks. */
 export function shouldShowGuestEmailInput(
   history: ChatTurn[],
   userMessage: string,
   assistantReply: string,
 ): boolean {
   if (isGreetingMessage(userMessage)) return false;
+  if (!isExplicitGuestEmailRequest(assistantReply)) return false;
 
-  const userText = userMessagesText(history, userMessage);
-  if (!hasSchedulingIntent(userText)) return false;
+  const recent = recentSchedulingTurns(history, userMessage);
+  const recentText = recent.map((turn) => turn.content).join("\n");
+  if (!hasSchedulingIntent(recentText)) return false;
 
   const fullConversation = conversationText(history, userMessage);
   if (!hasMeetingTimeInConversation(fullConversation)) return false;
   if (!hasMeetingSubjectInConversation(fullConversation)) return false;
 
-  return isExplicitGuestEmailRequest(assistantReply);
+  if (EMAIL_IN_TEXT_PATTERN.test(fullConversation)) return false;
+
+  return true;
 }

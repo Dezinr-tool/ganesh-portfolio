@@ -24,6 +24,8 @@ import {
 import { resolveEaSessionId } from "@/lib/ea-api-auth";
 import { saveConversationMessage } from "@/lib/ea-conversations-store";
 import { extractMemoriesFromMessage } from "@/lib/memory-extractor";
+import { extractIntelligenceFromChat } from "@/lib/intelligence-extractor";
+import { saveIntelligence } from "@/lib/intelligence-store";
 import { getRecentMemories, saveMemory } from "@/lib/memory-store";
 import {
   generateWeeklyInsights,
@@ -348,6 +350,26 @@ function persistExtractedMemories(
   });
 }
 
+function persistChatIntelligence(
+  sessionId: string,
+  userMessage: string,
+  assistantMessage: string,
+): void {
+  after(async () => {
+    try {
+      const items = await extractIntelligenceFromChat(
+        userMessage,
+        assistantMessage,
+      );
+      if (items.length > 0) {
+        await saveIntelligence(sessionId, items, "conversation");
+      }
+    } catch (err) {
+      console.error("[ea/chat] failed to persist intelligence:", err);
+    }
+  });
+}
+
 async function runAssistantTurn(
   anthropic: Anthropic,
   systemPrompt: string,
@@ -466,7 +488,9 @@ export async function POST(request: NextRequest) {
       trimmedUserMessage,
     );
 
-    const agentKey = routeMessage(fullConversationText);
+    const agentKey = isGreetingMessage(trimmedUserMessage)
+      ? "chat"
+      : routeMessage(fullConversationText);
     const chatAgentKey: ChatAgentKey =
       agentKey === "calendar" ? "calendar" : "chat";
     const agent = AGENTS[chatAgentKey];
@@ -476,15 +500,21 @@ export async function POST(request: NextRequest) {
     const sessionId = await resolveEaSessionId(request);
 
     const userMessagesOnly = getConversationText(history, trimmedUserMessage);
-    const schedulingContext = hasSchedulingIntent(userMessagesOnly);
     const isGreeting = isGreetingMessage(trimmedUserMessage);
-    const briefingRequested = wantsBriefing(userMessagesOnly);
-    const coachingRequested = wantsCoachingInsights(fullConversationText);
+    const schedulingContext =
+      !isGreeting && hasSchedulingIntent(trimmedUserMessage);
+    const briefingRequested =
+      !isGreeting && wantsBriefing(trimmedUserMessage);
+    const coachingRequested =
+      !isGreetingMessage(trimmedUserMessage) &&
+      wantsCoachingInsights(fullConversationText);
     const coachMode = coachingRequested;
 
     const calendarContextRequested =
       !isGreeting &&
-      (hasCalendarContextIntent(userMessagesOnly) || briefingRequested);
+      (hasCalendarContextIntent(trimmedUserMessage) ||
+        schedulingContext ||
+        briefingRequested);
 
     const calendarConnected =
       calendarContextRequested && sessionId
@@ -668,6 +698,7 @@ export async function POST(request: NextRequest) {
     if (sessionId) {
       persistConversation(sessionId, trimmedUserMessage, message);
       persistExtractedMemories(sessionId, trimmedUserMessage, message);
+      persistChatIntelligence(sessionId, trimmedUserMessage, message);
     }
 
     return NextResponse.json({

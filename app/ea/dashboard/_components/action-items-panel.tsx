@@ -86,7 +86,6 @@ export function ActionItemsPanel({
   loading: boolean;
 }) {
   const [teamExpanded, setTeamExpanded] = useState(false);
-  const [teamTab, setTeamTab] = useState<"assigned" | "team">("assigned");
 
   const teamAndAssignedCount =
     tasks.assigned_task.length + tasks.team_task.length;
@@ -151,35 +150,16 @@ export function ActionItemsPanel({
                 No team or assigned tasks yet
               </p>
             ) : (
-              <>
-                <div className="mb-4 flex gap-2">
-                  <button
-                    type="button"
-                    onClick={() => setTeamTab("assigned")}
-                    className={`rounded-lg px-3 py-1.5 text-xs font-medium transition-colors ${
-                      teamTab === "assigned"
-                        ? "bg-zinc-800 text-white"
-                        : "text-zinc-500 hover:text-zinc-300"
-                    }`}
-                  >
-                    Assigned ({tasks.assigned_task.length})
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setTeamTab("team")}
-                    className={`rounded-lg px-3 py-1.5 text-xs font-medium transition-colors ${
-                      teamTab === "team"
-                        ? "bg-zinc-800 text-white"
-                        : "text-zinc-500 hover:text-zinc-300"
-                    }`}
-                  >
-                    Team ({tasks.team_task.length})
-                  </button>
-                </div>
-
-                {teamTab === "assigned" ? (
-                  tasks.assigned_task.length === 0 ? (
-                    <p className="py-6 text-center text-sm text-zinc-500">
+              <div className="space-y-8">
+                <div>
+                  <div className="mb-3 flex items-center gap-2">
+                    <h3 className="text-xs font-medium uppercase tracking-wider text-zinc-500">
+                      Assigned
+                    </h3>
+                    <CountBadge count={tasks.assigned_task.length} />
+                  </div>
+                  {tasks.assigned_task.length === 0 ? (
+                    <p className="py-4 text-center text-sm text-zinc-500">
                       No tasks assigned to others
                     </p>
                   ) : (
@@ -188,19 +168,29 @@ export function ActionItemsPanel({
                         <TaskCard key={item.id} item={item} showAssignee />
                       ))}
                     </ul>
-                  )
-                ) : tasks.team_task.length === 0 ? (
-                  <p className="py-6 text-center text-sm text-zinc-500">
-                    No team-wide tasks yet
-                  </p>
-                ) : (
-                  <ul className="space-y-3">
-                    {tasks.team_task.map((item) => (
-                      <TaskCard key={item.id} item={item} />
-                    ))}
-                  </ul>
-                )}
-              </>
+                  )}
+                </div>
+
+                <div>
+                  <div className="mb-3 flex items-center gap-2">
+                    <h3 className="text-xs font-medium uppercase tracking-wider text-zinc-500">
+                      Team
+                    </h3>
+                    <CountBadge count={tasks.team_task.length} />
+                  </div>
+                  {tasks.team_task.length === 0 ? (
+                    <p className="py-4 text-center text-sm text-zinc-500">
+                      No team-wide tasks yet
+                    </p>
+                  ) : (
+                    <ul className="space-y-3">
+                      {tasks.team_task.map((item) => (
+                        <TaskCard key={item.id} item={item} />
+                      ))}
+                    </ul>
+                  )}
+                </div>
+              </div>
             )}
           </div>
         ) : null}

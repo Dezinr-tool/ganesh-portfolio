@@ -7,6 +7,9 @@ import { useEASettings } from "./use-ea-settings";
 const links = [
   { href: "/ea/dashboard", label: "Dashboard" },
   { href: "/ea/meetings", label: "Meetings" },
+  { href: "/ea/followups", label: "Follow-ups" },
+  { href: "/moodboard", label: "Moodboard" },
+  { href: "/design-audit", label: "Design Audit" },
   { href: "/ea/insights", label: "Intelligence" },
   { href: "/ea/chat", label: "Chat" },
   { href: "/ea/settings", label: "Settings" },
