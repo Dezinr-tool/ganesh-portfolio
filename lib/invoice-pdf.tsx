@@ -350,7 +350,11 @@ export function InvoicePdf({
             </View>
             {qrDataUrl ? (
               <View style={{ alignItems: "center", marginLeft: 16 }}>
-                <Image src={qrDataUrl} style={{ width: 80, height: 80 }} />
+                <Image
+                  src={qrDataUrl}
+                  style={{ width: 80, height: 80 }}
+                  cache={false}
+                />
                 <Text
                   style={{
                     fontSize: 8,

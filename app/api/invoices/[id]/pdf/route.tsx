@@ -1,9 +1,11 @@
 import { renderToBuffer } from "@react-pdf/renderer";
-import QRCode from "qrcode";
 import { NextResponse } from "next/server";
+import { getInvoicePdfData } from "@/lib/generate-invoice-pdf";
+import { InvoicePdf } from "@/lib/invoice-pdf";
 import { getInvoiceById } from "@/lib/invoices-store";
-import { InvoicePdf, type InvoicePdfBilling } from "@/lib/invoice-pdf";
-import { getBillingSettings } from "@/lib/settings-store";
+
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
 
 export async function GET(
   _request: Request,
@@ -17,21 +19,7 @@ export async function GET(
       return NextResponse.json({ error: "Invoice not found." }, { status: 404 });
     }
 
-    const settings = await getBillingSettings();
-    const billing: InvoicePdfBilling = {
-      upiId: settings.upiId,
-      bankAccountHolder: settings.bankAccountHolder,
-      bankName: settings.bankName,
-      bankAccountNumber: settings.bankAccountNumber,
-      bankIfsc: settings.bankIfsc,
-      panNumber: settings.panNumber,
-    };
-
-    const upiString = `upi://pay?pa=${billing.upiId}&pn=${encodeURIComponent(billing.bankAccountHolder)}&am=${invoice.total}&cu=INR&tn=${encodeURIComponent(`Invoice ${invoice.invoiceNumber}`)}`;
-    const qrDataUrl = await QRCode.toDataURL(upiString, {
-      width: 100,
-      margin: 1,
-    });
+    const { billing, qrDataUrl } = await getInvoicePdfData(invoice);
 
     const buffer = await renderToBuffer(
       <InvoicePdf invoice={invoice} billing={billing} qrDataUrl={qrDataUrl} />,
@@ -41,9 +29,11 @@ export async function GET(
       headers: {
         "Content-Type": "application/pdf",
         "Content-Disposition": `attachment; filename="${invoice.invoiceNumber}.pdf"`,
+        "Cache-Control": "no-store",
       },
     });
-  } catch {
+  } catch (error) {
+    console.error("[invoices/pdf] generation failed:", error);
     return NextResponse.json(
       { error: "Failed to generate invoice PDF." },
       { status: 500 },
