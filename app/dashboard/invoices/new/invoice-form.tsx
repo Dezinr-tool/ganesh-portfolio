@@ -278,10 +278,10 @@ export default function InvoiceForm() {
 
         <div className="mt-4 space-y-3">
           <div className="hidden grid-cols-12 gap-3 text-xs uppercase tracking-wide text-neutral-500 sm:grid">
-            <div className="col-span-4">Description</div>
+            <div className="col-span-5">Description</div>
             <div className="col-span-3">Effort (hrs)</div>
             <div className="col-span-2">Rate</div>
-            <div className="col-span-2">Amount</div>
+            <div className="col-span-1">Amount</div>
             <div className="col-span-1" />
           </div>
 
@@ -290,7 +290,7 @@ export default function InvoiceForm() {
               key={item.id}
               className="grid gap-3 rounded-md border border-neutral-800 bg-neutral-950 p-3 sm:grid-cols-12 sm:border-0 sm:bg-transparent sm:p-0"
             >
-              <div className="sm:col-span-4">
+              <div className="sm:col-span-5">
                 <label className="mb-1 block text-xs text-neutral-500 sm:hidden">
                   Description
                 </label>
@@ -314,9 +314,14 @@ export default function InvoiceForm() {
                   min="0"
                   step="0.5"
                   required
-                  value={item.effortHrs}
+                  placeholder="0"
+                  value={item.effortHrs === 0 ? "" : item.effortHrs}
                   onChange={(e) =>
-                    updateLineItem(item.id, "effortHrs", Number(e.target.value))
+                    updateLineItem(
+                      item.id,
+                      "effortHrs",
+                      e.target.value === "" ? 0 : Number(e.target.value),
+                    )
                   }
                   className={inputClassName}
                 />
@@ -332,7 +337,7 @@ export default function InvoiceForm() {
                   className={`${inputClassName} text-neutral-400`}
                 />
               </div>
-              <div className="sm:col-span-2">
+              <div className="sm:col-span-1">
                 <label className="mb-1 block text-xs text-neutral-500 sm:hidden">
                   Amount
                 </label>

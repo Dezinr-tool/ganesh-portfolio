@@ -1,18 +1,19 @@
 import { NextResponse } from "next/server";
 import {
+  type BillingSettingsPatch,
+  getBillingSettings,
   getDefaultSignature,
-  getHourlyRate,
   saveDefaultSignature,
-  setHourlyRate,
+  updateBillingSettings,
 } from "@/lib/settings-store";
 
 export async function GET() {
   try {
-    const [signature, hourlyRate] = await Promise.all([
+    const [signature, billing] = await Promise.all([
       getDefaultSignature(),
-      getHourlyRate(),
+      getBillingSettings(),
     ]);
-    return NextResponse.json({ signature, hourlyRate });
+    return NextResponse.json({ signature, ...billing });
   } catch {
     return NextResponse.json(
       { error: "Failed to load settings." },
@@ -23,30 +24,30 @@ export async function GET() {
 
 export async function PATCH(request: Request) {
   try {
-    const body = (await request.json()) as { hourlyRate?: number };
+    const body = (await request.json()) as BillingSettingsPatch;
 
-    if (body.hourlyRate === undefined) {
+    const hasBillingField =
+      body.hourlyRate !== undefined ||
+      body.upiId !== undefined ||
+      body.bankAccountHolder !== undefined ||
+      body.bankName !== undefined ||
+      body.bankAccountNumber !== undefined ||
+      body.bankIfsc !== undefined ||
+      body.panNumber !== undefined;
+
+    if (!hasBillingField) {
       return NextResponse.json(
-        { error: "Missing hourlyRate." },
+        { error: "No settings to update." },
         { status: 400 },
       );
     }
 
-    const hourlyRate = Number(body.hourlyRate);
-    if (!Number.isFinite(hourlyRate) || hourlyRate < 0) {
-      return NextResponse.json(
-        { error: "Invalid hourly rate." },
-        { status: 400 },
-      );
-    }
-
-    await setHourlyRate(hourlyRate);
-    return NextResponse.json({ hourlyRate });
-  } catch {
-    return NextResponse.json(
-      { error: "Failed to save settings." },
-      { status: 500 },
-    );
+    const billing = await updateBillingSettings(body);
+    return NextResponse.json(billing);
+  } catch (error) {
+    const message =
+      error instanceof Error ? error.message : "Failed to save settings.";
+    return NextResponse.json({ error: message }, { status: 400 });
   }
 }
 

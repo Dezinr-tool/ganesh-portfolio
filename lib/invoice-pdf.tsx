@@ -1,11 +1,30 @@
 import {
   Document,
+  Image,
   Page,
   StyleSheet,
   Text,
   View,
 } from "@react-pdf/renderer";
 import type { Invoice } from "@/app/dashboard/_lib/invoices";
+
+export type InvoicePdfBilling = {
+  upiId: string;
+  bankAccountHolder: string;
+  bankName: string;
+  bankAccountNumber: string;
+  bankIfsc: string;
+  panNumber: string;
+};
+
+const DEFAULT_BILLING: InvoicePdfBilling = {
+  upiId: "7304492888@ptaxis",
+  bankAccountHolder: "Ganesh Das",
+  bankName: "State Bank Of India",
+  bankAccountNumber: "39643511245",
+  bankIfsc: "SBIN0014915",
+  panNumber: "BIKPD1450N",
+};
 
 const SENDER_ADDRESS =
   "3101, Venus, Forest Enclave, Hiranandani Fortune City, Panvel";
@@ -243,9 +262,15 @@ export function amountInWords(total: number): string {
 
 type InvoicePdfProps = {
   invoice: Invoice;
+  billing?: InvoicePdfBilling;
+  qrDataUrl?: string;
 };
 
-export function InvoicePdf({ invoice }: InvoicePdfProps) {
+export function InvoicePdf({
+  invoice,
+  billing = DEFAULT_BILLING,
+  qrDataUrl,
+}: InvoicePdfProps) {
   return (
     <Document>
       <Page size="A4" style={styles.page}>
@@ -305,18 +330,47 @@ export function InvoicePdf({ invoice }: InvoicePdfProps) {
 
         <View style={styles.paymentSection}>
           <Text style={styles.paymentTitle}>Payment Details</Text>
-          <Text style={styles.paymentLine}>Account Holder: Ganesh Das</Text>
-          <Text style={styles.paymentLine}>Bank Name: State Bank Of India</Text>
-          <Text style={styles.paymentLine}>Account Number: 39643511245</Text>
-          <Text style={styles.paymentLine}>IFSC Code: SBIN0014915</Text>
-          <Text style={styles.paymentLine}>UPI: 7304492888@ptaxis</Text>
+          <View
+            style={{
+              flexDirection: "row",
+              justifyContent: "space-between",
+              alignItems: "flex-start",
+            }}
+          >
+            <View style={{ flex: 1 }}>
+              <Text style={styles.paymentLine}>
+                Account Holder: {billing.bankAccountHolder}
+              </Text>
+              <Text style={styles.paymentLine}>Bank Name: {billing.bankName}</Text>
+              <Text style={styles.paymentLine}>
+                Account Number: {billing.bankAccountNumber}
+              </Text>
+              <Text style={styles.paymentLine}>IFSC Code: {billing.bankIfsc}</Text>
+              <Text style={styles.paymentLine}>UPI: {billing.upiId}</Text>
+            </View>
+            {qrDataUrl ? (
+              <View style={{ alignItems: "center", marginLeft: 16 }}>
+                <Image src={qrDataUrl} style={{ width: 80, height: 80 }} />
+                <Text
+                  style={{
+                    fontSize: 8,
+                    textAlign: "center",
+                    marginTop: 4,
+                    color: "#333333",
+                  }}
+                >
+                  Scan to Pay
+                </Text>
+              </View>
+            ) : null}
+          </View>
         </View>
 
         <View style={styles.footer} fixed>
           <Text style={styles.footerLeft}>
-            PAN: BIKPD1450N | +91 7304492888 | ganeshdesigncraft@gmail.com
+            PAN: {billing.panNumber} | +91 7304492888 | ganeshdesigncraft@gmail.com
           </Text>
-          <Text style={styles.signature}>Ganesh Das</Text>
+          <Text style={styles.signature}>{billing.bankAccountHolder}</Text>
         </View>
       </Page>
     </Document>

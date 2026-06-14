@@ -1,9 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { pdf } from "@react-pdf/renderer";
 import type { Invoice } from "@/app/dashboard/_lib/invoices";
-import { InvoicePdf } from "@/lib/invoice-pdf";
 
 type DownloadPdfButtonProps = {
   invoice: Invoice;
@@ -15,7 +13,13 @@ export function DownloadPdfButton({ invoice }: DownloadPdfButtonProps) {
   async function handleDownload() {
     setLoading(true);
     try {
-      const blob = await pdf(<InvoicePdf invoice={invoice} />).toBlob();
+      const response = await fetch(`/api/invoices/${invoice.id}/pdf`);
+
+      if (!response.ok) {
+        throw new Error("Failed to generate PDF.");
+      }
+
+      const blob = await response.blob();
       const url = URL.createObjectURL(blob);
       const link = document.createElement("a");
       link.href = url;
