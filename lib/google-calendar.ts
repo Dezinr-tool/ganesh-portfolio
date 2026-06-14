@@ -103,42 +103,86 @@ export function mergeAttendeeEmails(
 export const CALENDAR_OAUTH_REDIRECT_URI =
   "http://localhost:3000/api/ea/calendar/callback";
 
-const PRODUCTION_CALENDAR_OAUTH_REDIRECT_URI =
-  "https://www.designbyganesh.com/api/ea/calendar/callback";
+export const PRODUCTION_CALENDAR_OAUTH_REDIRECT_URIS = [
+  "https://www.designbyganesh.com/api/ea/calendar/callback",
+  "https://designbyganesh.com/api/ea/calendar/callback",
+] as const;
 
-export function getCalendarOAuthRedirectUri(): string {
-  // Local dev (`next dev`) — always hardcoded; never derived from env vars.
-  if (process.env.VERCEL_ENV !== "production") {
-    return CALENDAR_OAUTH_REDIRECT_URI;
+/** Register all of these in Google Cloud Console for the same OAuth client. */
+export const GOOGLE_CONSOLE_REDIRECT_URIS = [
+  CALENDAR_OAUTH_REDIRECT_URI,
+  ...PRODUCTION_CALENDAR_OAUTH_REDIRECT_URIS,
+];
+
+function isLocalOrigin(origin: string): boolean {
+  try {
+    const { hostname } = new URL(origin);
+    return hostname === "localhost" || hostname === "127.0.0.1";
+  } catch {
+    return false;
   }
-
-  return PRODUCTION_CALENDAR_OAUTH_REDIRECT_URI;
 }
 
-export function getCalendarOAuthDebugInfo(sessionId: string): {
+function isProductionSiteOrigin(origin: string): boolean {
+  try {
+    const { hostname } = new URL(origin);
+    return (
+      hostname === "designbyganesh.com" || hostname === "www.designbyganesh.com"
+    );
+  } catch {
+    return false;
+  }
+}
+
+export function getCalendarOAuthRedirectUri(origin?: string): string {
+  if (origin && isLocalOrigin(origin)) {
+    const { protocol, host } = new URL(origin);
+    return `${protocol}//${host}/api/ea/calendar/callback`;
+  }
+
+  if (origin && isProductionSiteOrigin(origin)) {
+    const { protocol, hostname } = new URL(origin);
+    return `${protocol}//${hostname}/api/ea/calendar/callback`;
+  }
+
+  if (process.env.VERCEL_ENV === "production") {
+    return PRODUCTION_CALENDAR_OAUTH_REDIRECT_URIS[0];
+  }
+
+  return CALENDAR_OAUTH_REDIRECT_URI;
+}
+
+export function getCalendarOAuthDebugInfo(
+  sessionId: string,
+  origin?: string,
+): {
   redirectUri: string;
   authUrl: string;
   clientIdSuffix: string;
   sessionId: string;
+  clientId: string;
+  registerTheseRedirectUris: readonly string[];
 } {
-  const redirectUri = getCalendarOAuthRedirectUri();
-  const authUrl = getAuthUrl(sessionId);
+  const redirectUri = getCalendarOAuthRedirectUri(origin);
+  const authUrl = getAuthUrl(sessionId, origin);
   const clientId = process.env.GOOGLE_CLIENT_ID ?? "";
   return {
     redirectUri,
     authUrl,
     clientIdSuffix: clientId ? clientId.slice(-12) : "missing",
+    clientId: clientId || "missing",
     sessionId,
+    registerTheseRedirectUris: GOOGLE_CONSOLE_REDIRECT_URIS,
   };
 }
 
-function getRedirectUri(): string {
-  return getCalendarOAuthRedirectUri();
+function getRedirectUri(origin?: string): string {
+  return getCalendarOAuthRedirectUri(origin);
 }
 
-export function getAuthUrl(sessionId: string): string {
-  const redirectUri = getCalendarOAuthRedirectUri();
-  const oauth2Client = createOAuth2Client();
+export function getAuthUrl(sessionId: string, origin?: string): string {
+  const redirectUri = getCalendarOAuthRedirectUri(origin);
+  const oauth2Client = createOAuth2Client(origin);
   const url = oauth2Client.generateAuthUrl({
     access_type: "offline",
     prompt: "consent",
@@ -146,13 +190,14 @@ export function getAuthUrl(sessionId: string): string {
     state: encodeCalendarOAuthState(sessionId),
   });
 
+  console.info("[google-calendar] getAuthUrl origin:", origin ?? "(none)");
   console.info("[google-calendar] getAuthUrl redirect_uri:", redirectUri);
   console.info("[google-calendar] getAuthUrl full URL:", url);
 
   return url;
 }
 
-export function createOAuth2Client() {
+export function createOAuth2Client(origin?: string) {
   const clientId = process.env.GOOGLE_CLIENT_ID;
   const clientSecret = process.env.GOOGLE_CLIENT_SECRET;
 
@@ -160,7 +205,7 @@ export function createOAuth2Client() {
     throw new Error("Google OAuth credentials not configured.");
   }
 
-  const redirectUri = getCalendarOAuthRedirectUri();
+  const redirectUri = getCalendarOAuthRedirectUri(origin);
   console.info("[google-calendar] OAuth2 client redirect_uri:", redirectUri);
 
   return new google.auth.OAuth2(clientId, clientSecret, redirectUri);
@@ -542,11 +587,12 @@ export async function getGoogleAccessToken(
 export async function exchangeCodeForTokens(
   sessionId: string,
   code: string,
+  origin?: string,
 ): Promise<void> {
-  const redirectUri = getCalendarOAuthRedirectUri();
+  const redirectUri = getCalendarOAuthRedirectUri(origin);
   console.info("[google-calendar] exchangeCodeForTokens redirect_uri:", redirectUri);
 
-  const oauth2Client = createOAuth2Client();
+  const oauth2Client = createOAuth2Client(origin);
   const { tokens } = await oauth2Client.getToken(code);
   await saveTokens(sessionId, tokens);
   oauth2Client.setCredentials(tokens);

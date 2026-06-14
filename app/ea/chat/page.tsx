@@ -1092,7 +1092,7 @@ export default function EAChatPage() {
                 onKeyDown={(e) => {
                   if (e.key === "Enter") handleEmailSend(e);
                 }}
-                placeholder="name@company.com"
+                placeholder="hello@designbyganesh.com"
                 disabled={isProcessing || isSpeaking}
                 className="flex-1 rounded-lg border border-sky-500/30 bg-black px-3 py-2.5 text-sm text-white outline-none placeholder:text-zinc-600 focus:border-sky-400 disabled:opacity-40"
               />

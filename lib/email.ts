@@ -3,12 +3,12 @@ import { Resend } from "resend";
 const resend = new Resend(process.env.RESEND_API_KEY);
 
 const FROM_EMAIL =
-  process.env.RESEND_FROM_EMAIL ?? "onboarding@resend.dev";
+  process.env.RESEND_FROM_EMAIL ?? "hello@designbyganesh.com";
 
 const SITE_URL =
   process.env.NEXT_PUBLIC_SITE_URL ?? "https://designbyganesh.com";
 
-const GANESH_EMAIL = "ganeshdesigncraft@gmail.com";
+const GANESH_EMAIL = "hello@designbyganesh.com";
 
 export async function sendAgreementToClient(
   clientEmail: string,

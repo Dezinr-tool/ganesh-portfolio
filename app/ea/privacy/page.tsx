@@ -1,17 +1,17 @@
 import Link from "next/link";
-import { MaxShell } from "../_components/max-shell";
+import { EALegalShell } from "../_components/ea-legal-shell";
 
 export const metadata = {
   title: "Privacy Policy — Virtual EA",
   description: "Privacy policy for Virtual EA",
 };
 
-export default function MaxPrivacyPage() {
+export default function EAPrivacyPage() {
   return (
-    <MaxShell>
+    <EALegalShell>
       <main className="mx-auto max-w-3xl px-6 py-16">
         <p className="text-sm text-zinc-500">
-          <Link href="/max" className="hover:text-zinc-300">
+          <Link href="/ea/login" className="hover:text-zinc-300">
             ← Back to Virtual EA
           </Link>
         </p>
@@ -36,7 +36,8 @@ export default function MaxPrivacyPage() {
               calendar-related data are stored in your own Neon Postgres database
               — provisioned and controlled by the account holder. Virtual EA does
               not operate a shared multi-tenant data lake; your data lives in the
-              database you connect via <code className="text-zinc-300">DATABASE_URL</code>.
+              database you connect via{" "}
+              <code className="text-zinc-300">DATABASE_URL</code>.
             </p>
           </section>
 
@@ -118,6 +119,6 @@ export default function MaxPrivacyPage() {
           </section>
         </div>
       </main>
-    </MaxShell>
+    </EALegalShell>
   );
 }

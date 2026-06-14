@@ -1,17 +1,17 @@
 import Link from "next/link";
-import { MaxShell } from "../_components/max-shell";
+import { EALegalShell } from "../_components/ea-legal-shell";
 
 export const metadata = {
   title: "Terms of Service — Virtual EA",
   description: "Terms of service for Virtual EA",
 };
 
-export default function MaxTermsPage() {
+export default function EATermsPage() {
   return (
-    <MaxShell>
+    <EALegalShell>
       <main className="mx-auto max-w-3xl px-6 py-16">
         <p className="text-sm text-zinc-500">
-          <Link href="/max" className="hover:text-zinc-300">
+          <Link href="/ea/login" className="hover:text-zinc-300">
             ← Back to Virtual EA
           </Link>
         </p>
@@ -120,6 +120,6 @@ export default function MaxTermsPage() {
           </section>
         </div>
       </main>
-    </MaxShell>
+    </EALegalShell>
   );
 }

@@ -44,7 +44,7 @@ Open [http://localhost:3000/ea/login](http://localhost:3000/ea/login) and sign i
 | `STRIPE_WEBHOOK_SECRET` | Stripe webhook handler |
 | `STRIPE_STARTER_PRICE_ID` | Starter plan checkout |
 | `STRIPE_PRO_PRICE_ID` | Pro plan checkout |
-| `RESEND_FROM_EMAIL` | Custom sender address (defaults to `onboarding@resend.dev`) |
+| `RESEND_FROM_EMAIL` | Custom sender address (defaults to `hello@designbyganesh.com`) |
 | `NEXT_PUBLIC_SITE_URL` | OAuth redirects and email links (e.g. `https://designbyganesh.com`) |
 | `DASHBOARD_PASSWORD` | Portfolio admin dashboard at `/dashboard` |
 | `NEXT_PUBLIC_SANITY_PROJECT_ID` | Sanity CMS for portfolio content |

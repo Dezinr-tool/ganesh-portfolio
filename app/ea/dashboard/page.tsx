@@ -245,7 +245,7 @@ function EditEventModal({
               type="text"
               value={guests}
               onChange={(e) => setGuests(e.target.value)}
-              placeholder="rahul@gmail.com, sara@gmail.com"
+              placeholder="hello@designbyganesh.com"
               className="w-full rounded-lg border border-zinc-800 bg-black px-3 py-2 text-sm text-white outline-none focus:border-zinc-600"
             />
           </div>

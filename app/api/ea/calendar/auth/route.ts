@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { resolveEaSessionId } from "@/lib/ea-api-auth";
 import {
-  CALENDAR_OAUTH_REDIRECT_URI,
   getAuthUrl,
   getCalendarOAuthRedirectUri,
 } from "@/lib/google-calendar";
@@ -13,15 +12,18 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: "Unauthorized." }, { status: 401 });
     }
 
-    const redirectUri = getCalendarOAuthRedirectUri();
-    const url = getAuthUrl(sessionId);
+    const origin = request.nextUrl.origin;
+    const redirectUri = getCalendarOAuthRedirectUri(origin);
+    const url = getAuthUrl(sessionId, origin);
     const parsed = new URL(url);
     const redirectParam = parsed.searchParams.get("redirect_uri");
+    const clientId = process.env.GOOGLE_CLIENT_ID ?? "";
 
     console.info("[ea/calendar/auth] sessionId:", sessionId);
+    console.info("[ea/calendar/auth] request origin:", origin);
     console.info(
       "[ea/calendar/auth] EXACT client_id sent to Google:",
-      process.env.GOOGLE_CLIENT_ID ?? "(missing)",
+      clientId || "(missing — add GOOGLE_CLIENT_ID to Vercel!)",
     );
     console.info(
       "[ea/calendar/auth] EXACT redirect_uri sent to Google:",
@@ -32,10 +34,16 @@ export async function GET(request: NextRequest) {
       redirectParam,
     );
     console.info("[ea/calendar/auth] EXACT full OAuth URL:", url);
-    console.info(
-      "[ea/calendar/auth] hardcoded local redirect_uri constant:",
-      CALENDAR_OAUTH_REDIRECT_URI,
-    );
+
+    if (!clientId) {
+      return NextResponse.json(
+        {
+          error:
+            "GOOGLE_CLIENT_ID is not configured. Add it to Vercel environment variables.",
+        },
+        { status: 500 },
+      );
+    }
 
     if (redirectParam !== redirectUri) {
       console.error("[ea/calendar/auth] redirect_uri mismatch in URL", {

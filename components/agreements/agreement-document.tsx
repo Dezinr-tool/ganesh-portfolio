@@ -44,7 +44,7 @@ export function AgreementDocument({
             <p className="mt-1 font-semibold">Ganesh Das</p>
             <p className="text-sm text-neutral-700">Design by Ganesh</p>
             <p className="text-sm text-neutral-600">
-              ganeshdesigncraft@gmail.com
+              hello@designbyganesh.com
             </p>
           </div>
           <div>

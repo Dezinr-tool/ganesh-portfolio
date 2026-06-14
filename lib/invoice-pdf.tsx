@@ -372,7 +372,7 @@ export function InvoicePdf({
 
         <View style={styles.footer} fixed>
           <Text style={styles.footerLeft}>
-            PAN: {billing.panNumber} | +91 7304492888 | ganeshdesigncraft@gmail.com
+            PAN: {billing.panNumber} | +91 7304492888 | hello@designbyganesh.com
           </Text>
           <Text style={styles.signature}>{billing.bankAccountHolder}</Text>
         </View>

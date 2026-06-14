@@ -26,6 +26,10 @@ export async function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
+  if (pathname === "/ea/privacy" || pathname === "/ea/terms") {
+    return NextResponse.next();
+  }
+
   if (pathname.startsWith("/ea") || pathname.startsWith("/api/ea")) {
     if (pathname === "/api/ea/auth") {
       return NextResponse.next();
@@ -34,6 +38,9 @@ export async function middleware(request: NextRequest) {
       return NextResponse.next();
     }
     if (pathname === "/api/ea/calendar/callback") {
+      return NextResponse.next();
+    }
+    if (pathname === "/api/ea/calendar/oauth-config") {
       return NextResponse.next();
     }
     if (!isEaAuthed) {
