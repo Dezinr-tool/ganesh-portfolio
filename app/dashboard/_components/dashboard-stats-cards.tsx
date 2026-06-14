@@ -1,19 +1,6 @@
-"use client";
-
-import { useEffect, useState } from "react";
 import { formatCurrency } from "../_lib/invoices";
+import type { DashboardStats } from "@/lib/dashboard-stats";
 import { Sparkline } from "./sparkline";
-
-type DashboardStats = {
-  totalEarned: number;
-  pendingAmount: number;
-  totalInvoices: number;
-  totalAgreements: number;
-  monthlyEarned: number[];
-  monthlyPending: number[];
-  monthlyInvoices: number[];
-  monthlyAgreements: number[];
-};
 
 type StatCardConfig = {
   label: string;
@@ -37,41 +24,11 @@ function StatCard({ label, value, data, color, variant }: StatCardConfig) {
   );
 }
 
-export function DashboardStatsCards() {
-  const [stats, setStats] = useState<DashboardStats | null>(null);
-  const [error, setError] = useState<string | null>(null);
+type DashboardStatsCardsProps = {
+  stats: DashboardStats;
+};
 
-  useEffect(() => {
-    fetch("/api/dashboard/stats", { credentials: "include" })
-      .then((res) => {
-        if (!res.ok) throw new Error("Failed to load stats.");
-        return res.json();
-      })
-      .then((data: DashboardStats) => setStats(data))
-      .catch(() => setError("Could not load dashboard stats."));
-  }, []);
-
-  if (error) {
-    return (
-      <p className="text-sm text-red-400" role="alert">
-        {error}
-      </p>
-    );
-  }
-
-  if (!stats) {
-    return (
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        {Array.from({ length: 4 }).map((_, index) => (
-          <div
-            key={index}
-            className="h-[132px] animate-pulse rounded-lg border border-neutral-800 bg-neutral-900"
-          />
-        ))}
-      </div>
-    );
-  }
-
+export function DashboardStatsCards({ stats }: DashboardStatsCardsProps) {
   const cards: StatCardConfig[] = [
     {
       label: "Total Earned",
