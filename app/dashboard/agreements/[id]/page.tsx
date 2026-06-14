@@ -81,6 +81,7 @@ export default async function AgreementDetailPage({
           <DeleteAgreementButton
             agreementId={agreement.id}
             title={agreement.title}
+            redirectTo="/dashboard/agreements"
           />
         </div>
       </div>

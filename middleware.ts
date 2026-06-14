@@ -4,21 +4,24 @@ import {
   DASHBOARD_AUTH_COOKIE,
   verifyDashboardAuthCookie,
 } from "./app/dashboard/_lib/auth";
-import { EA_AUTH_COOKIE, verifyEaAuthCookie } from "./lib/ea-auth";
+import {
+  EA_AUTH_COOKIE,
+  EA_TOKEN_COOKIE,
+  hasEaMiddlewareAuth,
+} from "./lib/ea-token-edge";
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const cookie = request.cookies.get(DASHBOARD_AUTH_COOKIE)?.value;
   const isAuthed = await verifyDashboardAuthCookie(cookie);
 
-  // EA Auth
+  const eaToken = request.cookies.get(EA_TOKEN_COOKIE)?.value;
   const eaCookie = request.cookies.get(EA_AUTH_COOKIE)?.value;
-  const isEaAuthed = verifyEaAuthCookie(eaCookie);
+  const isEaAuthed = hasEaMiddlewareAuth(eaToken, eaCookie);
 
-  // EA routes protection
   if (pathname.startsWith("/ea/login")) {
     if (isEaAuthed) {
-      return NextResponse.redirect(new URL("/ea/dashboard", request.url));
+      return NextResponse.redirect(new URL("/ea/chat", request.url));
     }
     return NextResponse.next();
   }
@@ -38,12 +41,12 @@ export async function middleware(request: NextRequest) {
     }
   }
 
-  // Existing Dashboard Auth
   const requiresAuth =
     pathname.startsWith("/dashboard") ||
     pathname.startsWith("/api/invoices") ||
     pathname.startsWith("/api/agreements") ||
-    pathname.startsWith("/api/settings");
+    pathname.startsWith("/api/settings") ||
+    pathname.startsWith("/api/dashboard");
 
   if (pathname.startsWith("/dashboard/login")) {
     if (isAuthed) {
@@ -72,5 +75,6 @@ export const config = {
     "/api/invoices/:path*",
     "/api/agreements/:path*",
     "/api/settings",
+    "/api/dashboard/:path*",
   ],
 };

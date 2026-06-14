@@ -2,6 +2,7 @@ import Link from "next/link";
 import { readAgreements } from "@/lib/agreements-store";
 import { statusLabel } from "../_lib/agreements";
 import type { AgreementStatus } from "../_lib/agreements";
+import { DeleteAgreementButton } from "./delete-agreement-button";
 
 export const dynamic = "force-dynamic";
 
@@ -65,6 +66,9 @@ export default async function AgreementsPage() {
                 <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wide text-neutral-500">
                   Signatures
                 </th>
+                <th className="px-4 py-3 text-right text-xs font-medium uppercase tracking-wide text-neutral-500">
+                  Actions
+                </th>
               </tr>
             </thead>
             <tbody className="divide-y divide-neutral-800 bg-neutral-950">
@@ -95,6 +99,13 @@ export default async function AgreementsPage() {
                     <span className={agreement.clientSignedAt ? "text-emerald-400" : ""}>
                       Client {agreement.clientSignedAt ? "✓" : "—"}
                     </span>
+                  </td>
+                  <td className="px-4 py-3 text-right">
+                    <DeleteAgreementButton
+                      agreementId={agreement.id}
+                      title={agreement.title}
+                      variant="icon"
+                    />
                   </td>
                 </tr>
               ))}
