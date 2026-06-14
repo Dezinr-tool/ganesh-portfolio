@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter, useSearchParams } from "next/navigation";
-import { Suspense, useCallback, useEffect, useState } from "react";
+import { Suspense, useCallback, useEffect, useMemo, useState } from "react";
 import { EANav } from "../_components/ea-nav";
 import {
   ActionItemsPanel,
@@ -422,6 +422,8 @@ function DashboardContent() {
     };
   }, [loadCalendar]);
 
+  const [nowMs] = useState(() => Date.now());
+
   const pendingTasks = totalTaskCount(tasks);
 
   const stats = [
@@ -435,13 +437,16 @@ function DashboardContent() {
     { label: "Notes Saved", value: 0 },
   ];
 
-  const nextMeeting =
-    todayEvents.find((event) => {
-      if (event.isAllDay) return true;
-      return new Date(event.end).getTime() > Date.now();
-    }) ??
-    upcomingEvents[0] ??
-    null;
+  const nextMeeting = useMemo(
+    () =>
+      todayEvents.find((event) => {
+        if (event.isAllDay) return true;
+        return new Date(event.end).getTime() > nowMs;
+      }) ??
+      upcomingEvents[0] ??
+      null,
+    [todayEvents, upcomingEvents, nowMs],
+  );
 
   return (
     <div className="min-h-screen bg-black text-zinc-100">

@@ -1,4 +1,5 @@
 import Anthropic from "@anthropic-ai/sdk";
+import { cacheGet, cacheKey, cacheSet, hashString } from "../ai-cache";
 import { getAuditModel } from "./models";
 import { DESIGN_AUDIT_SYSTEM_PROMPT } from "./system-prompt";
 import type {
@@ -13,27 +14,58 @@ import type {
 
 type AuditInputMeta = Record<string, unknown>;
 
+function compactMetadata(metadata: AuditInputMeta): string {
+  const slim: Record<string, unknown> = {};
+  for (const [k, v] of Object.entries(metadata)) {
+    if (v === undefined || v === null || v === "") continue;
+    if (Array.isArray(v) && v.length === 0) continue;
+    slim[k] = v;
+  }
+  return JSON.stringify(slim);
+}
+
 function buildUserPrompt(
   context: AuditContext,
   inputMode: string,
   metadata: AuditInputMeta,
 ): string {
   return [
-    `Input mode: ${inputMode}`,
+    `Mode: ${inputMode}`,
     `Product: ${context.productDescription}`,
-    `Target user: ${context.targetUser}`,
-    `Primary goal: ${context.primaryGoal}`,
-    context.specificConcerns
-      ? `Specific concerns: ${context.specificConcerns}`
+    `User: ${context.targetUser}`,
+    `Goal: ${context.primaryGoal}`,
+    context.specificConcerns ? `Concerns: ${context.specificConcerns}` : null,
+    context.eaPrefillSummary ? `EA: ${context.eaPrefillSummary.slice(0, 800)}` : null,
+    metadata && Object.keys(metadata).length
+      ? `Meta: ${compactMetadata(metadata)}`
       : null,
-    context.eaPrefillSummary
-      ? `EA client context:\n${context.eaPrefillSummary}`
-      : null,
-    `Design metadata:\n${JSON.stringify(metadata, null, 2)}`,
-    "Audit all 10 dimensions. Reference specific visible elements in the screenshot(s).",
+    "Audit all 10 dimensions. Cite specific visible elements.",
   ]
     .filter(Boolean)
-    .join("\n\n");
+    .join("\n");
+}
+
+export function buildAuditCacheKey(input: {
+  modelId: string;
+  context: AuditContext;
+  inputMode: string;
+  metadata: AuditInputMeta;
+  images: AuditImage[];
+}): string {
+  const imageSig = input.images
+    .map((img) => `${img.mediaType}:${img.base64.slice(0, 120)}:${img.base64.length}`)
+    .join("|");
+  return cacheKey(
+    "audit",
+    input.modelId,
+    input.inputMode,
+    input.context.productDescription,
+    input.context.targetUser,
+    input.context.primaryGoal,
+    input.context.specificConcerns ?? "",
+    compactMetadata(input.metadata),
+    hashString(imageSig),
+  );
 }
 
 function normalizeEffort(value?: string): EffortEstimate {
@@ -113,6 +145,7 @@ async function callAnthropicVision(
   system: string,
   userPrompt: string,
   images: AuditImage[],
+  onDelta?: (chunk: string) => void,
 ): Promise<string> {
   const apiKey = process.env.ANTHROPIC_API_KEY;
   if (!apiKey) throw new Error("ANTHROPIC_API_KEY not configured");
@@ -133,16 +166,36 @@ async function callAnthropicVision(
     { type: "text", text: userPrompt },
   ];
 
-  const response = await anthropic.messages.create({
+  if (!onDelta) {
+    const response = await anthropic.messages.create({
+      model,
+      max_tokens: 8192,
+      system,
+      messages: [{ role: "user", content }],
+    });
+    const block = response.content.find((b) => b.type === "text");
+    if (!block || block.type !== "text") throw new Error("Empty response");
+    return block.text;
+  }
+
+  const stream = anthropic.messages.stream({
     model,
     max_tokens: 8192,
     system,
     messages: [{ role: "user", content }],
   });
 
-  const block = response.content.find((b) => b.type === "text");
-  if (!block || block.type !== "text") throw new Error("Empty response");
-  return block.text;
+  let text = "";
+  for await (const event of stream) {
+    if (
+      event.type === "content_block_delta" &&
+      event.delta.type === "text_delta"
+    ) {
+      text += event.delta.text;
+      onDelta(event.delta.text);
+    }
+  }
+  return text;
 }
 
 async function callOpenAIVision(
@@ -234,11 +287,19 @@ export async function runDesignAudit(input: {
   inputMode: string;
   metadata: AuditInputMeta;
   images: AuditImage[];
+  onDelta?: (chunk: string) => void;
+  skipCache?: boolean;
 }): Promise<DesignAuditResult> {
   if (input.images.length === 0) {
     throw new Error(
       "At least one image is required for visual audit. Upload a screenshot or connect Figma.",
     );
+  }
+
+  const cacheKeyStr = buildAuditCacheKey(input);
+  if (!input.skipCache) {
+    const cached = cacheGet<DesignAuditResult>(cacheKeyStr);
+    if (cached) return cached;
   }
 
   const config = getAuditModel(input.modelId);
@@ -256,6 +317,7 @@ export async function runDesignAudit(input: {
         DESIGN_AUDIT_SYSTEM_PROMPT,
         userPrompt,
         input.images,
+        input.onDelta,
       );
     } else if (config.provider === "openai") {
       text = await callOpenAIVision(
@@ -279,11 +341,14 @@ export async function runDesignAudit(input: {
         DESIGN_AUDIT_SYSTEM_PROMPT,
         userPrompt,
         input.images,
+        input.onDelta,
       );
     } else {
       throw primaryErr;
     }
   }
 
-  return parseAuditResult(text);
+  const result = parseAuditResult(text);
+  cacheSet(cacheKeyStr, result);
+  return result;
 }

@@ -7,18 +7,22 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 export async function POST(request: NextRequest) {
+  const body = await request.json().catch(() => null);
+  if (!body) {
+    return NextResponse.json({ error: "Invalid request body." }, { status: 400 });
+  }
+
+  const result = body.result as DesignAuditResult;
+  const product = typeof body.product === "string" ? body.product : undefined;
+
+  if (!result?.overall_score) {
+    return NextResponse.json({ error: "Audit result required." }, { status: 400 });
+  }
+
+  const document = <DesignAuditPdf result={result} product={product} />;
+
   try {
-    const body = await request.json();
-    const result = body.result as DesignAuditResult;
-    const product = typeof body.product === "string" ? body.product : undefined;
-
-    if (!result?.overall_score) {
-      return NextResponse.json({ error: "Audit result required." }, { status: 400 });
-    }
-
-    const buffer = await renderToBuffer(
-      <DesignAuditPdf result={result} product={product} />,
-    );
+    const buffer = await renderToBuffer(document);
 
     return new NextResponse(new Uint8Array(buffer), {
       headers: {

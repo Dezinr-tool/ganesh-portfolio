@@ -22,7 +22,8 @@
     "db:clear-test-seed": "tsx scripts/clear-test-seed-data.ts",
     "qa:virtual-ea": "tsx scripts/qa-virtual-ea.ts",
     "qa:moodboard": "tsx scripts/qa-moodboard.ts",
-    "qa:design-audit": "tsx scripts/qa-design-audit.ts"
+    "qa:design-audit": "tsx scripts/qa-design-audit.ts",
+    "qa:p11-p12": "tsx scripts/qa-p11-p12-full.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.100.1",

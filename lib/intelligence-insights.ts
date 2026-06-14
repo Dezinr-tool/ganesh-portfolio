@@ -1,5 +1,6 @@
 import Anthropic from "@anthropic-ai/sdk";
 import { AGENTS } from "@/lib/agents/router";
+import { cacheGet, cacheSet } from "./ai-cache";
 import {
   getIntelligence,
   getIntelligenceStats,
@@ -126,6 +127,7 @@ export type ToolContextInput = {
 export async function buildToolContext(
   sessionId: string,
   input: ToolContextInput,
+  options?: { useAi?: boolean },
 ): Promise<Record<string, unknown>> {
   const items = await getIntelligence(sessionId, {
     clientName: input.clientName,
@@ -176,9 +178,19 @@ export async function buildToolContext(
     },
   };
 
+  const fallbackPayload = (fallback[input.tool] ?? {}) as Record<string, unknown>;
+
+  if (!options?.useAi) {
+    return fallbackPayload;
+  }
+
+  const cacheKeyStr = `toolctx:${sessionId}:${input.tool}:${input.clientName ?? ""}`;
+  const cached = cacheGet<Record<string, unknown>>(cacheKeyStr);
+  if (cached) return cached;
+
   const apiKey = process.env.ANTHROPIC_API_KEY;
   if (!apiKey) {
-    return (fallback[input.tool] ?? {}) as Record<string, unknown>;
+    return fallbackPayload;
   }
 
   try {
@@ -216,11 +228,13 @@ Expected shapes:
     const clean = block.text.replace(/```json|```/g, "").trim();
     const match = clean.match(/\{[\s\S]*\}/);
     if (match) {
-      return JSON.parse(match[0]) as Record<string, unknown>;
+      const parsed = JSON.parse(match[0]) as Record<string, unknown>;
+      cacheSet(cacheKeyStr, parsed, 10 * 60 * 1000);
+      return parsed;
     }
   } catch {
     // fall through
   }
 
-  return (fallback[input.tool] ?? {}) as Record<string, unknown>;
+  return fallbackPayload;
 }

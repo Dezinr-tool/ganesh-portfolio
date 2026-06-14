@@ -22,7 +22,7 @@ export async function POST(request: NextRequest) {
       buildToolContext(sessionId, {
         tool: "design_audit",
         clientName,
-      }),
+      }, { useAi: false }),
     ]);
 
     const tool = toolRaw as {

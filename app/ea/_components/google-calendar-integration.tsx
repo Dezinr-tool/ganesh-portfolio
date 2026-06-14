@@ -76,12 +76,15 @@ export function GoogleCalendarIntegration({
                 </button>
               </div>
             ) : (
-              <a
-                href="/api/ea/calendar/auth"
+              <button
+                type="button"
+                onClick={() => {
+                  window.location.assign("/api/ea/calendar/auth");
+                }}
                 className="rounded-lg border border-zinc-700 px-4 py-2 text-sm text-white transition-colors hover:border-zinc-500 hover:bg-zinc-900"
               >
                 Connect
-              </a>
+              </button>
             )}
           </div>
 

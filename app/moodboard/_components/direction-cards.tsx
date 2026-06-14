@@ -195,13 +195,11 @@ export function DirectionDetailModal({
 
 export function ExportPanel({
   direction,
-  tab,
   onCopy,
   onDownloadPdf,
   onSaveHistory,
 }: {
   direction: MoodboardDirection;
-  tab: string;
   onCopy: () => void;
   onDownloadPdf: () => void;
   onSaveHistory: () => void;

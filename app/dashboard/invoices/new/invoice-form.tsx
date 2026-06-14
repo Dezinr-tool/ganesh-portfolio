@@ -75,21 +75,21 @@ export default function InvoiceForm() {
       .catch(() => setError("Could not load hourly rate."));
   }, []);
 
-  useEffect(() => {
-    setLineItems((items) =>
-      items.map((item) => ({
+  const resolvedLineItems = useMemo(
+    () =>
+      lineItems.map((item) => ({
         ...item,
         rate: hourlyRate,
         amount: calculateLineAmount(item.effortHrs, hourlyRate),
       })),
-    );
-  }, [hourlyRate]);
+    [lineItems, hourlyRate],
+  );
 
   const parsedTaxPercent = taxPercent === "" ? null : Number(taxPercent);
 
   const totals = useMemo(
-    () => calculateTotals(lineItems, parsedTaxPercent),
-    [lineItems, parsedTaxPercent],
+    () => calculateTotals(resolvedLineItems, parsedTaxPercent),
+    [resolvedLineItems, parsedTaxPercent],
   );
 
   function updateLineItem(
@@ -139,7 +139,7 @@ export default function InvoiceForm() {
           clientEmail,
           clientCompany,
           clientAddress,
-          lineItems,
+          lineItems: resolvedLineItems,
           subtotal: totals.subtotal,
           taxPercent: parsedTaxPercent,
           taxAmount: totals.taxAmount,
@@ -285,7 +285,7 @@ export default function InvoiceForm() {
             <div className="col-span-1" />
           </div>
 
-          {lineItems.map((item) => (
+          {resolvedLineItems.map((item) => (
             <div
               key={item.id}
               className="grid gap-3 rounded-md border border-neutral-800 bg-neutral-950 p-3 sm:grid-cols-12 sm:border-0 sm:bg-transparent sm:p-0"

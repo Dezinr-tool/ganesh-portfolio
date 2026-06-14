@@ -1,5 +1,6 @@
 import Anthropic from "@anthropic-ai/sdk";
 import { randomUUID } from "crypto";
+import { cacheGet, cacheKey, cacheSet, hashString } from "../ai-cache";
 import { getModelConfig } from "./models";
 import { MOODBOARD_SYSTEM_PROMPT } from "./system-prompt";
 import type {
@@ -31,7 +32,7 @@ function buildUserPrompt(
   if (brief.campaignGoal) parts.push(`Campaign goal: ${brief.campaignGoal}`);
   if (brief.platform) parts.push(`Platform: ${brief.platform}`);
   if (brief.questionnaireText) {
-    parts.push(`Questionnaire:\n${brief.questionnaireText.slice(0, 3000)}`);
+    parts.push(`Questionnaire:\n${brief.questionnaireText.slice(0, 2000)}`);
   }
   if (brief.referenceNotes) parts.push(`Reference notes: ${brief.referenceNotes}`);
   if (brief.referenceImageCount) {
@@ -52,9 +53,12 @@ Vision: ${brief.websiteAnalysis.vision}`,
   if (refineNote && existingDirection) {
     parts.push(
       `Regenerate ONLY this direction with refinements.
-Current direction:
-${JSON.stringify(existingDirection, null, 2)}
-Refinement request: ${refineNote}
+Name: ${existingDirection.name}
+Concept: ${existingDirection.concept}
+Colors: ${existingDirection.colors.map((c) => c.hex).join(", ")}
+Typography: ${existingDirection.typography.heading} / ${existingDirection.typography.body}
+Mood: ${existingDirection.mood.join(", ")}
+Refinement: ${refineNote}
 Return JSON with exactly 1 direction in the directions array.`,
     );
   }
@@ -120,21 +124,43 @@ function parseDirectionsJson(text: string): MoodboardDirection[] {
 async function callAnthropic(
   model: string,
   userPrompt: string,
+  onDelta?: (chunk: string) => void,
 ): Promise<string> {
   const apiKey = process.env.ANTHROPIC_API_KEY;
   if (!apiKey) throw new Error("ANTHROPIC_API_KEY not configured");
 
   const anthropic = new Anthropic({ apiKey });
-  const response = await anthropic.messages.create({
+
+  if (!onDelta) {
+    const response = await anthropic.messages.create({
+      model,
+      max_tokens: 4096,
+      system: MOODBOARD_SYSTEM_PROMPT,
+      messages: [{ role: "user", content: userPrompt }],
+    });
+    const block = response.content.find((b) => b.type === "text");
+    if (!block || block.type !== "text") throw new Error("Empty Anthropic response");
+    return block.text;
+  }
+
+  const stream = anthropic.messages.stream({
     model,
     max_tokens: 4096,
     system: MOODBOARD_SYSTEM_PROMPT,
     messages: [{ role: "user", content: userPrompt }],
   });
 
-  const block = response.content.find((b) => b.type === "text");
-  if (!block || block.type !== "text") throw new Error("Empty Anthropic response");
-  return block.text;
+  let text = "";
+  for await (const event of stream) {
+    if (
+      event.type === "content_block_delta" &&
+      event.delta.type === "text_delta"
+    ) {
+      text += event.delta.text;
+      onDelta(event.delta.text);
+    }
+  }
+  return text;
 }
 
 async function callOpenAI(model: string, userPrompt: string): Promise<string> {
@@ -207,14 +233,23 @@ export async function generateMoodboardDirections(input: {
   brief: MoodboardBrief;
   tab: MoodboardTab;
   modelId: MoodboardModelId;
+  onDelta?: (chunk: string) => void;
 }): Promise<MoodboardDirection[]> {
   const config = getModelConfig(input.modelId);
   const userPrompt = buildUserPrompt(input.brief, input.tab);
+  const key = cacheKey(
+    "moodboard-gen",
+    input.tab,
+    input.modelId,
+    hashString(userPrompt),
+  );
+  const cached = cacheGet<MoodboardDirection[]>(key);
+  if (cached) return cached;
 
   let text: string;
   try {
     if (config.provider === "anthropic") {
-      text = await callAnthropic(config.model, userPrompt);
+      text = await callAnthropic(config.model, userPrompt, input.onDelta);
     } else if (config.provider === "openai") {
       text = await callOpenAI(config.model, userPrompt);
     } else {
@@ -222,13 +257,15 @@ export async function generateMoodboardDirections(input: {
     }
   } catch (primaryErr) {
     if (input.modelId !== "claude-sonnet") {
-      text = await callAnthropic("claude-sonnet-4-6", userPrompt);
+      text = await callAnthropic("claude-sonnet-4-6", userPrompt, input.onDelta);
     } else {
       throw primaryErr;
     }
   }
 
-  return parseDirectionsJson(text);
+  const directions = parseDirectionsJson(text);
+  cacheSet(key, directions);
+  return directions;
 }
 
 export async function refineMoodboardDirection(input: {
@@ -260,40 +297,38 @@ export async function refineMoodboardDirection(input: {
 }
 
 export async function parseQuestionnaire(text: string): Promise<Record<string, string>> {
+  const trimmed = text.trim();
+  const key = cacheKey("questionnaire", hashString(trimmed));
+  const cached = cacheGet<Record<string, string>>(key);
+  if (cached) return cached;
+
   const apiKey = process.env.ANTHROPIC_API_KEY;
   if (!apiKey) {
-    return { questionnaireText: text.trim() };
+    return { questionnaireText: trimmed };
   }
 
   const anthropic = new Anthropic({ apiKey });
   const response = await anthropic.messages.create({
     model: "claude-haiku-4-5-20251001",
-    max_tokens: 600,
+    max_tokens: 400,
     messages: [
       {
         role: "user",
-        content: `Extract brand moodboard signals from this questionnaire. Return JSON only:
-{
-  "industry": string,
-  "audience": string,
-  "feeling": string,
-  "colorDirection": string,
-  "admiredBrands": string,
-  "brandName": string,
-  "summary": string
-}
+        content: `Extract brand moodboard signals. JSON only:
+{"industry":"","audience":"","feeling":"","colorDirection":"","admiredBrands":"","brandName":"","summary":""}
 
-Questionnaire:
-${text.slice(0, 4000)}`,
+${trimmed.slice(0, 3000)}`,
       },
     ],
   });
 
   const block = response.content.find((b) => b.type === "text");
-  if (!block || block.type !== "text") return { questionnaireText: text.trim() };
+  if (!block || block.type !== "text") return { questionnaireText: trimmed };
 
   const jsonMatch = block.text.match(/\{[\s\S]*\}/);
-  if (!jsonMatch) return { questionnaireText: text.trim() };
+  if (!jsonMatch) return { questionnaireText: trimmed };
 
-  return JSON.parse(jsonMatch[0]) as Record<string, string>;
+  const parsed = JSON.parse(jsonMatch[0]) as Record<string, string>;
+  cacheSet(key, parsed);
+  return parsed;
 }

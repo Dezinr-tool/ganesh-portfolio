@@ -1,4 +1,5 @@
 import type { AuditImage, FigmaInputMeta } from "./types";
+import { cacheGet, cacheKey, cacheSet } from "../ai-cache";
 
 function parseFigmaUrl(url: string): { fileKey: string; nodeId: string } | null {
   try {
@@ -91,6 +92,14 @@ export async function fetchFigmaAuditInput(url: string): Promise<{
     throw new Error("Invalid Figma URL. Use a design/file link with node-id.");
   }
 
+  const key = cacheKey("audit-figma", parsed.fileKey, parsed.nodeId);
+  const cached = cacheGet<{
+    meta: FigmaInputMeta;
+    image: AuditImage | null;
+    error?: string;
+  }>(key);
+  if (cached) return cached;
+
   const token =
     process.env.FIGMA_API_TOKEN ?? process.env.FIGMA_ACCESS_TOKEN;
   if (!token) {
@@ -154,7 +163,7 @@ export async function fetchFigmaAuditInput(url: string): Promise<{
     }
   }
 
-  return {
+  const output = {
     meta: {
       fileKey: parsed.fileKey,
       nodeId: parsed.nodeId,
@@ -166,4 +175,6 @@ export async function fetchFigmaAuditInput(url: string): Promise<{
     },
     image,
   };
+  cacheSet(key, output, 15 * 60 * 1000);
+  return output;
 }

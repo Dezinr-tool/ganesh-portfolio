@@ -1,4 +1,5 @@
 import type { AuditImage, WebsiteInputMeta } from "./types";
+import { cacheGet, cacheKey, cacheSet } from "../ai-cache";
 
 function extractHeadings(html: string): string[] {
   const headings: string[] = [];
@@ -106,6 +107,10 @@ export async function fetchWebsiteAuditInput(url: string): Promise<{
     normalized = `https://${normalized}`;
   }
 
+  const key = cacheKey("audit-website", normalized);
+  const cached = cacheGet<{ meta: WebsiteInputMeta; image: AuditImage | null }>(key);
+  if (cached) return cached;
+
   const res = await fetch(normalized, {
     headers: {
       "User-Agent":
@@ -145,7 +150,7 @@ export async function fetchWebsiteAuditInput(url: string): Promise<{
     }
   }
 
-  return {
+  const output = {
     meta: {
       url: normalized,
       title,
@@ -158,4 +163,6 @@ export async function fetchWebsiteAuditInput(url: string): Promise<{
     },
     image,
   };
+  cacheSet(key, output, 15 * 60 * 1000);
+  return output;
 }

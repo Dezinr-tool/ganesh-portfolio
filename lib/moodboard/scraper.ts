@@ -1,4 +1,5 @@
 import Anthropic from "@anthropic-ai/sdk";
+import { cacheGet, cacheKey, cacheSet } from "../ai-cache";
 import type { WebsiteAnalysis } from "./types";
 
 function extractMeta(html: string, property: string): string | null {
@@ -47,6 +48,10 @@ export async function scrapeWebsite(url: string): Promise<WebsiteAnalysis> {
     normalized = `https://${normalized}`;
   }
 
+  const key = cacheKey("scrape", normalized);
+  const cached = cacheGet<WebsiteAnalysis>(key);
+  if (cached) return cached;
+
   try {
     const res = await fetch(normalized, {
       headers: {
@@ -78,7 +83,9 @@ export async function scrapeWebsite(url: string): Promise<WebsiteAnalysis> {
       colors,
     });
 
-    return { ...analysis, url: normalized, fallback: false };
+    const result = { ...analysis, url: normalized, fallback: false };
+    cacheSet(key, result);
+    return result;
   } catch (err) {
     const message = err instanceof Error ? err.message : "Fetch failed";
     return buildFallback(normalized, message);
@@ -122,7 +129,7 @@ async function analyzeWithAi(input: {
   const anthropic = new Anthropic({ apiKey });
   const response = await anthropic.messages.create({
     model: "claude-haiku-4-5-20251001",
-    max_tokens: 800,
+    max_tokens: 512,
     messages: [
       {
         role: "user",
@@ -141,7 +148,7 @@ URL: ${input.url}
 Title: ${input.title}
 Meta: ${input.description}
 Detected colors: ${input.colors.join(", ") || "none"}
-Page text sample: ${input.textSample.slice(0, 2500)}`,
+Page text sample: ${input.textSample.slice(0, 1500)}`,
       },
     ],
   });

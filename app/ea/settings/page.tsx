@@ -131,14 +131,18 @@ export default function EASettingsPage() {
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const calendarResult = params.get("calendar");
-    if (calendarResult === "connected" || calendarResult === "error") {
+    if (calendarResult !== "connected" && calendarResult !== "error") return;
+
+    const timer = window.setTimeout(() => {
       void loadCalendarStatus();
       if (calendarResult === "error") {
         setCalendarError(
           "Google Calendar connection failed. Please try again.",
         );
       }
-    }
+    }, 0);
+
+    return () => window.clearTimeout(timer);
   }, [loadCalendarStatus]);
 
   const groupedMemories = useMemo(() => {

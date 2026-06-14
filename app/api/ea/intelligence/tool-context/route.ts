@@ -41,7 +41,9 @@ export async function POST(request: NextRequest) {
         typeof body.projectType === "string" ? body.projectType : undefined,
     };
 
-    const context = await buildToolContext(auth.sessionId, input);
+    const context = await buildToolContext(auth.sessionId, input, {
+      useAi: true,
+    });
     return NextResponse.json(context);
   } catch (error) {
     console.error("[ea/intelligence/tool-context POST] error:", error);

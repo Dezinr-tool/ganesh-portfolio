@@ -1,8 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { randomUUID } from "@/lib/moodboard/uuid";
+import { readSseStream } from "@/lib/ai-sse";
 import { MOODBOARD_MODELS } from "@/lib/moodboard/models";
 import {
   directionToText,
@@ -47,6 +48,7 @@ export default function MoodboardPage() {
   const [refineId, setRefineId] = useState<string | null>(null);
   const [refineNote, setRefineNote] = useState("");
   const [loading, setLoading] = useState(false);
+  const [parsingQuestionnaire, setParsingQuestionnaire] = useState(false);
   const [error, setError] = useState("");
   const [eaClient, setEaClient] = useState<string | null>(null);
   const [copyMessage, setCopyMessage] = useState("");
@@ -59,6 +61,7 @@ export default function MoodboardPage() {
   const [genStatusIdx, setGenStatusIdx] = useState(0);
   const [scrapeStatusIdx, setScrapeStatusIdx] = useState(0);
   const [websiteStep, setWebsiteStep] = useState(0);
+  const scrapeCache = useRef<Map<string, WebsiteAnalysis>>(new Map());
 
   const updateBrief = useCallback((patch: Partial<MoodboardBrief>) => {
     setBrief((prev) => ({ ...prev, ...patch }));
@@ -124,6 +127,18 @@ export default function MoodboardPage() {
 
   const scrapeUrl = async () => {
     if (!websiteUrl.trim()) return;
+    const normalized = websiteUrl.trim();
+    const cached = scrapeCache.current.get(normalized);
+    if (cached) {
+      updateBrief({
+        websiteUrl: cached.url,
+        websiteAnalysis: cached,
+        industry: brief.industry || cached.title,
+        feeling: brief.feeling || cached.personality,
+      });
+      return;
+    }
+
     setScraping(true);
     setError("");
     try {
@@ -135,6 +150,7 @@ export default function MoodboardPage() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error ?? "Scrape failed");
       const analysis = data.analysis as WebsiteAnalysis;
+      scrapeCache.current.set(normalized, analysis);
       updateBrief({
         websiteUrl: analysis.url,
         websiteAnalysis: analysis,
@@ -150,7 +166,7 @@ export default function MoodboardPage() {
 
   const parseQuestionnaire = async () => {
     if (!questionnaire.trim()) return;
-    setLoading(true);
+    setParsingQuestionnaire(true);
     try {
       const res = await fetch("/api/moodboard/parse-questionnaire", {
         method: "POST",
@@ -172,7 +188,7 @@ export default function MoodboardPage() {
     } catch {
       updateBrief({ questionnaireText: questionnaire });
     } finally {
-      setLoading(false);
+      setParsingQuestionnaire(false);
     }
   };
 
@@ -195,14 +211,21 @@ export default function MoodboardPage() {
       const res = await fetch("/api/moodboard/generate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ tab, modelId, brief: payload }),
+        body: JSON.stringify({ tab, modelId, brief: payload, stream: true }),
       });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error ?? "Generation failed");
-      if (!Array.isArray(data.directions) || data.directions.length !== 3) {
+
+      const payloadResult = await readSseStream<{ directions: MoodboardDirection[] }>(
+        res,
+        () => {
+          setGenStatusIdx((i) => (i + 1) % GENERATION_STATUS.length);
+        },
+      );
+
+      const directions = payloadResult?.directions;
+      if (!directions || directions.length !== 3) {
         throw new Error("Expected exactly 3 directions");
       }
-      setDirections(data.directions);
+      setDirections(directions);
       setPhase("results");
       setSelectedId(null);
     } catch (err) {
@@ -392,7 +415,7 @@ export default function MoodboardPage() {
                 questionnaire={questionnaire}
                 setQuestionnaire={setQuestionnaire}
                 onParseQuestionnaire={parseQuestionnaire}
-                referenceFiles={referenceFiles}
+                parsingQuestionnaire={parsingQuestionnaire}
                 setReferenceFiles={setReferenceFiles}
                 referencePreviews={referencePreviews}
                 websiteStep={websiteStep}
@@ -437,7 +460,6 @@ export default function MoodboardPage() {
             {selected ? (
               <ExportPanel
                 direction={selected}
-                tab={tab}
                 onCopy={() => copyDirection(selected)}
                 onDownloadPdf={() => downloadPdf(selected)}
                 onSaveHistory={() => saveHistory(selected)}
@@ -531,7 +553,7 @@ function WebsiteIntake({
   questionnaire,
   setQuestionnaire,
   onParseQuestionnaire,
-  referenceFiles,
+  parsingQuestionnaire,
   setReferenceFiles,
   referencePreviews,
   websiteStep,
@@ -550,7 +572,7 @@ function WebsiteIntake({
   questionnaire: string;
   setQuestionnaire: (v: string) => void;
   onParseQuestionnaire: () => void;
-  referenceFiles: File[];
+  parsingQuestionnaire: boolean;
   setReferenceFiles: (f: File[]) => void;
   referencePreviews: string[];
   websiteStep: number;
@@ -711,9 +733,10 @@ function WebsiteIntake({
           <button
             type="button"
             onClick={onParseQuestionnaire}
-            className="mt-2 text-xs text-zinc-400 underline hover:text-white"
+            disabled={parsingQuestionnaire}
+            className="mt-2 text-xs text-zinc-400 underline hover:text-white disabled:opacity-50"
           >
-            Extract brand signals
+            {parsingQuestionnaire ? "Extracting…" : "Extract brand signals"}
           </button>
         ) : null}
       </div>

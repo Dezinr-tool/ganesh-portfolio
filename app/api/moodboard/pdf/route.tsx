@@ -7,18 +7,22 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 export async function POST(request: NextRequest) {
+  const body = await request.json().catch(() => null);
+  if (!body) {
+    return NextResponse.json({ error: "Invalid request body." }, { status: 400 });
+  }
+
+  const direction = body.direction as MoodboardDirection;
+  const tab = typeof body.tab === "string" ? body.tab : "moodboard";
+
+  if (!direction?.name) {
+    return NextResponse.json({ error: "Direction is required." }, { status: 400 });
+  }
+
+  const document = <MoodboardPdf direction={direction} tab={tab} />;
+
   try {
-    const body = await request.json();
-    const direction = body.direction as MoodboardDirection;
-    const tab = typeof body.tab === "string" ? body.tab : "moodboard";
-
-    if (!direction?.name) {
-      return NextResponse.json({ error: "Direction is required." }, { status: 400 });
-    }
-
-    const buffer = await renderToBuffer(
-      <MoodboardPdf direction={direction} tab={tab} />,
-    );
+    const buffer = await renderToBuffer(document);
 
     const filename = `${direction.name.replace(/\s+/g, "-").toLowerCase()}-moodboard.pdf`;
 

@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { AUDIT_MODELS } from "@/lib/design-audit/models";
 import { auditToMarkdown } from "@/lib/design-audit/markdown";
 import type {
@@ -12,6 +12,7 @@ import type {
   DesignAuditResult,
 } from "@/lib/design-audit/types";
 import { AuditReportView } from "./_components/audit-report";
+import { readSseStream } from "@/lib/ai-sse";
 import { ContextWizard, ImageDropZone } from "./_components/input-wizard";
 
 const TABS: { id: AuditInputMode; label: string }[] = [
@@ -49,7 +50,9 @@ export default function DesignAuditPage() {
   });
   const [eaClient, setEaClient] = useState<string | null>(null);
   const [eaSaved, setEaSaved] = useState(false);
+  const [auditStatus, setAuditStatus] = useState("");
   const [result, setResult] = useState<DesignAuditResult | null>(null);
+  const inputCache = useRef<Map<string, { meta: Record<string, unknown>; images: AuditImage[]; previewUrl: string | null }>>(new Map());
 
   useEffect(() => {
     void (async () => {
@@ -112,6 +115,26 @@ export default function DesignAuditPage() {
     setError("");
     setLoading(true);
     try {
+      const cacheKey =
+        inputMode === "figma"
+          ? figmaUrl.trim()
+          : inputMode === "website"
+            ? websiteUrl.trim()
+            : files.map((f) => `${f.name}:${f.size}`).join("|");
+
+      const cached = inputCache.current.get(`${inputMode}:${cacheKey}`);
+      if (cached) {
+        setMetadata(cached.meta);
+        setImages(cached.images);
+        setPreviewUrl(cached.previewUrl);
+        setPhase("context");
+        return true;
+      }
+
+      let nextMeta: Record<string, unknown> = {};
+      let nextImages: AuditImage[] = [];
+      let nextPreview: string | null = null;
+
       if (inputMode === "figma") {
         if (!figmaUrl.trim()) throw new Error("Enter a Figma URL.");
         const res = await fetch("/api/design-audit/figma", {
@@ -121,13 +144,11 @@ export default function DesignAuditPage() {
         });
         const data = await res.json();
         if (!res.ok) throw new Error(data.error ?? "Figma fetch failed");
-        setMetadata(data.meta);
+        nextMeta = data.meta;
         if (data.image) {
-          setImages([data.image]);
-          setPreviewUrl(`data:${data.image.mediaType};base64,${data.image.base64}`);
+          nextImages = [data.image];
+          nextPreview = `data:${data.image.mediaType};base64,${data.image.base64}`;
         } else {
-          setImages([]);
-          setPreviewUrl(null);
           setMessage(data.error ?? "No Figma image — upload a screenshot as backup.");
         }
       } else if (inputMode === "website") {
@@ -139,20 +160,28 @@ export default function DesignAuditPage() {
         });
         const data = await res.json();
         if (!res.ok) throw new Error(data.error ?? "Website capture failed");
-        setMetadata(data.meta);
+        nextMeta = data.meta;
         if (data.image) {
-          setImages([data.image]);
-          setPreviewUrl(`data:${data.image.mediaType};base64,${data.image.base64}`);
+          nextImages = [data.image];
+          nextPreview = `data:${data.image.mediaType};base64,${data.image.base64}`;
         } else {
           throw new Error("Could not capture screenshot. Try screenshot upload.");
         }
       } else {
         if (files.length === 0) throw new Error("Upload at least one screenshot.");
-        const imgs = await readFilesAsImages(files);
-        setImages(imgs);
-        setMetadata({ fileNames: files.map((f) => f.name) });
-        setPreviewUrl(filePreviews[0] ?? null);
+        nextImages = await readFilesAsImages(files);
+        nextMeta = { fileNames: files.map((f) => f.name) };
+        nextPreview = filePreviews[0] ?? null;
       }
+
+      setMetadata(nextMeta);
+      setImages(nextImages);
+      setPreviewUrl(nextPreview);
+      inputCache.current.set(`${inputMode}:${cacheKey}`, {
+        meta: nextMeta,
+        images: nextImages,
+        previewUrl: nextPreview,
+      });
       setPhase("context");
       return true;
     } catch (err) {
@@ -175,6 +204,7 @@ export default function DesignAuditPage() {
 
     setLoading(true);
     setError("");
+    setAuditStatus("Starting audit…");
     try {
       const res = await fetch("/api/design-audit/run", {
         method: "POST",
@@ -186,20 +216,39 @@ export default function DesignAuditPage() {
           context,
           metadata,
           images,
+          stream: true,
         }),
       });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error ?? "Audit failed");
-      setResult(data.result);
+
+      type AuditPayload = {
+        result: DesignAuditResult;
+        intelligenceSaved?: number;
+        cached?: boolean;
+      };
+
+      const payload = await readSseStream<AuditPayload>(res, (event) => {
+        if (event.type === "status" && event.message) {
+          setAuditStatus(event.message);
+        }
+        if (event.type === "cached") {
+          setMessage("Loaded cached audit — no AI re-run.");
+        }
+      });
+
+      if (!payload?.result) throw new Error("Audit failed");
+      setResult(payload.result);
       setPhase("report");
-      if (data.intelligenceSaved > 0) {
+      if ((payload.intelligenceSaved ?? 0) > 0) {
         setEaSaved(true);
-        setMessage(`Saved ${data.intelligenceSaved} findings to EA intelligence.`);
+        setMessage(`Saved ${payload.intelligenceSaved} findings to EA intelligence.`);
+      } else if (payload.cached) {
+        setMessage("Loaded cached audit result.");
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Audit failed");
     } finally {
       setLoading(false);
+      setAuditStatus("");
     }
   };
 
@@ -276,6 +325,9 @@ export default function DesignAuditPage() {
           </p>
         ) : null}
         {message ? <p className="mb-4 text-sm text-emerald-400">{message}</p> : null}
+        {loading && auditStatus ? (
+          <p className="mb-4 text-sm text-zinc-400">{auditStatus}</p>
+        ) : null}
 
         {phase !== "report" ? (
           <>
