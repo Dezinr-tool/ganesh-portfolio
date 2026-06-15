@@ -38,6 +38,17 @@ function buildUserPrompt(
   if (brief.referenceImageCount) {
     parts.push(`User uploaded ${brief.referenceImageCount} reference image(s).`);
   }
+  if (brief.problemStatement) {
+    parts.push(`Refresh motivation / problems: ${brief.problemStatement}`);
+  }
+  if (brief.avoid) parts.push(`Avoid: ${brief.avoid}`);
+  if (brief.feelChips?.length) parts.push(`Feel directions: ${brief.feelChips.join(", ")}`);
+  if (brief.businessDescription) parts.push(`Business: ${brief.businessDescription}`);
+  if (brief.logoMarkType) parts.push(`Logo mark type: ${brief.logoMarkType}`);
+  if (brief.logoStyle) parts.push(`Logo style: ${brief.logoStyle}`);
+  if (brief.campaignPlatforms?.length) {
+    parts.push(`Campaign platforms: ${brief.campaignPlatforms.join(", ")}`);
+  }
   if (brief.websiteAnalysis) {
     parts.push(
       `Existing website analysis (${brief.websiteAnalysis.url}):

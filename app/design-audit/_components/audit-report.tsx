@@ -1,6 +1,12 @@
 "use client";
 
 import { useState } from "react";
+import {
+  EA_BTN_PRIMARY,
+  EA_BTN_SECONDARY,
+  EA_CARD,
+  EA_CARD_PADDED,
+} from "@/app/ea/_components/ea-ui";
 import type { DesignAuditResult, DimensionStatus } from "@/lib/design-audit/types";
 import {
   ALL_DIMENSION_KEYS,
@@ -47,7 +53,7 @@ function ScoreBarChart({ result }: { result: DesignAuditResult }) {
             <span className="w-28 shrink-0 truncate text-[10px] text-zinc-500">
               {DIMENSION_LABELS[key]}
             </span>
-            <div className="h-2 flex-1 overflow-hidden rounded-full bg-white/5">
+            <div className="h-2 flex-1 overflow-hidden rounded-full bg-zinc-800">
               <div
                 className={`h-full rounded-full transition-all ${barColor(dim.score)}`}
                 style={{ width: `${dim.score * 10}%` }}
@@ -93,7 +99,7 @@ function DimensionSection({
       </button>
 
       {open ? (
-        <div className="space-y-4 border-t border-white/8 px-5 pb-5 pt-4 text-sm">
+        <div className="space-y-4 border-t border-zinc-800 px-5 pb-5 pt-4 text-sm">
           {result.working.length > 0 ? (
             <div>
               <p className="mb-2 text-xs uppercase tracking-wider text-zinc-500">
@@ -151,7 +157,7 @@ export function AuditReportView({
 }) {
   return (
     <div className="space-y-6">
-      <div className="sticky top-0 z-20 -mx-4 border-b border-white/8 bg-[#0d0d0d]/95 px-4 py-4 backdrop-blur-md sm:-mx-6 sm:px-6">
+      <div className="sticky top-0 z-20 -mx-6 border-b border-zinc-800 bg-black/95 px-6 py-4 backdrop-blur-md">
         <div className="flex flex-wrap items-end justify-between gap-4">
           <div>
             <p className="text-[11px] uppercase tracking-[0.14em] text-zinc-500">
@@ -166,14 +172,14 @@ export function AuditReportView({
             <button
               type="button"
               onClick={onCopyMarkdown}
-              className="rounded-lg border border-white/10 px-4 py-2 text-xs text-white hover:bg-white/5"
+              className={`text-xs ${EA_BTN_SECONDARY}`}
             >
               Copy full report as markdown
             </button>
             <button
               type="button"
               onClick={onDownloadPdf}
-              className="rounded-lg bg-white px-4 py-2 text-xs font-medium text-black hover:bg-zinc-200"
+              className={`text-xs ${EA_BTN_PRIMARY}`}
             >
               Download PDF
             </button>
@@ -183,7 +189,7 @@ export function AuditReportView({
           {result.summary}
         </p>
         {eaSaved ? (
-          <p className="mt-2 text-xs text-sky-400">
+          <p className="mt-2 text-xs text-zinc-400">
             This audit has been saved to your EA intelligence
           </p>
         ) : null}
@@ -191,13 +197,13 @@ export function AuditReportView({
 
       <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(280px,360px)]">
         <div className="space-y-6">
-          <div className="rounded-2xl border border-white/10 bg-[#12121a] p-5">
-            <h3 className="mb-4 text-sm font-medium text-white">Score breakdown</h3>
+          <div className={`${EA_CARD_PADDED}`}>
+            <h3 className="mb-4 text-sm font-medium text-zinc-300">Score breakdown</h3>
             <ScoreBarChart result={result} />
           </div>
 
-          <div className="rounded-2xl border border-white/10 bg-[#12121a] p-5">
-            <h3 className="text-sm font-medium text-white">Priority issues</h3>
+          <div className={EA_CARD_PADDED}>
+            <h3 className="text-sm font-medium text-zinc-300">Priority issues</h3>
             {result.priority_issues.critical.length > 0 ? (
               <div className="mt-3">
                 <p className="text-xs text-red-400">🔴 Critical — fix immediately</p>
@@ -231,11 +237,11 @@ export function AuditReportView({
           </div>
 
           {result.annotated_issues.length > 0 ? (
-            <div className="rounded-2xl border border-white/10 bg-[#12121a] p-5">
-              <h3 className="text-sm font-medium text-white">Annotated callouts</h3>
+            <div className={EA_CARD_PADDED}>
+              <h3 className="text-sm font-medium text-zinc-300">Annotated callouts</h3>
               <ul className="mt-3 space-y-2 text-sm text-zinc-300">
                 {result.annotated_issues.map((item) => (
-                  <li key={item} className="rounded-lg bg-black/40 px-3 py-2">
+                  <li key={item} className="rounded-lg border border-zinc-800 bg-zinc-900/30 px-3 py-2">
                     {item}
                   </li>
                 ))}
@@ -244,7 +250,7 @@ export function AuditReportView({
           ) : null}
 
           <div className="space-y-3">
-            <h3 className="text-sm font-medium text-white">Dimension breakdown</h3>
+            <h3 className="text-sm font-medium text-zinc-300">Dimension breakdown</h3>
             {ALL_DIMENSION_KEYS.map((key) => (
               <DimensionSection
                 key={key}
@@ -257,15 +263,15 @@ export function AuditReportView({
 
         {previewUrl ? (
           <div className="lg:sticky lg:top-28 lg:self-start">
-            <div className="rounded-2xl border border-white/10 bg-[#12121a] p-4">
-              <p className="mb-3 text-xs uppercase tracking-wider text-zinc-500">
+            <div className={`${EA_CARD} p-4`}>
+              <p className="mb-3 text-xs font-medium uppercase tracking-wide text-zinc-500">
                 Original
               </p>
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src={previewUrl}
                 alt="Audit subject"
-                className="max-h-[70vh] w-full rounded-lg border border-white/8 object-contain object-top"
+                className="max-h-[70vh] w-full rounded-lg border border-zinc-800 object-contain object-top"
               />
             </div>
           </div>

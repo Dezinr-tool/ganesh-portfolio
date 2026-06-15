@@ -42,6 +42,13 @@ export type MoodboardBrief = {
   questionnaireText?: string;
   referenceNotes?: string;
   referenceImageCount?: number;
+  problemStatement?: string;
+  avoid?: string;
+  feelChips?: string[];
+  businessDescription?: string;
+  logoMarkType?: string;
+  logoStyle?: string;
+  campaignPlatforms?: string[];
   eaClientName?: string;
   eaPrefillSummary?: string;
 };

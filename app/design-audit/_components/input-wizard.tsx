@@ -1,6 +1,11 @@
 "use client";
 
 import { useCallback, useRef, useState } from "react";
+import {
+  EA_BTN_PRIMARY,
+  EA_BTN_SECONDARY,
+  EA_INPUT,
+} from "@/app/ea/_components/ea-ui";
 
 const ACCEPT = "image/jpeg,image/png,image/webp";
 
@@ -47,10 +52,10 @@ export function ImageDropZone({
           setDragging(false);
           addFiles(e.dataTransfer.files);
         }}
-        className={`cursor-pointer rounded-xl border-2 border-dashed px-6 py-10 text-center transition-colors ${
+        className={`cursor-pointer rounded-lg border-2 border-dashed px-6 py-10 text-center transition-colors ${
           dragging
-            ? "border-white/40 bg-white/5"
-            : "border-white/10 hover:border-white/20"
+            ? "border-zinc-500 bg-zinc-900/50"
+            : "border-zinc-800 hover:border-zinc-600"
         }`}
       >
         <p className="text-sm text-zinc-300">Drop screenshots here</p>
@@ -74,7 +79,7 @@ export function ImageDropZone({
               <img
                 src={url}
                 alt={`Preview ${i + 1}`}
-                className="h-32 w-full rounded-lg border border-white/10 object-cover"
+                className="h-32 w-full rounded-lg border border-zinc-800 object-cover"
               />
               <div className="absolute inset-x-1 bottom-1 flex gap-1 opacity-0 transition-opacity group-hover:opacity-100">
                 {i > 0 ? (
@@ -163,20 +168,20 @@ export function ContextWizard({
         {CONTEXT_STEPS.map((_, i) => (
           <div
             key={i}
-            className={`h-1 flex-1 rounded-full ${i <= step ? "bg-white" : "bg-white/10"}`}
+            className={`h-1 flex-1 rounded-full ${i <= step ? "bg-zinc-400" : "bg-zinc-800"}`}
           />
         ))}
       </div>
       {current ? (
         <div>
-          <label className="mb-2 block text-sm text-white">
+          <label className="mb-2 block text-sm text-zinc-300">
             {step + 1}. {current.label}
           </label>
           <input
             value={value}
             onChange={(e) => onChange({ [current.key]: e.target.value })}
             placeholder={current.placeholder}
-            className="w-full rounded-xl border border-white/10 bg-black px-4 py-3 text-sm text-white outline-none focus:border-white/25"
+            className={EA_INPUT}
           />
         </div>
       ) : null}
@@ -190,7 +195,7 @@ export function ContextWizard({
             onChange={(e) => onChange({ specificConcerns: e.target.value })}
             rows={3}
             placeholder="Low conversion on mobile, unclear pricing…"
-            className="w-full resize-y rounded-xl border border-white/10 bg-black px-4 py-3 text-sm text-white outline-none focus:border-white/25"
+            className={`${EA_INPUT} resize-y`}
           />
         </div>
       ) : null}
@@ -200,7 +205,7 @@ export function ContextWizard({
           <button
             type="button"
             onClick={() => setStep((s) => s - 1)}
-            className="rounded-xl border border-white/10 px-5 py-3 text-sm text-zinc-300"
+            className={EA_BTN_SECONDARY}
           >
             ← Back
           </button>
@@ -210,7 +215,7 @@ export function ContextWizard({
             type="button"
             disabled={!value.trim()}
             onClick={() => setStep((s) => s + 1)}
-            className="rounded-xl bg-white px-6 py-3 text-sm font-semibold text-black disabled:opacity-50"
+            className={EA_BTN_PRIMARY}
           >
             Continue →
           </button>
@@ -219,7 +224,7 @@ export function ContextWizard({
             type="button"
             onClick={onComplete}
             disabled={loading}
-            className="rounded-xl bg-white px-6 py-3 text-sm font-semibold text-black disabled:opacity-50"
+            className={EA_BTN_PRIMARY}
           >
             {loading ? "Running audit…" : "Run design audit"}
           </button>

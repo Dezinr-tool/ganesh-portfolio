@@ -39,21 +39,28 @@ async function main() {
   );
 
   const page = readFileSync("app/moodboard/page.tsx", "utf8");
+  const chat = readFileSync("app/moodboard/_components/moodboard-chat.tsx", "utf8");
   const cards = readFileSync("app/moodboard/_components/direction-cards.tsx", "utf8");
-  const combined = page + cards;
+  const combined = chat + cards;
   report(
-    "All 3 tabs in page",
-    page.includes('"Logo"') &&
-      page.includes("Website / Personality") &&
-      page.includes("Campaign")
+    "Conversational chat interface",
+    chat.includes("MoodboardChat") && chat.includes("What are we creating a moodboard for today?")
+      ? "pass"
+      : "fail",
+  );
+  report(
+    "Entry chips: Website / Brand / Campaign",
+    chat.includes("🌐 Website") &&
+      chat.includes("🎨 Brand / Logo") &&
+      chat.includes("📣 Campaign")
       ? "pass"
       : "fail",
   );
   report(
     "Feedback: Select / Refine / Not this",
-    combined.includes("Select this") &&
-      combined.includes("Refine") &&
-      combined.includes("Not this")
+    cards.includes("✓ Select this") &&
+      cards.includes("↻ Refine") &&
+      cards.includes("✗ Not this")
       ? "pass"
       : "fail",
   );
@@ -66,12 +73,18 @@ async function main() {
       : "fail",
   );
   report(
-    "EA pre-fill banner",
-    page.includes("Pre-filled from your EA session") ? "pass" : "fail",
+    "EA pre-fill",
+    chat.includes("/api/moodboard/ea-context") ? "pass" : "fail",
   );
   report(
     "Mobile responsive grid classes",
-    page.includes("md:grid-cols-2") && page.includes("xl:grid-cols-3")
+    chat.includes("max-w-3xl") && cards.includes("md:grid-cols-2")
+      ? "pass"
+      : "fail",
+  );
+  report(
+    "Model selector persists",
+    chat.includes("MODEL_STORAGE_KEY") && chat.includes("localStorage")
       ? "pass"
       : "fail",
   );

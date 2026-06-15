@@ -2,6 +2,7 @@
 
 import { MOODBOARD_MODELS } from "@/lib/moodboard/models";
 import type { MoodboardModelId } from "@/lib/moodboard/types";
+import { EA_INPUT } from "@/app/ea/_components/ea-ui";
 
 export function ModelSelect({
   value,
@@ -13,13 +14,13 @@ export function ModelSelect({
   const selected = MOODBOARD_MODELS.find((m) => m.id === value);
   return (
     <div>
-      <label className="mb-2 block text-xs uppercase tracking-wider text-zinc-500">
+      <label className="mb-2 block text-xs font-medium uppercase tracking-wide text-zinc-500">
         AI model
       </label>
       <select
         value={value}
         onChange={(e) => onChange(e.target.value as MoodboardModelId)}
-        className="w-full rounded-xl border border-white/10 bg-black px-4 py-3 text-sm text-white outline-none focus:border-white/25"
+        className={EA_INPUT}
       >
         {MOODBOARD_MODELS.map((model) => (
           <option key={model.id} value={model.id}>
@@ -38,9 +39,6 @@ export function ModelSelect({
     </div>
   );
 }
-
-const inputClass =
-  "w-full rounded-xl border border-white/10 bg-black px-4 py-3 text-sm text-white outline-none placeholder:text-zinc-600 focus:border-white/25";
 
 export function Field({
   label,
@@ -69,7 +67,7 @@ export function Field({
           onChange={(e) => onChange(e.target.value)}
           placeholder={placeholder}
           rows={3}
-          className={`${inputClass} resize-y`}
+          className={`${EA_INPUT} resize-y`}
         />
       ) : (
         <input
@@ -77,11 +75,11 @@ export function Field({
           value={value}
           onChange={(e) => onChange(e.target.value)}
           placeholder={placeholder}
-          className={inputClass}
+          className={EA_INPUT}
         />
       )}
     </div>
   );
 }
 
-export { inputClass };
+export { EA_INPUT as inputClass };

@@ -1,7 +1,13 @@
 "use client";
 
-import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { EATabNav, EAToolShell } from "@/app/ea/_components/ea-tool-shell";
+import {
+  EA_BTN_PRIMARY,
+  EA_BTN_SECONDARY,
+  EA_CARD_PADDED,
+  EA_INPUT,
+} from "@/app/ea/_components/ea-ui";
 import { AUDIT_MODELS } from "@/lib/design-audit/models";
 import { auditToMarkdown } from "@/lib/design-audit/markdown";
 import type {
@@ -24,8 +30,7 @@ const TABS: { id: AuditInputMode; label: string }[] = [
 const DEFAULT_MODEL =
   AUDIT_MODELS.find((m) => m.recommended)?.id ?? "claude-sonnet";
 
-const inputClass =
-  "w-full rounded-xl border border-white/10 bg-black px-4 py-3 text-sm text-white outline-none placeholder:text-zinc-600 focus:border-white/25";
+const inputClass = EA_INPUT;
 
 export default function DesignAuditPage() {
   const [inputMode, setInputMode] = useState<AuditInputMode>("website");
@@ -285,35 +290,12 @@ export default function DesignAuditPage() {
   };
 
   return (
-    <div className="relative min-h-screen bg-[#0d0d0d] text-zinc-100">
-      <div
-        className="pointer-events-none fixed inset-0 opacity-[0.04]"
-        style={{
-          backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")`,
-        }}
-      />
-
-      <div className="relative mx-auto max-w-5xl px-4 py-10 sm:px-6 sm:py-14">
-        <header className="mb-10">
-          <div className="mb-3 flex items-center justify-between gap-4">
-            <p className="text-[11px] uppercase tracking-[0.14em] text-zinc-500">
-              P12 · Design Intelligence
-            </p>
-            <Link href="/ea/dashboard" className="text-xs text-zinc-500 hover:text-zinc-300">
-              ← Virtual EA
-            </Link>
-          </div>
-          <h1 className="font-[family-name:var(--font-syne)] text-4xl font-extrabold tracking-tight text-white sm:text-5xl">
-            Design Audit
-          </h1>
-          <p className="mt-3 max-w-xl text-sm text-zinc-400">
-            Brutally honest UX/UI audits across 10 dimensions — Figma, live sites, or
-            screenshots.
-          </p>
-        </header>
-
+    <EAToolShell
+      title="Design Audit"
+      subtitle="Brutally honest UX/UI audits across 10 dimensions — Figma, live sites, or screenshots."
+    >
         {eaClient ? (
-          <div className="mb-6 rounded-xl border border-sky-500/30 bg-sky-500/10 px-4 py-3 text-sm text-sky-200">
+          <div className="mb-6 rounded-lg border border-zinc-800 bg-zinc-900/30 px-4 py-3 text-sm text-zinc-300">
             Audit context pre-filled from your EA session with{" "}
             <span className="font-medium text-white">{eaClient}</span>
           </div>
@@ -331,28 +313,17 @@ export default function DesignAuditPage() {
 
         {phase !== "report" ? (
           <>
-            <nav className="mb-8 flex gap-2 rounded-2xl border border-white/8 bg-[#12121a] p-1.5">
-              {TABS.map((tab) => (
-                <button
-                  key={tab.id}
-                  type="button"
-                  onClick={() => {
-                    setInputMode(tab.id);
-                    setPhase("input");
-                  }}
-                  className={`flex-1 rounded-xl px-2 py-3 text-xs font-semibold transition-all duration-300 sm:text-sm ${
-                    inputMode === tab.id
-                      ? "bg-white text-black"
-                      : "text-zinc-400 hover:bg-white/5 hover:text-white"
-                  }`}
-                >
-                  {tab.label}
-                </button>
-              ))}
-            </nav>
+            <EATabNav
+              tabs={TABS}
+              active={inputMode}
+              onChange={(mode) => {
+                setInputMode(mode);
+                setPhase("input");
+              }}
+            />
 
             {phase === "input" ? (
-              <div className="space-y-6 rounded-2xl border border-white/8 bg-[#12121a]/80 p-6">
+              <div className={`space-y-6 ${EA_CARD_PADDED}`}>
                 {inputMode === "figma" ? (
                   <div>
                     <label className="mb-2 block text-xs text-zinc-400">Figma frame URL</label>
@@ -387,7 +358,7 @@ export default function DesignAuditPage() {
                   type="button"
                   onClick={prepareInput}
                   disabled={loading}
-                  className="rounded-xl bg-white px-6 py-3 text-sm font-semibold text-black hover:bg-zinc-200 disabled:opacity-50"
+                  className={EA_BTN_PRIMARY}
                 >
                   {loading ? "Processing…" : "Continue to context →"}
                 </button>
@@ -401,12 +372,12 @@ export default function DesignAuditPage() {
                   <img
                     src={previewUrl}
                     alt="Preview"
-                    className="max-h-64 rounded-xl border border-white/10 object-contain"
+                    className="max-h-64 rounded-lg border border-zinc-800 object-contain"
                   />
                 ) : null}
 
-                <div className="space-y-4 rounded-2xl border border-white/8 bg-[#12121a]/80 p-6">
-                  <h2 className="text-lg font-medium text-white">Audit context</h2>
+                <div className={`space-y-4 ${EA_CARD_PADDED}`}>
+                  <h2 className="text-sm font-medium text-zinc-300">Audit context</h2>
 
                   <ContextWizard
                     context={context}
@@ -474,7 +445,6 @@ export default function DesignAuditPage() {
             />
           </div>
         ) : null}
-      </div>
-    </div>
+    </EAToolShell>
   );
 }

@@ -16,7 +16,7 @@ export function ProgressStepper({
           <div
             key={i}
             className={`h-1 flex-1 rounded-full transition-all duration-500 ${
-              i <= current ? "bg-white" : "bg-white/10"
+              i <= current ? "bg-zinc-400" : "bg-zinc-800"
             }`}
           />
         ))}

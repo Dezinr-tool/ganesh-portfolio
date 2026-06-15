@@ -79,9 +79,10 @@ async function main() {
   }
 
   const moodPage = readFileSync("app/moodboard/page.tsx", "utf8");
+  const moodChat = readFileSync("app/moodboard/_components/moodboard-chat.tsx", "utf8");
   const moodCards = readFileSync("app/moodboard/_components/direction-cards.tsx", "utf8");
-  const moodForms = readFileSync("app/moodboard/_components/form-fields.tsx", "utf8");
-  const moodCombined = moodPage + moodCards + moodForms;
+  const moodWidgets = readFileSync("app/moodboard/_components/chat-widgets.tsx", "utf8");
+  const moodCombined = moodPage + moodChat + moodCards + moodWidgets;
 
   const auditPage = readFileSync("app/design-audit/page.tsx", "utf8");
   const auditReport = readFileSync("app/design-audit/_components/audit-report.tsx", "utf8");
@@ -104,9 +105,9 @@ async function main() {
   report(
     "P11",
     "All 3 tabs: Logo | Website/Personality | Campaign",
-    moodPage.includes('"Logo"') &&
-      moodPage.includes("Website / Personality") &&
-      moodPage.includes("Campaign")
+    moodChat.includes("🌐 Website") &&
+      moodChat.includes("🎨 Brand / Logo") &&
+      moodChat.includes("📣 Campaign")
       ? "pass"
       : "fail",
   );
@@ -114,9 +115,8 @@ async function main() {
   report(
     "P11",
     "Have website → URL → scrape → pre-fill",
-    moodPage.includes("We have a website") &&
-      moodPage.includes("/api/moodboard/scrape") &&
-      moodPage.includes("websiteAnalysis")
+    moodChat.includes("/api/moodboard/scrape") &&
+      moodChat.includes("websiteAnalysis")
       ? "pass"
       : "fail",
   );
@@ -124,9 +124,9 @@ async function main() {
   report(
     "P11",
     "From scratch → 5 questions one at a time",
-    moodPage.includes("Starting from scratch") &&
-      moodPage.includes("SCRATCH_FIELDS") &&
-      moodPage.includes("websiteStep")
+    moodChat.includes("scratch_q_audience") &&
+      moodChat.includes("scratch_q_values") &&
+      moodChat.includes("questionChain")
       ? "pass"
       : "fail",
   );
@@ -134,8 +134,8 @@ async function main() {
   report(
     "P11",
     "Questionnaire paste → AI extract",
-    moodPage.includes("/api/moodboard/parse-questionnaire") &&
-      moodPage.includes("Extract brand signals")
+    moodChat.includes("/api/moodboard/parse-questionnaire") &&
+      moodChat.includes("/api/moodboard/extract-document")
       ? "pass"
       : "fail",
   );
@@ -143,7 +143,7 @@ async function main() {
   report(
     "P11",
     "Reference upload up to 5 + previews",
-    moodPage.includes("slice(0, 5)") && moodPage.includes("referencePreviews")
+    moodWidgets.includes("maxImages") && moodWidgets.includes("Upload images")
       ? "pass"
       : "fail",
   );
@@ -151,7 +151,8 @@ async function main() {
   report(
     "P11",
     "Model dropdown — 5 options + persists",
-    MOODBOARD_MODELS.length === 5 && moodForms.includes("estimatedSeconds")
+    MOODBOARD_MODELS.length === 5 &&
+      moodChat.includes("MODEL_STORAGE_KEY")
       ? "pass"
       : "fail",
   );
@@ -170,10 +171,9 @@ async function main() {
   report(
     "P11",
     "Select / Refine / Not this",
-    moodCombined.includes("Select this") &&
-      moodCombined.includes("Refine") &&
-      moodCombined.includes("Not this") &&
-      moodCombined.includes("rejectDirection")
+    moodCards.includes("✓ Select this") &&
+      moodCards.includes("↻ Refine") &&
+      moodCards.includes("✗ Not this")
       ? "pass"
       : "fail",
   );
@@ -191,15 +191,13 @@ async function main() {
   report(
     "P11",
     "EA pre-fill banner",
-    moodPage.includes("Pre-filled from your EA session") ? "pass" : "fail",
+    moodChat.includes("/api/moodboard/ea-context") ? "pass" : "fail",
   );
 
   report(
     "P11",
     "Logo flow fields",
-    moodPage.includes("Logo moodboard brief") &&
-      moodPage.includes("Wordmark") &&
-      moodPage.includes('tab === "logo"')
+    moodChat.includes("logo_q_mark") && moodChat.includes("LOGO_MARK_CHIPS")
       ? "pass"
       : "fail",
   );
@@ -207,9 +205,7 @@ async function main() {
   report(
     "P11",
     "Campaign flow fields",
-    moodPage.includes("Campaign visual brief") &&
-      moodPage.includes("campaignFeeling") &&
-      moodPage.includes('tab === "campaign"')
+    moodChat.includes("campaign_brief") && moodChat.includes("CAMPAIGN_GOAL_CHIPS")
       ? "pass"
       : "fail",
   );
@@ -217,8 +213,7 @@ async function main() {
   report(
     "P11",
     "Mobile responsive at 375px",
-    moodPage.includes("px-4") &&
-      (moodPage.includes("sm:") || moodPage.includes("md:grid-cols-2"))
+    moodChat.includes("max-w-3xl") && moodChat.includes("px-4")
       ? "pass"
       : "fail",
   );
