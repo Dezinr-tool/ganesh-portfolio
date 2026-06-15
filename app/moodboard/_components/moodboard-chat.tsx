@@ -1053,6 +1053,12 @@ export function MoodboardChat() {
   const selected = directions.find((d) => d.id === selectedId);
   const expanded = directions.find((d) => d.id === expandedId);
   const activeMessage = [...messages].reverse().find((m) => m.role === "assistant" && !m.inactive);
+  const showChipHint =
+    activeMessage?.widget?.type === "chips" &&
+    (activeMessage.widget.options?.length ?? 0) > 0 &&
+    !busy &&
+    step !== "generate" &&
+    step !== "results";
 
   return (
     <div className="flex h-screen min-h-0 flex-col bg-[#0d0d0d] text-zinc-100">
@@ -1169,9 +1175,11 @@ export function MoodboardChat() {
             </select>
           </div>
 
-          <p className="pb-2 pl-[7.5rem] text-[10px] text-zinc-600">
-            Select chips above to continue the moodboard brief
-          </p>
+          {showChipHint ? (
+            <p className="pb-2 pl-[7.5rem] text-[10px] text-zinc-600">
+              Select chips above to continue the moodboard brief
+            </p>
+          ) : null}
         </div>
       </div>
 

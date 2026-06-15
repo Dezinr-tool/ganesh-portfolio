@@ -1,6 +1,6 @@
 import Anthropic from "@anthropic-ai/sdk";
 import { cacheGet, cacheKey, cacheSet, hashString } from "../ai-cache";
-import { getRelevantKnowledge } from "../knowledge-context";
+import { loadAndFormatContext } from "../context-loader";
 import { getAuditModel } from "./models";
 import { DESIGN_AUDIT_SYSTEM_PROMPT } from "./system-prompt";
 import type {
@@ -290,6 +290,9 @@ export async function runDesignAudit(input: {
   images: AuditImage[];
   onDelta?: (chunk: string) => void;
   skipCache?: boolean;
+  clientName?: string;
+  projectName?: string;
+  userConfirmations?: import("@/lib/pre-generation-types").UserPreConfirmation;
 }): Promise<DesignAuditResult> {
   if (input.images.length === 0) {
     throw new Error(
@@ -310,12 +313,15 @@ export async function runDesignAudit(input: {
     input.metadata,
   );
 
-  const knowledgeContext = await getRelevantKnowledge(
-    "design_audit",
-    `${input.context.productDescription} ${input.context.targetUser} ${input.inputMode}`,
-  );
-  const systemPrompt = knowledgeContext
-    ? `${DESIGN_AUDIT_SYSTEM_PROMPT}\n\n${knowledgeContext}`
+  const knowledgeContext = await loadAndFormatContext({
+    tool: "design_audit",
+    client_name: input.clientName ?? input.context.eaClientName,
+    project_name: input.projectName,
+    input_type: input.inputMode,
+    userConfirmations: input.userConfirmations,
+  });
+  const systemPrompt = knowledgeContext.block
+    ? `${knowledgeContext.block}\n\n${DESIGN_AUDIT_SYSTEM_PROMPT}`
     : DESIGN_AUDIT_SYSTEM_PROMPT;
 
   let text: string;

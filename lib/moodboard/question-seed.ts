@@ -1,4 +1,5 @@
 import type { MoodboardQuestionSeed } from "./db-types";
+import { OUTPUT_SECTIONS } from "./output-sections";
 
 export const MOODBOARD_QUESTION_SEED: MoodboardQuestionSeed[] = [
   {
@@ -260,6 +261,61 @@ export const MOODBOARD_QUESTION_SEED: MoodboardQuestionSeed[] = [
     follow_up_condition: null,
     category: "visual_direction",
     order_index: 21,
+  },
+  {
+    key: "q_output_sections",
+    question_text:
+      "Almost there! What should your moodboard cover?\nSelect the sections you want included.",
+    question_type: "multi_section_select",
+    parent_key: null,
+    chips_options: OUTPUT_SECTIONS,
+    follow_up_condition: null,
+    category: "output_sections",
+    order_index: 22,
+  },
+  {
+    key: "q_output_product_type",
+    question_text: "What kind of products?",
+    question_type: "chips",
+    parent_key: "q_output_sections",
+    chips_options: [
+      "Fashion",
+      "Electronics",
+      "Food & Beverage",
+      "Beauty",
+      "Home & Living",
+      "Other",
+    ],
+    follow_up_condition: "product_images",
+    category: "output_sections",
+    order_index: 23,
+  },
+  {
+    key: "q_output_illustration_style",
+    question_text: "What illustration style feels right?",
+    question_type: "chips",
+    parent_key: "q_output_sections",
+    chips_options: [
+      "Flat",
+      "3D",
+      "Hand-drawn",
+      "Abstract",
+      "Minimal line",
+      "Open to AI",
+    ],
+    follow_up_condition: "illustration_style",
+    category: "output_sections",
+    order_index: 24,
+  },
+  {
+    key: "q_output_icon_style",
+    question_text: "Icon style preference?",
+    question_type: "chips",
+    parent_key: "q_output_sections",
+    chips_options: ["Outlined", "Filled", "Duotone", "Bold/thick", "Open to AI"],
+    follow_up_condition: "icon_library",
+    category: "output_sections",
+    order_index: 25,
   },
 ];
 

@@ -1,0 +1,251 @@
+"use client";
+
+import { useMemo, useState } from "react";
+import type {
+  PreConfirmation,
+  UserPreConfirmation,
+} from "@/lib/pre-generation-types";
+import { buildUserPreConfirmationFromUI } from "@/lib/pre-generation-ui";
+
+type PreConfirmationPanelProps = {
+  preConfirmation: PreConfirmation;
+  onConfirm: (selections: UserPreConfirmation) => void;
+  loading?: boolean;
+  brandName?: string;
+  variant?: "default" | "inline";
+};
+
+function Pill({
+  label,
+  reason,
+  onRemove,
+  inline,
+}: {
+  label: string;
+  reason: string;
+  onRemove: () => void;
+  inline?: boolean;
+}) {
+  return (
+    <span
+      className={`group relative inline-flex items-center gap-1 rounded-full px-3 py-1.5 text-xs ${
+        inline
+          ? "border border-white/10 bg-white/[0.04] text-zinc-200"
+          : "border border-zinc-700 bg-zinc-900 text-zinc-200"
+      }`}
+      title={reason}
+    >
+      <span>✓ {label}</span>
+      <button
+        type="button"
+        onClick={onRemove}
+        className="ml-1 rounded-full px-1 text-zinc-500 hover:bg-zinc-800 hover:text-white"
+        aria-label={`Remove ${label}`}
+      >
+        ✕
+      </button>
+    </span>
+  );
+}
+
+export function PreConfirmationPanel({
+  preConfirmation,
+  onConfirm,
+  loading,
+  brandName,
+  variant = "default",
+}: PreConfirmationPanelProps) {
+  const [rejectedFrameworks, setRejectedFrameworks] = useState<string[]>([]);
+  const [rejectedRules, setRejectedRules] = useState<string[]>([]);
+  const [observationAnswers, setObservationAnswers] = useState<Record<number, string>>({});
+  const [questionAnswers, setQuestionAnswers] = useState<Record<string, string>>({});
+
+  const activeFrameworks = useMemo(
+    () =>
+      preConfirmation.proposed_frameworks.filter((f) => !rejectedFrameworks.includes(f.key)),
+    [preConfirmation.proposed_frameworks, rejectedFrameworks],
+  );
+  const activeRules = useMemo(
+    () => preConfirmation.proposed_rules.filter((r) => !rejectedRules.includes(r.key)),
+    [preConfirmation.proposed_rules, rejectedRules],
+  );
+
+  const allQuestionsAnswered = preConfirmation.confirmation_questions.every(
+    (q) => q.is_optional || questionAnswers[q.key] || q.default_answer,
+  );
+
+  const handleSubmit = () => {
+    const selections = buildUserPreConfirmationFromUI({
+      preConfirmation,
+      rejectedFrameworkKeys: rejectedFrameworks,
+      rejectedRuleKeys: rejectedRules,
+      observationAnswers,
+      questionAnswers,
+    });
+    onConfirm(selections);
+  };
+
+  const inline = variant === "inline";
+  const shellClass = inline
+    ? "space-y-5"
+    : "space-y-6 rounded-xl border border-zinc-800 bg-zinc-950 p-5";
+
+  return (
+    <div className={shellClass}>
+      <div>
+        <p className={`${inline ? "text-[15px] leading-relaxed" : "text-sm font-medium"} text-white`}>
+          {inline && brandName
+            ? `Here's my approach for ${brandName}`
+            : "Approach I'm planning"}
+        </p>
+        {!inline ? (
+          <p className="mt-1 text-xs text-zinc-500">
+            Review what I&apos;ll apply. Remove anything you don&apos;t want.
+          </p>
+        ) : (
+          <p className="mt-2 text-xs text-zinc-500">Using:</p>
+        )}
+        <div className="mt-3 flex flex-wrap gap-2">
+          {activeFrameworks.map((f) => (
+            <Pill
+              key={f.key}
+              label={f.name}
+              reason={f.reason}
+              inline={inline}
+              onRemove={() => setRejectedFrameworks((k) => [...k, f.key])}
+            />
+          ))}
+          {activeRules.map((r) => (
+            <Pill
+              key={r.key}
+              label={r.name}
+              reason={r.reason}
+              inline={inline}
+              onRemove={() => setRejectedRules((k) => [...k, r.key])}
+            />
+          ))}
+          {rejectedFrameworks.map((key) => {
+            const f = preConfirmation.proposed_frameworks.find((x) => x.key === key);
+            if (!f) return null;
+            return (
+              <button
+                key={key}
+                type="button"
+                onClick={() => setRejectedFrameworks((k) => k.filter((x) => x !== key))}
+                className="rounded-full border border-dashed border-zinc-700 px-3 py-1 text-xs text-zinc-500 line-through"
+              >
+                {f.name} (removed)
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      {preConfirmation.meeting_observations.length > 0 ? (
+        <div>
+          <p className="text-xs font-medium text-zinc-400">
+            {inline ? "From your EA:" : "From your previous sessions"}
+          </p>
+          <div className="mt-3 space-y-3">
+            {preConfirmation.meeting_observations.map((obs, i) => (
+              <div
+                key={`${obs.source}-${i}`}
+                className={`rounded-lg p-3 ${inline ? "bg-white/[0.03]" : "border border-zinc-800 bg-black/40 p-4"}`}
+              >
+                {!inline ? (
+                  <p className="text-xs uppercase tracking-wider text-zinc-500">
+                    {obs.source === "meeting"
+                      ? "💬 From your EA meeting"
+                      : obs.source === "ea_memory"
+                        ? "🧠 EA memory"
+                        : obs.source === "previous_audit"
+                          ? "📋 Previous audit"
+                          : "🎨 Previous moodboard"}
+                  </p>
+                ) : null}
+                <p className={`${inline ? "text-sm" : "mt-2 text-sm"} text-zinc-300`}>
+                  {inline ? `"${obs.observation}"` : `“${obs.observation}”`}
+                </p>
+                <p className="mt-2 text-sm text-zinc-400">
+                  {inline ? `→ ${obs.question}` : obs.question}
+                </p>
+                <div className="mt-3 flex flex-wrap gap-2">
+                  {(inline ? ["Yes", "No"] : ["Yes, apply this", "No, skip"]).map((opt) => (
+                    <button
+                      key={opt}
+                      type="button"
+                      onClick={() =>
+                        setObservationAnswers((a) => ({
+                          ...a,
+                          [i]: inline
+                            ? opt === "Yes"
+                              ? "Yes, apply this"
+                              : "No, skip"
+                            : opt,
+                        }))
+                      }
+                      className={`rounded-full px-3 py-1.5 text-xs transition ${
+                        (observationAnswers[i] ?? "Yes, apply this") ===
+                        (inline
+                          ? opt === "Yes"
+                            ? "Yes, apply this"
+                            : "No, skip"
+                          : opt)
+                          ? "bg-white text-black"
+                          : "border border-white/10 text-zinc-300 hover:border-white/20"
+                      }`}
+                    >
+                      {opt}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      ) : null}
+
+      {preConfirmation.confirmation_questions.length > 0 ? (
+        <div>
+          <p className="text-sm font-medium text-white">Quick questions</p>
+          <div className="mt-3 space-y-4">
+            {preConfirmation.confirmation_questions.map((q) => (
+              <div key={q.key}>
+                <p className="text-sm text-zinc-300">{q.question}</p>
+                <div className="mt-2 flex flex-wrap gap-2">
+                  {(q.options ?? []).map((opt) => (
+                    <button
+                      key={opt}
+                      type="button"
+                      onClick={() => setQuestionAnswers((a) => ({ ...a, [q.key]: opt }))}
+                      className={`rounded-md px-3 py-1.5 text-xs transition ${
+                        (questionAnswers[q.key] ?? q.default_answer) === opt
+                          ? "bg-white text-black"
+                          : "border border-zinc-700 text-zinc-300 hover:border-zinc-500"
+                      }`}
+                    >
+                      {opt}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      ) : null}
+
+      <button
+        type="button"
+        disabled={loading || !allQuestionsAnswered}
+        onClick={handleSubmit}
+        className={`w-full py-3 text-sm font-medium disabled:opacity-50 ${
+          inline
+            ? "rounded-full bg-white text-black hover:bg-zinc-200"
+            : "rounded-lg bg-white text-black"
+        }`}
+      >
+        {loading ? "Starting…" : inline ? "Generate Moodboard →" : "Confirm & generate →"}
+      </button>
+    </div>
+  );
+}

@@ -7,6 +7,7 @@ import {
 } from "@/lib/design-audit/auditor";
 import { cacheGet } from "@/lib/ai-cache";
 import { persistAuditFindings } from "@/lib/design-audit/persist";
+import { saveAuditLearnings } from "@/lib/context-saveback";
 import { createSseStream, sseResponse } from "@/lib/ai-sse";
 import type {
   AuditContext,
@@ -14,6 +15,7 @@ import type {
   AuditModelId,
   DesignAuditResult,
 } from "@/lib/design-audit/types";
+import type { UserPreConfirmation } from "@/lib/pre-generation-types";
 
 export async function POST(request: NextRequest) {
   try {
@@ -36,16 +38,50 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    const preConfirmation = body.preConfirmation as UserPreConfirmation | undefined;
+
     const auditInput = {
       modelId,
       context,
       inputMode,
       metadata,
       images,
+      userConfirmations: preConfirmation,
     };
 
     const cacheKeyStr = buildAuditCacheKey(auditInput);
     const cachedResult = cacheGet<DesignAuditResult>(cacheKeyStr);
+
+    async function persistAuditComplete(
+      result: DesignAuditResult,
+      auditId: string,
+    ): Promise<number> {
+      const sessionId = await resolveEaSessionId(request);
+      let intelligenceSaved = 0;
+      if (sessionId) {
+        try {
+          intelligenceSaved = await persistAuditFindings(
+            sessionId,
+            result,
+            auditId,
+          );
+        } catch (err) {
+          console.error("[design-audit/run] persist failed:", err);
+        }
+      }
+      if (context.eaClientName?.trim()) {
+        try {
+          await saveAuditLearnings({
+            clientName: context.eaClientName.trim(),
+            sessionId: sessionId ?? undefined,
+            result,
+          });
+        } catch (err) {
+          console.error("[design-audit/run] saveback failed:", err);
+        }
+      }
+      return intelligenceSaved;
+    }
 
     if (stream) {
       const sse = createSseStream(async (send) => {
@@ -67,6 +103,7 @@ export async function POST(request: NextRequest) {
 
         const result = await runDesignAudit({
           ...auditInput,
+          clientName: context.eaClientName,
           onDelta: () => {
             statusTick += 1;
             if (statusTick % 12 === 0) {
@@ -79,19 +116,7 @@ export async function POST(request: NextRequest) {
         });
 
         const auditId = randomUUID();
-        const sessionId = await resolveEaSessionId(request);
-        let intelligenceSaved = 0;
-        if (sessionId) {
-          try {
-            intelligenceSaved = await persistAuditFindings(
-              sessionId,
-              result,
-              auditId,
-            );
-          } catch (err) {
-            console.error("[design-audit/run] persist failed:", err);
-          }
-        }
+        const intelligenceSaved = await persistAuditComplete(result, auditId);
 
         send({
           type: "complete",
@@ -103,19 +128,7 @@ export async function POST(request: NextRequest) {
 
     if (cachedResult) {
       const auditId = randomUUID();
-      const sessionId = await resolveEaSessionId(request);
-      let intelligenceSaved = 0;
-      if (sessionId) {
-        try {
-          intelligenceSaved = await persistAuditFindings(
-            sessionId,
-            cachedResult,
-            auditId,
-          );
-        } catch (err) {
-          console.error("[design-audit/run] persist failed:", err);
-        }
-      }
+      const intelligenceSaved = await persistAuditComplete(cachedResult, auditId);
       return NextResponse.json({
         auditId,
         result: cachedResult,
@@ -125,21 +138,12 @@ export async function POST(request: NextRequest) {
     }
 
     const auditId = randomUUID();
-    const result = await runDesignAudit(auditInput);
+    const result = await runDesignAudit({
+      ...auditInput,
+      clientName: context.eaClientName,
+    });
 
-    const sessionId = await resolveEaSessionId(request);
-    let intelligenceSaved = 0;
-    if (sessionId) {
-      try {
-        intelligenceSaved = await persistAuditFindings(
-          sessionId,
-          result,
-          auditId,
-        );
-      } catch (err) {
-        console.error("[design-audit/run] persist failed:", err);
-      }
-    }
+    const intelligenceSaved = await persistAuditComplete(result, auditId);
 
     return NextResponse.json({
       auditId,

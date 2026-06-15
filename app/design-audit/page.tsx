@@ -22,6 +22,8 @@ import type {
 import { AuditReportView } from "./_components/audit-report";
 import { readSseStream } from "@/lib/ai-sse";
 import { ContextWizard, ImageDropZone } from "./_components/input-wizard";
+import { PreConfirmationPanel } from "@/app/_components/pre-confirmation-panel";
+import type { PreConfirmation, UserPreConfirmation } from "@/lib/pre-generation-types";
 
 const TABS: { id: AuditInputMode; label: string }[] = [
   { id: "figma", label: "Figma Link" },
@@ -36,7 +38,7 @@ const inputClass = EA_INPUT;
 
 export default function DesignAuditPage() {
   const [inputMode, setInputMode] = useState<AuditInputMode>("website");
-  const [phase, setPhase] = useState<"input" | "context" | "report">("input");
+  const [phase, setPhase] = useState<"input" | "context" | "confirm" | "report">("input");
   const [modelId, setModelId] = useState<AuditModelId>(DEFAULT_MODEL);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -59,6 +61,8 @@ export default function DesignAuditPage() {
   const [eaSaved, setEaSaved] = useState(false);
   const [auditStatus, setAuditStatus] = useState("");
   const [result, setResult] = useState<DesignAuditResult | null>(null);
+  const [preConfirmation, setPreConfirmation] = useState<PreConfirmation | null>(null);
+  const [loadingPreConfirm, setLoadingPreConfirm] = useState(false);
   const inputCache = useRef<Map<string, { meta: Record<string, unknown>; images: AuditImage[]; previewUrl: string | null }>>(new Map());
 
   useEffect(() => {
@@ -199,7 +203,7 @@ export default function DesignAuditPage() {
     }
   };
 
-  const runAudit = async () => {
+  const runAudit = async (confirmations?: UserPreConfirmation) => {
     if (!context.productDescription || !context.targetUser || !context.primaryGoal) {
       setError("Complete all 3 context questions.");
       return;
@@ -224,6 +228,7 @@ export default function DesignAuditPage() {
           metadata,
           images,
           stream: true,
+          preConfirmation: confirmations,
         }),
       });
 
@@ -257,6 +262,58 @@ export default function DesignAuditPage() {
       setLoading(false);
       setAuditStatus("");
     }
+  };
+
+  const requestPreConfirmation = async () => {
+    if (!context.productDescription || !context.targetUser || !context.primaryGoal) {
+      setError("Complete all 3 context questions.");
+      return;
+    }
+    if (images.length === 0) {
+      setError("No images available for audit. Re-check your input.");
+      return;
+    }
+
+    setLoadingPreConfirm(true);
+    setError("");
+    try {
+      const sessionAnswers = {
+        q1: context.eaClientName ?? eaClient ?? "",
+        q3: context.productDescription,
+        q7: context.targetUser,
+        q18: context.specificConcerns ?? "",
+        primaryGoal: context.primaryGoal,
+      };
+
+      const res = await fetch("/api/pre-generation/advise", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          tool: "design_audit",
+          sessionAnswers,
+          context,
+          inputType: inputMode,
+          clientName: context.eaClientName ?? eaClient ?? undefined,
+        }),
+      });
+      const data = await res.json();
+      const pre = data.preConfirmation as PreConfirmation;
+      if (!pre || pre.skip_confirmation) {
+        await runAudit();
+        return;
+      }
+      setPreConfirmation(pre);
+      setPhase("confirm");
+    } catch {
+      await runAudit();
+    } finally {
+      setLoadingPreConfirm(false);
+    }
+  };
+
+  const handlePreConfirm = async (selections: UserPreConfirmation) => {
+    setMessage("Got it. Running audit with your preferences…");
+    await runAudit(selections);
   };
 
   const copyMarkdown = async () => {
@@ -316,6 +373,9 @@ export default function DesignAuditPage() {
         {message ? <p className="mb-4 text-sm text-emerald-400">{message}</p> : null}
         {loading && auditStatus ? (
           <p className="mb-4 text-sm text-zinc-400">{auditStatus}</p>
+        ) : null}
+        {loadingPreConfirm ? (
+          <p className="mb-4 text-sm text-zinc-400">Analyzing context and preparing approach…</p>
         ) : null}
 
         {phase !== "report" ? (
@@ -398,8 +458,8 @@ export default function DesignAuditPage() {
                   <ContextWizard
                     context={context}
                     onChange={(patch) => setContext({ ...context, ...patch })}
-                    onComplete={runAudit}
-                    loading={loading}
+                    onComplete={requestPreConfirmation}
+                    loading={loading || loadingPreConfirm}
                   />
 
                   <div>
@@ -433,6 +493,37 @@ export default function DesignAuditPage() {
                     className="text-xs text-zinc-500 hover:text-white"
                   >
                     ← Back to input
+                  </button>
+                </div>
+              </div>
+            ) : null}
+
+            {phase === "confirm" && preConfirmation ? (
+              <div className="space-y-6">
+                {previewUrl ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={previewUrl}
+                    alt="Preview"
+                    className="max-h-48 rounded-lg border border-zinc-800 object-contain opacity-60"
+                  />
+                ) : null}
+                <div className={`${EA_CARD_PADDED}`}>
+                  <p className="mb-4 text-sm text-zinc-400">
+                    Before I generate, let me share what I&apos;m planning to use and check a few
+                    things with you.
+                  </p>
+                  <PreConfirmationPanel
+                    preConfirmation={preConfirmation}
+                    onConfirm={handlePreConfirm}
+                    loading={loading}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setPhase("context")}
+                    className="mt-4 text-xs text-zinc-500 hover:text-white"
+                  >
+                    ← Back to context
                   </button>
                 </div>
               </div>

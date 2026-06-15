@@ -2,7 +2,7 @@ import Anthropic from "@anthropic-ai/sdk";
 import { randomUUID } from "crypto";
 import { cacheGet, cacheKey, cacheSet, hashString } from "../ai-cache";
 import { getModelConfig } from "./models";
-import { buildBriefFromAnswers } from "./question-flow";
+import { buildBriefFromAnswers, extractBrandName } from "./question-flow";
 import type {
   MoodboardPresentationDirection,
   MoodboardColorSwatch,
@@ -10,7 +10,7 @@ import type {
 } from "./db-types";
 import type { MoodboardModelId } from "./types";
 import { enrichDirectionImages } from "./unsplash";
-import { getRelevantKnowledge } from "../knowledge-context";
+import { loadAndFormatContext } from "../context-loader";
 import {
   OUTPUT_SECTIONS,
   SECTION_GENERATION_SPEC,
@@ -365,6 +365,10 @@ export async function generatePresentationDirections(input: {
   answers: Record<string, unknown>;
   modelId: MoodboardModelId;
   selectedOutputSections: string[];
+  clientName?: string;
+  projectName?: string;
+  projectType?: string;
+  userConfirmations?: import("@/lib/pre-generation-types").UserPreConfirmation;
   extras?: {
     brandResearch?: string;
     websiteAnalysis?: string;
@@ -378,22 +382,27 @@ export async function generatePresentationDirections(input: {
     : OUTPUT_SECTIONS.map((s) => s.key);
 
   const brief = buildBriefFromAnswers(input.answers, input.extras);
+  const clientName =
+    input.clientName?.trim() || extractBrandName(input.answers) || undefined;
   const config = getModelConfig(input.modelId);
   const key = cacheKey(
     "moodboard-pres",
     input.modelId,
-    hashString(brief + selectedSections.join(",")),
+    hashString(brief + selectedSections.join(",") + (clientName ?? "")),
   );
   const cached = cacheGet<MoodboardPresentationDirection[]>(key);
   if (cached) return cached;
 
   const systemPromptBase = buildSystemPrompt(selectedSections);
-  const knowledgeContext = await getRelevantKnowledge(
-    "moodboard",
-    brief.slice(0, 500),
-  );
-  const systemPrompt = knowledgeContext
-    ? `${systemPromptBase}\n\n${knowledgeContext}`
+  const { block: contextBlock } = await loadAndFormatContext({
+    tool: "moodboard",
+    client_name: clientName,
+    project_name: input.projectName,
+    project_type: input.projectType,
+    userConfirmations: input.userConfirmations,
+  });
+  const systemPrompt = contextBlock
+    ? `${contextBlock}\n\n${systemPromptBase}`
     : systemPromptBase;
   const userPrompt = `Create 3 moodboard directions for this brand brief.\nOnly include these sections: ${selectedSections.join(", ")}\n\n${brief}`;
 

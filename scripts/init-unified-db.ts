@@ -269,6 +269,99 @@ async function createTables() {
       update_source TEXT DEFAULT 'auto'
     );
   `);
+
+  console.log("\n=== INFORMATION ARCHITECTURE (P13) ===\n");
+
+  await run("ia_sessions", `
+    CREATE TABLE IF NOT EXISTS ia_sessions (
+      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      session_id TEXT UNIQUE NOT NULL,
+      tool_session_id TEXT REFERENCES tool_sessions(session_id) ON DELETE SET NULL,
+      client_name TEXT,
+      project_name TEXT,
+      product_type TEXT,
+      answers JSONB DEFAULT '{}',
+      ia_output JSONB,
+      status TEXT DEFAULT 'in_progress',
+      created_at TIMESTAMPTZ DEFAULT NOW(),
+      updated_at TIMESTAMPTZ DEFAULT NOW()
+    );
+  `);
+
+  await run("ia_screen_inventory", `
+    CREATE TABLE IF NOT EXISTS ia_screen_inventory (
+      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      session_id TEXT NOT NULL,
+      screen_name TEXT NOT NULL,
+      parent_screen_id TEXT,
+      level INTEGER DEFAULT 0,
+      priority TEXT DEFAULT 'P2',
+      user_access TEXT[] DEFAULT '{}',
+      primary_content TEXT[] DEFAULT '{}',
+      key_actions TEXT[] DEFAULT '{}',
+      notes TEXT,
+      created_at TIMESTAMPTZ DEFAULT NOW()
+    );
+  `);
+
+  await run("ia_user_flows", `
+    CREATE TABLE IF NOT EXISTS ia_user_flows (
+      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      session_id TEXT NOT NULL,
+      flow_name TEXT NOT NULL,
+      flow_goal TEXT,
+      steps JSONB DEFAULT '[]',
+      decision_points JSONB DEFAULT '[]',
+      created_at TIMESTAMPTZ DEFAULT NOW()
+    );
+  `);
+
+  console.log("\n=== WIREFRAME (P14) ===\n");
+
+  await run("wireframe_sessions", `
+    CREATE TABLE IF NOT EXISTS wireframe_sessions (
+      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      session_id TEXT UNIQUE NOT NULL,
+      ia_session_id TEXT NOT NULL REFERENCES ia_sessions(session_id) ON DELETE CASCADE,
+      client_name TEXT,
+      project_name TEXT,
+      selected_screens TEXT[] DEFAULT '{}',
+      screen_notes JSONB DEFAULT '{}',
+      moodboard_session_id TEXT,
+      audit_session_id TEXT,
+      status TEXT DEFAULT 'in_progress',
+      created_at TIMESTAMPTZ DEFAULT NOW(),
+      updated_at TIMESTAMPTZ DEFAULT NOW()
+    );
+  `);
+
+  await run("wireframe_screens", `
+    CREATE TABLE IF NOT EXISTS wireframe_screens (
+      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      session_id TEXT NOT NULL,
+      screen_name TEXT NOT NULL,
+      ia_screen_id TEXT,
+      spec JSONB DEFAULT '{}',
+      jsx_code TEXT NOT NULL,
+      annotations JSONB DEFAULT '[]',
+      shadcn_components_used TEXT[] DEFAULT '{}',
+      version INTEGER DEFAULT 1,
+      created_at TIMESTAMPTZ DEFAULT NOW(),
+      updated_at TIMESTAMPTZ DEFAULT NOW(),
+      UNIQUE(session_id, screen_name)
+    );
+  `);
+
+  await run("wireframe_versions", `
+    CREATE TABLE IF NOT EXISTS wireframe_versions (
+      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      wireframe_screen_id UUID NOT NULL REFERENCES wireframe_screens(id) ON DELETE CASCADE,
+      jsx_code TEXT NOT NULL,
+      change_notes TEXT,
+      version INTEGER NOT NULL,
+      created_at TIMESTAMPTZ DEFAULT NOW()
+    );
+  `);
 }
 
 async function migrateLegacyColumns() {
@@ -380,6 +473,12 @@ async function createIndexes() {
     `CREATE INDEX IF NOT EXISTS idx_ux_knowledge_category ON ux_knowledge_base (category, file_name)`,
     `CREATE INDEX IF NOT EXISTS idx_ux_knowledge_next_update ON ux_knowledge_base (next_update_at)`,
     `CREATE INDEX IF NOT EXISTS idx_ux_knowledge_updates_file ON ux_knowledge_updates (file_name, updated_at DESC)`,
+    `CREATE INDEX IF NOT EXISTS idx_ia_sessions_sid ON ia_sessions (session_id)`,
+    `CREATE INDEX IF NOT EXISTS idx_ia_screen_inventory_sid ON ia_screen_inventory (session_id)`,
+    `CREATE INDEX IF NOT EXISTS idx_ia_user_flows_sid ON ia_user_flows (session_id)`,
+    `CREATE INDEX IF NOT EXISTS idx_wireframe_sessions_sid ON wireframe_sessions (session_id)`,
+    `CREATE INDEX IF NOT EXISTS idx_wireframe_sessions_ia ON wireframe_sessions (ia_session_id)`,
+    `CREATE INDEX IF NOT EXISTS idx_wireframe_screens_sid ON wireframe_screens (session_id)`,
   ];
 
   for (const idx of indexes) {
@@ -467,6 +566,12 @@ async function reportCounts() {
     "visual_frameworks",
     "ux_knowledge_base",
     "ux_knowledge_updates",
+    "ia_sessions",
+    "ia_screen_inventory",
+    "ia_user_flows",
+    "wireframe_sessions",
+    "wireframe_screens",
+    "wireframe_versions",
   ];
 
   console.log("\n=== TABLE COUNTS ===\n");

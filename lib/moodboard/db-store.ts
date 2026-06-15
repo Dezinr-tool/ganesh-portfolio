@@ -4,28 +4,41 @@ import type {
   MoodboardPresentationDirection,
   MoodboardQuestion,
   MoodboardSession,
+  OutputSectionOption,
 } from "./db-types";
 
-function rowToQuestion(row: Record<string, unknown>): MoodboardQuestion {
-  const chips = row.chips_options;
-  let chipsOptions: string[] | null = null;
+function parseChipsOptions(chips: unknown): MoodboardQuestion["chips_options"] {
+  if (!chips) return null;
+
+  let arr: unknown[] | null = null;
   if (Array.isArray(chips)) {
-    chipsOptions = chips.map(String);
-  } else if (typeof chips === "string" && chips) {
+    arr = chips;
+  } else if (typeof chips === "string") {
     try {
-      chipsOptions = JSON.parse(chips) as string[];
+      const parsed = JSON.parse(chips);
+      arr = Array.isArray(parsed) ? parsed : null;
     } catch {
-      chipsOptions = null;
+      return null;
     }
   }
 
+  if (!arr?.length) return null;
+
+  if (typeof arr[0] === "object" && arr[0] !== null && "key" in (arr[0] as object)) {
+    return arr as OutputSectionOption[];
+  }
+
+  return arr.map(String);
+}
+
+function rowToQuestion(row: Record<string, unknown>): MoodboardQuestion {
   return {
     id: String(row.id),
     key: String(row.key),
     question_text: String(row.question_text),
     question_type: row.question_type as MoodboardQuestion["question_type"],
     parent_key: row.parent_key ? String(row.parent_key) : null,
-    chips_options: chipsOptions,
+    chips_options: parseChipsOptions(row.chips_options),
     follow_up_condition: row.follow_up_condition
       ? String(row.follow_up_condition)
       : null,
@@ -66,7 +79,7 @@ export async function updateQuestion(
   data: Partial<{
     question_text: string;
     question_type: string;
-    chips_options: string[] | null;
+    chips_options: string[] | OutputSectionOption[] | null;
     is_active: boolean;
     order_index: number;
     follow_up_condition: string | null;
@@ -150,6 +163,7 @@ function rowToSession(row: Record<string, unknown>): MoodboardSession {
     brand_name: row.brand_name ? String(row.brand_name) : null,
     project_type: row.project_type ? String(row.project_type) : null,
     answers: (row.answers as Record<string, unknown>) ?? {},
+    selected_output_sections: row.selected_output_sections as string[] | null,
     generated_directions: row.generated_directions as
       | MoodboardPresentationDirection[]
       | null,
@@ -190,6 +204,7 @@ export async function updateSession(
     brand_name: string;
     project_type: string;
     answers: Record<string, unknown>;
+    selected_output_sections: string[];
     generated_directions: MoodboardPresentationDirection[];
     selected_direction: string;
     status: string;
@@ -203,6 +218,7 @@ export async function updateSession(
       brand_name = ${data.brand_name ?? existing.brand_name},
       project_type = ${data.project_type ?? existing.project_type},
       answers = ${JSON.stringify(data.answers ?? existing.answers)},
+      selected_output_sections = ${data.selected_output_sections !== undefined ? JSON.stringify(data.selected_output_sections) : existing.selected_output_sections ? JSON.stringify(existing.selected_output_sections) : null},
       generated_directions = ${data.generated_directions ? JSON.stringify(data.generated_directions) : existing.generated_directions ? JSON.stringify(existing.generated_directions) : null},
       selected_direction = ${data.selected_direction ?? existing.selected_direction},
       status = ${data.status ?? existing.status},
@@ -233,19 +249,19 @@ export async function saveDirectionsToDb(
         ${sessionId},
         ${dir.directionName},
         ${dir.directionIndex},
-        ${dir.persona.name},
-        ${dir.persona.description},
-        ${JSON.stringify(dir.persona.painPoints)},
-        ${dir.persona.brandStrategy},
-        ${dir.persona.toneOfVoice},
-        ${JSON.stringify(dir.uiSection.references)},
-        ${dir.illustrations.styleDescription},
-        ${JSON.stringify(dir.illustrations.references)},
-        ${JSON.stringify(dir.typography.heading)},
-        ${JSON.stringify(dir.typography.body)},
-        ${JSON.stringify(dir.typography.references)},
-        ${JSON.stringify(dir.colorPalette)},
-        ${JSON.stringify(dir.moodKeywords)}
+        ${dir.persona?.name ?? null},
+        ${dir.persona?.description ?? null},
+        ${JSON.stringify(dir.persona?.painPoints ?? [])},
+        ${dir.persona?.brandStrategy ?? null},
+        ${dir.persona?.toneOfVoice ?? null},
+        ${JSON.stringify(dir.uiSection?.references ?? [])},
+        ${dir.illustrations?.styleDescription ?? null},
+        ${JSON.stringify(dir.illustrations?.references ?? [])},
+        ${JSON.stringify(dir.typography?.heading ?? null)},
+        ${JSON.stringify(dir.typography?.body ?? null)},
+        ${JSON.stringify(dir.typography?.references ?? [])},
+        ${JSON.stringify(dir.colorPalette ?? [])},
+        ${JSON.stringify(dir.moodKeywords ?? [])}
       )
     `;
   }

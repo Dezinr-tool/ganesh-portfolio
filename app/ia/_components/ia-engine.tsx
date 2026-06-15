@@ -3,20 +3,8 @@
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { readSseStream } from "@/lib/ai-sse";
-import type { MoodboardQuestion, MoodboardPresentationDirection } from "@/lib/moodboard/db-types";
-import {
-  extractBrandName,
-  getFirstQuestion,
-  getNextQuestion,
-  isQuestionOptional,
-} from "@/lib/moodboard/question-flow";
-import { MOODBOARD_MODELS } from "@/lib/moodboard/models";
+import type { MoodboardQuestion } from "@/lib/moodboard/db-types";
 import type { MoodboardModelId } from "@/lib/moodboard/types";
-import { getSelectedOutputSections } from "@/lib/moodboard/output-sections";
-import { PreConfirmationPanel } from "@/app/_components/pre-confirmation-panel";
-import type { PreConfirmation, UserPreConfirmation } from "@/lib/pre-generation-types";
-import { PRE_CONFIRMATION_ANSWERS_KEY } from "@/lib/pre-generation-types";
-import { extractProjectType } from "@/lib/moodboard/question-flow";
 import {
   formatBrandCorrectionAck,
   getVagueFollowUp,
@@ -24,22 +12,36 @@ import {
   isVagueOpenAnswer,
   parseBrandCorrection,
 } from "@/lib/moodboard/intake-helpers";
-import { MAX_REFERENCE_IMAGES } from "@/lib/moodboard/question-seed";
+import { PreConfirmationPanel } from "@/app/_components/pre-confirmation-panel";
+import type { PreConfirmation, UserPreConfirmation } from "@/lib/pre-generation-types";
+import { PRE_CONFIRMATION_ANSWERS_KEY } from "@/lib/pre-generation-types";
+import {
+  extractClientName,
+  extractProductName,
+  extractProductType,
+  getFirstQuestion,
+  getNextQuestion,
+  isQuestionOptional,
+  normalizeAnswer,
+  shouldShowQuestion,
+} from "@/lib/ia/question-flow";
+import { IA_GREETING, IA_QUESTIONS } from "@/lib/ia/question-seed";
+import type { IaOutput, IaQuestion, IaModelId } from "@/lib/ia/types";
 import {
   ActiveQuestionCard,
   FloatingStatusCard,
-} from "./active-question-card";
+} from "@/app/moodboard/_components/active-question-card";
 import {
   MoodboardChatHistory,
   type HistoryMessage,
-} from "./moodboard-chat-history";
-import { MoodboardComposer } from "./moodboard-composer";
-import { PresentationView } from "./presentation-view";
+} from "@/app/moodboard/_components/moodboard-chat-history";
+import { MoodboardComposer } from "@/app/moodboard/_components/moodboard-composer";
+import { IaOutputView } from "./ia-output-view";
 
-const MODEL_STORAGE_KEY = "moodboard-model-id";
-const SESSION_STORAGE_KEY = "moodboard-session-id";
-const DEFAULT_MODEL: MoodboardModelId =
-  MOODBOARD_MODELS.find((m) => m.recommended)?.id ?? "claude-sonnet";
+const SESSION_STORAGE_KEY = "ia-session-id";
+const MODEL_STORAGE_KEY = "ia-model-id";
+const VALID_IA_MODELS = new Set<IaModelId>(["claude-sonnet", "claude-haiku", "gpt-4o"]);
+const DEFAULT_MODEL: IaModelId = "claude-sonnet";
 
 function uid() {
   return crypto.randomUUID();
@@ -57,37 +59,75 @@ function formatDisplay(value: unknown): string {
   return String(value);
 }
 
-function usesComposerInput(question: MoodboardQuestion | null): boolean {
+function iaToMoodboardQuestion(q: IaQuestion): MoodboardQuestion {
+  return {
+    id: q.key,
+    key: q.key,
+    question_text: q.question_text,
+    question_type:
+      q.question_type === "open_upload"
+        ? "open"
+        : q.question_type === "url"
+          ? "url"
+          : q.question_type,
+    parent_key: q.parent_key,
+    chips_options: q.chips_options,
+    follow_up_condition: q.follow_up_condition,
+    category: "brand_basics",
+    order_index: q.order_index,
+    is_active: true,
+    created_at: new Date().toISOString(),
+  };
+}
+
+function usesComposerInput(question: IaQuestion | null): boolean {
   if (!question) return false;
-  if (question.question_type === "multi_section_select") return false;
-  if (question.question_type === "chips" && question.key !== "q4b") return false;
+  if (question.question_type === "chips") return false;
   return true;
 }
 
-function usesUpload(question: MoodboardQuestion | null): boolean {
+function usesUpload(question: IaQuestion | null): boolean {
   if (!question) return false;
-  return question.question_type === "upload" || question.key === "q4b" || question.key === "q13";
+  return (
+    question.question_type === "upload" ||
+    question.question_type === "open_upload" ||
+    question.key === "q3a" ||
+    question.key === "q3b" ||
+    question.key === "q14"
+  );
 }
 
-export function MoodboardEngine() {
-  const [questions, setQuestions] = useState<MoodboardQuestion[]>([]);
+function toIaModelId(id: MoodboardModelId): IaModelId {
+  if (VALID_IA_MODELS.has(id as IaModelId)) return id as IaModelId;
+  return DEFAULT_MODEL;
+}
+
+function getResumeQuestion(answers: Record<string, unknown>): IaQuestion | null {
+  const sorted = [...IA_QUESTIONS].sort((a, b) => a.order_index - b.order_index);
+  for (const q of sorted) {
+    if (!shouldShowQuestion(q, answers)) continue;
+    const val = answers[q.key];
+    const answered =
+      val !== undefined &&
+      val !== null &&
+      (normalizeAnswer(val) !== "" || isQuestionOptional(q.key));
+    if (!answered) return q;
+  }
+  return null;
+}
+
+export function IaEngine() {
   const [messages, setMessages] = useState<HistoryMessage[]>([]);
   const [answers, setAnswers] = useState<Record<string, unknown>>({});
-  const [currentQuestion, setCurrentQuestion] = useState<MoodboardQuestion | null>(null);
+  const [currentQuestion, setCurrentQuestion] = useState<IaQuestion | null>(null);
   const [busy, setBusy] = useState(false);
   const [thinking, setThinking] = useState(false);
   const [generating, setGenerating] = useState(false);
   const [genStatus, setGenStatus] = useState("");
-  const [directions, setDirections] = useState<MoodboardPresentationDirection[]>([]);
+  const [output, setOutput] = useState<IaOutput | null>(null);
   const [sessionId, setSessionId] = useState("");
-  const [modelId, setModelId] = useState<MoodboardModelId>(DEFAULT_MODEL);
-  const [selectedOutputSections, setSelectedOutputSections] = useState<string[]>([]);
-  const [extras, setExtras] = useState<{
-    brandResearch?: string;
-    websiteAnalysis?: string;
-    competitorResearch?: string;
-    documentExtract?: string;
-  }>({});
+  const [modelId, setModelId] = useState<IaModelId>(DEFAULT_MODEL);
+  const [extras, setExtras] = useState<{ documentExtract?: string }>({});
   const [preConfirmation, setPreConfirmation] = useState<PreConfirmation | null>(null);
   const [showPreConfirm, setShowPreConfirm] = useState(false);
   const [loadingPreConfirm, setLoadingPreConfirm] = useState(false);
@@ -102,8 +142,8 @@ export function MoodboardEngine() {
   answersRef.current = answers;
 
   useEffect(() => {
-    const stored = localStorage.getItem(MODEL_STORAGE_KEY) as MoodboardModelId | null;
-    if (stored && MOODBOARD_MODELS.some((m) => m.id === stored)) {
+    const stored = localStorage.getItem(MODEL_STORAGE_KEY) as IaModelId | null;
+    if (stored && VALID_IA_MODELS.has(stored)) {
       setModelId(stored);
     }
     const sid = localStorage.getItem(SESSION_STORAGE_KEY) ?? crypto.randomUUID();
@@ -139,7 +179,7 @@ export function MoodboardEngine() {
   const persistSession = useCallback(
     async (nextAnswers: Record<string, unknown>, patch?: Record<string, unknown>) => {
       if (!sessionId) return;
-      await fetch("/api/moodboard/sessions", {
+      await fetch("/api/ia/sessions", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ sessionId, answers: nextAnswers, ...patch }),
@@ -148,92 +188,28 @@ export function MoodboardEngine() {
     [sessionId],
   );
 
-  const runSilentResearch = useCallback(
-    async (key: string, nextAnswers: Record<string, unknown>) => {
-      if (key === "q2") {
-        const brand = String(nextAnswers.q1 ?? "");
-        const desc = String(nextAnswers.q2 ?? "");
-        try {
-          const res = await fetch("/api/moodboard/research-brand", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ brandName: brand, description: desc }),
-          });
-          const data = await res.json();
-          if (data.summary) {
-            setExtras((e) => ({ ...e, brandResearch: data.summary }));
-          }
-        } catch {
-          /* graceful fallback */
-        }
+  const extractDocuments = useCallback(async (key: string, value: unknown) => {
+    if (!value || typeof value !== "object" || !("files" in value)) return;
+    const files = (value as { files: File[] }).files;
+    const doc = files.find((f) => /\.(pdf|docx|txt|json)$/i.test(f.name));
+    if (!doc) return;
+    const fd = new FormData();
+    fd.append("file", doc);
+    try {
+      const res = await fetch("/api/moodboard/extract-document", { method: "POST", body: fd });
+      const data = await res.json();
+      if (data.text) {
+        setExtras((e) => ({
+          ...e,
+          documentExtract: [e.documentExtract, `[${key}] ${data.text}`]
+            .filter(Boolean)
+            .join("\n\n"),
+        }));
       }
-
-      if (key === "q4a") {
-        const url = String(nextAnswers.q4a ?? "");
-        if (url.startsWith("http")) {
-          try {
-            const res = await fetch("/api/moodboard/scrape", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ url }),
-            });
-            const data = await res.json();
-            if (data.analysis) {
-              const a = data.analysis;
-              setExtras((e) => ({
-                ...e,
-                websiteAnalysis: `${a.title}: ${a.personality}. ${a.tone}. Colors: ${a.colors?.join(", ")}`,
-              }));
-            }
-          } catch {
-            /* graceful fallback */
-          }
-        }
-      }
-
-      if (key === "q10") {
-        const competitors = String(nextAnswers.q10 ?? "");
-        try {
-          const res = await fetch("/api/moodboard/research-brand", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ brandName: competitors, description: "competitor research" }),
-          });
-          const data = await res.json();
-          if (data.summary) {
-            setExtras((e) => ({ ...e, competitorResearch: data.summary }));
-          }
-        } catch {
-          /* graceful fallback */
-        }
-      }
-
-      if (key === "q19" || key === "q13") {
-        const val = nextAnswers[key];
-        if (val && typeof val === "object" && "files" in val) {
-          const files = (val as { files: File[] }).files;
-          const doc = files.find((f) => /\.(pdf|docx|txt)$/i.test(f.name));
-          if (doc) {
-            const fd = new FormData();
-            fd.append("file", doc);
-            try {
-              const res = await fetch("/api/moodboard/extract-document", {
-                method: "POST",
-                body: fd,
-              });
-              const data = await res.json();
-              if (data.text) {
-                setExtras((e) => ({ ...e, documentExtract: data.text }));
-              }
-            } catch {
-              /* graceful fallback */
-            }
-          }
-        }
-      }
-    },
-    [],
-  );
+    } catch {
+      /* graceful fallback */
+    }
+  }, []);
 
   const pauseThen = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
@@ -242,28 +218,23 @@ export function MoodboardEngine() {
       nextAnswers: Record<string, unknown>,
       confirmations?: UserPreConfirmation | null,
     ) => {
-      const brand = extractBrandName(nextAnswers);
+      const product = extractProductName(nextAnswers);
       addEaMessage(
         confirmations
-          ? "Got it. Generating now with your preferences…"
-          : `Perfect. I have everything I need to create 3 moodboard directions for ${brand}. Give me a moment…`,
+          ? "Got it. Generating your information architecture now…"
+          : `Perfect. I have everything I need to map the IA for ${product}. Give me a moment…`,
       );
       setShowPreConfirm(false);
       setCurrentQuestion(null);
       setGenerating(true);
-      setGenStatus("Building three distinct directions…");
+      setGenStatus("Generating information architecture…");
       const answersWithConfirm = confirmations
         ? { ...nextAnswers, [PRE_CONFIRMATION_ANSWERS_KEY]: confirmations }
         : nextAnswers;
-      await persistSession(answersWithConfirm, { status: "generating" });
-
-      const sections =
-        getSelectedOutputSections(nextAnswers).length > 0
-          ? getSelectedOutputSections(nextAnswers)
-          : selectedOutputSections;
+      await persistSession(answersWithConfirm);
 
       try {
-        const res = await fetch("/api/moodboard/generate-presentation", {
+        const res = await fetch("/api/ia/generate", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -272,31 +243,27 @@ export function MoodboardEngine() {
             sessionId,
             stream: true,
             extras,
-            selectedOutputSections: sections,
             preConfirmation: confirmations ?? undefined,
           }),
         });
 
         if (!res.ok || !res.body) throw new Error("Generation failed");
 
-        const result = await readSseStream<{ directions: MoodboardPresentationDirection[] }>(
-          res,
-          (event) => {
-            if (event.type === "status" && event.message) {
-              setGenStatus(event.message);
-            }
-          },
-        );
-        if (result?.directions) {
-          setDirections(result.directions);
+        const result = await readSseStream<{ output: IaOutput }>(res, (event) => {
+          if (event.type === "status" && event.message) {
+            setGenStatus(event.message);
+          }
+        });
+        if (result?.output) {
+          setOutput(result.output);
         }
       } catch {
-        addEaMessage("Something went wrong generating directions. Please try again.");
+        addEaMessage("Something went wrong generating the IA. Please try again.");
       } finally {
         setGenerating(false);
       }
     },
-    [addEaMessage, extras, modelId, persistSession, selectedOutputSections, sessionId],
+    [addEaMessage, extras, modelId, persistSession, sessionId],
   );
 
   const requestPreConfirmation = useCallback(
@@ -310,10 +277,10 @@ export function MoodboardEngine() {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            tool: "moodboard",
+            tool: "ia",
             sessionAnswers: nextAnswers,
-            clientName: extractBrandName(nextAnswers),
-            projectType: extractProjectType(nextAnswers),
+            clientName: extractClientName(nextAnswers),
+            projectType: extractProductType(nextAnswers),
           }),
         });
         const data = await res.json();
@@ -344,7 +311,7 @@ export function MoodboardEngine() {
     async (questionKey: string, nextAnswers: Record<string, unknown>) => {
       setThinking(true);
       await pauseThen(450);
-      const next = getNextQuestion(questionKey, nextAnswers, questions);
+      const next = getNextQuestion(questionKey, nextAnswers);
       setThinking(false);
       if (!next) {
         await requestPreConfirmation(nextAnswers);
@@ -352,7 +319,7 @@ export function MoodboardEngine() {
       }
       setCurrentQuestion(next);
     },
-    [questions, requestPreConfirmation],
+    [requestPreConfirmation],
   );
 
   const processAnswer = useCallback(
@@ -366,6 +333,7 @@ export function MoodboardEngine() {
 
       setBusy(true);
       const questionSnapshot = currentQuestion;
+      const mappedQuestion = iaToMoodboardQuestion(questionSnapshot);
 
       const correction = parseBrandCorrection(display);
       if (correction) {
@@ -376,52 +344,33 @@ export function MoodboardEngine() {
           ...answersRef.current,
           q1: correction.brand,
         };
-        if (correction.description) {
-          nextAnswers.q2 = correction.description;
-        }
         setAnswers(nextAnswers);
         addEaMessage(formatBrandCorrectionAck(correction));
         await persistSession(nextAnswers);
-
         setCurrentQuestion(null);
-        if (correction.description) {
-          if (questionSnapshot.key === "q2") {
-            void runSilentResearch("q2", nextAnswers);
-          }
-          await showNextQuestion(questionSnapshot.key, nextAnswers);
-        } else if (questionSnapshot.key === "q1") {
-          await showNextQuestion("q1", nextAnswers);
-        } else {
-          setCurrentQuestion(questionSnapshot);
-        }
+        await showNextQuestion(questionSnapshot.key, nextAnswers);
         setComposerText("");
         setPendingFiles([]);
         setBusy(false);
         return;
       }
 
-      if (isVagueOpenAnswer(questionSnapshot, value)) {
+      if (isVagueOpenAnswer(mappedQuestion, value)) {
         if (!options?.skipArchive) {
           commitExchange(questionSnapshot.question_text, display);
         }
-        addEaMessage(getVagueFollowUp(questionSnapshot));
+        addEaMessage(getVagueFollowUp(mappedQuestion));
         setBusy(false);
         return;
       }
 
       const nextAnswers = { ...answersRef.current, [questionSnapshot.key]: value };
       setAnswers(nextAnswers);
+      await persistSession(nextAnswers);
 
-      if (questionSnapshot.key === "q_output_sections" && Array.isArray(value)) {
-        setSelectedOutputSections(value as string[]);
-        await persistSession(nextAnswers, {
-          selected_output_sections: value as string[],
-        });
-      } else {
-        await persistSession(nextAnswers);
+      if (["q3a", "q3b", "q14"].includes(questionSnapshot.key)) {
+        void extractDocuments(questionSnapshot.key, value);
       }
-
-      void runSilentResearch(questionSnapshot.key, nextAnswers);
 
       if (!options?.skipArchive) {
         commitExchange(questionSnapshot.question_text, display);
@@ -438,8 +387,8 @@ export function MoodboardEngine() {
       busy,
       commitExchange,
       currentQuestion,
+      extractDocuments,
       persistSession,
-      runSilentResearch,
       showNextQuestion,
     ],
   );
@@ -478,74 +427,58 @@ export function MoodboardEngine() {
     handleAnswer({ text: composerText.trim(), files: pendingFiles });
   }, [composerText, currentQuestion, handleAnswer, pendingFiles]);
 
-  const handleRefine = useCallback(
-    async (directionId: string, note: string) => {
-      const dir = directions.find((d) => d.id === directionId);
-      if (!dir) return;
-      setGenerating(true);
-      const res = await fetch("/api/moodboard/refine-presentation", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          answers,
-          modelId,
-          direction: dir,
-          refineNote: note,
-          extras,
-          selectedOutputSections,
-        }),
-      });
-      const data = await res.json();
-      if (data.direction) {
-        setDirections((prev) =>
-          prev.map((d) => (d.id === directionId ? data.direction : d)),
-        );
-      }
-      setGenerating(false);
-    },
-    [answers, directions, extras, modelId, selectedOutputSections],
-  );
-
   useEffect(() => {
-    if (initializedRef.current) return;
+    if (initializedRef.current || !sessionId) return;
 
     async function init() {
       try {
-        const [qRes] = await Promise.all([
-          fetch("/api/moodboard/questions"),
-          sessionId
-            ? fetch("/api/moodboard/sessions", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ sessionId }),
-              })
-            : Promise.resolve(null),
-        ]);
+        await fetch("/api/ia/sessions", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ sessionId }),
+        });
 
-        const qData = await qRes.json();
-        const qs = (qData.questions ?? []) as MoodboardQuestion[];
-        setQuestions(qs);
-
-        if (qs.length === 0) return;
+        const res = await fetch(`/api/ia/sessions?sessionId=${encodeURIComponent(sessionId)}`);
+        if (res.ok) {
+          const data = await res.json();
+          const session = data.session as {
+            answers?: Record<string, unknown>;
+            ia_output?: IaOutput | null;
+            status?: string;
+          };
+          if (session?.answers && Object.keys(session.answers).length > 0) {
+            setAnswers(session.answers);
+            if (session.status === "complete" && session.ia_output) {
+              setOutput(session.ia_output);
+              initializedRef.current = true;
+              return;
+            }
+            const resume = getResumeQuestion(session.answers);
+            initializedRef.current = true;
+            setTimeout(() => {
+              addEaMessage(IA_GREETING);
+              if (resume) setCurrentQuestion(resume);
+            }, 400);
+            return;
+          }
+        }
 
         initializedRef.current = true;
         setTimeout(() => {
-          addEaMessage(
-            "Hi — I'm your moodboard assistant. I'll ask a few questions one at a time to understand your brand, then generate 3 visual directions.",
-          );
-          const first = getFirstQuestion(qs);
-          if (first) setCurrentQuestion(first);
+          addEaMessage(IA_GREETING);
+          setCurrentQuestion(getFirstQuestion());
         }, 400);
       } catch {
-        addEaMessage("Couldn't load questions. Please refresh.");
+        addEaMessage("Couldn't load session. Please refresh.");
       }
     }
 
-    if (sessionId) init();
+    void init();
   }, [sessionId, addEaMessage]);
 
-  const brandName = extractBrandName(answers);
-  const intakeComplete = directions.length > 0;
+  const productName = extractProductName(answers);
+  const intakeComplete = output !== null;
+  const moodboardQuestion = currentQuestion ? iaToMoodboardQuestion(currentQuestion) : null;
 
   const composerHidden = useMemo(() => {
     if (generating || showPreConfirm || loadingPreConfirm) return true;
@@ -555,9 +488,10 @@ export function MoodboardEngine() {
 
   const uploadAccept = useMemo(() => {
     if (!currentQuestion) return undefined;
-    if (currentQuestion.key === "q19") return ".pdf,.docx,.txt,application/pdf";
-    if (currentQuestion.key === "q13") return "image/*";
-    return "image/*,.pdf,.docx,.txt";
+    if (currentQuestion.key === "q14") {
+      return ".pdf,.docx,.txt,.json,application/pdf,image/*";
+    }
+    return "image/*,.pdf,.docx,.txt,.json";
   }, [currentQuestion]);
 
   const composerPlaceholder = useMemo(() => {
@@ -569,7 +503,9 @@ export function MoodboardEngine() {
 
   const showSkip = currentQuestion ? isQuestionOptional(currentQuestion.key) : false;
 
-  if (intakeComplete) {
+  const composerModelId = modelId as MoodboardModelId;
+
+  if (intakeComplete && output) {
     return (
       <div className="min-h-screen bg-[#0d0d0d] text-zinc-100">
         <Link
@@ -580,17 +516,12 @@ export function MoodboardEngine() {
         </Link>
 
         <div className="mx-auto max-w-[680px] border-b border-white/10 px-4 pb-3 pt-14">
-          <p className="text-sm font-medium text-white">{brandName}</p>
-          <p className="text-xs text-zinc-500">3 moodboard directions</p>
+          <p className="text-sm font-medium text-white">{productName}</p>
+          <p className="text-xs text-zinc-500">Information architecture</p>
         </div>
 
         <div className="moodboard-output-enter bg-white text-neutral-900">
-          <PresentationView
-            directions={directions}
-            brandName={brandName}
-            selectedOutputSections={selectedOutputSections}
-            onRefine={handleRefine}
-          />
+          <IaOutputView output={output} sessionId={sessionId} />
         </div>
       </div>
     );
@@ -623,7 +554,7 @@ export function MoodboardEngine() {
                 preConfirmation={preConfirmation}
                 onConfirm={handlePreConfirm}
                 loading={generating || loadingPreConfirm}
-                brandName={brandName}
+                brandName={productName}
                 variant="inline"
               />
             </div>
@@ -636,9 +567,9 @@ export function MoodboardEngine() {
             />
           ) : null}
 
-          {currentQuestion && !generating && !showPreConfirm && !loadingPreConfirm ? (
+          {moodboardQuestion && !generating && !showPreConfirm && !loadingPreConfirm ? (
             <ActiveQuestionCard
-              question={currentQuestion}
+              question={moodboardQuestion}
               disabled={busy}
               pendingFiles={pendingFiles}
               onChip={handleAnswer}
@@ -659,12 +590,10 @@ export function MoodboardEngine() {
             showUpload={usesUpload(currentQuestion)}
             uploadAccept={uploadAccept}
             onFilesSelected={(files) => {
-              const max =
-                currentQuestion?.key === "q13" ? MAX_REFERENCE_IMAGES : 5;
-              setPendingFiles((prev) => [...prev, ...files].slice(0, max));
+              setPendingFiles((prev) => [...prev, ...files].slice(0, 5));
             }}
-            modelId={modelId}
-            onModelChange={setModelId}
+            modelId={composerModelId}
+            onModelChange={(id) => setModelId(toIaModelId(id))}
             showSkip={showSkip && !composerHidden}
             onSkip={() => void handleSkip()}
           />

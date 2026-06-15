@@ -7,6 +7,7 @@ import {
   MULTI_SELECT_KEYS,
 } from "@/lib/moodboard/question-seed";
 import { isQuestionOptional } from "@/lib/moodboard/question-flow";
+import { SectionSelector } from "./section-selector";
 
 const INPUT =
   "w-full rounded-lg border border-zinc-800 bg-zinc-950 px-3 py-2 text-sm text-zinc-100 outline-none placeholder:text-zinc-600 focus:border-zinc-600";
@@ -58,7 +59,18 @@ export function QuestionInput({
   const isUpload = question.question_type === "upload";
   const isUrl = question.question_type === "url";
   const isChips = question.question_type === "chips";
+  const isSectionSelect = question.question_type === "multi_section_select";
   const allowUploadOnOpen = question.key === "q4b";
+
+  if (isSectionSelect) {
+    return (
+      <SectionSelector
+        question={question}
+        disabled={disabled}
+        onSubmit={(keys) => onSubmit(keys)}
+      />
+    );
+  }
 
   const handleChip = (chip: string) => {
     if (multi) {
@@ -105,7 +117,7 @@ export function QuestionInput({
     <div className="space-y-3">
       {isChips && question.chips_options ? (
         <div className="flex flex-wrap gap-2">
-          {question.chips_options.map((chip) => (
+          {(question.chips_options as string[]).map((chip) => (
             <button
               key={chip}
               type="button"

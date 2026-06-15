@@ -18,19 +18,31 @@ export function shouldShowQuestion(
   if (!question.is_active) return false;
   if (!question.parent_key) return true;
 
-  const parentAnswer = normalizeAnswer(answers[question.parent_key]);
-  if (!parentAnswer) return false;
+  const parentAnswer = answers[question.parent_key];
+
+  if (question.parent_key === "q_output_sections") {
+    if (!Array.isArray(parentAnswer)) return false;
+    if (!question.follow_up_condition) return true;
+    return (parentAnswer as unknown[]).includes(question.follow_up_condition);
+  }
+
+  const parentStr = normalizeAnswer(parentAnswer);
+  if (!parentStr && !Array.isArray(parentAnswer)) return false;
 
   if (question.follow_up_condition) {
-    return parentAnswer === question.follow_up_condition;
+    return parentStr === question.follow_up_condition;
   }
 
   return true;
 }
 
+export function isIntakeQuestion(question: MoodboardQuestion): boolean {
+  return question.category !== "output_sections";
+}
+
 export function getFirstQuestion(questions: MoodboardQuestion[]): MoodboardQuestion | null {
   const sorted = [...questions]
-    .filter((q) => q.is_active && !q.parent_key)
+    .filter((q) => q.is_active && !q.parent_key && isIntakeQuestion(q))
     .sort((a, b) => a.order_index - b.order_index);
   return sorted[0] ?? null;
 }
@@ -116,6 +128,14 @@ export function buildBriefFromAnswers(
   add("Typography", "q16");
   add("Illustration style", "q17");
   add("Avoid", "q18");
+  add("Product type", "q_output_product_type");
+  add("Illustration style preference", "q_output_illustration_style");
+  add("Icon style preference", "q_output_icon_style");
+
+  const sections = answers.q_output_sections;
+  if (Array.isArray(sections) && sections.length) {
+    lines.push(`Output sections: ${sections.join(", ")}`);
+  }
 
   if (extras?.brandResearch) {
     lines.push(`Brand research:\n${extras.brandResearch}`);

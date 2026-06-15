@@ -35,9 +35,9 @@ import {
   loadGaneshContextForPrompt,
 } from "@/lib/ganesh-context-loader";
 import {
-  getRelevantKnowledge,
-  isUxRelatedQuery,
-} from "@/lib/knowledge-context";
+  loadAndFormatContext,
+  extractClientFromMessage,
+} from "@/lib/context-loader";
 import {
   isGreetingMessage,
   hasSchedulingIntent,
@@ -624,15 +624,19 @@ export async function POST(request: NextRequest) {
     );
 
     let finalSystemPrompt = systemPrompt;
-    if (isUxRelatedQuery(trimmedUserMessage)) {
-      try {
-        const uxKnowledge = await getRelevantKnowledge("ea_chat", trimmedUserMessage);
-        if (uxKnowledge) {
-          finalSystemPrompt = `${systemPrompt}\n\n${uxKnowledge}`;
-        }
-      } catch (err) {
-        console.error("[ea/chat] failed to load UX knowledge:", err);
+    const extractedClient =
+      extractClientFromMessage(trimmedUserMessage) ?? undefined;
+    try {
+      const { block: contextBlock } = await loadAndFormatContext({
+        tool: "ea_chat",
+        client_name: extractedClient,
+        user_message: trimmedUserMessage,
+      });
+      if (contextBlock) {
+        finalSystemPrompt = `${contextBlock}\n\n${systemPrompt}`;
       }
+    } catch (err) {
+      console.error("[ea/chat] failed to load unified context:", err);
     }
 
     const pendingCreates: PendingCalendarCreate[] = [];
