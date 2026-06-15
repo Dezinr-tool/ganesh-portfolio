@@ -1,0 +1,14 @@
+{
+  "version": 1,
+  "lastUpdated": "2026-06-06",
+  "updateFrequency": "weekly",
+  "entryCount": 8,
+  "sources": [
+    "https://www.nngroup.com/",
+    "https://www.w3.org/WAI/WCAG21/Understanding/",
+    "https://developer.apple.com/design/human-interface-guidelines/",
+    "https://m3.material.io/",
+    "https://baymard.com/",
+    "https://www.smashingmagazine.com/"
+  ]
+}

@@ -35,6 +35,10 @@ import {
   loadGaneshContextForPrompt,
 } from "@/lib/ganesh-context-loader";
 import {
+  getRelevantKnowledge,
+  isUxRelatedQuery,
+} from "@/lib/knowledge-context";
+import {
   isGreetingMessage,
   hasSchedulingIntent,
   hasCalendarContextIntent,
@@ -619,12 +623,24 @@ export async function POST(request: NextRequest) {
       },
     );
 
+    let finalSystemPrompt = systemPrompt;
+    if (isUxRelatedQuery(trimmedUserMessage)) {
+      try {
+        const uxKnowledge = await getRelevantKnowledge("ea_chat", trimmedUserMessage);
+        if (uxKnowledge) {
+          finalSystemPrompt = `${systemPrompt}\n\n${uxKnowledge}`;
+        }
+      } catch (err) {
+        console.error("[ea/chat] failed to load UX knowledge:", err);
+      }
+    }
+
     const pendingCreates: PendingCalendarCreate[] = [];
 
     let { response, messages: workingMessages, pendingCreates: queuedCreates } =
       await runAssistantTurn(
         anthropic,
-        systemPrompt,
+        finalSystemPrompt,
         model,
         maxTokens,
         currentMessages,
@@ -644,7 +660,7 @@ export async function POST(request: NextRequest) {
     ) {
       const retry = await runAssistantTurn(
         anthropic,
-        systemPrompt,
+        finalSystemPrompt,
         model,
         maxTokens,
         [

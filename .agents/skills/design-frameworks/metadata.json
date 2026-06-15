@@ -1,0 +1,111 @@
+{
+  "version": 1,
+  "lastUpdated": "2026-06-06",
+  "entryCount": 11,
+  "description": "Comprehensive knowledge base for product design, UX research, and innovation frameworks",
+  "entries": [
+    {
+      "id": "double-diamond",
+      "file": "double-diamond.md",
+      "title": "Double Diamond",
+      "author": "British Design Council",
+      "category": "process"
+    },
+    {
+      "id": "triple-diamond",
+      "file": "triple-diamond.md",
+      "title": "Triple Diamond",
+      "author": "Extended from British Design Council",
+      "category": "process"
+    },
+    {
+      "id": "design-sprint",
+      "file": "design-sprint.md",
+      "title": "Design Sprint",
+      "author": "Jake Knapp / Google Ventures",
+      "category": "process"
+    },
+    {
+      "id": "jobs-to-be-done",
+      "file": "jobs-to-be-done.md",
+      "title": "Jobs-to-be-Done",
+      "author": "Clayton Christensen, Tony Ulwick",
+      "category": "research-strategy"
+    },
+    {
+      "id": "atomic-design",
+      "file": "atomic-design.md",
+      "title": "Atomic Design",
+      "author": "Brad Frost",
+      "category": "design-systems"
+    },
+    {
+      "id": "lean-ux",
+      "file": "lean-ux.md",
+      "title": "Lean UX",
+      "author": "Jeff Gothelf",
+      "category": "process"
+    },
+    {
+      "id": "service-design",
+      "file": "service-design.md",
+      "title": "Service Design",
+      "author": "Service Design Network",
+      "category": "process"
+    },
+    {
+      "id": "systems-thinking",
+      "file": "systems-thinking.md",
+      "title": "Systems Thinking in Design",
+      "author": "Donella Meadows, adapted for UX",
+      "category": "strategy"
+    },
+    {
+      "id": "jobs-stories",
+      "file": "jobs-stories.md",
+      "title": "Jobs Stories",
+      "author": "Intercom, Alan Klement",
+      "category": "requirements"
+    },
+    {
+      "id": "how-might-we",
+      "file": "how-might-we.md",
+      "title": "How Might We",
+      "author": "IDEO, Stanford d.school",
+      "category": "ideation"
+    },
+    {
+      "id": "ux-research-methods",
+      "file": "ux-research-methods.md",
+      "title": "UX Research Methods Taxonomy",
+      "author": "Industry synthesis (NN/g, IxDF)",
+      "category": "research"
+    }
+  ],
+  "sources": [
+    "https://www.designcouncil.org.uk/our-resources/the-double-diamond/",
+    "https://www.designcouncil.org.uk/fileadmin/uploads/dc/Documents/Design_Council_Managing_Design_Report.pdf",
+    "https://www.gv.com/sprint/",
+    "https://www.thesprintbook.com/",
+    "https://www.claytonchristensen.com/books/competing-against-luck/",
+    "https://strategyn.com/jobs-to-be-done/",
+    "https://jobs-to-be-done.com/",
+    "https://atomicdesign.bradfrost.com/",
+    "https://bradfrost.com/blog/post/atomic-web-design/",
+    "https://www.leanuxbook.com/",
+    "https://www.jeffgothelf.com/blog/lean-ux-canvas/",
+    "https://www.service-design-network.org/about/service-design",
+    "https://www.nngroup.com/articles/service-blueprints-definition/",
+    "https://donellameadows.org/archives/leverage-points-places-to-intervene-in-a-system/",
+    "https://www.intercom.com/blog/starting-with-jobs-to-be-done/",
+    "https://designthinking.ideo.com/",
+    "https://dschool.stanford.edu/resources/how-might-we",
+    "https://www.nngroup.com/articles/ux-research-cheat-sheet/",
+    "https://www.nngroup.com/articles/which-ux-research-methods/",
+    "https://www.interaction-design.org/literature/topics/user-research",
+    "https://www.strategyzer.com/books/testing-business-ideas",
+    "https://www.producttalk.org/continuous-discovery-habits/",
+    "https://patternlab.io/",
+    "https://www.thisisservicedesigndoing.com/"
+  ]
+}

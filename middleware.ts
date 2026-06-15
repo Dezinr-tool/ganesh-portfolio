@@ -88,6 +88,17 @@ export async function middleware(request: NextRequest) {
     }
   }
 
+  if (pathname.startsWith("/knowledge-admin") || pathname.startsWith("/api/knowledge")) {
+    if (!isEaAuthed) {
+      if (pathname.startsWith("/api/")) {
+        return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      }
+      if (pathname !== "/knowledge-admin") {
+        return NextResponse.redirect(new URL("/knowledge-admin", request.url));
+      }
+    }
+  }
+
   return NextResponse.next();
 }
 
@@ -98,6 +109,9 @@ export const config = {
     "/moodboard/admin",
     "/moodboard/admin/:path*",
     "/api/moodboard/admin/:path*",
+    "/knowledge-admin",
+    "/knowledge-admin/:path*",
+    "/api/knowledge/:path*",
     "/dashboard/:path*",
     "/api/invoices/:path*",
     "/api/agreements/:path*",

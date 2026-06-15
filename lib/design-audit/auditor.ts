@@ -1,5 +1,6 @@
 import Anthropic from "@anthropic-ai/sdk";
 import { cacheGet, cacheKey, cacheSet, hashString } from "../ai-cache";
+import { getRelevantKnowledge } from "../knowledge-context";
 import { getAuditModel } from "./models";
 import { DESIGN_AUDIT_SYSTEM_PROMPT } from "./system-prompt";
 import type {
@@ -309,12 +310,20 @@ export async function runDesignAudit(input: {
     input.metadata,
   );
 
+  const knowledgeContext = await getRelevantKnowledge(
+    "design_audit",
+    `${input.context.productDescription} ${input.context.targetUser} ${input.inputMode}`,
+  );
+  const systemPrompt = knowledgeContext
+    ? `${DESIGN_AUDIT_SYSTEM_PROMPT}\n\n${knowledgeContext}`
+    : DESIGN_AUDIT_SYSTEM_PROMPT;
+
   let text: string;
   try {
     if (config.provider === "anthropic") {
       text = await callAnthropicVision(
         config.model,
-        DESIGN_AUDIT_SYSTEM_PROMPT,
+        systemPrompt,
         userPrompt,
         input.images,
         input.onDelta,
@@ -322,14 +331,14 @@ export async function runDesignAudit(input: {
     } else if (config.provider === "openai") {
       text = await callOpenAIVision(
         config.model,
-        DESIGN_AUDIT_SYSTEM_PROMPT,
+        systemPrompt,
         userPrompt,
         input.images,
       );
     } else {
       text = await callGeminiVision(
         config.model,
-        DESIGN_AUDIT_SYSTEM_PROMPT,
+        systemPrompt,
         userPrompt,
         input.images,
       );
@@ -338,7 +347,7 @@ export async function runDesignAudit(input: {
     if (input.modelId !== "claude-sonnet") {
       text = await callAnthropicVision(
         "claude-sonnet-4-6",
-        DESIGN_AUDIT_SYSTEM_PROMPT,
+        systemPrompt,
         userPrompt,
         input.images,
         input.onDelta,
