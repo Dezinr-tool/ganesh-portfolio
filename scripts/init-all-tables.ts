@@ -17,6 +17,7 @@ const STEPS = [
   { script: "init-followup-tables.ts", label: "Follow-ups (ea_followups, ea_scheduled_meetings)" },
   { script: "init-saas-tables.ts", label: "SaaS auth (ea_users, ea_sessions, ea_usage)" },
   { script: "init-profile-tables.ts", label: "User profiles & message sentiment (ea_user_profiles, ea_message_sentiment)" },
+  { script: "init-moodboard-tables.ts", label: "Moodboard (moodboard_question_tree, moodboard_sessions, moodboard_directions)" },
 ] as const;
 
 async function runStep(index: number, script: string, label: string): Promise<boolean> {

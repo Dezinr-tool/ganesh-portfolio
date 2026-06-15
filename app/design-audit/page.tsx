@@ -1,12 +1,14 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { EATabNav, EAToolShell } from "@/app/ea/_components/ea-tool-shell";
+import { DesignAuditNav } from "./_components/design-audit-nav";
 import {
   EA_BTN_PRIMARY,
   EA_BTN_SECONDARY,
   EA_CARD_PADDED,
   EA_INPUT,
+  EA_TAB_ACTIVE,
+  EA_TAB_INACTIVE,
 } from "@/app/ea/_components/ea-ui";
 import { AUDIT_MODELS } from "@/lib/design-audit/models";
 import { auditToMarkdown } from "@/lib/design-audit/markdown";
@@ -290,10 +292,15 @@ export default function DesignAuditPage() {
   };
 
   return (
-    <EAToolShell
-      title="Design Audit"
-      subtitle="Brutally honest UX/UI audits across 10 dimensions — Figma, live sites, or screenshots."
-    >
+    <div className="min-h-screen bg-black text-zinc-100">
+      <DesignAuditNav />
+      <main className="mx-auto max-w-5xl px-6 py-10">
+        <div className="mb-8">
+          <h1 className="text-2xl font-light text-white">Design Audit</h1>
+          <p className="mt-1 text-sm text-zinc-500">
+            Brutally honest UX/UI audits across 10 dimensions — Figma, live sites, or screenshots.
+          </p>
+        </div>
         {eaClient ? (
           <div className="mb-6 rounded-lg border border-zinc-800 bg-zinc-900/30 px-4 py-3 text-sm text-zinc-300">
             Audit context pre-filled from your EA session with{" "}
@@ -313,14 +320,23 @@ export default function DesignAuditPage() {
 
         {phase !== "report" ? (
           <>
-            <EATabNav
-              tabs={TABS}
-              active={inputMode}
-              onChange={(mode) => {
-                setInputMode(mode);
-                setPhase("input");
-              }}
-            />
+            <nav className="mb-8 flex flex-wrap gap-1">
+              {TABS.map((tab) => (
+                <button
+                  key={tab.id}
+                  type="button"
+                  onClick={() => {
+                    setInputMode(tab.id);
+                    setPhase("input");
+                  }}
+                  className={`rounded-md px-3 py-1.5 text-sm transition ${
+                    inputMode === tab.id ? EA_TAB_ACTIVE : EA_TAB_INACTIVE
+                  }`}
+                >
+                  {tab.label}
+                </button>
+              ))}
+            </nav>
 
             {phase === "input" ? (
               <div className={`space-y-6 ${EA_CARD_PADDED}`}>
@@ -445,6 +461,7 @@ export default function DesignAuditPage() {
             />
           </div>
         ) : null}
-    </EAToolShell>
+      </main>
+    </div>
   );
 }

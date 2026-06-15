@@ -10,6 +10,7 @@
     "lint": "eslint",
     "init-db": "tsx scripts/init-db.ts",
     "init-meeting-tables": "tsx scripts/init-meeting-tables.ts",
+    "init-moodboard-tables": "tsx scripts/init-moodboard-tables.ts",
     "init-memory-tables": "tsx scripts/init-memory-tables.ts",
     "init-intelligence-tables": "tsx scripts/init-intelligence-tables.ts",
     "db:init-intelligence": "tsx scripts/init-intelligence-tables.ts",

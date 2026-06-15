@@ -1,5 +1,5 @@
-import { MoodboardChat } from "./_components/moodboard-chat";
+import { MoodboardEngine } from "./_components/moodboard-engine";
 
 export default function MoodboardPage() {
-  return <MoodboardChat />;
+  return <MoodboardEngine />;
 }

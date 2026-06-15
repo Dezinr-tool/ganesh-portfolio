@@ -2,28 +2,22 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useEASettings } from "./use-ea-settings";
 
 const links = [
-  { href: "/ea/dashboard", label: "Dashboard" },
-  { href: "/ea/meetings", label: "Meetings" },
-  { href: "/ea/followups", label: "Follow-ups" },
-  { href: "/ea/insights", label: "Intelligence" },
-  { href: "/ea/chat", label: "Chat" },
-  { href: "/ea/settings", label: "Settings" },
+  { href: "/moodboard", label: "Moodboard" },
+  { href: "/moodboard/admin", label: "Admin" },
 ];
 
-export function EANav() {
+export function MoodboardNav() {
   const pathname = usePathname();
-  const { eaName } = useEASettings();
 
   return (
-    <header className="border-b border-zinc-800/80">
-      <div className="mx-auto flex max-w-5xl items-center justify-between px-6 py-5">
-        <Link href="/ea/dashboard" className="text-sm font-medium text-white">
-          {eaName}
+    <header className="border-b border-zinc-800/80 bg-[#0d0d0d]">
+      <div className="mx-auto flex max-w-5xl items-center justify-between px-4 py-4 sm:px-6">
+        <Link href="/" className="text-sm font-medium text-white">
+          designbyganesh
         </Link>
-        <nav className="flex gap-1">
+        <nav className="flex items-center gap-1">
           {links.map((link) => {
             const active = pathname === link.href;
             return (

@@ -77,6 +77,17 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(loginUrl);
   }
 
+  if (pathname.startsWith("/moodboard/admin") || pathname.startsWith("/api/moodboard/admin")) {
+    if (!isEaAuthed) {
+      if (pathname.startsWith("/api/")) {
+        return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      }
+      if (pathname !== "/moodboard/admin") {
+        return NextResponse.redirect(new URL("/moodboard/admin", request.url));
+      }
+    }
+  }
+
   return NextResponse.next();
 }
 
@@ -84,6 +95,9 @@ export const config = {
   matcher: [
     "/ea/:path*",
     "/api/ea/:path*",
+    "/moodboard/admin",
+    "/moodboard/admin/:path*",
+    "/api/moodboard/admin/:path*",
     "/dashboard/:path*",
     "/api/invoices/:path*",
     "/api/agreements/:path*",

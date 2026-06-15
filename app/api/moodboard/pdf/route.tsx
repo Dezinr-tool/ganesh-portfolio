@@ -1,10 +1,32 @@
 import { NextRequest, NextResponse } from "next/server";
 import { renderToBuffer } from "@react-pdf/renderer";
 import { MoodboardPdf } from "@/lib/moodboard-pdf";
+import type { MoodboardPresentationDirection } from "@/lib/moodboard/db-types";
 import type { MoodboardDirection } from "@/lib/moodboard/types";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
+
+function toLegacyDirection(
+  direction: MoodboardDirection | MoodboardPresentationDirection,
+): MoodboardDirection {
+  if ("directionName" in direction) {
+    return {
+      id: direction.id,
+      name: direction.directionName,
+      concept: direction.tagline,
+      colors: direction.colorPalette.map((c) => ({ hex: c.hex, name: c.name })),
+      typography: {
+        heading: direction.typography.heading.font,
+        body: direction.typography.body.font,
+      },
+      imagery: direction.illustrations.styleDescription,
+      mood: direction.moodKeywords,
+      visual_references: direction.uiSection.description,
+    };
+  }
+  return direction;
+}
 
 export async function POST(request: NextRequest) {
   const body = await request.json().catch(() => null);
@@ -12,7 +34,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Invalid request body." }, { status: 400 });
   }
 
-  const direction = body.direction as MoodboardDirection;
+  const direction = toLegacyDirection(body.direction);
   const tab = typeof body.tab === "string" ? body.tab : "moodboard";
 
   if (!direction?.name) {
