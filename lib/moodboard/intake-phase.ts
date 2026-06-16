@@ -34,11 +34,14 @@ export function shouldOfferSectionsPhase(opts: {
 }): boolean {
   if (opts.directionsCount > 0) return false;
 
+  const userTurns = opts.messages.filter((m) => m.role === "user").length;
+
   return (
     opts.showSectionsPicker === true ||
     isReadyToGenerate(opts.answers) ||
     countCoreFields(opts.answers) >= 4 ||
-    conversationSignalsSections(opts.messages)
+    conversationSignalsSections(opts.messages) ||
+    (userTurns >= 2 && countCoreFields(opts.answers) >= 3)
   );
 }
 

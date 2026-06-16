@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { readSseStream } from "@/lib/ai-sse";
 import type { MoodboardPresentationDirection } from "@/lib/moodboard/db-types";
 import { extractBrandName, extractProjectType } from "@/lib/moodboard/question-flow";
@@ -12,8 +12,8 @@ import {
   shouldOfferSectionsPhase,
   userNeedsPanelHelp,
   userRequestedGeneration,
-  type MoodboardIntakePhase,
 } from "@/lib/moodboard/intake-phase";
+import { replySignalsSectionsPicker } from "@/lib/moodboard/sections-picker-question";
 import { PreConfirmationPanel } from "@/app/_components/pre-confirmation-panel";
 import type { PreConfirmation, UserPreConfirmation } from "@/lib/pre-generation-types";
 import { PRE_CONFIRMATION_ANSWERS_KEY } from "@/lib/pre-generation-types";
@@ -74,8 +74,7 @@ export function MoodboardEngine() {
   const [landingFading, setLandingFading] = useState(false);
   const [sessionReady, setSessionReady] = useState(false);
   const [readyToGenerate, setReadyToGenerate] = useState(false);
-  const [intakePhase, setIntakePhase] = useState<MoodboardIntakePhase>("chat");
-  const [sectionsConfirmed, setSectionsConfirmed] = useState(false);
+  const [sectionsPickerDismissed, setSectionsPickerDismissed] = useState(false);
 
   const pendingAnswersRef = useRef<Record<string, unknown>>({});
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -103,11 +102,20 @@ export function MoodboardEngine() {
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages, thinking, generating, showPreConfirm, intakePhase, sectionsConfirmed]);
+  }, [messages, thinking, generating, showPreConfirm, sectionsPickerDismissed]);
 
-  const enterSectionsPhase = useCallback((resetConfirmed = false) => {
-    setIntakePhase("sections");
-    if (resetConfirmed) setSectionsConfirmed(false);
+  const offerSections = useMemo(
+    () =>
+      shouldOfferSectionsPhase({
+        answers,
+        messages,
+        directionsCount: directions.length,
+      }),
+    [answers, messages, directions.length],
+  );
+
+  const revealSectionsPicker = useCallback(() => {
+    setSectionsPickerDismissed(false);
   }, []);
 
   const syncSectionsPhase = useCallback(
@@ -117,17 +125,17 @@ export function MoodboardEngine() {
       showSectionsPicker?: boolean,
     ) => {
       if (
+        showSectionsPicker ||
         shouldOfferSectionsPhase({
           answers: nextAnswers,
           messages: nextMessages,
           directionsCount: directions.length,
-          showSectionsPicker,
         })
       ) {
-        setIntakePhase("sections");
+        revealSectionsPicker();
       }
     },
-    [directions.length],
+    [directions.length, revealSectionsPicker],
   );
 
   const addAssistantMessage = useCallback((text: string) => {
@@ -184,7 +192,6 @@ export function MoodboardEngine() {
           : `Creating three moodboard directions for ${brand}…`,
       );
       setShowPreConfirm(false);
-      setIntakePhase("generating");
       setGenerating(true);
       setGenStatus("Building three distinct directions…");
       const answersWithConfirm = confirmations
@@ -238,7 +245,6 @@ export function MoodboardEngine() {
         );
         if (result?.directions) {
           setDirections(result.directions);
-          setIntakePhase("done");
           void trackMoodboardEvent(sessionId, "generation_complete", {
             modelId,
             directionCount: result.directions.length,
@@ -247,12 +253,12 @@ export function MoodboardEngine() {
         }
       } catch {
         addAssistantMessage("Something went wrong generating directions. Please try again.");
-        setIntakePhase("sections");
+        revealSectionsPicker();
       } finally {
         setGenerating(false);
       }
     },
-    [addAssistantMessage, modelId, persistSession, selectedOutputSections, sessionId],
+    [addAssistantMessage, modelId, persistSession, revealSectionsPicker, selectedOutputSections, sessionId],
   );
 
   const requestPreConfirmation = useCallback(
@@ -294,8 +300,6 @@ export function MoodboardEngine() {
       setAnswers(nextAnswers);
       answersRef.current = nextAnswers;
       setSelectedOutputSections(sections);
-      setSectionsConfirmed(true);
-      setIntakePhase("generating");
       await persistSession(nextAnswers, messagesRef.current);
       await requestPreConfirmation(nextAnswers);
     },
@@ -353,7 +357,7 @@ export function MoodboardEngine() {
       if (!trimmed || busy) return;
 
       if (userNeedsPanelHelp(trimmed)) {
-        enterSectionsPhase(true);
+        revealSectionsPicker();
         addAssistantMessage(
           "The selector is pinned above the input — choose your elements, then press Continue.",
         );
@@ -387,7 +391,6 @@ export function MoodboardEngine() {
 
         if (data.type === "moodboard_output" && data.directions?.length) {
           setDirections(data.directions);
-          setIntakePhase("done");
           setAnswers(data.answers);
           answersRef.current = data.answers;
           if (data.extras) setExtras((prev) => ({ ...prev, ...data.extras }));
@@ -407,10 +410,11 @@ export function MoodboardEngine() {
         answersRef.current = data.answers;
         if (data.extras) setExtras((prev) => ({ ...prev, ...data.extras }));
         setReadyToGenerate(data.readyToGenerate);
-        syncSectionsPhase(data.answers, chatMessages, data.showSectionsPicker);
+        if (data.showSectionsPicker || (data.reply && replySignalsSectionsPicker(data.reply))) {
+          revealSectionsPicker();
+        }
         if (getSelectedOutputSections(data.answers).length > 0) {
           setSelectedOutputSections(getSelectedOutputSections(data.answers));
-          setSectionsConfirmed(true);
         }
 
         const assistantMsg: HistoryMessage = {
@@ -437,9 +441,9 @@ export function MoodboardEngine() {
       addAssistantMessage,
       busy,
       callIntakeChat,
-      enterSectionsPhase,
       modelId,
       persistSession,
+      revealSectionsPicker,
       syncSectionsPhase,
       triggerGeneration,
       sessionId,
@@ -534,9 +538,6 @@ export function MoodboardEngine() {
             if (restored.modelId) setModelId(restored.modelId);
             setConversationStarted(restored.conversationStarted);
             setReadyToGenerate(restored.readyToGenerate);
-            if (getSelectedOutputSections(restored.answers).length >= MIN_OUTPUT_SECTIONS) {
-              setSectionsConfirmed(true);
-            }
             syncSectionsPhase(restored.answers, restored.messages);
           }
         }
@@ -557,18 +558,18 @@ export function MoodboardEngine() {
   const presentationMode = directions.length > 0;
   const composerDisabled = busy || generating || loadingPreConfirm;
   const showElementPicker =
-    intakePhase === "sections" &&
+    offerSections &&
     !presentationMode &&
     !generating &&
-    !loadingPreConfirm &&
-    !showPreConfirm;
+    !showPreConfirm &&
+    !sectionsPickerDismissed;
 
   useEffect(() => {
     if (presentationMode || !conversationStarted) return;
     if (conversationSignalsSections(messages)) {
-      enterSectionsPhase();
+      revealSectionsPicker();
     }
-  }, [conversationStarted, enterSectionsPhase, messages, presentationMode]);
+  }, [conversationStarted, messages, presentationMode, revealSectionsPicker]);
 
   if (presentationMode) {
     return (
@@ -643,11 +644,14 @@ export function MoodboardEngine() {
                   ) : null}
 
                   {showElementPicker ? (
-                    <div className="moodboard-sections-picker-sticky mb-3">
+                    <div
+                      className="moodboard-sections-picker-sticky mb-3"
+                      data-testid="moodboard-sections-picker"
+                    >
                       <MoodboardSectionsPicker
                         onConfirm={handleSectionsConfirm}
                         onSomethingElse={() => composerRef.current?.focus()}
-                        onDismiss={() => setIntakePhase("chat")}
+                        onDismiss={() => setSectionsPickerDismissed(true)}
                         loading={loadingPreConfirm || generating}
                       />
                     </div>
