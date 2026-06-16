@@ -6,7 +6,8 @@ import type { MoodboardPresentationDirection } from "@/lib/moodboard/db-types";
 import { extractBrandName, extractProjectType } from "@/lib/moodboard/question-flow";
 import { MOODBOARD_MODELS } from "@/lib/moodboard/models";
 import type { MoodboardModelId } from "@/lib/moodboard/types";
-import { getSelectedOutputSections, DEFAULT_MOODBOARD_PICKER_KEYS } from "@/lib/moodboard/output-sections";
+import { getSelectedOutputSections, DEFAULT_MOODBOARD_PICKER_KEYS, MIN_OUTPUT_SECTIONS } from "@/lib/moodboard/output-sections";
+import { replySignalsSectionsPicker } from "@/lib/moodboard/sections-picker-question";
 import { PreConfirmationPanel } from "@/app/_components/pre-confirmation-panel";
 import type { PreConfirmation, UserPreConfirmation } from "@/lib/pre-generation-types";
 import { PRE_CONFIRMATION_ANSWERS_KEY } from "@/lib/pre-generation-types";
@@ -70,6 +71,8 @@ export function MoodboardEngine() {
   const [landingFading, setLandingFading] = useState(false);
   const [sessionReady, setSessionReady] = useState(false);
   const [readyToGenerate, setReadyToGenerate] = useState(false);
+  const [showSectionsPrompt, setShowSectionsPrompt] = useState(false);
+  const [sectionsPickerDismissed, setSectionsPickerDismissed] = useState(false);
 
   const pendingAnswersRef = useRef<Record<string, unknown>>({});
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -97,7 +100,7 @@ export function MoodboardEngine() {
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages, thinking, generating, showPreConfirm]);
+  }, [messages, thinking, generating, showPreConfirm, showSectionsPrompt, sectionsPickerDismissed]);
 
   const addAssistantMessage = useCallback((text: string) => {
     setMessages((m) => [...m, { id: uid(), role: "assistant", text }]);
@@ -260,6 +263,8 @@ export function MoodboardEngine() {
       setAnswers(nextAnswers);
       answersRef.current = nextAnswers;
       setSelectedOutputSections(sections);
+      setShowSectionsPrompt(false);
+      setSectionsPickerDismissed(true);
       await persistSession(nextAnswers, messagesRef.current);
       await requestPreConfirmation(nextAnswers);
     },
@@ -357,8 +362,9 @@ export function MoodboardEngine() {
         answersRef.current = data.answers;
         if (data.extras) setExtras((prev) => ({ ...prev, ...data.extras }));
         setReadyToGenerate(data.readyToGenerate);
-        if (data.showSectionsPicker && getSelectedOutputSections(data.answers).length === 0) {
-          setSelectedOutputSections(DEFAULT_MOODBOARD_PICKER_KEYS);
+        if (data.showSectionsPicker || (data.reply && replySignalsSectionsPicker(data.reply))) {
+          setShowSectionsPrompt(true);
+          setSectionsPickerDismissed(false);
         }
         if (getSelectedOutputSections(data.answers).length > 0) {
           setSelectedOutputSections(getSelectedOutputSections(data.answers));
@@ -484,6 +490,9 @@ export function MoodboardEngine() {
             if (restored.modelId) setModelId(restored.modelId);
             setConversationStarted(restored.conversationStarted);
             setReadyToGenerate(restored.readyToGenerate);
+            if (restored.readyToGenerate && restored.selectedOutputSections.length < MIN_OUTPUT_SECTIONS) {
+              setShowSectionsPrompt(true);
+            }
           }
         }
 
@@ -502,6 +511,25 @@ export function MoodboardEngine() {
   const brandName = extractBrandName(answers);
   const presentationMode = directions.length > 0;
   const composerDisabled = busy || generating || loadingPreConfirm;
+  const hasConfirmedSections =
+    getSelectedOutputSections(answers).length >= MIN_OUTPUT_SECTIONS;
+  const showElementPicker =
+    !presentationMode &&
+    !generating &&
+    !loadingPreConfirm &&
+    !showPreConfirm &&
+    !sectionsPickerDismissed &&
+    !hasConfirmedSections &&
+    (readyToGenerate || showSectionsPrompt);
+
+  useEffect(() => {
+    if (presentationMode || !conversationStarted) return;
+    const lastAssistant = [...messages].reverse().find((m) => m.role === "assistant");
+    if (lastAssistant && replySignalsSectionsPicker(lastAssistant.text)) {
+      setShowSectionsPrompt(true);
+      setSectionsPickerDismissed(false);
+    }
+  }, [conversationStarted, messages, presentationMode]);
 
   if (presentationMode) {
     return (
@@ -559,6 +587,15 @@ export function MoodboardEngine() {
                     generating={generating}
                     genStatus={genStatus}
                   />
+                  {showElementPicker ? (
+                    <MoodboardSectionsPicker
+                      onConfirm={handleSectionsConfirm}
+                      onSomethingElse={() => composerRef.current?.focus()}
+                      onDismiss={() => setSectionsPickerDismissed(true)}
+                      loading={loadingPreConfirm || generating}
+                      dismissed={sectionsPickerDismissed}
+                    />
+                  ) : null}
                   <div ref={messagesEndRef} className="h-4 shrink-0" />
                 </div>
 
@@ -575,27 +612,13 @@ export function MoodboardEngine() {
                     </div>
                   ) : null}
 
-                  {readyToGenerate && !generating && !showPreConfirm && !loadingPreConfirm ? (
-                    <div className="mb-3">
-                      <MoodboardSectionsPicker
-                        initialSelected={
-                          selectedOutputSections.length > 0
-                            ? selectedOutputSections
-                            : DEFAULT_MOODBOARD_PICKER_KEYS
-                        }
-                        onConfirm={handleSectionsConfirm}
-                        loading={loadingPreConfirm || generating}
-                      />
-                    </div>
-                  ) : null}
-
                   <MoodboardComposer
                     ref={composerRef}
                     value={composerText}
                     onChange={setComposerText}
                     onSubmit={handleComposerSubmit}
                     disabled={composerDisabled}
-                    placeholder="Write a message..."
+                    placeholder={showElementPicker ? "Or reply directly…" : "Write a message..."}
                     modelId={modelId}
                     onModelChange={setModelId}
                     variant="chat"

@@ -1,90 +1,33 @@
 "use client";
 
-import { useState } from "react";
-import {
-  DEFAULT_MOODBOARD_PICKER_KEYS,
-  MIN_OUTPUT_SECTIONS,
-  MOODBOARD_PICKER_SECTIONS,
-  UI_REFERENCES_SOURCES,
-} from "@/lib/moodboard/output-sections";
+import { QuestionOptionsCard } from "./question-options-card";
+import { DEFAULT_MOODBOARD_PICKER_KEYS } from "@/lib/moodboard/output-sections";
+import { OUTPUT_SECTIONS_QUESTION } from "@/lib/moodboard/sections-picker-question";
 
 export function MoodboardSectionsPicker({
-  initialSelected = DEFAULT_MOODBOARD_PICKER_KEYS,
   onConfirm,
+  onSomethingElse,
+  onDismiss,
   loading = false,
+  dismissed = false,
 }: {
-  initialSelected?: string[];
   onConfirm: (sections: string[]) => void | Promise<void>;
+  onSomethingElse?: () => void;
+  onDismiss?: () => void;
   loading?: boolean;
+  dismissed?: boolean;
 }) {
-  const [selected, setSelected] = useState<Set<string>>(() => new Set(initialSelected));
-
-  const toggle = (key: string) => {
-    setSelected((prev) => {
-      const next = new Set(prev);
-      if (next.has(key)) next.delete(key);
-      else next.add(key);
-      return next;
-    });
-  };
-
-  const count = selected.size;
-  const canSubmit = count >= MIN_OUTPUT_SECTIONS && !loading;
-
   return (
-    <div className="moodboard-sections-picker rounded-2xl border border-[#e8e8e8] bg-white p-5 shadow-sm">
-      <div className="mb-4">
-        <p className="text-xs font-medium uppercase tracking-wide text-[#888]">
-          Before we generate
-        </p>
-        <h3 className="mt-1 text-base font-medium text-[#1a1a1a]">
-          What should your moodboard include?
-        </h3>
-        <p className="mt-1 text-sm text-[#666]">
-          Choose the elements for all three directions. UI references are sourced from{" "}
-          {UI_REFERENCES_SOURCES}.
-        </p>
-      </div>
-
-      <div className="grid gap-2 sm:grid-cols-2">
-        {MOODBOARD_PICKER_SECTIONS.map((section) => {
-          const checked = selected.has(section.key);
-          return (
-            <label
-              key={section.key}
-              className={`flex cursor-pointer items-start gap-3 rounded-xl border px-3 py-2.5 transition ${
-                checked
-                  ? "border-[#1a1a1a] bg-[#fafafa]"
-                  : "border-[#ececec] hover:border-[#ccc]"
-              }`}
-            >
-              <input
-                type="checkbox"
-                checked={checked}
-                onChange={() => toggle(section.key)}
-                className="mt-0.5 h-4 w-4 shrink-0 accent-[#1a1a1a]"
-              />
-              <span className="text-sm text-[#1a1a1a]">{section.label}</span>
-            </label>
-          );
-        })}
-      </div>
-
-      <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
-        <p className="text-xs text-[#888]">
-          {count < MIN_OUTPUT_SECTIONS
-            ? `Select at least ${MIN_OUTPUT_SECTIONS} elements (${count} selected)`
-            : `${count} elements selected`}
-        </p>
-        <button
-          type="button"
-          disabled={!canSubmit}
-          onClick={() => void onConfirm([...selected])}
-          className="rounded-full bg-[#1a1a1a] px-5 py-2 text-sm font-medium text-white transition hover:bg-[#333] disabled:opacity-50"
-        >
-          {loading ? "Starting…" : "Generate 3 directions"}
-        </button>
-      </div>
-    </div>
+    <QuestionOptionsCard
+      question={OUTPUT_SECTIONS_QUESTION}
+      disabled={loading}
+      optional
+      dismissed={dismissed}
+      onSelect={() => {}}
+      onMultiSubmit={(values) => void onConfirm(values)}
+      onSkip={() => void onConfirm(DEFAULT_MOODBOARD_PICKER_KEYS)}
+      onDismiss={() => onDismiss?.()}
+      onSomethingElse={() => onSomethingElse?.()}
+    />
   );
 }

@@ -24,6 +24,7 @@ import {
   looksLikeMarkdownDirections,
   tryParseDirectionsFromText,
 } from "@/lib/moodboard/direction-json";
+import { replySignalsSectionsPicker } from "@/lib/moodboard/sections-picker-question";
 import type { MoodboardModelId } from "@/lib/moodboard/types";
 
 export const dynamic = "force-dynamic";
@@ -159,7 +160,8 @@ export async function POST(request: NextRequest) {
       answers,
       extras,
       readyToGenerate,
-      showSectionsPicker: blockedMarkdown || readyToGenerate,
+      showSectionsPicker:
+        blockedMarkdown || readyToGenerate || replySignalsSectionsPicker(safeReply),
       fieldCount,
       researched,
     });
