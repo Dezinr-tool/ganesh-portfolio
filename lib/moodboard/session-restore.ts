@@ -2,9 +2,11 @@ import type { MoodboardQuestion, MoodboardSession } from "./db-types";
 import type { MoodboardPresentationDirection } from "./db-types";
 import { MOODBOARD_MODELS } from "./models";
 import type { MoodboardModelId } from "./types";
-import { getFirstQuestion, getNextQuestion } from "./question-flow";
+import { getNextQuestion, hasStoredAnswer } from "./question-flow";
 import { getSelectedOutputSections } from "./output-sections";
 import { PRE_CONFIRMATION_ANSWERS_KEY } from "../pre-generation-types";
+
+export { hasStoredAnswer };
 
 export type RestoredChatMessage = {
   id: string;
@@ -22,21 +24,6 @@ export type RestoredSessionState = {
   currentQuestion: MoodboardQuestion | null;
   intakeComplete: boolean;
 };
-
-export function hasStoredAnswer(value: unknown): boolean {
-  if (value === undefined || value === null) return false;
-  if (typeof value === "string") return value.trim().length > 0;
-  if (Array.isArray(value)) return value.length > 0;
-  if (typeof value === "object" && value !== null) {
-    if ("text" in value) {
-      const obj = value as { text?: string; files?: unknown[] };
-      const text = String(obj.text ?? "").trim();
-      return text.length > 0 || (Array.isArray(obj.files) && obj.files.length > 0);
-    }
-    return Object.keys(value).length > 0;
-  }
-  return true;
-}
 
 export function questionUsesOptionsCard(question: MoodboardQuestion): boolean {
   if (question.question_type === "multi_section_select") return true;
@@ -113,25 +100,31 @@ export function restoreSessionState(
     },
   ];
 
-  let currentQuestion: MoodboardQuestion | null = getFirstQuestion(questions);
-  while (currentQuestion) {
-    const answer = answers[currentQuestion.key];
-    if (!hasStoredAnswer(answer)) break;
+  let currentQuestion: MoodboardQuestion | null = null;
+  let cursor: string | null = null;
 
-    if (!questionUsesOptionsCard(currentQuestion)) {
+  while (true) {
+    const next = getNextQuestion(cursor, answers, questions);
+    if (!next) break;
+    if (!hasStoredAnswer(answers[next.key], next.key)) {
+      currentQuestion = next;
+      break;
+    }
+
+    if (!questionUsesOptionsCard(next)) {
       messages.push({
-        id: `restore-q-${currentQuestion.key}`,
+        id: `restore-q-${next.key}`,
         role: "assistant",
-        text: currentQuestion.question_text,
+        text: next.question_text,
       });
     }
     messages.push({
-      id: `restore-a-${currentQuestion.key}`,
+      id: `restore-a-${next.key}`,
       role: "user",
-      text: formatAnswerDisplay(answer),
+      text: formatAnswerDisplay(answers[next.key]),
     });
 
-    currentQuestion = getNextQuestion(currentQuestion.key, answers, questions);
+    cursor = next.key;
   }
 
   if (currentQuestion && !questionUsesOptionsCard(currentQuestion)) {

@@ -6,8 +6,9 @@ import { readSseStream } from "@/lib/ai-sse";
 import type { MoodboardQuestion, MoodboardPresentationDirection } from "@/lib/moodboard/db-types";
 import {
   extractBrandName,
-  getFirstQuestion,
-  getNextQuestion,
+  getFirstUnansweredQuestion,
+  getNextUnansweredQuestion,
+  hasStoredAnswer,
   isQuestionOptional,
   normalizeAnswer,
 } from "@/lib/moodboard/question-flow";
@@ -24,8 +25,14 @@ import {
   isDuplicateSubmit,
   isVagueOpenAnswer,
   parseBrandCorrection,
-  extractBrandFromOpeningMessage,
 } from "@/lib/moodboard/intake-helpers";
+import {
+  ackIncludesQuestion,
+  buildIntakeAcknowledgment,
+  extractFromMessage,
+  mergeExtractedIntoAnswers,
+  personalizeQuestionText,
+} from "@/lib/moodboard/context-extraction";
 import { MAX_REFERENCE_IMAGES } from "@/lib/moodboard/question-seed";
 import {
   getQuestionDurationMs,
@@ -161,13 +168,18 @@ export function MoodboardEngine() {
     setMessages((m) => [...m, { id: uid(), role: "user", text: answerText }]);
   }, []);
 
-  const showQuestion = useCallback((question: MoodboardQuestion) => {
-    setCurrentQuestion(question);
-    setCardDismissed(false);
-    if (!showsQuestionCard(question)) {
-      addEaMessage(question.question_text);
-    }
-  }, [addEaMessage]);
+  const showQuestion = useCallback(
+    (question: MoodboardQuestion, answerContext?: Record<string, unknown>) => {
+      setCurrentQuestion(question);
+      setCardDismissed(false);
+      if (!showsQuestionCard(question)) {
+        addEaMessage(
+          personalizeQuestionText(question, answerContext ?? answersRef.current),
+        );
+      }
+    },
+    [addEaMessage],
+  );
 
   const persistSession = useCallback(
     async (nextAnswers: Record<string, unknown>, patch?: Record<string, unknown>) => {
@@ -396,13 +408,13 @@ export function MoodboardEngine() {
     async (questionKey: string, nextAnswers: Record<string, unknown>) => {
       setThinking(true);
       await pauseThen(450);
-      const next = getNextQuestion(questionKey, nextAnswers, questions);
+      const next = getNextUnansweredQuestion(questionKey, nextAnswers, questions);
       setThinking(false);
       if (!next) {
         await requestPreConfirmation(nextAnswers);
         return;
       }
-      showQuestion(next);
+      showQuestion(next, nextAnswers);
     },
     [questions, requestPreConfirmation, showQuestion],
   );
@@ -461,7 +473,11 @@ export function MoodboardEngine() {
         return;
       }
 
-      const nextAnswers = { ...answersRef.current, [questionSnapshot.key]: value };
+      const volunteered = extractFromMessage(display);
+      const nextAnswers = mergeExtractedIntoAnswers(
+        { ...answersRef.current, [questionSnapshot.key]: value },
+        volunteered,
+      );
       setAnswers(nextAnswers);
 
       if (questionSnapshot.key === "q_output_sections" && Array.isArray(value)) {
@@ -490,6 +506,11 @@ export function MoodboardEngine() {
       }
 
       void runSilentResearch(questionSnapshot.key, nextAnswers);
+      for (const key of ["q4a", "q2", "q10"] as const) {
+        if (key !== questionSnapshot.key && hasStoredAnswer(nextAnswers[key], key)) {
+          void runSilentResearch(key, nextAnswers);
+        }
+      }
 
       if (!options?.skipArchive) {
         commitUserAnswer(display);
@@ -561,32 +582,35 @@ export function MoodboardEngine() {
       void trackMoodboardEvent(sessionId, "session_started", { openingMessage: trimmed });
       setMessages((m) => [...m, { id: uid(), role: "user", text: trimmed }]);
 
-      const inferredBrand = extractBrandFromOpeningMessage(trimmed);
-      const seededAnswers = {
-        ...answersRef.current,
-        _opening_message: trimmed,
-        ...(inferredBrand ? { q1: inferredBrand } : {}),
-      };
+      const extracted = extractFromMessage(trimmed);
+      const seededAnswers = mergeExtractedIntoAnswers(
+        { ...answersRef.current, _opening_message: trimmed },
+        extracted,
+      );
       setAnswers(seededAnswers);
       answersRef.current = seededAnswers;
       await persistSession(seededAnswers);
+
+      for (const key of ["q4a", "q2"] as const) {
+        if (hasStoredAnswer(seededAnswers[key], key)) {
+          void runSilentResearch(key, seededAnswers);
+        }
+      }
 
       setThinking(true);
       await pauseThen(450);
       setThinking(false);
 
-      addEaMessage(
-        "Great — I'll ask a few questions to understand your brand, then generate 3 visual directions.",
-      );
+      const firstUnanswered = getFirstUnansweredQuestion(seededAnswers, questions);
+      const ack = buildIntakeAcknowledgment(seededAnswers, extracted, firstUnanswered);
+      addEaMessage(ack);
 
-      const first = getFirstQuestion(questions);
-      if (first) {
-        if (inferredBrand && first.key === "q1") {
-          addEaMessage(`Got it — ${inferredBrand}.`);
-          const next = getNextQuestion("q1", seededAnswers, questions);
-          if (next) showQuestion(next);
+      if (firstUnanswered) {
+        if (ackIncludesQuestion(firstUnanswered, seededAnswers, extracted)) {
+          setCurrentQuestion(firstUnanswered);
+          setCardDismissed(false);
         } else {
-          showQuestion(first);
+          showQuestion(firstUnanswered, seededAnswers);
         }
       }
 
@@ -599,6 +623,7 @@ export function MoodboardEngine() {
       persistSession,
       questions,
       questionsReady,
+      runSilentResearch,
       sessionId,
       showQuestion,
     ],
@@ -647,34 +672,6 @@ export function MoodboardEngine() {
   );
 
   useEffect(() => {
-    if (answers.q1 || !conversationStarted) return;
-    const firstUser = messages.find((m) => m.role === "user");
-    if (!firstUser?.text) return;
-
-    const inferred = extractBrandFromOpeningMessage(firstUser.text);
-    if (!inferred) return;
-
-    const nextAnswers = { ...answersRef.current, q1: inferred };
-    setAnswers(nextAnswers);
-    answersRef.current = nextAnswers;
-    void persistSession(nextAnswers);
-
-    if (currentQuestion?.key === "q1" && questions.length > 0) {
-      addEaMessage(`Got it — ${inferred}.`);
-      void showNextQuestion("q1", nextAnswers);
-    }
-  }, [
-    addEaMessage,
-    answers.q1,
-    conversationStarted,
-    currentQuestion?.key,
-    messages,
-    persistSession,
-    questions.length,
-    showNextQuestion,
-  ]);
-
-  useEffect(() => {
     if (initializedRef.current) return;
 
     async function init() {
@@ -700,15 +697,15 @@ export function MoodboardEngine() {
             if (qs.length > 0) {
               let session = sessionData.session;
               const opening = session.answers?._opening_message;
-              if (
-                opening &&
-                !normalizeAnswer(session.answers?.q1)
-              ) {
-                const inferred = extractBrandFromOpeningMessage(String(opening));
-                if (inferred) {
-                  const patchedAnswers = { ...session.answers, q1: inferred };
-                  session = { ...session, answers: patchedAnswers, brand_name: inferred };
-                  setAnswers(patchedAnswers);
+              if (opening) {
+                const extracted = extractFromMessage(String(opening));
+                const patchedAnswers = mergeExtractedIntoAnswers(session.answers, extracted);
+                if (JSON.stringify(patchedAnswers) !== JSON.stringify(session.answers)) {
+                  session = {
+                    ...session,
+                    answers: patchedAnswers,
+                    brand_name: extractBrandName(patchedAnswers),
+                  };
                   await persistSession(patchedAnswers);
                 }
               }

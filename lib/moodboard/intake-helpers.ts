@@ -1,5 +1,6 @@
 import type { MoodboardQuestion } from "./db-types";
 import { normalizeAnswer } from "./question-flow";
+import { extractBrandNameFromMessage } from "./context-extraction";
 
 const DUPLICATE_WINDOW_MS = 2000;
 
@@ -89,49 +90,6 @@ export function questionHasChips(question: MoodboardQuestion | null): boolean {
   return Array.isArray(opts) && opts.length > 0;
 }
 
-const OPENING_STOP_WORDS = new Set([
-  "a",
-  "an",
-  "the",
-  "my",
-  "our",
-  "this",
-  "that",
-  "new",
-  "their",
-]);
-
-const OPENING_BRAND_PATTERNS = [
-  /\b(?:mood\s*board|moodboard)\s+for\s+(?:the\s+|a\s+|my\s+)?([a-z0-9][\w.-]{1,40})\b/i,
-  /\b(?:brand|project|company|startup|app|product)\s+(?:for\s+|called\s+)?([a-z0-9][\w.-]{1,40})\b/i,
-  /\bfor\s+(?:the\s+|a\s+|my\s+)?([a-z0-9][\w.-]{1,40})\b/i,
-  /\bworking\s+on\s+(?:the\s+|a\s+|my\s+)?([a-z0-9][\w.-]{1,40})\b/i,
-  /\b(?:called|named)\s+([a-z0-9][\w.-]{1,40})\b/i,
-];
-
 export function extractBrandFromOpeningMessage(text: string): string | null {
-  const trimmed = text.trim();
-  if (!trimmed) return null;
-
-  for (const pattern of OPENING_BRAND_PATTERNS) {
-    const match = trimmed.match(pattern);
-    const candidate = match?.[1]?.trim();
-    if (
-      candidate &&
-      candidate.length >= 2 &&
-      !OPENING_STOP_WORDS.has(candidate.toLowerCase())
-    ) {
-      return candidate;
-    }
-  }
-
-  const words = trimmed.split(/\s+/);
-  if (
-    words.length <= 3 &&
-    !/\b(need|want|create|make|help|moodboard|design|build)\b/i.test(trimmed)
-  ) {
-    return trimmed;
-  }
-
-  return null;
+  return extractBrandNameFromMessage(text);
 }

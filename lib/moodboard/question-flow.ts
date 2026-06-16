@@ -1,6 +1,8 @@
 import type { MoodboardQuestion } from "./db-types";
 import { OPTIONAL_QUESTION_KEYS } from "./question-seed";
 
+const INTERNAL_ANSWER_KEYS = new Set(["_opening_message"]);
+
 export function normalizeAnswer(value: unknown): string {
   if (value === null || value === undefined) return "";
   if (typeof value === "string") return value.trim();
@@ -9,6 +11,22 @@ export function normalizeAnswer(value: unknown): string {
     return String((value as { text?: string }).text ?? "").trim();
   }
   return String(value).trim();
+}
+
+export function hasStoredAnswer(value: unknown, key?: string): boolean {
+  if (key && INTERNAL_ANSWER_KEYS.has(key)) return false;
+  if (value === undefined || value === null) return false;
+  if (typeof value === "string") return value.trim().length > 0;
+  if (Array.isArray(value)) return value.length > 0;
+  if (typeof value === "object" && value !== null) {
+    if ("text" in value) {
+      const obj = value as { text?: string; files?: unknown[] };
+      const text = String(obj.text ?? "").trim();
+      return text.length > 0 || (Array.isArray(obj.files) && obj.files.length > 0);
+    }
+    return Object.keys(value).length > 0;
+  }
+  return true;
 }
 
 export function shouldShowQuestion(
@@ -66,6 +84,42 @@ export function getNextQuestion(
   for (let i = currentIdx + 1; i < sorted.length; i++) {
     const q = sorted[i];
     if (shouldShowQuestion(q, answers)) return q;
+  }
+
+  return null;
+}
+
+export function getFirstUnansweredQuestion(
+  answers: Record<string, unknown>,
+  questions: MoodboardQuestion[],
+): MoodboardQuestion | null {
+  const sorted = [...questions]
+    .filter((q) => q.is_active)
+    .sort((a, b) => a.order_index - b.order_index);
+
+  for (const q of sorted) {
+    if (!shouldShowQuestion(q, answers)) continue;
+    if (!hasStoredAnswer(answers[q.key], q.key)) return q;
+  }
+
+  return null;
+}
+
+export function getNextUnansweredQuestion(
+  afterKey: string | null,
+  answers: Record<string, unknown>,
+  questions: MoodboardQuestion[],
+): MoodboardQuestion | null {
+  let cursor = afterKey;
+
+  for (let i = 0; i < 50; i++) {
+    const next = getNextQuestion(cursor, answers, questions);
+    if (!next) return null;
+    if (hasStoredAnswer(answers[next.key], next.key)) {
+      cursor = next.key;
+      continue;
+    }
+    return next;
   }
 
   return null;

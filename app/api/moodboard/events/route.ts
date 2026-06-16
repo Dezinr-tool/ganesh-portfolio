@@ -6,8 +6,15 @@ import {
   isValidMoodboardSessionId,
 } from "@/lib/moodboard/analytics";
 import { getSessionBySessionId, updateSession } from "@/lib/moodboard/db-store";
-import { extractBrandFromOpeningMessage } from "@/lib/moodboard/intake-helpers";
-import { extractBrandName, normalizeAnswer } from "@/lib/moodboard/question-flow";
+import {
+  extractFromMessage,
+  mergeExtractedIntoAnswers,
+} from "@/lib/moodboard/context-extraction";
+import {
+  extractBrandName,
+  extractProjectType,
+  normalizeAnswer,
+} from "@/lib/moodboard/question-flow";
 
 export const dynamic = "force-dynamic";
 
@@ -66,18 +73,20 @@ export async function POST(request: NextRequest) {
     if (
       eventType === "session_started" &&
       typeof payload.openingMessage === "string" &&
-      payload.openingMessage.trim() &&
-      !normalizeAnswer(session.answers?.q1)
+      payload.openingMessage.trim()
     ) {
       const openingMessage = payload.openingMessage.trim();
-      const inferred = extractBrandFromOpeningMessage(openingMessage);
+      const extracted = extractFromMessage(openingMessage);
+      const nextAnswers = mergeExtractedIntoAnswers(
+        { ...session.answers, _opening_message: openingMessage },
+        extracted,
+      );
+      const brandName = extractBrandName(nextAnswers);
+      const projectType = extractProjectType(nextAnswers);
       await updateSession(sessionId, {
-        answers: {
-          ...session.answers,
-          _opening_message: openingMessage,
-          ...(inferred ? { q1: inferred } : {}),
-        },
-        ...(inferred ? { brand_name: inferred } : {}),
+        answers: nextAnswers,
+        ...(brandName !== "Your Brand" ? { brand_name: brandName } : {}),
+        ...(normalizeAnswer(nextAnswers.q3) ? { project_type: projectType } : {}),
       });
     }
 

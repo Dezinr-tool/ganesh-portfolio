@@ -1,14 +1,15 @@
 import type { MoodboardSession } from "./db-types";
 import { getSessionEvents } from "./analytics";
-import { extractBrandFromOpeningMessage } from "./intake-helpers";
-import { normalizeAnswer } from "./question-flow";
+import {
+  extractFromMessage,
+  mergeExtractedIntoAnswers,
+} from "./context-extraction";
+import { extractBrandName, extractProjectType, normalizeAnswer } from "./question-flow";
 import { updateSession } from "./db-store";
 
 export async function backfillBrandFromOpening(
   session: MoodboardSession,
 ): Promise<MoodboardSession> {
-  if (normalizeAnswer(session.answers?.q1)) return session;
-
   let openingMessage = session.answers?._opening_message;
   if (!openingMessage) {
     const events = await getSessionEvents(session.session_id);
@@ -22,16 +23,23 @@ export async function backfillBrandFromOpening(
   if (!openingMessage) return session;
 
   const openingText = String(openingMessage);
-  const inferred = extractBrandFromOpeningMessage(openingText);
-  const nextAnswers = {
-    ...session.answers,
-    _opening_message: openingText,
-    ...(inferred ? { q1: inferred } : {}),
-  };
+  const extracted = extractFromMessage(openingText);
+  const nextAnswers = mergeExtractedIntoAnswers(
+    { ...session.answers, _opening_message: openingText },
+    extracted,
+  );
+
+  if (JSON.stringify(nextAnswers) === JSON.stringify(session.answers)) {
+    return session;
+  }
+
+  const brandName = extractBrandName(nextAnswers);
+  const projectType = extractProjectType(nextAnswers);
 
   const updated = await updateSession(session.session_id, {
     answers: nextAnswers,
-    ...(inferred ? { brand_name: inferred } : {}),
+    ...(brandName !== "Your Brand" ? { brand_name: brandName } : {}),
+    ...(normalizeAnswer(nextAnswers.q3) ? { project_type: projectType } : {}),
   });
 
   return updated ?? session;
