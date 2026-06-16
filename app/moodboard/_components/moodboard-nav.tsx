@@ -25,7 +25,7 @@ export function MoodboardNav({ theme = "dark" }: { theme?: "dark" | "light" }) {
     <header
       className={`relative z-20 border-b transition-colors duration-[400ms] ease-out ${
         light
-          ? "border-[#e8e8e8] bg-[#fafafa]/90 backdrop-blur-md"
+          ? "border-[#e8e8e8] bg-white"
           : "border-white/[0.06] bg-black/60 backdrop-blur-md"
       }`}
     >

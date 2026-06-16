@@ -738,13 +738,17 @@ export function MoodboardEngine() {
   }
 
   return (
-    <div className="moodboard-chat-shell flex min-h-screen flex-col">
+    <div
+      className={`flex min-h-screen flex-col ${
+        conversationStarted ? "moodboard-chat-shell" : "bg-white"
+      }`}
+    >
       <MoodboardNav theme="light" />
 
       <div className="flex min-h-0 flex-1">
         <MoodboardSessionsSidebar activeSessionId={sessionId} theme="light" />
 
-        <div className="flex min-w-0 flex-1 flex-col">
+        <div className="flex min-h-0 min-w-0 flex-1 flex-col bg-white">
           {!sessionReady ? (
             <div className="flex flex-1 items-center justify-center">
               <p className="text-sm text-[#888]">Loading session…</p>
