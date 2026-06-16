@@ -27,3 +27,16 @@
 .moodboard-output-enter {
   animation: moodboard-slide-up 0.4s ease-out;
 }
+
+.moodboard-fade-in {
+  animation: moodboard-fade-in 0.3s ease-out forwards;
+}
+
+@keyframes moodboard-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}

@@ -36,6 +36,7 @@ import {
 import { MoodboardComposer } from "./moodboard-composer";
 import { PresentationView } from "./presentation-view";
 import { MoodboardNav } from "./moodboard-nav";
+import { MoodboardLanding } from "./moodboard-landing";
 import { readStoredValue, useClientSessionId } from "@/lib/client-storage";
 
 const MODEL_STORAGE_KEY = "moodboard-model-id";
@@ -102,6 +103,9 @@ export function MoodboardEngine() {
   const [loadingPreConfirm, setLoadingPreConfirm] = useState(false);
   const [composerText, setComposerText] = useState("");
   const [pendingFiles, setPendingFiles] = useState<File[]>([]);
+  const [conversationStarted, setConversationStarted] = useState(false);
+  const [landingFading, setLandingFading] = useState(false);
+  const [questionsReady, setQuestionsReady] = useState(false);
 
   const pendingAnswersRef = useRef<Record<string, unknown>>({});
   const lastSubmitRef = useRef<{ text: string; at: number } | null>(null);
@@ -470,6 +474,47 @@ export function MoodboardEngine() {
     handleAnswer({ text, files: pendingFiles });
   }, [composerText, currentQuestion, handleAnswer, pendingFiles]);
 
+  const startConversation = useCallback(
+    async (text: string) => {
+      const trimmed = text.trim();
+      if (!trimmed || conversationStarted || busy || !questionsReady) return;
+
+      setLandingFading(true);
+      setBusy(true);
+      setComposerText("");
+
+      await pauseThen(300);
+
+      setConversationStarted(true);
+      setMessages((m) => [...m, { id: uid(), role: "user", text: trimmed }]);
+
+      setThinking(true);
+      await pauseThen(450);
+      setThinking(false);
+
+      addEaMessage(
+        "Great — I'll ask a few questions to understand your brand, then generate 3 visual directions.",
+      );
+
+      const first = getFirstQuestion(questions);
+      if (first) setCurrentQuestion(first);
+
+      setBusy(false);
+    },
+    [addEaMessage, busy, conversationStarted, questions, questionsReady],
+  );
+
+  const handleLandingSubmit = useCallback(() => {
+    void startConversation(composerText);
+  }, [composerText, startConversation]);
+
+  const handleLandingChip = useCallback(
+    (message: string) => {
+      void startConversation(message);
+    },
+    [startConversation],
+  );
+
   const handleUploadContinue = useCallback(() => {
     if (!currentQuestion || pendingFiles.length === 0) return;
     handleAnswer({ text: composerText.trim(), files: pendingFiles });
@@ -522,24 +567,15 @@ export function MoodboardEngine() {
         const qData = await qRes.json();
         const qs = (qData.questions ?? []) as MoodboardQuestion[];
         setQuestions(qs);
-
-        if (qs.length === 0) return;
-
+        setQuestionsReady(qs.length > 0);
         initializedRef.current = true;
-        setTimeout(() => {
-          addEaMessage(
-            "Hi — I'm your moodboard assistant. I'll ask a few questions one at a time to understand your brand, then generate 3 visual directions.",
-          );
-          const first = getFirstQuestion(qs);
-          if (first) setCurrentQuestion(first);
-        }, 400);
       } catch {
-        addEaMessage("Couldn't load questions. Please refresh.");
+        setQuestionsReady(false);
       }
     }
 
     if (sessionId) init();
-  }, [sessionId, addEaMessage]);
+  }, [sessionId]);
 
   const brandName = extractBrandName(answers);
   const intakeComplete = directions.length > 0;
@@ -592,70 +628,87 @@ export function MoodboardEngine() {
     <div className="flex min-h-screen flex-col bg-[#0d0d0d] text-zinc-100">
       <MoodboardNav />
 
-      <div className="mx-auto flex w-full max-w-[680px] flex-1 flex-col px-4 pb-6 pt-4">
-        <div className="min-h-0 flex-1 overflow-y-auto overscroll-y-contain">
-          <MoodboardChatHistory
-            messages={messages}
-            thinking={thinking}
-            generating={generating}
-            genStatus={genStatus}
-          />
-          <div ref={messagesEndRef} className="h-4 shrink-0" />
-        </div>
+      <div className="relative mx-auto flex w-full max-w-[680px] flex-1 flex-col px-4 pb-6">
+        {!conversationStarted ? (
+          <div className="flex flex-1 items-center justify-center pt-4">
+            <MoodboardLanding
+              value={composerText}
+              onChange={setComposerText}
+              onSubmit={handleLandingSubmit}
+              onChip={handleLandingChip}
+              modelId={modelId}
+              onModelChange={setModelId}
+              disabled={busy || !questionsReady}
+              fading={landingFading}
+            />
+          </div>
+        ) : (
+          <div className="moodboard-fade-in flex min-h-0 flex-1 flex-col pt-4">
+            <div className="min-h-0 flex-1 overflow-y-auto overscroll-y-contain">
+              <MoodboardChatHistory
+                messages={messages}
+                thinking={thinking}
+                generating={generating}
+                genStatus={genStatus}
+              />
+              <div ref={messagesEndRef} className="h-4 shrink-0" />
+            </div>
 
-        <div className="sticky bottom-0 shrink-0 bg-gradient-to-t from-[#0d0d0d] via-[#0d0d0d] to-transparent pb-2 pt-4">
-          {showPreConfirm && preConfirmation ? (
-            <div className="moodboard-card-enter mb-3 rounded-xl border border-white/10 bg-white/[0.05] p-4">
-              <PreConfirmationPanel
-                preConfirmation={preConfirmation}
-                onConfirm={handlePreConfirm}
-                loading={generating || loadingPreConfirm}
-                brandName={brandName}
-                variant="inline"
+            <div className="sticky bottom-0 shrink-0 bg-gradient-to-t from-[#0d0d0d] via-[#0d0d0d] to-transparent pb-2 pt-4">
+              {showPreConfirm && preConfirmation ? (
+                <div className="moodboard-card-enter mb-3 rounded-xl border border-white/10 bg-white/[0.05] p-4">
+                  <PreConfirmationPanel
+                    preConfirmation={preConfirmation}
+                    onConfirm={handlePreConfirm}
+                    loading={generating || loadingPreConfirm}
+                    brandName={brandName}
+                    variant="inline"
+                  />
+                </div>
+              ) : null}
+
+              {loadingPreConfirm ? (
+                <FloatingStatusCard
+                  title="Analyzing context…"
+                  subtitle="Preparing my approach before generation"
+                />
+              ) : null}
+
+              {currentQuestion && !generating && !showPreConfirm && !loadingPreConfirm ? (
+                <ActiveQuestionCard
+                  question={currentQuestion}
+                  disabled={busy}
+                  pendingFiles={pendingFiles}
+                  onChip={handleAnswer}
+                  onMultiChipSubmit={handleAnswer}
+                  onSectionSubmit={handleAnswer}
+                  onUploadContinue={handleUploadContinue}
+                />
+              ) : null}
+
+              <MoodboardComposer
+                value={composerText}
+                onChange={setComposerText}
+                onSubmit={handleComposerSubmit}
+                disabled={busy || generating}
+                hidden={composerHidden}
+                placeholder={composerPlaceholder}
+                inputMode={currentQuestion?.question_type === "url" ? "url" : "text"}
+                showUpload={usesUpload(currentQuestion)}
+                uploadAccept={uploadAccept}
+                onFilesSelected={(files) => {
+                  const max =
+                    currentQuestion?.key === "q13" ? MAX_REFERENCE_IMAGES : 5;
+                  setPendingFiles((prev) => [...prev, ...files].slice(0, max));
+                }}
+                modelId={modelId}
+                onModelChange={setModelId}
+                showSkip={showSkip && !composerHidden}
+                onSkip={() => void handleSkip()}
               />
             </div>
-          ) : null}
-
-          {loadingPreConfirm ? (
-            <FloatingStatusCard
-              title="Analyzing context…"
-              subtitle="Preparing my approach before generation"
-            />
-          ) : null}
-
-          {currentQuestion && !generating && !showPreConfirm && !loadingPreConfirm ? (
-            <ActiveQuestionCard
-              question={currentQuestion}
-              disabled={busy}
-              pendingFiles={pendingFiles}
-              onChip={handleAnswer}
-              onMultiChipSubmit={handleAnswer}
-              onSectionSubmit={handleAnswer}
-              onUploadContinue={handleUploadContinue}
-            />
-          ) : null}
-
-          <MoodboardComposer
-            value={composerText}
-            onChange={setComposerText}
-            onSubmit={handleComposerSubmit}
-            disabled={busy || generating}
-            hidden={composerHidden}
-            placeholder={composerPlaceholder}
-            inputMode={currentQuestion?.question_type === "url" ? "url" : "text"}
-            showUpload={usesUpload(currentQuestion)}
-            uploadAccept={uploadAccept}
-            onFilesSelected={(files) => {
-              const max =
-                currentQuestion?.key === "q13" ? MAX_REFERENCE_IMAGES : 5;
-              setPendingFiles((prev) => [...prev, ...files].slice(0, max));
-            }}
-            modelId={modelId}
-            onModelChange={setModelId}
-            showSkip={showSkip && !composerHidden}
-            onSkip={() => void handleSkip()}
-          />
-        </div>
+          </div>
+        )}
       </div>
     </div>
   );
