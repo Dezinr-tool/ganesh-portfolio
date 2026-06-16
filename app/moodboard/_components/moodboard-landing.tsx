@@ -34,10 +34,10 @@ export function MoodboardLanding({
       >
         <div className="mx-auto w-full max-w-[680px] text-center">
           <h1 className="text-[2.25rem] font-medium leading-[1.1] tracking-[-0.02em] text-[#f5f5f5] sm:text-5xl lg:text-[64px]">
-            Shape ideas into visual direction.
+            Great design starts with personality.
           </h1>
           <p className="mx-auto mt-4 max-w-[500px] text-base leading-relaxed text-[#666]">
-            A workspace for exploring brands, products, and creative systems.
+            Explore the visual tone, mood, and direction of your brand before anything is designed.
           </p>
 
           <div className="mt-10 w-full text-left">
