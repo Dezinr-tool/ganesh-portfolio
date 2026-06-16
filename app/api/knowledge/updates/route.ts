@@ -5,7 +5,7 @@ import { requireKnowledgeAdmin } from "@/lib/knowledge/auth";
 export const dynamic = "force-dynamic";
 
 export async function GET(request: NextRequest) {
-  const denied = await requireKnowledgeAdmin();
+  const denied = await requireKnowledgeAdmin(request);
   if (denied) return denied;
 
   try {

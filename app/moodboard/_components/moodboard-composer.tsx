@@ -1,40 +1,20 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useImperativeHandle, useRef, forwardRef } from "react";
 import { MOODBOARD_MODELS } from "@/lib/moodboard/models";
 import type { MoodboardModelId } from "@/lib/moodboard/types";
 
-function SendIcon() {
+function PlusIcon() {
   return (
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden>
-      <path
-        d="M12 19V5M12 5L5 12M12 5L19 12"
-        stroke="currentColor"
-        strokeWidth="2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </svg>
-  );
-}
-
-function PaperclipIcon() {
-  return (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden>
-      <path
-        d="M21.44 11.05l-9.19 9.19a6 6 0 01-8.49-8.49l9.19-9.19a4 4 0 015.66 5.66l-9.2 9.19a2 2 0 01-2.83-2.83l8.49-8.48"
-        stroke="currentColor"
-        strokeWidth="1.5"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden>
+      <path d="M12 5v14M5 12h14" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" />
     </svg>
   );
 }
 
 function MicIcon() {
   return (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden>
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden>
       <path
         d="M12 14a3 3 0 003-3V6a3 3 0 10-6 0v5a3 3 0 003 3z"
         stroke="currentColor"
@@ -46,6 +26,32 @@ function MicIcon() {
         stroke="currentColor"
         strokeWidth="1.5"
         strokeLinecap="round"
+      />
+    </svg>
+  );
+}
+
+function WaveformSendIcon() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden>
+      <rect x="4" y="10" width="2" height="4" rx="1" fill="currentColor" />
+      <rect x="8" y="7" width="2" height="10" rx="1" fill="currentColor" />
+      <rect x="12" y="9" width="2" height="6" rx="1" fill="currentColor" />
+      <rect x="16" y="6" width="2" height="12" rx="1" fill="currentColor" />
+      <rect x="20" y="8" width="2" height="8" rx="1" fill="currentColor" />
+    </svg>
+  );
+}
+
+function SendArrowIcon() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden>
+      <path
+        d="M12 19V5M12 5l-6 6M12 5l6 6"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
       />
     </svg>
   );
@@ -63,57 +69,164 @@ function shortModelLabel(id: MoodboardModelId, hero?: boolean): string {
   return map[id];
 }
 
-export function MoodboardComposer({
-  value,
-  onChange,
-  onSubmit,
-  disabled,
-  hidden,
-  placeholder = "Type your answer…",
-  showUpload,
-  uploadAccept,
-  onFilesSelected,
-  modelId,
-  onModelChange,
-  showSkip,
-  onSkip,
-  showAttach = false,
-  variant = "default",
-}: {
-  value: string;
-  onChange: (v: string) => void;
-  onSubmit: () => void;
-  disabled?: boolean;
-  hidden?: boolean;
-  placeholder?: string;
-  inputMode?: "text" | "url" | "hidden";
-  showUpload?: boolean;
-  uploadAccept?: string;
-  onFilesSelected?: (files: File[]) => void;
-  modelId: MoodboardModelId;
-  onModelChange: (id: MoodboardModelId) => void;
-  showSkip?: boolean;
-  onSkip?: () => void;
-  showAttach?: boolean;
-  variant?: "default" | "hero";
-}) {
+export type MoodboardComposerHandle = {
+  focus: () => void;
+};
+
+export const MoodboardComposer = forwardRef<
+  MoodboardComposerHandle,
+  {
+    value: string;
+    onChange: (v: string) => void;
+    onSubmit: () => void;
+    disabled?: boolean;
+    hidden?: boolean;
+    placeholder?: string;
+    inputMode?: "text" | "url" | "hidden";
+    showUpload?: boolean;
+    uploadAccept?: string;
+    onFilesSelected?: (files: File[]) => void;
+    modelId: MoodboardModelId;
+    onModelChange: (id: MoodboardModelId) => void;
+    showSkip?: boolean;
+    onSkip?: () => void;
+    showAttach?: boolean;
+    variant?: "default" | "hero" | "chat";
+  }
+>(function MoodboardComposer(
+  {
+    value,
+    onChange,
+    onSubmit,
+    disabled,
+    hidden,
+    placeholder = "Write a message...",
+    showUpload,
+    uploadAccept,
+    onFilesSelected,
+    modelId,
+    onModelChange,
+    showSkip,
+    onSkip,
+    showAttach = false,
+    variant = "default",
+  },
+  ref,
+) {
   const fileRef = useRef<HTMLInputElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const canSend = !disabled && value.trim().length > 0;
   const showAttachButton = showAttach || showUpload;
   const isHero = variant === "hero";
+  const isChat = variant === "chat";
+
+  useImperativeHandle(ref, () => ({
+    focus: () => textareaRef.current?.focus(),
+  }));
 
   useEffect(() => {
     const el = textareaRef.current;
     if (!el) return;
     el.style.height = "auto";
-    el.style.height = `${Math.min(el.scrollHeight, isHero ? 160 : 120)}px`;
-  }, [value, isHero]);
+    el.style.height = `${Math.min(el.scrollHeight, isHero ? 160 : isChat ? 200 : 120)}px`;
+  }, [value, isHero, isChat]);
 
   if (hidden) {
+    return null;
+  }
+
+  if (isChat) {
     return (
-      <div className="pl-0.5 pt-1">
-        <ModelPicker modelId={modelId} onModelChange={onModelChange} hero={isHero} />
+      <div className="w-full">
+        <div className={`moodboard-composer-chat ${disabled ? "opacity-60" : ""}`}>
+          <textarea
+            ref={textareaRef}
+            value={value}
+            onChange={(e) => onChange(e.target.value)}
+            disabled={disabled}
+            placeholder={placeholder}
+            rows={1}
+            className="moodboard-composer-textarea"
+            onKeyDown={(e) => {
+              if (e.key === "Enter" && !e.shiftKey) {
+                e.preventDefault();
+                if (canSend) onSubmit();
+              }
+            }}
+          />
+          <div className="moodboard-composer-toolbar">
+            <div className="flex items-center gap-1">
+              {showAttachButton ? (
+                <>
+                  <input
+                    ref={fileRef}
+                    type="file"
+                    accept={uploadAccept}
+                    multiple
+                    className="hidden"
+                    onChange={(e) => {
+                      const picked = Array.from(e.target.files ?? []);
+                      if (picked.length && onFilesSelected) onFilesSelected(picked);
+                      e.target.value = "";
+                    }}
+                  />
+                  <button
+                    type="button"
+                    disabled={disabled}
+                    onClick={() => fileRef.current?.click()}
+                    className="moodboard-composer-icon-btn"
+                    aria-label="Attach file"
+                  >
+                    <PlusIcon />
+                  </button>
+                </>
+              ) : (
+                <button
+                  type="button"
+                  disabled
+                  className="moodboard-composer-icon-btn opacity-30"
+                  aria-label="Attach"
+                  tabIndex={-1}
+                >
+                  <PlusIcon />
+                </button>
+              )}
+            </div>
+            <div className="moodboard-composer-toolbar-right">
+              <ModelPicker modelId={modelId} onModelChange={onModelChange} chat />
+              <button
+                type="button"
+                disabled={disabled}
+                className="moodboard-composer-icon-btn"
+                aria-label="Voice input"
+                tabIndex={-1}
+              >
+                <MicIcon />
+              </button>
+              <button
+                type="button"
+                onClick={onSubmit}
+                disabled={disabled || !canSend}
+                className="moodboard-composer-send-btn"
+                aria-label="Send"
+              >
+                {canSend ? <SendArrowIcon /> : <WaveformSendIcon />}
+              </button>
+            </div>
+          </div>
+        </div>
+        {showSkip && onSkip ? (
+          <div className="mt-2 text-right">
+            <button
+              type="button"
+              disabled={disabled}
+              onClick={onSkip}
+              className="text-xs text-[#888] transition hover:text-[#555]"
+            >
+              Skip
+            </button>
+          </div>
+        ) : null}
       </div>
     );
   }
@@ -154,7 +267,7 @@ export function MoodboardComposer({
               className={attachBtnClass}
               aria-label="Attach file"
             >
-              <PaperclipIcon />
+              <PlusIcon />
             </button>
           </>
         ) : null}
@@ -198,7 +311,7 @@ export function MoodboardComposer({
             }
             aria-label="Send"
           >
-            <SendIcon />
+            <SendArrowIcon />
           </button>
         ) : null}
       </div>
@@ -218,20 +331,45 @@ export function MoodboardComposer({
       </div>
     </div>
   );
-}
+});
 
 function ModelPicker({
   modelId,
   onModelChange,
   hero,
+  chat,
 }: {
   modelId: MoodboardModelId;
   onModelChange: (id: MoodboardModelId) => void;
   hero?: boolean;
+  chat?: boolean;
 }) {
   const model = MOODBOARD_MODELS.find((m) => m.id === modelId);
   const label = shortModelLabel(modelId, hero);
-  const suffix = model?.recommended ? (hero ? " · Default" : " · default") : "";
+  const suffix = model?.recommended ? (hero || chat ? " · Default" : " · default") : "";
+
+  if (chat) {
+    return (
+      <div className="relative inline-flex items-center">
+        <select
+          value={modelId}
+          onChange={(e) => onModelChange(e.target.value as MoodboardModelId)}
+          className="moodboard-model-select"
+          aria-label="AI model"
+        >
+          {MOODBOARD_MODELS.map((m) => (
+            <option key={m.id} value={m.id}>
+              {shortModelLabel(m.id)}
+              {m.recommended ? " · Default" : ""}
+            </option>
+          ))}
+        </select>
+        <span className="pointer-events-none absolute right-0 text-[10px] text-[#aaa]">
+          ∨
+        </span>
+      </div>
+    );
+  }
 
   return (
     <div className="relative inline-flex items-center">

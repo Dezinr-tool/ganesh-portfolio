@@ -29,6 +29,7 @@ const CREATE_SESSIONS = `
     selected_output_sections JSONB,
     generated_directions JSONB,
     selected_direction TEXT,
+    selected_model TEXT,
     status TEXT DEFAULT 'in_progress',
     created_at TIMESTAMPTZ DEFAULT NOW(),
     updated_at TIMESTAMPTZ DEFAULT NOW()
@@ -54,6 +55,24 @@ const CREATE_DIRECTIONS = `
     typography_references JSONB,
     color_palette JSONB,
     mood_keywords JSONB,
+    full_content JSONB,
+    model_used TEXT,
+    selected_output_sections JSONB,
+    is_selected BOOLEAN DEFAULT false,
+    refinement_notes TEXT,
+    refined_count INTEGER DEFAULT 0,
+    created_at TIMESTAMPTZ DEFAULT NOW()
+  );
+`;
+
+const CREATE_EVENTS = `
+  CREATE TABLE IF NOT EXISTS moodboard_events (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    session_id TEXT NOT NULL,
+    event_type TEXT NOT NULL,
+    question_key TEXT,
+    payload JSONB DEFAULT '{}',
+    duration_ms INTEGER,
     created_at TIMESTAMPTZ DEFAULT NOW()
   );
 `;
@@ -65,6 +84,10 @@ const CREATE_INDEXES = `
   ON moodboard_sessions (session_id);
   CREATE INDEX IF NOT EXISTS idx_moodboard_directions_session
   ON moodboard_directions (session_id, direction_index);
+  CREATE INDEX IF NOT EXISTS idx_moodboard_events_session
+  ON moodboard_events (session_id, created_at ASC);
+  CREATE INDEX IF NOT EXISTS idx_moodboard_events_created
+  ON moodboard_events (created_at DESC);
 `;
 
 async function seedQuestions() {
@@ -105,6 +128,19 @@ async function initMoodboardTables() {
 
   console.log("Creating moodboard_directions…");
   await sql.query(CREATE_DIRECTIONS);
+
+  console.log("Creating moodboard_events…");
+  await sql.query(CREATE_EVENTS);
+
+  await sql.query(`
+    ALTER TABLE moodboard_sessions ADD COLUMN IF NOT EXISTS selected_model TEXT;
+    ALTER TABLE moodboard_directions ADD COLUMN IF NOT EXISTS full_content JSONB;
+    ALTER TABLE moodboard_directions ADD COLUMN IF NOT EXISTS model_used TEXT;
+    ALTER TABLE moodboard_directions ADD COLUMN IF NOT EXISTS selected_output_sections JSONB;
+    ALTER TABLE moodboard_directions ADD COLUMN IF NOT EXISTS is_selected BOOLEAN DEFAULT false;
+    ALTER TABLE moodboard_directions ADD COLUMN IF NOT EXISTS refinement_notes TEXT;
+    ALTER TABLE moodboard_directions ADD COLUMN IF NOT EXISTS refined_count INTEGER DEFAULT 0;
+  `);
 
   await sql.query(CREATE_INDEXES);
   console.log("Indexes created.");

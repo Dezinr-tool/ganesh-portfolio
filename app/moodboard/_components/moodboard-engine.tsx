@@ -26,14 +26,16 @@ import {
 } from "@/lib/moodboard/intake-helpers";
 import { MAX_REFERENCE_IMAGES } from "@/lib/moodboard/question-seed";
 import {
-  ActiveQuestionCard,
-  FloatingStatusCard,
-} from "./active-question-card";
+  getQuestionDurationMs,
+  markQuestionStarted,
+  trackMoodboardEvent,
+} from "@/lib/moodboard/track-event";
+import { FloatingStatusCard } from "./active-question-card";
 import {
   MoodboardChatHistory,
   type HistoryMessage,
 } from "./moodboard-chat-history";
-import { MoodboardComposer } from "./moodboard-composer";
+import { MoodboardComposer, type MoodboardComposerHandle } from "./moodboard-composer";
 import { PresentationView } from "./presentation-view";
 import { MoodboardNav } from "./moodboard-nav";
 import { MoodboardLanding } from "./moodboard-landing";
@@ -110,6 +112,7 @@ export function MoodboardEngine() {
   const pendingAnswersRef = useRef<Record<string, unknown>>({});
   const lastSubmitRef = useRef<{ text: string; at: number } | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const composerRef = useRef<MoodboardComposerHandle>(null);
   const initializedRef = useRef(false);
   const answersRef = useRef(answers);
 
@@ -125,17 +128,28 @@ export function MoodboardEngine() {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, thinking, generating, currentQuestion, showPreConfirm]);
 
+  useEffect(() => {
+    if (currentQuestion?.key) {
+      markQuestionStarted(currentQuestion.key);
+    }
+    if (currentQuestion?.key && usesComposerInput(currentQuestion)) {
+      const t = window.setTimeout(() => composerRef.current?.focus(), 80);
+      return () => window.clearTimeout(t);
+    }
+  }, [currentQuestion?.key]);
+
   const addEaMessage = useCallback((text: string) => {
     setMessages((m) => [...m, { id: uid(), role: "assistant", text }]);
   }, []);
 
-  const commitExchange = useCallback((questionText: string, answerText: string) => {
-    setMessages((m) => [
-      ...m,
-      { id: uid(), role: "assistant", text: questionText },
-      { id: uid(), role: "user", text: answerText },
-    ]);
+  const commitUserAnswer = useCallback((answerText: string) => {
+    setMessages((m) => [...m, { id: uid(), role: "user", text: answerText }]);
   }, []);
+
+  const showQuestion = useCallback((question: MoodboardQuestion) => {
+    setCurrentQuestion(question);
+    addEaMessage(question.question_text);
+  }, [addEaMessage]);
 
   const persistSession = useCallback(
     async (nextAnswers: Record<string, unknown>, patch?: Record<string, unknown>) => {
@@ -256,12 +270,15 @@ export function MoodboardEngine() {
       const answersWithConfirm = confirmations
         ? { ...nextAnswers, [PRE_CONFIRMATION_ANSWERS_KEY]: confirmations }
         : nextAnswers;
-      await persistSession(answersWithConfirm, { status: "generating" });
-
       const sections =
         getSelectedOutputSections(nextAnswers).length > 0
           ? getSelectedOutputSections(nextAnswers)
           : selectedOutputSections;
+      await persistSession(answersWithConfirm, { status: "generating", selected_model: modelId });
+      void trackMoodboardEvent(sessionId, "generation_started", {
+        modelId,
+        selectedOutputSections: sections,
+      });
 
       try {
         const res = await fetch("/api/moodboard/generate-presentation", {
@@ -290,6 +307,11 @@ export function MoodboardEngine() {
         );
         if (result?.directions) {
           setDirections(result.directions);
+          void trackMoodboardEvent(sessionId, "generation_complete", {
+            modelId,
+            directionCount: result.directions.length,
+            directionNames: result.directions.map((d) => d.directionName),
+          });
         }
       } catch {
         addEaMessage("Something went wrong generating directions. Please try again.");
@@ -351,9 +373,9 @@ export function MoodboardEngine() {
         await requestPreConfirmation(nextAnswers);
         return;
       }
-      setCurrentQuestion(next);
+      showQuestion(next);
     },
-    [questions, requestPreConfirmation],
+    [questions, requestPreConfirmation, showQuestion],
   );
 
   const processAnswer = useCallback(
@@ -371,7 +393,7 @@ export function MoodboardEngine() {
       const correction = parseBrandCorrection(display);
       if (correction) {
         if (!options?.skipArchive) {
-          commitExchange(questionSnapshot.question_text, display);
+          commitUserAnswer(display);
         }
         const nextAnswers: Record<string, unknown> = {
           ...answersRef.current,
@@ -403,7 +425,7 @@ export function MoodboardEngine() {
 
       if (isVagueOpenAnswer(questionSnapshot, value)) {
         if (!options?.skipArchive) {
-          commitExchange(questionSnapshot.question_text, display);
+          commitUserAnswer(display);
         }
         addEaMessage(getVagueFollowUp(questionSnapshot));
         setBusy(false);
@@ -418,14 +440,30 @@ export function MoodboardEngine() {
         await persistSession(nextAnswers, {
           selected_output_sections: value as string[],
         });
+        void trackMoodboardEvent(sessionId, "chip_selected", {
+          questionKey: questionSnapshot.key,
+          answer: value,
+        }, getQuestionDurationMs(questionSnapshot.key));
       } else {
-        await persistSession(nextAnswers);
+        await persistSession(nextAnswers, { selected_model: modelId });
+        const eventType =
+          questionSnapshot.question_type === "chips" ? "chip_selected" : "question_answered";
+        void trackMoodboardEvent(
+          sessionId,
+          eventType,
+          {
+            questionKey: questionSnapshot.key,
+            questionType: questionSnapshot.question_type,
+            answer: display,
+          },
+          getQuestionDurationMs(questionSnapshot.key),
+        );
       }
 
       void runSilentResearch(questionSnapshot.key, nextAnswers);
 
       if (!options?.skipArchive) {
-        commitExchange(questionSnapshot.question_text, display);
+        commitUserAnswer(display);
       }
       setCurrentQuestion(null);
       setComposerText("");
@@ -437,11 +475,13 @@ export function MoodboardEngine() {
     [
       addEaMessage,
       busy,
-      commitExchange,
+      commitUserAnswer,
       currentQuestion,
       persistSession,
       runSilentResearch,
+      sessionId,
       showNextQuestion,
+      modelId,
     ],
   );
 
@@ -459,13 +499,16 @@ export function MoodboardEngine() {
     const nextAnswers = { ...answersRef.current, [q.key]: "" };
     setAnswers(nextAnswers);
     await persistSession(nextAnswers);
-    commitExchange(q.question_text, "Skipped");
+    void trackMoodboardEvent(sessionId, "question_skipped", {
+      questionKey: q.key,
+    }, getQuestionDurationMs(q.key));
+    commitUserAnswer("Skipped");
     setCurrentQuestion(null);
     setComposerText("");
     setPendingFiles([]);
     await showNextQuestion(q.key, nextAnswers);
     setBusy(false);
-  }, [busy, commitExchange, currentQuestion, persistSession, showNextQuestion]);
+  }, [busy, commitUserAnswer, currentQuestion, persistSession, sessionId, showNextQuestion]);
 
   const handleComposerSubmit = useCallback(() => {
     if (!currentQuestion) return;
@@ -486,6 +529,7 @@ export function MoodboardEngine() {
       await pauseThen(300);
 
       setConversationStarted(true);
+      void trackMoodboardEvent(sessionId, "session_started", { openingMessage: trimmed });
       setMessages((m) => [...m, { id: uid(), role: "user", text: trimmed }]);
 
       setThinking(true);
@@ -497,11 +541,11 @@ export function MoodboardEngine() {
       );
 
       const first = getFirstQuestion(questions);
-      if (first) setCurrentQuestion(first);
+      if (first) showQuestion(first);
 
       setBusy(false);
     },
-    [addEaMessage, busy, conversationStarted, questions, questionsReady],
+    [addEaMessage, busy, conversationStarted, questions, questionsReady, sessionId, showQuestion],
   );
 
   const handleLandingSubmit = useCallback(() => {
@@ -535,10 +579,15 @@ export function MoodboardEngine() {
         setDirections((prev) =>
           prev.map((d) => (d.id === directionId ? data.direction : d)),
         );
+        void trackMoodboardEvent(sessionId, "direction_refined", {
+          directionId,
+          directionName: dir.directionName,
+          refineNote: note,
+        });
       }
       setGenerating(false);
     },
-    [answers, directions, extras, modelId, selectedOutputSections],
+    [answers, directions, extras, modelId, selectedOutputSections, sessionId],
   );
 
   useEffect(() => {
@@ -587,29 +636,24 @@ export function MoodboardEngine() {
   }, [currentQuestion]);
 
   const composerPlaceholder = useMemo(() => {
-    if (!currentQuestion) return "Type your answer…";
+    if (!currentQuestion) return "Write a message...";
     if (currentQuestion.question_type === "url") return "https://";
     if (usesUpload(currentQuestion)) return "Add a note (optional)…";
-    return "Type your answer…";
+    return "Write a message...";
   }, [currentQuestion]);
 
   const showSkip = currentQuestion ? isQuestionOptional(currentQuestion.key) : false;
 
   if (intakeComplete) {
     return (
-      <div className="min-h-screen bg-[#0d0d0d] text-zinc-100">
+      <div className="min-h-screen bg-black text-zinc-100">
         <MoodboardNav />
-
-        <div className="mx-auto max-w-[680px] border-b border-white/10 px-4 pb-3 pt-4">
-          <p className="text-sm font-medium text-white">{brandName}</p>
-          <p className="text-xs text-zinc-500">3 moodboard directions</p>
-        </div>
-
-        <div className="moodboard-output-enter bg-white text-neutral-900">
+        <div className="moodboard-output-enter">
           <PresentationView
             directions={directions}
             brandName={brandName}
             selectedOutputSections={selectedOutputSections}
+            sessionId={sessionId}
             onRefine={handleRefine}
           />
         </div>
@@ -618,8 +662,12 @@ export function MoodboardEngine() {
   }
 
   return (
-    <div className="flex min-h-screen flex-col bg-black text-zinc-100">
-      <MoodboardNav />
+    <div
+      className={`flex min-h-screen flex-col transition-colors duration-[400ms] ease-out ${
+        conversationStarted ? "moodboard-chat-shell" : "bg-black text-zinc-100"
+      }`}
+    >
+      <MoodboardNav theme={conversationStarted ? "light" : "dark"} />
 
       {!conversationStarted ? (
         <MoodboardLanding
@@ -632,7 +680,7 @@ export function MoodboardEngine() {
           fading={landingFading}
         />
       ) : (
-        <div className="relative mx-auto flex w-full max-w-[680px] flex-1 flex-col px-4 pb-6">
+        <div className="relative mx-auto flex w-full max-w-[680px] flex-1 flex-col px-6 pb-6">
           <div className="moodboard-fade-in flex min-h-0 flex-1 flex-col pt-4">
             <div className="min-h-0 flex-1 overflow-y-auto overscroll-y-contain">
               <MoodboardChatHistory
@@ -640,13 +688,24 @@ export function MoodboardEngine() {
                 thinking={thinking}
                 generating={generating}
                 genStatus={genStatus}
+                currentQuestion={
+                  !generating && !showPreConfirm && !loadingPreConfirm
+                    ? currentQuestion
+                    : null
+                }
+                questionDisabled={busy}
+                pendingFiles={pendingFiles}
+                onChip={handleAnswer}
+                onMultiChipSubmit={handleAnswer}
+                onSectionSubmit={handleAnswer}
+                onUploadContinue={handleUploadContinue}
               />
               <div ref={messagesEndRef} className="h-4 shrink-0" />
             </div>
 
-            <div className="sticky bottom-0 shrink-0 bg-gradient-to-t from-black via-black to-transparent pb-2 pt-4">
+            <div className="sticky bottom-0 shrink-0 bg-gradient-to-t from-[#fafafa] via-[#fafafa] to-transparent pb-2 pt-4">
               {showPreConfirm && preConfirmation ? (
-                <div className="moodboard-card-enter mb-3 rounded-xl border border-white/10 bg-white/[0.05] p-4">
+                <div className="moodboard-card-enter mb-4 rounded-2xl border border-[#e8e8e8] bg-white p-4 shadow-sm">
                   <PreConfirmationPanel
                     preConfirmation={preConfirmation}
                     onConfirm={handlePreConfirm}
@@ -664,19 +723,8 @@ export function MoodboardEngine() {
                 />
               ) : null}
 
-              {currentQuestion && !generating && !showPreConfirm && !loadingPreConfirm ? (
-                <ActiveQuestionCard
-                  question={currentQuestion}
-                  disabled={busy}
-                  pendingFiles={pendingFiles}
-                  onChip={handleAnswer}
-                  onMultiChipSubmit={handleAnswer}
-                  onSectionSubmit={handleAnswer}
-                  onUploadContinue={handleUploadContinue}
-                />
-              ) : null}
-
               <MoodboardComposer
+                ref={composerRef}
                 value={composerText}
                 onChange={setComposerText}
                 onSubmit={handleComposerSubmit}
@@ -695,7 +743,12 @@ export function MoodboardEngine() {
                 onModelChange={setModelId}
                 showSkip={showSkip && !composerHidden}
                 onSkip={() => void handleSkip()}
+                variant="chat"
               />
+
+              <p className="moodboard-chat-footer">
+                Powered by Claude · AI can make mistakes
+              </p>
             </div>
           </div>
         </div>

@@ -65,7 +65,11 @@ export async function POST(request: NextRequest) {
           selected_output_sections: selectedOutputSections,
           status: "complete",
         });
-        await saveDirectionsToDb(sessionId, directions);
+        await saveDirectionsToDb(sessionId, directions, {
+          modelUsed: modelId,
+          selectedOutputSections,
+        });
+        await updateSession(sessionId, { selected_model: modelId });
       }
       if (clientName) {
         try {

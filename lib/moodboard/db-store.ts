@@ -170,6 +170,7 @@ function rowToSession(row: Record<string, unknown>): MoodboardSession {
     selected_direction: row.selected_direction
       ? String(row.selected_direction)
       : null,
+    selected_model: row.selected_model ? String(row.selected_model) : null,
     status: row.status as MoodboardSession["status"],
     created_at: String(row.created_at),
     updated_at: String(row.updated_at),
@@ -208,6 +209,7 @@ export async function updateSession(
     generated_directions: MoodboardPresentationDirection[];
     selected_direction: string;
     status: string;
+    selected_model: string;
   }>,
 ): Promise<MoodboardSession | null> {
   const existing = await getSessionBySessionId(sessionId);
@@ -222,6 +224,7 @@ export async function updateSession(
       generated_directions = ${data.generated_directions ? JSON.stringify(data.generated_directions) : existing.generated_directions ? JSON.stringify(existing.generated_directions) : null},
       selected_direction = ${data.selected_direction ?? existing.selected_direction},
       status = ${data.status ?? existing.status},
+      selected_model = ${data.selected_model !== undefined ? data.selected_model : existing.selected_model ?? null},
       updated_at = NOW()
     WHERE session_id = ${sessionId}
     RETURNING *
@@ -233,6 +236,10 @@ export async function updateSession(
 export async function saveDirectionsToDb(
   sessionId: string,
   directions: MoodboardPresentationDirection[],
+  options?: {
+    modelUsed?: string;
+    selectedOutputSections?: string[];
+  },
 ): Promise<void> {
   await sql`DELETE FROM moodboard_directions WHERE session_id = ${sessionId}`;
 
@@ -244,7 +251,8 @@ export async function saveDirectionsToDb(
         brand_strategy, tone_of_voice, ui_references,
         illustration_style, illustration_references,
         typography_heading, typography_body, typography_references,
-        color_palette, mood_keywords
+        color_palette, mood_keywords,
+        full_content, model_used, selected_output_sections
       ) VALUES (
         ${sessionId},
         ${dir.directionName},
@@ -261,7 +269,10 @@ export async function saveDirectionsToDb(
         ${JSON.stringify(dir.typography?.body ?? null)},
         ${JSON.stringify(dir.typography?.references ?? [])},
         ${JSON.stringify(dir.colorPalette ?? [])},
-        ${JSON.stringify(dir.moodKeywords ?? [])}
+        ${JSON.stringify(dir.moodKeywords ?? [])},
+        ${JSON.stringify(dir)},
+        ${options?.modelUsed ?? null},
+        ${options?.selectedOutputSections ? JSON.stringify(options.selectedOutputSections) : null}
       )
     `;
   }

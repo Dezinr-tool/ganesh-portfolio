@@ -1,11 +1,11 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { listKnowledgeEntries } from "@/lib/knowledge/db";
 import { requireKnowledgeAdmin } from "@/lib/knowledge/auth";
 
 export const dynamic = "force-dynamic";
 
-export async function GET() {
-  const denied = await requireKnowledgeAdmin();
+export async function GET(request: NextRequest) {
+  const denied = await requireKnowledgeAdmin(request);
   if (denied) return denied;
 
   try {

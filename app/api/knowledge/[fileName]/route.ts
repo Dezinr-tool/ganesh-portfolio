@@ -9,8 +9,8 @@ export const dynamic = "force-dynamic";
 
 type RouteParams = { params: Promise<{ fileName: string }> };
 
-export async function GET(_request: NextRequest, { params }: RouteParams) {
-  const denied = await requireKnowledgeAdmin();
+export async function GET(request: NextRequest, { params }: RouteParams) {
+  const denied = await requireKnowledgeAdmin(request);
   if (denied) return denied;
 
   try {

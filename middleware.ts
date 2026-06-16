@@ -88,6 +88,14 @@ export async function middleware(request: NextRequest) {
     }
   }
 
+  if (pathname.startsWith("/moodboard/sessions")) {
+    if (!isEaAuthed) {
+      if (pathname !== "/moodboard/sessions") {
+        return NextResponse.redirect(new URL("/moodboard/sessions", request.url));
+      }
+    }
+  }
+
   if (pathname.startsWith("/knowledge-admin") || pathname.startsWith("/api/knowledge")) {
     if (!isEaAuthed) {
       if (pathname.startsWith("/api/")) {
@@ -108,6 +116,8 @@ export const config = {
     "/api/ea/:path*",
     "/moodboard/admin",
     "/moodboard/admin/:path*",
+    "/moodboard/sessions",
+    "/moodboard/sessions/:path*",
     "/api/moodboard/admin/:path*",
     "/knowledge-admin",
     "/knowledge-admin/:path*",

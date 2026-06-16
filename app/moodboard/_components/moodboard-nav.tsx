@@ -9,8 +9,9 @@ const links = [
   { href: "/moodboard/admin", label: "Admin", match: "prefix" as const },
 ];
 
-export function MoodboardNav() {
+export function MoodboardNav({ theme = "dark" }: { theme?: "dark" | "light" }) {
   const pathname = usePathname();
+  const light = theme === "light";
 
   const isActive = (href: string, match?: "exact" | "prefix") => {
     if (match === "prefix") {
@@ -20,11 +21,19 @@ export function MoodboardNav() {
   };
 
   return (
-    <header className="relative z-20 border-b border-white/[0.06] bg-black/60 backdrop-blur-md">
-      <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-5 py-4 sm:px-8">
+    <header
+      className={`relative z-20 border-b transition-colors duration-[400ms] ease-out ${
+        light
+          ? "border-[#e8e8e8] bg-[#fafafa]/90 backdrop-blur-md"
+          : "border-white/[0.06] bg-black/60 backdrop-blur-md"
+      }`}
+    >
+      <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-6 py-4">
         <Link
           href="/moodboard"
-          className="text-sm font-medium tracking-tight text-white/90 transition hover:text-white"
+          className={`text-sm font-medium tracking-tight transition ${
+            light ? "text-[#1a1a1a]/90 hover:text-[#1a1a1a]" : "text-white/90 hover:text-white"
+          }`}
         >
           Moodboard
         </Link>
@@ -37,8 +46,12 @@ export function MoodboardNav() {
                 href={link.href}
                 className={`rounded-md px-3 py-1.5 text-sm transition-colors ${
                   active
-                    ? "text-white"
-                    : "text-white/40 hover:text-white/70"
+                    ? light
+                      ? "text-[#1a1a1a]"
+                      : "text-white"
+                    : light
+                      ? "text-[#1a1a1a]/40 hover:text-[#1a1a1a]/70"
+                      : "text-white/40 hover:text-white/70"
                 }`}
               >
                 {link.label}

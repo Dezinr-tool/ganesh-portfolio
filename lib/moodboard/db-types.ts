@@ -55,6 +55,7 @@ export type MoodboardSession = {
   selected_output_sections: string[] | null;
   generated_directions: MoodboardPresentationDirection[] | null;
   selected_direction: string | null;
+  selected_model?: string | null;
   status: MoodboardSessionStatus;
   created_at: string;
   updated_at: string;
