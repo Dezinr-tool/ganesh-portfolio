@@ -9,6 +9,7 @@ import {
   getFirstQuestion,
   getNextQuestion,
   isQuestionOptional,
+  normalizeAnswer,
 } from "@/lib/moodboard/question-flow";
 import { MOODBOARD_MODELS } from "@/lib/moodboard/models";
 import type { MoodboardModelId } from "@/lib/moodboard/types";
@@ -23,6 +24,7 @@ import {
   isDuplicateSubmit,
   isVagueOpenAnswer,
   parseBrandCorrection,
+  extractBrandFromOpeningMessage,
 } from "@/lib/moodboard/intake-helpers";
 import { MAX_REFERENCE_IMAGES } from "@/lib/moodboard/question-seed";
 import {
@@ -559,6 +561,16 @@ export function MoodboardEngine() {
       void trackMoodboardEvent(sessionId, "session_started", { openingMessage: trimmed });
       setMessages((m) => [...m, { id: uid(), role: "user", text: trimmed }]);
 
+      const inferredBrand = extractBrandFromOpeningMessage(trimmed);
+      const seededAnswers = {
+        ...answersRef.current,
+        _opening_message: trimmed,
+        ...(inferredBrand ? { q1: inferredBrand } : {}),
+      };
+      setAnswers(seededAnswers);
+      answersRef.current = seededAnswers;
+      await persistSession(seededAnswers);
+
       setThinking(true);
       await pauseThen(450);
       setThinking(false);
@@ -568,11 +580,28 @@ export function MoodboardEngine() {
       );
 
       const first = getFirstQuestion(questions);
-      if (first) showQuestion(first);
+      if (first) {
+        if (inferredBrand && first.key === "q1") {
+          addEaMessage(`Got it — ${inferredBrand}.`);
+          const next = getNextQuestion("q1", seededAnswers, questions);
+          if (next) showQuestion(next);
+        } else {
+          showQuestion(first);
+        }
+      }
 
       setBusy(false);
     },
-    [addEaMessage, busy, conversationStarted, questions, questionsReady, sessionId, showQuestion],
+    [
+      addEaMessage,
+      busy,
+      conversationStarted,
+      persistSession,
+      questions,
+      questionsReady,
+      sessionId,
+      showQuestion,
+    ],
   );
 
   const handleLandingSubmit = useCallback(() => {
@@ -618,6 +647,34 @@ export function MoodboardEngine() {
   );
 
   useEffect(() => {
+    if (answers.q1 || !conversationStarted) return;
+    const firstUser = messages.find((m) => m.role === "user");
+    if (!firstUser?.text) return;
+
+    const inferred = extractBrandFromOpeningMessage(firstUser.text);
+    if (!inferred) return;
+
+    const nextAnswers = { ...answersRef.current, q1: inferred };
+    setAnswers(nextAnswers);
+    answersRef.current = nextAnswers;
+    void persistSession(nextAnswers);
+
+    if (currentQuestion?.key === "q1" && questions.length > 0) {
+      addEaMessage(`Got it — ${inferred}.`);
+      void showNextQuestion("q1", nextAnswers);
+    }
+  }, [
+    addEaMessage,
+    answers.q1,
+    conversationStarted,
+    currentQuestion?.key,
+    messages,
+    persistSession,
+    questions.length,
+    showNextQuestion,
+  ]);
+
+  useEffect(() => {
     if (initializedRef.current) return;
 
     async function init() {
@@ -641,7 +698,22 @@ export function MoodboardEngine() {
           if (sessionData.session) {
             registerSession(sessionData.session);
             if (qs.length > 0) {
-              const restored = restoreSessionState(sessionData.session, qs);
+              let session = sessionData.session;
+              const opening = session.answers?._opening_message;
+              if (
+                opening &&
+                !normalizeAnswer(session.answers?.q1)
+              ) {
+                const inferred = extractBrandFromOpeningMessage(String(opening));
+                if (inferred) {
+                  const patchedAnswers = { ...session.answers, q1: inferred };
+                  session = { ...session, answers: patchedAnswers, brand_name: inferred };
+                  setAnswers(patchedAnswers);
+                  await persistSession(patchedAnswers);
+                }
+              }
+
+              const restored = restoreSessionState(session, qs);
               setAnswers(restored.answers);
               setMessages(restored.messages);
               setDirections(restored.directions);

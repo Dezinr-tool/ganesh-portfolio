@@ -27,6 +27,7 @@ export function saveSessionIndex(entries: SessionIndexEntry[]): void {
     (a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime(),
   );
   localStorage.setItem(INDEX_KEY, JSON.stringify(sorted.slice(0, 50)));
+  window.dispatchEvent(new Event("moodboard-session-index-updated"));
 }
 
 export function upsertSessionIndex(entry: SessionIndexEntry): void {

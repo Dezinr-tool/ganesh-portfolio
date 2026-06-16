@@ -14,6 +14,7 @@ import {
   isValidMoodboardSessionId,
   listAllSessions,
 } from "@/lib/moodboard/analytics";
+import { backfillBrandFromOpening } from "@/lib/moodboard/session-brand-backfill";
 
 export const dynamic = "force-dynamic";
 
@@ -60,7 +61,8 @@ export async function POST(request: NextRequest) {
     }
     const existing = await getSessionBySessionId(sessionId);
     if (existing) {
-      return NextResponse.json({ session: existing });
+      const session = await backfillBrandFromOpening(existing);
+      return NextResponse.json({ session });
     }
     const session = await createSession(sessionId);
     return NextResponse.json({ session });

@@ -5,7 +5,9 @@ import {
   insertMoodboardEvent,
   isValidMoodboardSessionId,
 } from "@/lib/moodboard/analytics";
-import { getSessionBySessionId } from "@/lib/moodboard/db-store";
+import { getSessionBySessionId, updateSession } from "@/lib/moodboard/db-store";
+import { extractBrandFromOpeningMessage } from "@/lib/moodboard/intake-helpers";
+import { extractBrandName, normalizeAnswer } from "@/lib/moodboard/question-flow";
 
 export const dynamic = "force-dynamic";
 
@@ -60,6 +62,24 @@ export async function POST(request: NextRequest) {
       payload,
       durationMs,
     });
+
+    if (
+      eventType === "session_started" &&
+      typeof payload.openingMessage === "string" &&
+      payload.openingMessage.trim() &&
+      !normalizeAnswer(session.answers?.q1)
+    ) {
+      const openingMessage = payload.openingMessage.trim();
+      const inferred = extractBrandFromOpeningMessage(openingMessage);
+      await updateSession(sessionId, {
+        answers: {
+          ...session.answers,
+          _opening_message: openingMessage,
+          ...(inferred ? { q1: inferred } : {}),
+        },
+        ...(inferred ? { brand_name: inferred } : {}),
+      });
+    }
 
     return NextResponse.json({ ok: true });
   } catch (error) {

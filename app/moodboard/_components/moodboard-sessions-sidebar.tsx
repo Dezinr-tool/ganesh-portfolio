@@ -75,6 +75,11 @@ export function MoodboardSessionsSidebar({
 
   useEffect(() => {
     void refresh();
+    const onUpdate = () => {
+      void refresh();
+    };
+    window.addEventListener("moodboard-session-index-updated", onUpdate);
+    return () => window.removeEventListener("moodboard-session-index-updated", onUpdate);
   }, [refresh]);
 
   const dark = theme === "dark";
