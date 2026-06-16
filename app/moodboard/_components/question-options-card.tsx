@@ -316,7 +316,9 @@ export function QuestionOptionsCard({
                 onClick={submitMulti}
                 className="moodboard-question-skip-btn bg-[#1a1a1a] text-white hover:bg-[#333]"
               >
-                Continue ({selected.length})
+                {question.key === "q_output_sections"
+                  ? `Generate 3 directions (${selected.length})`
+                  : `Continue (${selected.length})`}
               </button>
             ) : null}
             {optional ? (

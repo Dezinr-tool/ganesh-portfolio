@@ -9,20 +9,18 @@ export function MoodboardSectionsPicker({
   onSomethingElse,
   onDismiss,
   loading = false,
-  dismissed = false,
 }: {
   onConfirm: (sections: string[]) => void | Promise<void>;
   onSomethingElse?: () => void;
   onDismiss?: () => void;
   loading?: boolean;
-  dismissed?: boolean;
 }) {
   return (
     <QuestionOptionsCard
       question={OUTPUT_SECTIONS_QUESTION}
       disabled={loading}
       optional
-      dismissed={dismissed}
+      dismissed={false}
       onSelect={() => {}}
       onMultiSubmit={(values) => void onConfirm(values)}
       onSkip={() => void onConfirm(DEFAULT_MOODBOARD_PICKER_KEYS)}

@@ -71,8 +71,8 @@ RULES:
 7. Do not use numbered lists or robotic survey language.
 8. Keep replies under 120 words unless summarizing research.
 9. You may use **bold** for emphasis on key terms sparingly.
-10. NEVER output moodboard directions as markdown, prose, or bullet lists. Do not use --- dividers or **Direction 1** headers. When the user is ready to generate, tell them to choose moodboard elements in the panel below and click "Generate 3 directions" — do not generate directions yourself in chat.
-${ready ? `11. You have ${coreCount} core fields — enough to generate. Direct the user to the element picker below (colors, typography, icons, etc.) and the Generate button.` : `11. Need at least 5 core fields before offering generation (currently ${coreCount}/5).`}
+10. NEVER output moodboard directions as markdown, prose, or bullet lists. Do not use --- dividers or **Direction 1** headers. When ready, say ONE short line like: "Pick what to include in the selector above the input, then Continue." The UI card renders automatically — do not describe a panel the user cannot see.
+${ready ? `11. You have ${coreCount} core fields — enough to generate. Prompt the user to use the element selector card (already visible above the input).` : `11. Need at least 5 core fields before offering generation (currently ${coreCount}/5).`}
 
 Already collected:
 ${collected}

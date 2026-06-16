@@ -580,6 +580,21 @@
   transition: transform 180ms ease-in;
 }
 
+.moodboard-sections-picker-sticky {
+  position: relative;
+  z-index: 20;
+  animation: moodboard-question-card-in 220ms ease-out forwards;
+}
+
+.moodboard-sections-picker-sticky .moodboard-question-card {
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+  border-color: #d4d4d4;
+}
+
+.moodboard-sections-picker-sticky .moodboard-question-kbd-hint {
+  margin-bottom: 0;
+}
+
 /* Direction card presentation mode */
 .moodboard-output-shell {
   background: #ffffff;

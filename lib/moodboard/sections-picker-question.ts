@@ -19,7 +19,10 @@ export function replySignalsSectionsPicker(text: string): boolean {
   const t = text.trim();
   if (!t) return false;
   return (
-    /panel below|moodboard elements|Generate 3 directions|select your moodboard/i.test(t) ||
-    /enough to (move forward|generate)|ready to generate/i.test(t)
+    /panel below|moodboard elements|Generate 3 directions|select your moodboard|elements you want below/i.test(
+      t,
+    ) ||
+    /visual concepts|slide presentation|pick what to include|element selector/i.test(t) ||
+    /enough to (move forward|generate)|ready to generate|enough context/i.test(t)
   );
 }

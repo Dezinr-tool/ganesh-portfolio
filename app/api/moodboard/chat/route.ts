@@ -136,7 +136,7 @@ export async function POST(request: NextRequest) {
 
     const blockedMarkdown = looksLikeMarkdownDirections(reply);
     const safeReply = blockedMarkdown
-      ? "I have enough context. Choose the moodboard elements you want below — color, typography, icons, and more — then click **Generate 3 directions** to open your slide presentation."
+      ? "Pick what to include in the selector above the input — color, typography, icons, and more — then press Continue."
       : reply;
 
     if (sessionId) {
