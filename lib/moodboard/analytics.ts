@@ -60,6 +60,7 @@ function rowToSession(row: Record<string, unknown>): MoodboardSession {
     selected_direction: row.selected_direction
       ? String(row.selected_direction)
       : null,
+    selected_model: row.selected_model ? String(row.selected_model) : null,
     status: row.status as MoodboardSession["status"],
     created_at: String(row.created_at),
     updated_at: String(row.updated_at),

@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation";
 const links = [
   { href: "/tools", label: "All Tools" },
   { href: "/moodboard", label: "Session", match: "exact" as const },
+  { href: "/moodboard/sessions", label: "Sessions", match: "prefix" as const },
   { href: "/moodboard/admin", label: "Admin", match: "prefix" as const },
 ];
 

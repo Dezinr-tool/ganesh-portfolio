@@ -182,7 +182,8 @@ export function MoodboardHeroBackground() {
       className="pointer-events-none fixed inset-0 z-0 overflow-hidden blur-[8px]"
       aria-hidden
     >
-      <div className="absolute inset-0 opacity-[0.06]">
+      <div className="absolute inset-0 bg-[#fafafa]" />
+      <div className="absolute inset-0 opacity-[0.35]">
         <div className="flex h-[200vh] justify-center gap-6 px-6 pt-8 sm:gap-10">
           {columns.map((cards, i) => (
             <ScrollColumn

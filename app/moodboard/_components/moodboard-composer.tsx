@@ -135,7 +135,7 @@ export const MoodboardComposer = forwardRef<
     return null;
   }
 
-  if (isChat) {
+  if (isChat || isHero) {
     return (
       <div className="w-full">
         <div className={`moodboard-composer-chat ${disabled ? "opacity-60" : ""}`}>
@@ -215,7 +215,7 @@ export const MoodboardComposer = forwardRef<
             </div>
           </div>
         </div>
-        {showSkip && onSkip ? (
+        {showSkip && onSkip && !isHero ? (
           <div className="mt-2 text-right">
             <button
               type="button"
@@ -231,17 +231,14 @@ export const MoodboardComposer = forwardRef<
     );
   }
 
-  const shellClass = isHero
-    ? "flex items-center gap-3 rounded-2xl border border-white/[0.08] bg-white/[0.04] px-4 py-3.5 shadow-[0_8px_32px_rgba(0,0,0,0.24)] backdrop-blur-[12px]"
-    : "flex items-center gap-1 rounded-full border border-[#3a3a38] bg-[#ececea] px-2 py-1 shadow-sm";
+  const shellClass =
+    "flex items-center gap-1 rounded-full border border-[#3a3a38] bg-[#ececea] px-2 py-1 shadow-sm";
 
-  const inputClass = isHero
-    ? "max-h-[160px] min-h-[24px] flex-1 resize-none bg-transparent py-0.5 text-[15px] leading-6 text-white outline-none placeholder:text-[#444]"
-    : "max-h-[120px] min-h-[22px] flex-1 resize-none bg-transparent py-1.5 text-[15px] leading-5 text-zinc-900 outline-none placeholder:text-zinc-400";
+  const inputClass =
+    "max-h-[120px] min-h-[22px] flex-1 resize-none bg-transparent py-1.5 text-[15px] leading-5 text-zinc-900 outline-none placeholder:text-zinc-400";
 
-  const attachBtnClass = isHero
-    ? "flex h-8 w-8 shrink-0 items-center justify-center text-[#555] transition hover:text-[#888]"
-    : "flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-zinc-500 transition hover:bg-black/5 hover:text-zinc-700";
+  const attachBtnClass =
+    "flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-zinc-500 transition hover:bg-black/5 hover:text-zinc-700";
 
   return (
     <div className="w-full">
@@ -288,27 +285,11 @@ export const MoodboardComposer = forwardRef<
           }}
         />
 
-        {isHero ? (
-          <button
-            type="button"
-            disabled={disabled}
-            className="flex h-8 w-8 shrink-0 items-center justify-center text-[#555] transition hover:text-[#888]"
-            aria-label="Voice input"
-            tabIndex={-1}
-          >
-            <MicIcon />
-          </button>
-        ) : null}
-
         {canSend ? (
           <button
             type="button"
             onClick={onSubmit}
-            className={
-              isHero
-                ? "flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-white/10 text-white transition hover:bg-white/15"
-                : "flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-zinc-800 text-white transition hover:bg-zinc-700"
-            }
+            className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-zinc-800 text-white transition hover:bg-zinc-700"
             aria-label="Send"
           >
             <SendArrowIcon />
@@ -317,7 +298,7 @@ export const MoodboardComposer = forwardRef<
       </div>
 
       <div className="mt-2.5 flex items-center justify-between gap-3 pl-0.5">
-        <ModelPicker modelId={modelId} onModelChange={onModelChange} hero={isHero} />
+        <ModelPicker modelId={modelId} onModelChange={onModelChange} />
         {showSkip && onSkip ? (
           <button
             type="button"

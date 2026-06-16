@@ -44,6 +44,10 @@ import { PresentationView } from "./presentation-view";
 import { MoodboardNav } from "./moodboard-nav";
 import { MoodboardLanding } from "./moodboard-landing";
 import { readStoredValue, useClientSessionId } from "@/lib/client-storage";
+import { restoreSessionState } from "@/lib/moodboard/session-restore";
+import { registerSession, upsertSessionIndex } from "@/lib/moodboard/session-index";
+import type { MoodboardSession } from "@/lib/moodboard/db-types";
+import { MoodboardSessionsSidebar } from "./moodboard-sessions-sidebar";
 
 const MODEL_STORAGE_KEY = "moodboard-model-id";
 const SESSION_STORAGE_KEY = "moodboard-session-id";
@@ -113,6 +117,7 @@ export function MoodboardEngine() {
   const [landingFading, setLandingFading] = useState(false);
   const [questionsReady, setQuestionsReady] = useState(false);
   const [cardDismissed, setCardDismissed] = useState(false);
+  const [sessionReady, setSessionReady] = useState(false);
 
   const pendingAnswersRef = useRef<Record<string, unknown>>({});
   const lastSubmitRef = useRef<{ text: string; at: number } | null>(null);
@@ -165,11 +170,22 @@ export function MoodboardEngine() {
   const persistSession = useCallback(
     async (nextAnswers: Record<string, unknown>, patch?: Record<string, unknown>) => {
       if (!sessionId) return;
-      await fetch("/api/moodboard/sessions", {
+      const res = await fetch("/api/moodboard/sessions", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ sessionId, answers: nextAnswers, ...patch }),
       });
+      if (res.ok) {
+        const data = (await res.json()) as { session?: MoodboardSession };
+        if (data.session) registerSession(data.session);
+      } else {
+        upsertSessionIndex({
+          sessionId,
+          brandName: extractBrandName(nextAnswers) || null,
+          status: String(patch?.status ?? "in_progress"),
+          updatedAt: new Date().toISOString(),
+        });
+      }
     },
     [sessionId],
   );
@@ -606,28 +622,51 @@ export function MoodboardEngine() {
 
     async function init() {
       try {
-        const [qRes] = await Promise.all([
-          fetch("/api/moodboard/questions"),
-          sessionId
-            ? fetch("/api/moodboard/sessions", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ sessionId }),
-              })
-            : Promise.resolve(null),
-        ]);
+        const qRes = await fetch("/api/moodboard/questions");
+        const sessionRes = sessionId
+          ? await fetch("/api/moodboard/sessions", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ sessionId }),
+            })
+          : null;
 
         const qData = await qRes.json();
         const qs = (qData.questions ?? []) as MoodboardQuestion[];
         setQuestions(qs);
         setQuestionsReady(qs.length > 0);
+
+        if (sessionRes?.ok) {
+          const sessionData = (await sessionRes.json()) as { session?: MoodboardSession };
+          if (sessionData.session) {
+            registerSession(sessionData.session);
+            if (qs.length > 0) {
+              const restored = restoreSessionState(sessionData.session, qs);
+              setAnswers(restored.answers);
+              setMessages(restored.messages);
+              setDirections(restored.directions);
+              setSelectedOutputSections(restored.selectedOutputSections);
+              if (restored.modelId) setModelId(restored.modelId);
+              setConversationStarted(restored.conversationStarted);
+              setCurrentQuestion(restored.currentQuestion);
+              setCardDismissed(false);
+            }
+          }
+        }
+
         initializedRef.current = true;
       } catch {
         setQuestionsReady(false);
+      } finally {
+        setSessionReady(true);
       }
     }
 
-    if (sessionId) init();
+    if (sessionId) {
+      void init();
+    } else {
+      setSessionReady(true);
+    }
   }, [sessionId]);
 
   const brandName = extractBrandName(answers);
@@ -680,41 +719,48 @@ export function MoodboardEngine() {
 
   if (intakeComplete) {
     return (
-      <div className="min-h-screen bg-black text-zinc-100">
-        <MoodboardNav />
-        <div className="moodboard-output-enter">
-          <PresentationView
-            directions={directions}
-            brandName={brandName}
-            selectedOutputSections={selectedOutputSections}
-            sessionId={sessionId}
-            onRefine={handleRefine}
-          />
+      <div className="flex min-h-screen bg-black text-zinc-100">
+        <MoodboardSessionsSidebar activeSessionId={sessionId} theme="dark" />
+        <div className="flex min-w-0 flex-1 flex-col">
+          <MoodboardNav />
+          <div className="moodboard-output-enter">
+            <PresentationView
+              directions={directions}
+              brandName={brandName}
+              selectedOutputSections={selectedOutputSections}
+              sessionId={sessionId}
+              onRefine={handleRefine}
+            />
+          </div>
         </div>
       </div>
     );
   }
 
   return (
-    <div
-      className={`flex min-h-screen flex-col transition-colors duration-[400ms] ease-out ${
-        conversationStarted ? "moodboard-chat-shell" : "bg-black text-zinc-100"
-      }`}
-    >
-      <MoodboardNav theme={conversationStarted ? "light" : "dark"} />
+    <div className="moodboard-chat-shell flex min-h-screen flex-col">
+      <MoodboardNav theme="light" />
 
-      {!conversationStarted ? (
-        <MoodboardLanding
-          value={composerText}
-          onChange={setComposerText}
-          onSubmit={handleLandingSubmit}
-          modelId={modelId}
-          onModelChange={setModelId}
-          disabled={busy || !questionsReady}
-          fading={landingFading}
-        />
-      ) : (
-        <div className="relative mx-auto flex w-full max-w-[680px] flex-1 flex-col px-6 pb-6">
+      <div className="flex min-h-0 flex-1">
+        <MoodboardSessionsSidebar activeSessionId={sessionId} theme="light" />
+
+        <div className="flex min-w-0 flex-1 flex-col">
+          {!sessionReady ? (
+            <div className="flex flex-1 items-center justify-center">
+              <p className="text-sm text-[#888]">Loading session…</p>
+            </div>
+          ) : !conversationStarted ? (
+            <MoodboardLanding
+              value={composerText}
+              onChange={setComposerText}
+              onSubmit={handleLandingSubmit}
+              modelId={modelId}
+              onModelChange={setModelId}
+              disabled={busy || !questionsReady}
+              fading={landingFading}
+            />
+          ) : (
+            <div className="relative mx-auto flex w-full max-w-[680px] flex-1 flex-col px-6 pb-6">
           <div className="moodboard-fade-in flex min-h-0 flex-1 flex-col pt-4">
             <div className="min-h-0 flex-1 overflow-y-auto overscroll-y-contain">
               <MoodboardChatHistory
@@ -810,8 +856,10 @@ export function MoodboardEngine() {
               </p>
             </div>
           </div>
+            </div>
+          )}
         </div>
-      )}
+      </div>
     </div>
   );
 }
