@@ -42,6 +42,10 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "No screens selected." }, { status: 400 });
     }
 
+    const appliedControversies = Object.values(iaSession.ux_controversy_decisions ?? {}).filter(
+      (d) => d.decision === "applied",
+    );
+
     const runGeneration = async (onStatus?: (msg: string) => void) => {
       const screens = [];
       for (const screenName of wfSession.selected_screens) {
@@ -52,6 +56,7 @@ export async function POST(request: NextRequest) {
           iaOutput: iaSession.ia_output!,
           clientName: iaSession.client_name ?? undefined,
           userConfirmations,
+          appliedControversies,
           onStatus,
         });
 

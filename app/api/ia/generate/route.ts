@@ -1,10 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createSseStream, sseResponse } from "@/lib/ai-sse";
-import { generateIaDocument } from "@/lib/ia/generator";
+import { generateIaDocument, getIndustryPatternForAnswers } from "@/lib/ia/generator";
 import {
   getIaSession,
   persistIaOutput,
   updateIaSession,
+  updateIaSessionExtended,
 } from "@/lib/ia/db-store";
 import {
   extractClientName,
@@ -40,6 +41,7 @@ export async function POST(request: NextRequest) {
       output: Awaited<ReturnType<typeof generateIaDocument>>,
     ) {
       if (!sessionId) return;
+      const industryPattern = getIndustryPatternForAnswers(answers);
       await updateIaSession(sessionId, {
         answers,
         ia_output: output,
@@ -47,6 +49,10 @@ export async function POST(request: NextRequest) {
         client_name: extractClientName(answers),
         project_name: extractProductName(answers),
         product_type: extractProductType(answers),
+        industry_pattern_used: industryPattern,
+      });
+      await updateIaSessionExtended(sessionId, {
+        industry_pattern_used: industryPattern,
       });
       await persistIaOutput(sessionId, output);
     }

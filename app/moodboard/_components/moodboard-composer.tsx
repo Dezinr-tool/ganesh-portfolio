@@ -50,7 +50,6 @@ export function MoodboardComposer({
   disabled,
   hidden,
   placeholder = "Type your answer…",
-  inputMode = "text",
   showUpload,
   uploadAccept,
   onFilesSelected,
@@ -75,7 +74,6 @@ export function MoodboardComposer({
   onSkip?: () => void;
 }) {
   const fileRef = useRef<HTMLInputElement>(null);
-  const model = MOODBOARD_MODELS.find((m) => m.id === modelId);
   const canSend = !disabled && value.trim().length > 0;
 
   if (hidden) {

@@ -1,7 +1,7 @@
 import Anthropic from "@anthropic-ai/sdk";
 import { randomUUID } from "crypto";
 import { loadAndFormatContext } from "@/lib/context-loader";
-import type { IaOutput } from "@/lib/ia/types";
+import type { IaOutput, IaUxControversyDecision } from "@/lib/ia/types";
 import type { WireframeScreenSpec } from "./types";
 import { SHADCN_COMPONENTS } from "./types";
 import { specToJsx, collectComponents } from "./jsx-export";
@@ -71,6 +71,7 @@ export async function generateWireframeScreen(input: {
   clientName?: string;
   userConfirmations?: UserPreConfirmation;
   moodboardDirection?: string;
+  appliedControversies?: IaUxControversyDecision[];
   onStatus?: (msg: string) => void;
 }): Promise<{ spec: WireframeScreenSpec; jsxCode: string; componentsUsed: string[] }> {
   const apiKey = process.env.ANTHROPIC_API_KEY;
@@ -109,7 +110,8 @@ IA Context:
 ${screenFromSitemap ? `- Screen priority: ${screenFromSitemap.priority}\n- User access: ${screenFromSitemap.user_access.join(", ")}\n- Key actions: ${screenFromSitemap.key_actions.join(", ")}` : ""}
 ${contentHierarchy ? `- Primary content: ${contentHierarchy.primary.join(", ")}\n- Secondary: ${contentHierarchy.secondary.join(", ")}\n- Actions: ${contentHierarchy.key_actions.join(", ")}` : ""}
 ${input.screenNotes ? `\nAdditional notes: ${input.screenNotes}` : ""}
-${input.moodboardDirection ? `\nVisual direction from moodboard: ${input.moodboardDirection}` : ""}`,
+${input.moodboardDirection ? `\nVisual direction from moodboard: ${input.moodboardDirection}` : ""}
+${input.appliedControversies?.length ? `\nApplied UX controversy decisions (MUST follow in wireframe):\n${input.appliedControversies.map((c) => `- ${c.title}: ${c.decision}`).join("\n")}` : ""}`,
       },
     ],
   });

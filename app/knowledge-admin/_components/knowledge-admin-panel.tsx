@@ -103,7 +103,8 @@ export function KnowledgeAdminPanel() {
   const grouped = useMemo(() => {
     const ux = entries.filter((e) => e.category === "ux_rules");
     const fw = entries.filter((e) => e.category === "design_framework");
-    return { ux, fw };
+    const ia = entries.filter((e) => e.category === "ia");
+    return { ux, fw, ia };
   }, [entries]);
 
   const runUpdate = async (fileName?: string) => {
@@ -173,13 +174,22 @@ export function KnowledgeAdminPanel() {
           </button>
         </div>
 
-        {(["ux_rules", "design_framework"] as const).map((cat) => (
+        {(["ux_rules", "design_framework", "ia"] as const).map((cat) => (
           <div key={cat}>
             <p className="mb-2 text-xs uppercase tracking-wider text-zinc-500">
-              {cat === "ux_rules" ? "UX Rules" : "Design Frameworks"}
+              {cat === "ux_rules"
+                ? "UX Rules"
+                : cat === "design_framework"
+                  ? "Design Frameworks"
+                  : "Information Architecture"}
             </p>
             <ul className="space-y-1">
-              {(cat === "ux_rules" ? grouped.ux : grouped.fw).map((entry) => (
+              {(cat === "ux_rules"
+                ? grouped.ux
+                : cat === "design_framework"
+                  ? grouped.fw
+                  : grouped.ia
+              ).map((entry) => (
                 <li key={entry.id}>
                   <button
                     type="button"

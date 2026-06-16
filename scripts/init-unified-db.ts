@@ -282,6 +282,10 @@ async function createTables() {
       product_type TEXT,
       answers JSONB DEFAULT '{}',
       ia_output JSONB,
+      competitor_analysis JSONB DEFAULT '{}',
+      competitor_screenshots TEXT[] DEFAULT '{}',
+      ux_controversy_decisions JSONB DEFAULT '{}',
+      industry_pattern_used TEXT,
       status TEXT DEFAULT 'in_progress',
       created_at TIMESTAMPTZ DEFAULT NOW(),
       updated_at TIMESTAMPTZ DEFAULT NOW()
@@ -300,6 +304,8 @@ async function createTables() {
       primary_content TEXT[] DEFAULT '{}',
       key_actions TEXT[] DEFAULT '{}',
       notes TEXT,
+      ux_rationale TEXT,
+      controversy_applied TEXT,
       created_at TIMESTAMPTZ DEFAULT NOW()
     );
   `);
@@ -397,6 +403,12 @@ async function migrateLegacyColumns() {
     `ALTER TABLE moodboard_directions ADD COLUMN IF NOT EXISTS is_selected BOOLEAN DEFAULT false`,
     `ALTER TABLE moodboard_directions ADD COLUMN IF NOT EXISTS refinement_notes TEXT`,
     `ALTER TABLE moodboard_directions ADD COLUMN IF NOT EXISTS refined_count INTEGER DEFAULT 0`,
+    `ALTER TABLE ia_sessions ADD COLUMN IF NOT EXISTS competitor_analysis JSONB DEFAULT '{}'`,
+    `ALTER TABLE ia_sessions ADD COLUMN IF NOT EXISTS competitor_screenshots TEXT[] DEFAULT '{}'`,
+    `ALTER TABLE ia_sessions ADD COLUMN IF NOT EXISTS ux_controversy_decisions JSONB DEFAULT '{}'`,
+    `ALTER TABLE ia_sessions ADD COLUMN IF NOT EXISTS industry_pattern_used TEXT`,
+    `ALTER TABLE ia_screen_inventory ADD COLUMN IF NOT EXISTS ux_rationale TEXT`,
+    `ALTER TABLE ia_screen_inventory ADD COLUMN IF NOT EXISTS controversy_applied TEXT`,
   ];
 
   for (const stmt of alters) {

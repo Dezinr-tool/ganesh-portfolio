@@ -26,6 +26,7 @@ const CREATE_SESSIONS = `
     brand_name TEXT,
     project_type TEXT,
     answers JSONB DEFAULT '{}',
+    selected_output_sections JSONB,
     generated_directions JSONB,
     selected_direction TEXT,
     status TEXT DEFAULT 'in_progress',

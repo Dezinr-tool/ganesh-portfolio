@@ -75,6 +75,20 @@ export function iaToMarkdown(output: IaOutput): string {
     ...output.health_score.recommendations.map((r) => `- ${r}`),
   );
 
+  if (output.ux_controversy_recommendations?.length) {
+    lines.push("", "## 8. UX Controversy Recommendations");
+    for (const c of output.ux_controversy_recommendations) {
+      lines.push(
+        `### ${c.title}`,
+        `**Debate:** ${c.debate}`,
+        `**Research:** ${c.research}`,
+        `**Recommendation:** ${c.recommendation}`,
+        `**Rationale:** ${c.rationale}`,
+        "",
+      );
+    }
+  }
+
   return lines.join("\n");
 }
 

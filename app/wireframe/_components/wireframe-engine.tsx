@@ -1,7 +1,6 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import Link from "next/link";
 import { readSseStream } from "@/lib/ai-sse";
 import { PreConfirmationPanel } from "@/app/_components/pre-confirmation-panel";
 import type { PreConfirmation, UserPreConfirmation } from "@/lib/pre-generation-types";
@@ -14,6 +13,7 @@ import { MoodboardComposer } from "@/app/moodboard/_components/moodboard-compose
 import type { MoodboardModelId } from "@/lib/moodboard/types";
 import type { WireframeScreen, WireframeSession } from "@/lib/wireframe/types";
 import { WireframeOutputView } from "./wireframe-output-view";
+import { WireframeNav } from "./wireframe-nav";
 
 type IaScreen = {
   id: string;
@@ -89,7 +89,7 @@ export function WireframeEngine({ iaSessionId }: { iaSessionId: string }) {
       const data = await res.json();
       if (data.session) setSession(data.session);
     },
-    [session?.session_id],
+    [session],
   );
 
   const startGeneration = useCallback(
@@ -180,7 +180,7 @@ export function WireframeEngine({ iaSessionId }: { iaSessionId: string }) {
     iaSessionId,
     screenNotes,
     selectedScreens,
-    session?.project_name,
+    session,
     startGeneration,
   ]);
 
@@ -323,14 +323,9 @@ export function WireframeEngine({ iaSessionId }: { iaSessionId: string }) {
   if (phase === "output" && wireframeScreens.length > 0 && session) {
     return (
       <div className="min-h-screen bg-[#0d0d0d] text-zinc-100">
-        <Link
-          href="/"
-          className="fixed left-4 top-4 z-30 text-sm text-white/80 transition hover:text-white"
-        >
-          designbyganesh
-        </Link>
+        <WireframeNav />
 
-        <div className="mx-auto max-w-[680px] border-b border-white/10 px-4 pb-3 pt-14">
+        <div className="mx-auto max-w-[680px] border-b border-white/10 px-4 pb-3 pt-4">
           <p className="text-sm font-medium text-white">{projectLabel}</p>
           <p className="text-xs text-zinc-500">
             {wireframeScreens.length} wireframe
@@ -351,14 +346,9 @@ export function WireframeEngine({ iaSessionId }: { iaSessionId: string }) {
 
   return (
     <div className="flex min-h-screen flex-col bg-[#0d0d0d] text-zinc-100">
-      <Link
-        href="/"
-        className="fixed left-4 top-4 z-30 text-sm text-white/80 transition hover:text-white"
-      >
-        designbyganesh
-      </Link>
+      <WireframeNav />
 
-      <div className="mx-auto flex w-full max-w-[680px] flex-1 flex-col px-4 pb-6 pt-14">
+      <div className="mx-auto flex w-full max-w-[680px] flex-1 flex-col px-4 pb-6 pt-4">
         <div className="min-h-0 flex-1 overflow-y-auto overscroll-y-contain">
           <MoodboardChatHistory
             messages={messages}

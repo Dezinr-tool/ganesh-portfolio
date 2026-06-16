@@ -175,10 +175,6 @@ export function getCalendarOAuthDebugInfo(
   };
 }
 
-function getRedirectUri(origin?: string): string {
-  return getCalendarOAuthRedirectUri(origin);
-}
-
 export function getAuthUrl(sessionId: string, origin?: string): string {
   const redirectUri = getCalendarOAuthRedirectUri(origin);
   const oauth2Client = createOAuth2Client(origin);
@@ -320,6 +316,12 @@ async function migrateTokensFromFile(
 
     log("loadTokens: migrating legacy file tokens to database", { sessionId });
     await upsertTokens(sessionId, tokens);
+    try {
+      await fs.unlink(TOKEN_PATH);
+      log("loadTokens: removed legacy token file after migration", { path: TOKEN_PATH });
+    } catch {
+      /* file may already be absent */
+    }
     return tokens;
   } catch {
     return null;

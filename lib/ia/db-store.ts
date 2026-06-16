@@ -1,9 +1,26 @@
 import { sql } from "@/lib/db";
-import type { IaOutput, IaSession, IaUserFlow, IaScreenNode } from "./types";
+import type {
+  IaOutput,
+  IaSession,
+  IaUserFlow,
+  IaScreenNode,
+  IaCompetitorAnalysis,
+  IaUxControversyDecision,
+} from "./types";
 
 /** Vercel postgres sql tag typings omit string[]; arrays are valid at runtime. */
 function sqlTextArray(values: string[]) {
   return values as unknown as string;
+}
+
+function parseJsonField<T>(value: unknown, fallback: T): T {
+  if (value === null || value === undefined) return fallback;
+  if (typeof value === "object") return value as T;
+  try {
+    return JSON.parse(String(value)) as T;
+  } catch {
+    return fallback;
+  }
 }
 
 function rowToSession(row: Record<string, unknown>): IaSession {
@@ -22,6 +39,19 @@ function rowToSession(row: Record<string, unknown>): IaSession {
       ? (typeof row.ia_output === "string"
           ? JSON.parse(row.ia_output)
           : row.ia_output) as IaOutput
+      : null,
+    competitor_analysis: row.competitor_analysis
+      ? parseJsonField<IaCompetitorAnalysis>(row.competitor_analysis, null as unknown as IaCompetitorAnalysis)
+      : null,
+    competitor_screenshots: Array.isArray(row.competitor_screenshots)
+      ? (row.competitor_screenshots as string[])
+      : [],
+    ux_controversy_decisions: parseJsonField<Record<string, IaUxControversyDecision>>(
+      row.ux_controversy_decisions,
+      {},
+    ),
+    industry_pattern_used: row.industry_pattern_used
+      ? String(row.industry_pattern_used)
       : null,
     status: (row.status as IaSession["status"]) ?? "in_progress",
     created_at: String(row.created_at),
@@ -62,6 +92,7 @@ export async function updateIaSession(
     client_name: string;
     project_name: string;
     product_type: string;
+    industry_pattern_used: string;
   }>,
 ): Promise<void> {
   const existing = await getIaSession(sessionId);
@@ -73,6 +104,8 @@ export async function updateIaSession(
   const client_name = patch.client_name ?? existing.client_name;
   const project_name = patch.project_name ?? existing.project_name;
   const product_type = patch.product_type ?? existing.product_type;
+  const industry_pattern_used =
+    patch.industry_pattern_used ?? existing.industry_pattern_used;
 
   await sql`
     UPDATE ia_sessions SET
@@ -82,6 +115,38 @@ export async function updateIaSession(
       client_name = ${client_name},
       project_name = ${project_name},
       product_type = ${product_type},
+      industry_pattern_used = ${industry_pattern_used},
+      updated_at = NOW()
+    WHERE session_id = ${sessionId}
+  `;
+}
+
+export async function updateIaSessionExtended(
+  sessionId: string,
+  patch: Partial<{
+    competitor_analysis: IaCompetitorAnalysis;
+    competitor_screenshots: string[];
+    ux_controversy_decisions: Record<string, IaUxControversyDecision>;
+    industry_pattern_used: string;
+  }>,
+): Promise<void> {
+  const existing = await getIaSession(sessionId);
+  if (!existing) return;
+
+  const competitor_analysis = patch.competitor_analysis ?? existing.competitor_analysis;
+  const competitor_screenshots =
+    patch.competitor_screenshots ?? existing.competitor_screenshots;
+  const ux_controversy_decisions =
+    patch.ux_controversy_decisions ?? existing.ux_controversy_decisions;
+  const industry_pattern_used =
+    patch.industry_pattern_used ?? existing.industry_pattern_used;
+
+  await sql`
+    UPDATE ia_sessions SET
+      competitor_analysis = ${competitor_analysis ? JSON.stringify(competitor_analysis) : null}::jsonb,
+      competitor_screenshots = ${sqlTextArray(competitor_screenshots)},
+      ux_controversy_decisions = ${JSON.stringify(ux_controversy_decisions)}::jsonb,
+      industry_pattern_used = ${industry_pattern_used},
       updated_at = NOW()
     WHERE session_id = ${sessionId}
   `;
@@ -115,6 +180,7 @@ function flattenScreens(
 export async function persistIaOutput(
   sessionId: string,
   output: IaOutput,
+  screenMeta?: Record<string, { ux_rationale?: string; controversy_applied?: string }>,
 ): Promise<void> {
   await sql`DELETE FROM ia_user_flows WHERE session_id = ${sessionId}`;
   await sql`DELETE FROM ia_screen_inventory WHERE session_id = ${sessionId}`;
@@ -122,10 +188,12 @@ export async function persistIaOutput(
   const flat = flattenScreens(output.sitemap);
 
   for (const screen of flat) {
+    const meta = screenMeta?.[screen.screen_name];
     await sql`
       INSERT INTO ia_screen_inventory (
         session_id, screen_name, parent_screen_id, level,
-        priority, user_access, primary_content, key_actions, notes
+        priority, user_access, primary_content, key_actions, notes,
+        ux_rationale, controversy_applied
       ) VALUES (
         ${sessionId},
         ${screen.screen_name},
@@ -135,7 +203,9 @@ export async function persistIaOutput(
         ${sqlTextArray(screen.user_access)},
         ${sqlTextArray(screen.primary_content)},
         ${sqlTextArray(screen.key_actions)},
-        ${screen.notes ?? null}
+        ${screen.notes ?? null},
+        ${meta?.ux_rationale ?? null},
+        ${meta?.controversy_applied ?? null}
       )
     `;
   }

@@ -2,13 +2,14 @@
 
 import Link from "next/link";
 import { useCallback, useState } from "react";
-import type { IaOutput } from "@/lib/ia/types";
+import type { IaOutput, IaUxControversy, IaUxControversyDecision } from "@/lib/ia/types";
 import { iaToJsonExport, iaToMarkdown } from "@/lib/ia/markdown";
 import { SitemapTree } from "./sitemap-tree";
 
 type IaOutputViewProps = {
   output: IaOutput;
   sessionId: string;
+  initialDecisions?: Record<string, IaUxControversyDecision>;
 };
 
 function NavGroup({
@@ -35,8 +36,104 @@ function NavGroup({
   );
 }
 
-export function IaOutputView({ output, sessionId }: IaOutputViewProps) {
+function ControversyCard({
+  controversy,
+  decision,
+  onApply,
+  onReject,
+  busy,
+}: {
+  controversy: IaUxControversy;
+  decision?: IaUxControversyDecision;
+  onApply: () => void;
+  onReject: () => void;
+  busy: boolean;
+}) {
+  const applied = decision?.decision === "applied";
+  const rejected = decision?.decision === "rejected";
+
+  return (
+    <div className="rounded-xl border border-zinc-200 bg-white p-5 shadow-sm">
+      <p className="text-xs font-medium uppercase tracking-wider text-orange-600">
+        🔥 {controversy.title}
+      </p>
+      <div className="mt-4 space-y-3 text-sm">
+        <div>
+          <p className="text-xs font-semibold text-zinc-500">The Debate</p>
+          <p className="mt-1 text-zinc-800">{controversy.debate}</p>
+        </div>
+        <div>
+          <p className="text-xs font-semibold text-zinc-500">Research says</p>
+          <p className="mt-1 text-zinc-700">{controversy.research}</p>
+        </div>
+        <div className="rounded-lg bg-emerald-50 px-3 py-2">
+          <p className="text-xs font-semibold text-emerald-800">For YOUR product</p>
+          <p className="mt-1 text-sm font-medium text-emerald-900">{controversy.recommendation}</p>
+          <p className="mt-1 text-xs text-emerald-800/80">{controversy.rationale}</p>
+        </div>
+      </div>
+      <div className="mt-4 flex flex-wrap gap-2">
+        <button
+          type="button"
+          disabled={busy || applied}
+          onClick={onApply}
+          className={`rounded-lg px-4 py-2 text-xs font-medium transition ${
+            applied
+              ? "bg-emerald-600 text-white"
+              : "border border-emerald-200 bg-emerald-50 text-emerald-800 hover:bg-emerald-100"
+          } disabled:opacity-60`}
+        >
+          {applied ? "Applied ✓" : "Apply this recommendation ✓"}
+        </button>
+        <button
+          type="button"
+          disabled={busy || rejected}
+          onClick={onReject}
+          className={`rounded-lg px-4 py-2 text-xs font-medium transition ${
+            rejected
+              ? "bg-zinc-200 text-zinc-600"
+              : "border border-zinc-200 text-zinc-600 hover:bg-zinc-50"
+          } disabled:opacity-60`}
+        >
+          {rejected ? "Rejected" : "Reject"}
+        </button>
+      </div>
+    </div>
+  );
+}
+
+export function IaOutputView({ output, sessionId, initialDecisions = {} }: IaOutputViewProps) {
   const [copied, setCopied] = useState<"md" | "json" | null>(null);
+  const [decisions, setDecisions] =
+    useState<Record<string, IaUxControversyDecision>>(initialDecisions);
+  const [saving, setSaving] = useState(false);
+
+  const controversies = output.ux_controversy_recommendations ?? [];
+
+  const saveDecision = useCallback(
+    async (controversy: IaUxControversy, decision: "applied" | "rejected") => {
+      setSaving(true);
+      const next = {
+        ...decisions,
+        [controversy.id]: {
+          controversy_id: controversy.id,
+          title: controversy.title,
+          decision,
+        },
+      };
+      setDecisions(next);
+      try {
+        await fetch("/api/ia/sessions", {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ sessionId, ux_controversy_decisions: next }),
+        });
+      } finally {
+        setSaving(false);
+      }
+    },
+    [decisions, sessionId],
+  );
 
   const copyMarkdown = useCallback(async () => {
     await navigator.clipboard.writeText(iaToMarkdown(output));
@@ -231,7 +328,7 @@ export function IaOutputView({ output, sessionId }: IaOutputViewProps) {
         </div>
       </section>
 
-      <section className="mt-10 pb-16">
+      <section className="mt-10">
         <h2 className="text-lg font-semibold text-zinc-900">7. IA Health Score</h2>
         <div className="mt-4 rounded-xl border border-zinc-200 p-4">
           <div className="flex items-center gap-6">
@@ -259,6 +356,30 @@ export function IaOutputView({ output, sessionId }: IaOutputViewProps) {
           ) : null}
         </div>
       </section>
+
+      {controversies.length > 0 ? (
+        <section className="mt-10 pb-16">
+          <h2 className="text-lg font-semibold text-zinc-900">8. UX Controversy Recommendations</h2>
+          <p className="mt-2 text-sm text-zinc-600">
+            Evidence-based recommendations for key UX debates relevant to your product. Accepted
+            recommendations will be applied in wireframe generation.
+          </p>
+          <div className="mt-6 space-y-4">
+            {controversies.map((c) => (
+              <ControversyCard
+                key={c.id}
+                controversy={c}
+                decision={decisions[c.id]}
+                busy={saving}
+                onApply={() => void saveDecision(c, "applied")}
+                onReject={() => void saveDecision(c, "rejected")}
+              />
+            ))}
+          </div>
+        </section>
+      ) : (
+        <div className="pb-16" />
+      )}
     </div>
   );
 }

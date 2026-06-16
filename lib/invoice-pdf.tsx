@@ -350,6 +350,7 @@ export function InvoicePdf({
             </View>
             {qrDataUrl ? (
               <View style={{ alignItems: "center", marginLeft: 16 }}>
+                {/* eslint-disable-next-line jsx-a11y/alt-text -- @react-pdf/renderer Image has no alt prop */}
                 <Image
                   src={qrDataUrl}
                   style={{ width: 80, height: 80 }}

@@ -503,7 +503,6 @@ export async function POST(request: NextRequest) {
 
     const sessionId = await resolveEaSessionId(request);
 
-    const userMessagesOnly = getConversationText(history, trimmedUserMessage);
     const isGreeting = isGreetingMessage(trimmedUserMessage);
     const schedulingContext =
       !isGreeting && hasSchedulingIntent(trimmedUserMessage);

@@ -6,7 +6,7 @@ import type { MoodboardQuestion } from "@/lib/moodboard/db-types";
 export const dynamic = "force-dynamic";
 
 function seedFallback(): MoodboardQuestion[] {
-  return MOODBOARD_QUESTION_SEED.map((q, i) => ({
+  return MOODBOARD_QUESTION_SEED.map((q) => ({
     ...q,
     id: `seed-${q.key}`,
     is_active: true,

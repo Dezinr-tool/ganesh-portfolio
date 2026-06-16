@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { readSseStream } from "@/lib/ai-sse";
 import type { MoodboardQuestion } from "@/lib/moodboard/db-types";
@@ -37,6 +37,8 @@ import {
 } from "@/app/moodboard/_components/moodboard-chat-history";
 import { MoodboardComposer } from "@/app/moodboard/_components/moodboard-composer";
 import { IaOutputView } from "./ia-output-view";
+import { IaNav } from "./ia-nav";
+import { readStoredValue, useClientSessionId } from "@/lib/client-storage";
 
 const SESSION_STORAGE_KEY = "ia-session-id";
 const MODEL_STORAGE_KEY = "ia-model-id";
@@ -93,6 +95,7 @@ function usesUpload(question: IaQuestion | null): boolean {
     question.question_type === "open_upload" ||
     question.key === "q3a" ||
     question.key === "q3b" ||
+    question.key === "q7a" ||
     question.key === "q14"
   );
 }
@@ -125,12 +128,21 @@ export function IaEngine() {
   const [generating, setGenerating] = useState(false);
   const [genStatus, setGenStatus] = useState("");
   const [output, setOutput] = useState<IaOutput | null>(null);
-  const [sessionId, setSessionId] = useState("");
-  const [modelId, setModelId] = useState<IaModelId>(DEFAULT_MODEL);
+  const sessionId = useClientSessionId(SESSION_STORAGE_KEY);
+  const [modelId, setModelId] = useState<IaModelId>(() =>
+    readStoredValue(
+      MODEL_STORAGE_KEY,
+      (value): value is IaModelId => VALID_IA_MODELS.has(value as IaModelId),
+      DEFAULT_MODEL,
+    ),
+  );
   const [extras, setExtras] = useState<{ documentExtract?: string }>({});
   const [preConfirmation, setPreConfirmation] = useState<PreConfirmation | null>(null);
   const [showPreConfirm, setShowPreConfirm] = useState(false);
   const [loadingPreConfirm, setLoadingPreConfirm] = useState(false);
+  const [uxControversyDecisions, setUxControversyDecisions] = useState<
+    Record<string, import("@/lib/ia/types").IaUxControversyDecision>
+  >({});
   const [composerText, setComposerText] = useState("");
   const [pendingFiles, setPendingFiles] = useState<File[]>([]);
 
@@ -139,17 +151,10 @@ export function IaEngine() {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const initializedRef = useRef(false);
   const answersRef = useRef(answers);
-  answersRef.current = answers;
 
   useEffect(() => {
-    const stored = localStorage.getItem(MODEL_STORAGE_KEY) as IaModelId | null;
-    if (stored && VALID_IA_MODELS.has(stored)) {
-      setModelId(stored);
-    }
-    const sid = localStorage.getItem(SESSION_STORAGE_KEY) ?? crypto.randomUUID();
-    localStorage.setItem(SESSION_STORAGE_KEY, sid);
-    setSessionId(sid);
-  }, []);
+    answersRef.current = answers;
+  }, [answers]);
 
   useEffect(() => {
     localStorage.setItem(MODEL_STORAGE_KEY, modelId);
@@ -158,11 +163,6 @@ export function IaEngine() {
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, thinking, generating, currentQuestion, showPreConfirm]);
-
-  useEffect(() => {
-    setComposerText("");
-    setPendingFiles([]);
-  }, [currentQuestion?.key]);
 
   const addEaMessage = useCallback((text: string) => {
     setMessages((m) => [...m, { id: uid(), role: "assistant", text }]);
@@ -322,6 +322,38 @@ export function IaEngine() {
     [requestPreConfirmation],
   );
 
+  const analyzeCompetitorScreenshots = useCallback(
+    async (files: File[], nextAnswers: Record<string, unknown>) => {
+      if (!sessionId || !files.length) return;
+      setThinking(true);
+      addEaMessage("Analyzing competitor screenshots…");
+      try {
+        const fd = new FormData();
+        fd.append("sessionId", sessionId);
+        fd.append(
+          "productContext",
+          `${extractProductName(nextAnswers)} — ${extractProductType(nextAnswers)}`,
+        );
+        if (nextAnswers.q7b) {
+          fd.append("differentiateFrom", String(nextAnswers.q7b));
+        }
+        for (const file of files.slice(0, 10)) {
+          fd.append("files", file);
+        }
+        const res = await fetch("/api/ia/analyze-competitors", { method: "POST", body: fd });
+        const data = await res.json();
+        if (data.message) {
+          addEaMessage(data.message);
+        }
+      } catch {
+        addEaMessage("I couldn't analyze the screenshots, but I'll continue with your other answers.");
+      } finally {
+        setThinking(false);
+      }
+    },
+    [addEaMessage, sessionId],
+  );
+
   const processAnswer = useCallback(
     async (value: unknown, options?: { skipArchive?: boolean }) => {
       if (!currentQuestion || busy) return;
@@ -372,6 +404,13 @@ export function IaEngine() {
         void extractDocuments(questionSnapshot.key, value);
       }
 
+      if (questionSnapshot.key === "q7a" && value && typeof value === "object" && "files" in value) {
+        const files = (value as { files: File[] }).files ?? [];
+        if (files.length > 0) {
+          await analyzeCompetitorScreenshots(files, nextAnswers);
+        }
+      }
+
       if (!options?.skipArchive) {
         commitExchange(questionSnapshot.question_text, display);
       }
@@ -384,6 +423,7 @@ export function IaEngine() {
     },
     [
       addEaMessage,
+      analyzeCompetitorScreenshots,
       busy,
       commitExchange,
       currentQuestion,
@@ -445,9 +485,16 @@ export function IaEngine() {
             answers?: Record<string, unknown>;
             ia_output?: IaOutput | null;
             status?: string;
+            ux_controversy_decisions?: Record<
+              string,
+              import("@/lib/ia/types").IaUxControversyDecision
+            >;
           };
           if (session?.answers && Object.keys(session.answers).length > 0) {
             setAnswers(session.answers);
+            if (session.ux_controversy_decisions) {
+              setUxControversyDecisions(session.ux_controversy_decisions);
+            }
             if (session.status === "complete" && session.ia_output) {
               setOutput(session.ia_output);
               initializedRef.current = true;
@@ -508,20 +555,19 @@ export function IaEngine() {
   if (intakeComplete && output) {
     return (
       <div className="min-h-screen bg-[#0d0d0d] text-zinc-100">
-        <Link
-          href="/"
-          className="fixed left-4 top-4 z-30 text-sm text-white/80 transition hover:text-white"
-        >
-          designbyganesh
-        </Link>
+        <IaNav />
 
-        <div className="mx-auto max-w-[680px] border-b border-white/10 px-4 pb-3 pt-14">
+        <div className="mx-auto max-w-[680px] border-b border-white/10 px-4 pb-3 pt-4">
           <p className="text-sm font-medium text-white">{productName}</p>
           <p className="text-xs text-zinc-500">Information architecture</p>
         </div>
 
         <div className="moodboard-output-enter bg-white text-neutral-900">
-          <IaOutputView output={output} sessionId={sessionId} />
+          <IaOutputView
+            output={output}
+            sessionId={sessionId}
+            initialDecisions={uxControversyDecisions}
+          />
         </div>
       </div>
     );
@@ -529,14 +575,9 @@ export function IaEngine() {
 
   return (
     <div className="flex min-h-screen flex-col bg-[#0d0d0d] text-zinc-100">
-      <Link
-        href="/"
-        className="fixed left-4 top-4 z-30 text-sm text-white/80 transition hover:text-white"
-      >
-        designbyganesh
-      </Link>
+      <IaNav />
 
-      <div className="mx-auto flex w-full max-w-[680px] flex-1 flex-col px-4 pb-6 pt-14">
+      <div className="mx-auto flex w-full max-w-[680px] flex-1 flex-col px-4 pb-6 pt-4">
         <div className="min-h-0 flex-1 overflow-y-auto overscroll-y-contain">
           <MoodboardChatHistory
             messages={messages}

@@ -3,7 +3,7 @@ import type { IaQuestion } from "./types";
 export const IA_GREETING =
   "Let's build the information architecture for your product. What are we working on?";
 
-export const IA_OPTIONAL_KEYS = new Set(["q11", "q13", "q14"]);
+export const IA_OPTIONAL_KEYS = new Set(["q7a", "q7b", "q11", "q13", "q14"]);
 export const IA_MULTI_CHIP_KEYS = new Set<string>();
 
 export const IA_QUESTIONS: IaQuestion[] = [
@@ -119,6 +119,30 @@ export const IA_QUESTIONS: IaQuestion[] = [
     order_index: 10,
   },
   {
+    key: "q7a",
+    question_text:
+      "Do you have screenshots of competitor products or apps you'd like me to analyze? (Up to 10 images)",
+    question_type: "upload",
+    parent_key: null,
+    follow_up_condition: null,
+    chips_options: null,
+    category: "understand",
+    order_index: 11,
+    is_optional: true,
+  },
+  {
+    key: "q7b",
+    question_text:
+      "Are there any competitor products you want to be specifically different from?",
+    question_type: "open",
+    parent_key: null,
+    follow_up_condition: null,
+    chips_options: null,
+    category: "understand",
+    order_index: 12,
+    is_optional: true,
+  },
+  {
     key: "q8",
     question_text: "Roughly how much content/features does this product have?",
     question_type: "chips",
@@ -131,7 +155,7 @@ export const IA_QUESTIONS: IaQuestion[] = [
       "Very complex (50+ screens)",
     ],
     category: "content",
-    order_index: 11,
+    order_index: 13,
   },
   {
     key: "q9",
@@ -141,7 +165,7 @@ export const IA_QUESTIONS: IaQuestion[] = [
     follow_up_condition: null,
     chips_options: ["Yes — core feature", "Yes — but secondary", "No — public only"],
     category: "content",
-    order_index: 12,
+    order_index: 14,
   },
   {
     key: "q10",
@@ -156,7 +180,7 @@ export const IA_QUESTIONS: IaQuestion[] = [
       "No — same for everyone",
     ],
     category: "content",
-    order_index: 13,
+    order_index: 15,
   },
   {
     key: "q11",
@@ -167,7 +191,7 @@ export const IA_QUESTIONS: IaQuestion[] = [
     follow_up_condition: null,
     chips_options: null,
     category: "content",
-    order_index: 14,
+    order_index: 16,
     is_optional: true,
   },
   {
@@ -179,7 +203,7 @@ export const IA_QUESTIONS: IaQuestion[] = [
     follow_up_condition: null,
     chips_options: null,
     category: "goals",
-    order_index: 15,
+    order_index: 17,
   },
   {
     key: "q13",
@@ -190,7 +214,7 @@ export const IA_QUESTIONS: IaQuestion[] = [
     follow_up_condition: null,
     chips_options: null,
     category: "goals",
-    order_index: 16,
+    order_index: 18,
     is_optional: true,
   },
   {
@@ -202,7 +226,7 @@ export const IA_QUESTIONS: IaQuestion[] = [
     follow_up_condition: null,
     chips_options: null,
     category: "goals",
-    order_index: 17,
+    order_index: 19,
     is_optional: true,
   },
 ];

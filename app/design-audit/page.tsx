@@ -4,13 +4,12 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { DesignAuditNav } from "./_components/design-audit-nav";
 import {
   EA_BTN_PRIMARY,
-  EA_BTN_SECONDARY,
   EA_CARD_PADDED,
   EA_INPUT,
   EA_TAB_ACTIVE,
   EA_TAB_INACTIVE,
 } from "@/app/ea/_components/ea-ui";
-import { AUDIT_MODELS } from "@/lib/design-audit/models";
+import { AUDIT_MODELS, isValidAuditModelId } from "@/lib/design-audit/models";
 import { auditToMarkdown } from "@/lib/design-audit/markdown";
 import type {
   AuditContext,
@@ -22,8 +21,10 @@ import type {
 import { AuditReportView } from "./_components/audit-report";
 import { readSseStream } from "@/lib/ai-sse";
 import { ContextWizard, ImageDropZone } from "./_components/input-wizard";
+import { AuditModelConfirmLine } from "./_components/audit-model-selector";
 import { PreConfirmationPanel } from "@/app/_components/pre-confirmation-panel";
 import type { PreConfirmation, UserPreConfirmation } from "@/lib/pre-generation-types";
+import { readStoredValue } from "@/lib/client-storage";
 
 const TABS: { id: AuditInputMode; label: string }[] = [
   { id: "figma", label: "Figma Link" },
@@ -34,12 +35,16 @@ const TABS: { id: AuditInputMode; label: string }[] = [
 const DEFAULT_MODEL =
   AUDIT_MODELS.find((m) => m.recommended)?.id ?? "claude-sonnet";
 
+const MODEL_STORAGE_KEY = "design-audit-model-id";
+
 const inputClass = EA_INPUT;
 
 export default function DesignAuditPage() {
   const [inputMode, setInputMode] = useState<AuditInputMode>("website");
   const [phase, setPhase] = useState<"input" | "context" | "confirm" | "report">("input");
-  const [modelId, setModelId] = useState<AuditModelId>(DEFAULT_MODEL);
+  const [modelId, setModelId] = useState<AuditModelId>(() =>
+    readStoredValue(MODEL_STORAGE_KEY, isValidAuditModelId, DEFAULT_MODEL),
+  );
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
@@ -64,6 +69,10 @@ export default function DesignAuditPage() {
   const [preConfirmation, setPreConfirmation] = useState<PreConfirmation | null>(null);
   const [loadingPreConfirm, setLoadingPreConfirm] = useState(false);
   const inputCache = useRef<Map<string, { meta: Record<string, unknown>; images: AuditImage[]; previewUrl: string | null }>>(new Map());
+
+  useEffect(() => {
+    localStorage.setItem(MODEL_STORAGE_KEY, modelId);
+  }, [modelId]);
 
   useEffect(() => {
     void (async () => {
@@ -460,32 +469,9 @@ export default function DesignAuditPage() {
                     onChange={(patch) => setContext({ ...context, ...patch })}
                     onComplete={requestPreConfirmation}
                     loading={loading || loadingPreConfirm}
+                    modelId={modelId}
+                    onModelChange={setModelId}
                   />
-
-                  <div>
-                    <label className="mb-2 block text-xs uppercase tracking-wider text-zinc-500">
-                      AI model
-                    </label>
-                    <select
-                      value={modelId}
-                      onChange={(e) => setModelId(e.target.value as AuditModelId)}
-                      className={inputClass}
-                    >
-                      {AUDIT_MODELS.map((m) => (
-                        <option key={m.id} value={m.id}>
-                          {m.label}
-                          {m.recommended ? " ← default" : ""}
-                          {" · ~"}
-                          {m.estimatedSeconds}s
-                        </option>
-                      ))}
-                    </select>
-                    <p className="mt-1.5 text-xs text-zinc-500">
-                      Estimated audit time: ~
-                      {AUDIT_MODELS.find((m) => m.id === modelId)?.estimatedSeconds ?? 50}{" "}
-                      seconds
-                    </p>
-                  </div>
 
                   <button
                     type="button"
@@ -509,6 +495,11 @@ export default function DesignAuditPage() {
                   />
                 ) : null}
                 <div className={`${EA_CARD_PADDED}`}>
+                  <AuditModelConfirmLine
+                    modelId={modelId}
+                    onModelChange={setModelId}
+                    disabled={loading}
+                  />
                   <p className="mb-4 text-sm text-zinc-400">
                     Before I generate, let me share what I&apos;m planning to use and check a few
                     things with you.

@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useCallback, useRef, useState } from "react";
 import Link from "next/link";
+import { IaNav } from "../_components/ia-nav";
 
 export default function IaUploadPage() {
   const router = useRouter();
@@ -42,14 +43,9 @@ export default function IaUploadPage() {
 
   return (
     <div className="flex min-h-screen flex-col bg-[#0d0d0d] text-zinc-100">
-      <Link
-        href="/ia"
-        className="fixed left-4 top-4 z-30 text-sm text-white/80 transition hover:text-white"
-      >
-        ← Back to IA chat
-      </Link>
+      <IaNav />
 
-      <div className="mx-auto flex w-full max-w-[680px] flex-1 flex-col items-center justify-center px-4 py-20">
+      <div className="mx-auto flex w-full max-w-[680px] flex-1 flex-col items-center justify-center px-4 py-12">
         <h1 className="text-xl font-medium text-white">Upload existing IA</h1>
         <p className="mt-2 max-w-md text-center text-sm text-zinc-500">
           Upload a PDF, DOCX, TXT, JSON, or image file. We&apos;ll extract the structure and
@@ -84,6 +80,10 @@ export default function IaUploadPage() {
         {error ? (
           <p className="mt-4 text-sm text-red-400">{error}</p>
         ) : null}
+
+        <Link href="/ia" className="mt-8 text-sm text-zinc-500 transition hover:text-zinc-300">
+          ← Back to IA session
+        </Link>
       </div>
     </div>
   );

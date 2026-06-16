@@ -4,6 +4,7 @@ import {
   createIaSession,
   getIaSession,
   updateIaSession,
+  updateIaSessionExtended,
 } from "@/lib/ia/db-store";
 import {
   extractClientName,
@@ -55,6 +56,11 @@ export async function PATCH(request: NextRequest) {
       return NextResponse.json({ error: "sessionId required." }, { status: 400 });
     }
 
+    const existing = await getIaSession(sessionId);
+    if (!existing) {
+      return NextResponse.json({ error: "Session not found." }, { status: 404 });
+    }
+
     const answers = body.answers as Record<string, unknown> | undefined;
     const patch: Parameters<typeof updateIaSession>[1] = {};
 
@@ -71,12 +77,19 @@ export async function PATCH(request: NextRequest) {
       patch.status = body.status;
     }
 
-    const existing = await getIaSession(sessionId);
-    if (!existing) {
-      return NextResponse.json({ error: "Session not found." }, { status: 404 });
+    if (body.ux_controversy_decisions) {
+      await updateIaSessionExtended(sessionId, {
+        ux_controversy_decisions: body.ux_controversy_decisions,
+      });
     }
 
-    await updateIaSession(sessionId, patch);
+    const hasCorePatch = Object.keys(patch).length > 0;
+    if (hasCorePatch) {
+      await updateIaSession(sessionId, patch);
+    } else if (!body.ux_controversy_decisions) {
+      return NextResponse.json({ error: "No updates provided." }, { status: 400 });
+    }
+
     const session = await getIaSession(sessionId);
     return NextResponse.json({ session });
   } catch (error) {

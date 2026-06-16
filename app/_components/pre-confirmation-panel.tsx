@@ -141,6 +141,30 @@ export function PreConfirmationPanel({
         </div>
       </div>
 
+      {preConfirmation.ia_preview ? (
+        <div
+          className={`rounded-lg p-3 ${inline ? "bg-white/[0.03]" : "border border-zinc-800 bg-black/40"}`}
+        >
+          <p className="text-xs font-medium text-zinc-400">IA approach</p>
+          <dl className="mt-2 space-y-1.5 text-sm text-zinc-300">
+            <div>
+              <dt className="inline text-zinc-500">Industry pattern: </dt>
+              <dd className="inline">{preConfirmation.ia_preview.industry_pattern}</dd>
+            </div>
+            <div>
+              <dt className="inline text-zinc-500">Navigation: </dt>
+              <dd className="inline">{preConfirmation.ia_preview.navigation_pattern}</dd>
+            </div>
+          </dl>
+          <p className="mt-2 text-xs text-zinc-500">UX controversies to address:</p>
+          <ul className="mt-1 list-inside list-disc text-xs text-zinc-400">
+            {preConfirmation.ia_preview.controversies_to_address.map((c) => (
+              <li key={c}>{c}</li>
+            ))}
+          </ul>
+        </div>
+      ) : null}
+
       {preConfirmation.meeting_observations.length > 0 ? (
         <div>
           <p className="text-xs font-medium text-zinc-400">

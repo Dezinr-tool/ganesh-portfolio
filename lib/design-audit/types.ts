@@ -3,7 +3,7 @@ export type AuditInputMode = "figma" | "website" | "screenshot";
 export type AuditModelId =
   | "claude-haiku"
   | "claude-sonnet"
-  | "claude-nano"
+  | "claude-opus"
   | "gpt-4o"
   | "gemini-pro";
 

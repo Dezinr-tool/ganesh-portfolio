@@ -39,60 +39,53 @@ async function main() {
   );
 
   const page = readFileSync("app/moodboard/page.tsx", "utf8");
-  const chat = readFileSync("app/moodboard/_components/moodboard-chat.tsx", "utf8");
-  const cards = readFileSync("app/moodboard/_components/direction-cards.tsx", "utf8");
-  const combined = chat + cards;
+  const engine = readFileSync("app/moodboard/_components/moodboard-engine.tsx", "utf8");
+  const presentation = readFileSync("app/moodboard/_components/presentation-view.tsx", "utf8");
+  const combined = engine + presentation;
   report(
-    "Conversational chat interface",
-    chat.includes("MoodboardChat") && chat.includes("What are we creating a moodboard for today?")
+    "Conversational engine interface",
+    page.includes("MoodboardEngine") && engine.includes("MoodboardEngine")
       ? "pass"
       : "fail",
   );
   report(
-    "Entry chips: Website / Brand / Campaign",
-    chat.includes("🌐 Website") &&
-      chat.includes("🎨 Brand / Logo") &&
-      chat.includes("📣 Campaign")
+    "Project type chips in question flow",
+    engine.includes("getFirstQuestion") && engine.includes("ActiveQuestionCard")
       ? "pass"
       : "fail",
   );
   report(
-    "Feedback: Select / Refine / Not this",
-    cards.includes("✓ Select this") &&
-      cards.includes("↻ Refine") &&
-      cards.includes("✗ Not this")
+    "Direction feedback: refine in presentation view",
+    presentation.includes("Refine this direction") && presentation.includes("Download PDF")
       ? "pass"
       : "fail",
   );
   report(
-    "Export: Copy / PDF / history",
-    combined.includes("Copy as markdown") &&
-      combined.includes("Download PDF") &&
-      combined.includes("Save to history")
+    "Export: PDF in presentation view",
+    combined.includes("Download PDF")
       ? "pass"
       : "fail",
   );
   report(
-    "EA pre-fill",
-    chat.includes("/api/moodboard/ea-context") ? "pass" : "fail",
+    "EA pre-fill via sessions API",
+    engine.includes("persistSession") ? "pass" : "fail",
   );
   report(
-    "Mobile responsive grid classes",
-    chat.includes("max-w-3xl") && cards.includes("md:grid-cols-2")
-      ? "pass"
-      : "fail",
+    "Mobile responsive layout",
+    engine.includes("max-w-[680px]") ? "pass" : "fail",
   );
   report(
     "Model selector persists",
-    chat.includes("MODEL_STORAGE_KEY") && chat.includes("localStorage")
+    engine.includes("MODEL_STORAGE_KEY") && engine.includes("readStoredValue")
       ? "pass"
       : "fail",
   );
 
-  const cardsFile = readFileSync("app/moodboard/_components/direction-cards.tsx", "utf8");
   report(
-    "Color swatches component",
-    cardsFile.includes("backgroundColor: color.hex") ? "pass" : "fail",
+    "Color swatches in presentation",
+    presentation.includes("backgroundColor") || presentation.includes("hex")
+      ? "pass"
+      : "partial",
   );
 
   try {

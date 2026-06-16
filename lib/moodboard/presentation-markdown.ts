@@ -1,58 +1,61 @@
 import type { MoodboardPresentationDirection } from "./db-types";
+import { SECTION_GENERATION_SPEC } from "./output-sections";
+
+function hasSection(sections: string[], key: string) {
+  return sections.length === 0 || sections.includes(key);
+}
 
 export function presentationToMarkdown(
   directions: MoodboardPresentationDirection[],
   brandName: string,
+  selectedSections: string[] = [],
 ): string {
   const sections = directions.map((dir) => {
-    const palette = dir.colorPalette
-      .map((c) => `- **${c.role}** — ${c.name} (${c.hex})`)
-      .join("\n");
+    const active = dir.selectedSections ?? selectedSections;
+    const parts: string[] = [`## ${dir.directionName}\n\n> ${dir.tagline}\n`];
 
-    const painPoints = dir.persona.painPoints.map((p) => `- ${p}`).join("\n");
-    const principles = dir.uiSection.principles.map((p) => `- ${p}`).join("\n");
+    if (hasSection(active, "persona") && dir.persona) {
+      parts.push(`### Persona — ${dir.persona.name}\n${dir.persona.description}\n`);
+    }
+    if (hasSection(active, "color_palette") && dir.colorPalette) {
+      const palette = dir.colorPalette
+        .map((c) => `- **${c.role}** — ${c.name} (${c.hex})`)
+        .join("\n");
+      parts.push(`### Color Palette\n${palette}\n`);
+    }
+    if (hasSection(active, "typography") && dir.typography) {
+      parts.push(
+        `### Typography\n- **Heading:** ${dir.typography.heading.font}\n- **Body:** ${dir.typography.body.font}\n`,
+      );
+    }
+    if (hasSection(active, "ui_references") && dir.uiSection) {
+      parts.push(`### UI References\n${dir.uiSection.description}\n`);
+    }
+    if (hasSection(active, "illustration_style") && dir.illustrations) {
+      parts.push(`### Illustrations\n${dir.illustrations.styleDescription}\n`);
+    }
+    if (hasSection(active, "brand_voice") && dir.brandVoice) {
+      parts.push(`### Brand Voice\n${dir.brandVoice.toneDescription}\n`);
+    }
+    if (hasSection(active, "dos_donts") && dir.dosDonts) {
+      parts.push(
+        `### Do's & Don'ts\n**Do:** ${dir.dosDonts.dos.join("; ")}\n**Don't:** ${dir.dosDonts.donts.join("; ")}\n`,
+      );
+    }
 
-    return `## ${dir.directionName}
+    if (dir.moodKeywords?.length) {
+      parts.push(`**Mood:** ${dir.moodKeywords.join(", ")}\n`);
+    }
 
-> ${dir.tagline}
-
-### Persona — ${dir.persona.name}
-${dir.persona.description}
-
-- **Age:** ${dir.persona.age}
-- **Occupation:** ${dir.persona.occupation}
-- **City:** ${dir.persona.cityTier}
-- **Financials:** ${dir.persona.financials}
-
-**Pain points:**
-${painPoints}
-
-**Brand strategy:** ${dir.persona.brandStrategy}
-
-**Tone of voice:** ${dir.persona.toneOfVoice}
-*"${dir.persona.toneExample}"*
-
-### UI References
-${dir.uiSection.description}
-
-${principles}
-
-### Illustrations
-${dir.illustrations.styleDescription}
-
-### Typography
-- **Heading:** ${dir.typography.heading.font} — ${dir.typography.heading.rationale}
-- **Body:** ${dir.typography.body.font} — ${dir.typography.body.rationale}
-
-### Color Palette
-${palette}
-
-**Mood keywords:** ${dir.moodKeywords.join(", ")}
-`;
+    return parts.join("\n");
   });
+
+  const sectionLabels = selectedSections
+    .map((k) => SECTION_GENERATION_SPEC[k]?.title ?? k)
+    .join(", ");
 
   return `# Moodboard — ${brandName}
 
-${sections.join("\n---\n\n")}
+${sectionLabels ? `**Sections:** ${sectionLabels}\n\n` : ""}${sections.join("\n---\n\n")}
 `;
 }

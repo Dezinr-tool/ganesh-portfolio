@@ -72,6 +72,10 @@ export async function PATCH(request: NextRequest) {
       patch.status = body.status;
     }
 
+    if (body.selected_output_sections) {
+      patch.selected_output_sections = body.selected_output_sections;
+    }
+
     const session = await updateSession(sessionId, patch);
     if (!session) {
       return NextResponse.json({ error: "Session not found." }, { status: 404 });

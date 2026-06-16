@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import type { MoodboardQuestion } from "@/lib/moodboard/db-types";
 import { QuestionInput, ChatBubble } from "../../_components/question-input";
 
@@ -10,17 +10,19 @@ export function AdminEditor() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState<string | null>(null);
 
-  const load = useCallback(async () => {
-    setLoading(true);
-    const res = await fetch("/api/moodboard/admin/questions");
-    const data = await res.json();
-    setQuestions(data.questions ?? []);
-    setLoading(false);
-  }, []);
-
   useEffect(() => {
-    load();
-  }, [load]);
+    let cancelled = false;
+    void (async () => {
+      const res = await fetch("/api/moodboard/admin/questions");
+      if (cancelled) return;
+      const data = await res.json();
+      setQuestions(data.questions ?? []);
+      setLoading(false);
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const saveQuestion = async (id: string, patch: Partial<MoodboardQuestion>) => {
     setSaving(id);
@@ -152,7 +154,7 @@ export function AdminEditor() {
                 }
                 className="rounded border border-zinc-800 bg-zinc-950 px-2 py-1"
               >
-                {["open", "chips", "upload", "url", "skip"].map((t) => (
+                {["open", "chips", "upload", "url", "skip", "multi_section_select"].map((t) => (
                   <option key={t} value={t}>
                     {t}
                   </option>
@@ -175,7 +177,7 @@ export function AdminEditor() {
 
             {q.question_type === "chips" ? (
               <textarea
-                defaultValue={(q.chips_options ?? []).join("\n")}
+                defaultValue={(q.chips_options as string[] ?? []).join("\n")}
                 rows={3}
                 placeholder="One chip per line"
                 onBlur={(e) => {
@@ -183,6 +185,23 @@ export function AdminEditor() {
                   saveQuestion(q.id, { chips_options: opts });
                 }}
                 className="mt-2 w-full rounded-md border border-zinc-800 bg-zinc-950 px-3 py-2 text-xs outline-none"
+              />
+            ) : null}
+
+            {q.question_type === "multi_section_select" ? (
+              <textarea
+                defaultValue={JSON.stringify(q.chips_options ?? [], null, 2)}
+                rows={8}
+                placeholder='[{"key":"color_palette","label":"Color Palette","group":"VISUAL FOUNDATION"}]'
+                onBlur={(e) => {
+                  try {
+                    const opts = JSON.parse(e.target.value);
+                    if (Array.isArray(opts)) saveQuestion(q.id, { chips_options: opts });
+                  } catch {
+                    /* invalid JSON */
+                  }
+                }}
+                className="mt-2 w-full rounded-md border border-zinc-800 bg-zinc-950 px-3 py-2 font-mono text-xs outline-none"
               />
             ) : null}
           </div>

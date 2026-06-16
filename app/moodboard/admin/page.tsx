@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { MoodboardNav } from "../_components/moodboard-nav";
 import { AdminEditor } from "./_components/admin-editor";
 
@@ -9,14 +9,15 @@ export default function MoodboardAdminPage() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
 
-  const checkAuth = useCallback(async () => {
-    const res = await fetch("/api/moodboard/admin/questions");
-    setAuthed(res.ok);
-  }, []);
-
   useEffect(() => {
-    checkAuth();
-  }, [checkAuth]);
+    let cancelled = false;
+    void fetch("/api/moodboard/admin/questions").then((res) => {
+      if (!cancelled) setAuthed(res.ok);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();

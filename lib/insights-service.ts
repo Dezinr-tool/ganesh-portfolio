@@ -82,18 +82,6 @@ function avgSentiment(memories: Memory[]): number | null {
   return Math.round((sum / scored.length) * 100) / 100;
 }
 
-function uniqueClients(memories: Memory[]): string[] {
-  const set = new Set<string>();
-  for (const m of memories) {
-    if (m.clientName?.trim()) set.add(m.clientName.trim());
-    if (m.category === "client" && m.content) {
-      const match = m.content.match(/\bclient\s+([A-Z][a-zA-Z0-9]+)/i);
-      if (match?.[1]) set.add(match[1]);
-    }
-  }
-  return [...set];
-}
-
 function buildWeeklySummary(
   weekMemories: Memory[],
   stats: WeeklyInsights["stats"],

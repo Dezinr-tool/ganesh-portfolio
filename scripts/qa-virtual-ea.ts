@@ -18,13 +18,11 @@ import {
   countPendingFollowUps,
   createFollowUp,
   getFollowUpById,
-  listFollowUps,
   updateFollowUp,
 } from "../lib/followups-store";
 import { parseAttendeesFromMeeting } from "../lib/followup-generator";
 import type { EAMeeting } from "../lib/meetings-store";
 import { createUser, verifyUser, getUserByEmail } from "../lib/auth-service";
-import { createSession } from "../lib/session-service";
 import { randomUUID } from "crypto";
 
 type Result = "pass" | "fail" | "partial";

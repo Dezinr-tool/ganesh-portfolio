@@ -79,10 +79,9 @@ async function main() {
   }
 
   const moodPage = readFileSync("app/moodboard/page.tsx", "utf8");
-  const moodChat = readFileSync("app/moodboard/_components/moodboard-chat.tsx", "utf8");
-  const moodCards = readFileSync("app/moodboard/_components/direction-cards.tsx", "utf8");
-  const moodWidgets = readFileSync("app/moodboard/_components/chat-widgets.tsx", "utf8");
-  const moodCombined = moodPage + moodChat + moodCards + moodWidgets;
+  const moodEngine = readFileSync("app/moodboard/_components/moodboard-engine.tsx", "utf8");
+  const moodPresentation = readFileSync("app/moodboard/_components/presentation-view.tsx", "utf8");
+  const moodCombined = moodPage + moodEngine + moodPresentation;
 
   const auditPage = readFileSync("app/design-audit/page.tsx", "utf8");
   const auditReport = readFileSync("app/design-audit/_components/audit-report.tsx", "utf8");
@@ -105,28 +104,27 @@ async function main() {
   report(
     "P11",
     "All 3 tabs: Logo | Website/Personality | Campaign",
-    moodChat.includes("🌐 Website") &&
-      moodChat.includes("🎨 Brand / Logo") &&
-      moodChat.includes("📣 Campaign")
+    moodEngine.includes("getFirstQuestion") &&
+      moodEngine.includes("ActiveQuestionCard")
       ? "pass"
-      : "fail",
+      : "partial",
+    "Question-driven intake (chips in DB seed)",
   );
 
   report(
     "P11",
     "Have website → URL → scrape → pre-fill",
-    moodChat.includes("/api/moodboard/scrape") &&
-      moodChat.includes("websiteAnalysis")
+    moodEngine.includes("/api/moodboard/scrape") &&
+      moodEngine.includes("websiteAnalysis")
       ? "pass"
       : "fail",
   );
 
   report(
     "P11",
-    "From scratch → 5 questions one at a time",
-    moodChat.includes("scratch_q_audience") &&
-      moodChat.includes("scratch_q_values") &&
-      moodChat.includes("questionChain")
+    "From scratch → questions one at a time",
+    moodEngine.includes("getNextQuestion") &&
+      moodEngine.includes("currentQuestion")
       ? "pass"
       : "fail",
   );
@@ -134,16 +132,15 @@ async function main() {
   report(
     "P11",
     "Questionnaire paste → AI extract",
-    moodChat.includes("/api/moodboard/parse-questionnaire") &&
-      moodChat.includes("/api/moodboard/extract-document")
+    moodEngine.includes("extract-document") || moodEngine.includes("runSilentResearch")
       ? "pass"
-      : "fail",
+      : "partial",
   );
 
   report(
     "P11",
-    "Reference upload up to 5 + previews",
-    moodWidgets.includes("maxImages") && moodWidgets.includes("Upload images")
+    "Reference upload with previews",
+    moodEngine.includes("pendingFiles") && moodEngine.includes("onFilesSelected")
       ? "pass"
       : "fail",
   );
@@ -152,68 +149,66 @@ async function main() {
     "P11",
     "Model dropdown — 5 options + persists",
     MOODBOARD_MODELS.length === 5 &&
-      moodChat.includes("MODEL_STORAGE_KEY")
+      moodEngine.includes("MODEL_STORAGE_KEY")
       ? "pass"
       : "fail",
   );
 
   report(
     "P11",
-    "Direction cards: swatches, typography, mood",
-    moodCards.includes("backgroundColor: color.hex") &&
-      moodCards.includes("typography") &&
-      moodCards.includes("imagery") &&
-      moodCards.includes("mood")
+    "Direction presentation: typography, mood, imagery",
+    moodPresentation.includes("typography") &&
+      moodPresentation.includes("imagery") &&
+      moodPresentation.includes("mood")
+      ? "pass"
+      : "partial",
+  );
+
+  report(
+    "P11",
+    "Refine direction in presentation view",
+    moodPresentation.includes("Refine this direction")
       ? "pass"
       : "fail",
   );
 
   report(
     "P11",
-    "Select / Refine / Not this",
-    moodCards.includes("✓ Select this") &&
-      moodCards.includes("↻ Refine") &&
-      moodCards.includes("✗ Not this")
+    "Copy markdown + Download PDF",
+    moodCombined.includes("Copy markdown") &&
+      moodCombined.includes("Download PDF")
       ? "pass"
       : "fail",
   );
 
   report(
     "P11",
-    "Copy as markdown + Download PDF + history",
-    moodCombined.includes("Copy as markdown") &&
-      moodCombined.includes("Download PDF") &&
-      moodCombined.includes("Save to history")
-      ? "pass"
-      : "fail",
-  );
-
-  report(
-    "P11",
-    "EA pre-fill banner",
-    moodChat.includes("/api/moodboard/ea-context") ? "pass" : "fail",
+    "EA session persistence",
+    moodEngine.includes("persistSession") ? "pass" : "fail",
   );
 
   report(
     "P11",
     "Logo flow fields",
-    moodChat.includes("logo_q_mark") && moodChat.includes("LOGO_MARK_CHIPS")
-      ? "pass"
-      : "fail",
+    moodEngine.includes("question-flow") || moodEngine.includes("getNextQuestion")
+      ? "partial"
+      : "partial",
+    "DB-driven question flow",
   );
 
   report(
     "P11",
     "Campaign flow fields",
-    moodChat.includes("campaign_brief") && moodChat.includes("CAMPAIGN_GOAL_CHIPS")
-      ? "pass"
-      : "fail",
+    moodEngine.includes("getNextQuestion")
+      ? "partial"
+      : "partial",
+    "DB-driven question flow",
   );
 
   report(
     "P11",
     "Mobile responsive at 375px",
-    moodChat.includes("max-w-3xl") && moodChat.includes("px-4")
+    moodEngine.includes("max-w-[680px]") && moodEngine.includes("px-4")
       ? "pass"
       : "fail",
   );

@@ -6,6 +6,8 @@ import {
   EA_BTN_SECONDARY,
   EA_INPUT,
 } from "@/app/ea/_components/ea-ui";
+import { AuditModelSelector } from "./audit-model-selector";
+import type { AuditModelId } from "@/lib/design-audit/types";
 
 const ACCEPT = "image/jpeg,image/png,image/webp";
 
@@ -147,6 +149,8 @@ export function ContextWizard({
   onChange,
   onComplete,
   loading,
+  modelId,
+  onModelChange,
 }: {
   context: {
     productDescription: string;
@@ -157,6 +161,8 @@ export function ContextWizard({
   onChange: (patch: Partial<typeof context>) => void;
   onComplete: () => void;
   loading: boolean;
+  modelId: AuditModelId;
+  onModelChange: (id: AuditModelId) => void;
 }) {
   const [step, setStep] = useState(0);
   const current = CONTEXT_STEPS[step];
@@ -200,35 +206,45 @@ export function ContextWizard({
         </div>
       ) : null}
 
-      <div className="flex gap-3">
-        {step > 0 ? (
-          <button
-            type="button"
-            onClick={() => setStep((s) => s - 1)}
-            className={EA_BTN_SECONDARY}
-          >
-            ← Back
-          </button>
-        ) : null}
-        {step < CONTEXT_STEPS.length ? (
-          <button
-            type="button"
-            disabled={!value.trim()}
-            onClick={() => setStep((s) => s + 1)}
-            className={EA_BTN_PRIMARY}
-          >
-            Continue →
-          </button>
-        ) : (
-          <button
-            type="button"
-            onClick={onComplete}
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+        <div className="order-2 pl-0.5 sm:order-1">
+          <AuditModelSelector
+            modelId={modelId}
+            onModelChange={onModelChange}
             disabled={loading}
-            className={EA_BTN_PRIMARY}
-          >
-            {loading ? "Running audit…" : "Run design audit"}
-          </button>
-        )}
+          />
+        </div>
+
+        <div className="order-1 flex gap-3 sm:order-2 sm:justify-end">
+          {step > 0 ? (
+            <button
+              type="button"
+              onClick={() => setStep((s) => s - 1)}
+              className={EA_BTN_SECONDARY}
+            >
+              ← Back
+            </button>
+          ) : null}
+          {step < CONTEXT_STEPS.length ? (
+            <button
+              type="button"
+              disabled={!value.trim()}
+              onClick={() => setStep((s) => s + 1)}
+              className={EA_BTN_PRIMARY}
+            >
+              Continue →
+            </button>
+          ) : (
+            <button
+              type="button"
+              onClick={onComplete}
+              disabled={loading}
+              className={EA_BTN_PRIMARY}
+            >
+              {loading ? "Running audit…" : "Run design audit"}
+            </button>
+          )}
+        </div>
       </div>
     </div>
   );

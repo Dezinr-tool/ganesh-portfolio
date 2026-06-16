@@ -1,21 +1,23 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { KnowledgeAdminPanel } from "./_components/knowledge-admin-panel";
+import { DesignToolNav } from "@/app/_components/design-tool-nav";
 
 export default function KnowledgeAdminPage() {
   const [authed, setAuthed] = useState<boolean | null>(null);
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
 
-  const checkAuth = useCallback(async () => {
-    const res = await fetch("/api/knowledge/list");
-    setAuthed(res.ok);
-  }, []);
-
   useEffect(() => {
-    checkAuth();
-  }, [checkAuth]);
+    let cancelled = false;
+    void fetch("/api/knowledge/list").then((res) => {
+      if (!cancelled) setAuthed(res.ok);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -35,17 +37,13 @@ export default function KnowledgeAdminPage() {
 
   return (
     <div className="min-h-screen bg-[#0d0d0d] text-zinc-100">
-      <header className="border-b border-zinc-800 px-4 py-4">
-        <div className="mx-auto flex max-w-7xl items-center justify-between">
-          <div>
-            <p className="text-xs uppercase tracking-wider text-zinc-500">Internal</p>
-            <h1 className="text-lg font-medium">UX & Design Knowledge Base</h1>
-          </div>
-          <a href="/" className="text-sm text-zinc-400 hover:text-white">
-            ← Home
-          </a>
-        </div>
-      </header>
+      <DesignToolNav
+        title="Knowledge Admin"
+        links={[
+          { href: "/tools", label: "All Tools" },
+          { href: "/knowledge-admin", label: "Admin", match: "exact" },
+        ]}
+      />
 
       {authed === null ? (
         <p className="py-20 text-center text-sm text-zinc-500">Loading…</p>

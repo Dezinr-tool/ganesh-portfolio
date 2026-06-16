@@ -16,12 +16,15 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Direction and refine note required." }, { status: 400 });
     }
 
+    const selectedOutputSections = (body.selectedOutputSections ?? direction.selectedSections ?? []) as string[];
+
     const refined = await refinePresentationDirection({
       answers,
       modelId,
       direction,
       refineNote,
       extras,
+      selectedOutputSections,
     });
 
     return NextResponse.json({ direction: refined });

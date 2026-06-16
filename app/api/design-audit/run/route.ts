@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { randomUUID } from "crypto";
 import { resolveEaSessionId } from "@/lib/ea-api-auth";
+import { isValidAuditModelId } from "@/lib/design-audit/models";
 import {
   buildAuditCacheKey,
   runDesignAudit,
@@ -21,6 +22,11 @@ export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
     const modelId = (body.modelId ?? "claude-sonnet") as AuditModelId;
+
+    if (!isValidAuditModelId(modelId)) {
+      return NextResponse.json({ error: "Invalid model." }, { status: 400 });
+    }
+
     const inputMode = String(body.inputMode ?? "screenshot");
     const context = body.context as AuditContext;
     const metadata = (body.metadata ?? {}) as Record<string, unknown>;

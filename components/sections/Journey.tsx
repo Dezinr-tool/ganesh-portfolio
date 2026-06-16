@@ -167,8 +167,9 @@ function AccordionItem({
   }, [animateClose, animateOpen, isOpen]);
 
   useEffect(() => {
+    const tweenRefSnapshot = tweenRef;
     return () => {
-      tweenRef.current?.kill();
+      tweenRefSnapshot.current?.kill();
     };
   }, []);
 

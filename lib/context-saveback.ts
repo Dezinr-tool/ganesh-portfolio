@@ -9,7 +9,6 @@ import {
 import type { MoodboardPresentationDirection } from "@/lib/moodboard/db-types";
 import type { DesignAuditResult } from "@/lib/design-audit/types";
 import { ALL_DIMENSION_KEYS, DIMENSION_LABELS } from "@/lib/design-audit/types";
-import { extractBrandName } from "@/lib/moodboard/question-flow";
 
 export async function saveMoodboardLearnings(input: {
   clientName: string;

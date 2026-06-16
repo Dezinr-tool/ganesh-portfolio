@@ -21,6 +21,8 @@ export type UnifiedContextParams = {
   input_type?: string;
   user_message?: string;
   userConfirmations?: UserPreConfirmation;
+  has_competitor_screenshots?: boolean;
+  session_answers?: Record<string, unknown>;
 };
 
 export type EaMeetingIntelligence = {
@@ -63,6 +65,7 @@ export type FrameworkRecord = {
 export type UnifiedContext = {
   ux_rules: string[];
   frameworks: string[];
+  ia_knowledge: string[];
   client_profile: ClientProfile | null;
   client_intelligence: ToolIntelligence[];
   ea_meetings: EaMeetingIntelligence[];
@@ -180,6 +183,50 @@ export function selectFrameworkFiles(params: UnifiedContextParams): string[] {
     return ["design-sprint.md"];
   }
   return [];
+}
+
+export type IaContextOptions = {
+  has_competitor_screenshots?: boolean;
+  industry?: string;
+  is_mobile?: boolean;
+  is_complex?: boolean;
+};
+
+export function selectIaSkillFiles(
+  params: UnifiedContextParams,
+  options: IaContextOptions = {},
+): string[] {
+  const files = [
+    "ia-principles.md",
+    "navigation-patterns.md",
+    "content-strategy.md",
+    "ux-controversies.md",
+    "ia-patterns-by-industry.md",
+  ];
+
+  if (options.has_competitor_screenshots) {
+    files.push("competitor-analysis.md");
+  }
+
+  const projectType = (params.project_type ?? "").toLowerCase();
+  const isMobile =
+    options.is_mobile ??
+    (projectType.includes("mobile") || projectType.includes("app"));
+  const isComplex =
+    options.is_complex ??
+    /\b(complex|30|50|very complex)\b/i.test(
+      JSON.stringify(params.user_message ?? params.project_type ?? ""),
+    );
+
+  if (isMobile) {
+    // navigation-patterns.md already loaded; mobile sections are within it
+  }
+
+  if (isComplex) {
+    // progressive disclosure + hub-and-spoke covered in ia-principles.md
+  }
+
+  return uniqueFiles(files);
 }
 
 async function loadKnowledgeFileContents(fileNames: string[]): Promise<string[]> {
@@ -323,6 +370,7 @@ function compressContext(
     visual_frameworks: context.visual_frameworks.slice(0, 3),
     ux_frameworks: context.ux_frameworks.slice(0, 3),
     ux_rules: context.ux_rules.map((r) => r.slice(0, 500)),
+    ia_knowledge: context.ia_knowledge.map((r) => r.slice(0, 500)),
     frameworks: context.frameworks.map((f) => f.slice(0, 300)),
   };
 
@@ -331,18 +379,23 @@ function compressContext(
 
 export async function loadUnifiedContext(
   params: UnifiedContextParams,
+  iaOptions: IaContextOptions = {},
 ): Promise<UnifiedContext> {
   const uxFileNames = selectUxRuleFiles(params);
   const frameworkFileNames = selectFrameworkFiles(params);
+  const iaFileNames =
+    params.tool === "ia" ? selectIaSkillFiles(params, iaOptions) : [];
 
-  const [ux_rules, frameworks] = await Promise.all([
+  const [ux_rules, frameworks, ia_knowledge] = await Promise.all([
     loadKnowledgeFileContents(uxFileNames),
     loadKnowledgeFileContents(frameworkFileNames),
+    loadKnowledgeFileContents(iaFileNames),
   ]);
 
   const empty: UnifiedContext = {
     ux_rules,
     frameworks,
+    ia_knowledge,
     client_profile: null,
     client_intelligence: [],
     ea_meetings: [],
@@ -380,6 +433,7 @@ export async function loadUnifiedContext(
   const full: UnifiedContext = {
     ux_rules,
     frameworks,
+    ia_knowledge,
     client_profile,
     client_intelligence,
     ea_meetings,
@@ -434,8 +488,30 @@ export async function loadAndFormatContext(
   params: UnifiedContextParams,
 ): Promise<{ context: UnifiedContext; block: string; tokenEstimate: number }> {
   const { formatContextForAI } = await import("@/lib/context-formatter");
-  let context = await loadUnifiedContext(params);
-  let block = formatContextForAI(context, params.tool);
+
+  const answers = params.session_answers ?? {};
+  const q8 = String(answers.q8 ?? "");
+  const q2 = String(answers.q2 ?? "");
+  const q7a = answers.q7a;
+  const hasScreenshotUpload =
+    q7a &&
+    typeof q7a === "object" &&
+    "files" in q7a &&
+    Array.isArray((q7a as { files: unknown[] }).files) &&
+    (q7a as { files: unknown[] }).files.length > 0;
+
+  const iaOptions: IaContextOptions =
+    params.tool === "ia"
+      ? {
+          has_competitor_screenshots:
+            params.has_competitor_screenshots ?? Boolean(hasScreenshotUpload),
+          is_mobile: /mobile/i.test(q2),
+          is_complex: /complex|30|50/i.test(q8),
+        }
+      : {};
+
+  let context = await loadUnifiedContext(params, iaOptions);
+  let block = formatContextForAI(context);
 
   if (params.userConfirmations) {
     block = `${formatUserConfirmationsForPrompt(params.userConfirmations)}\n\n${block}`;
@@ -443,7 +519,7 @@ export async function loadAndFormatContext(
 
   if (estimateTokens(block) > MAX_CONTEXT_TOKENS) {
     context = compressUnifiedContextForTokens(context, block);
-    block = formatContextForAI(context, params.tool);
+    block = formatContextForAI(context);
     if (params.userConfirmations) {
       block = `${formatUserConfirmationsForPrompt(params.userConfirmations)}\n\n${block}`;
     }

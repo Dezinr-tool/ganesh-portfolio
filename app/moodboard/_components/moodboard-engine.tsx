@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { readSseStream } from "@/lib/ai-sse";
 import type { MoodboardQuestion, MoodboardPresentationDirection } from "@/lib/moodboard/db-types";
@@ -35,6 +35,8 @@ import {
 } from "./moodboard-chat-history";
 import { MoodboardComposer } from "./moodboard-composer";
 import { PresentationView } from "./presentation-view";
+import { MoodboardNav } from "./moodboard-nav";
+import { readStoredValue, useClientSessionId } from "@/lib/client-storage";
 
 const MODEL_STORAGE_KEY = "moodboard-model-id";
 const SESSION_STORAGE_KEY = "moodboard-session-id";
@@ -79,8 +81,15 @@ export function MoodboardEngine() {
   const [generating, setGenerating] = useState(false);
   const [genStatus, setGenStatus] = useState("");
   const [directions, setDirections] = useState<MoodboardPresentationDirection[]>([]);
-  const [sessionId, setSessionId] = useState("");
-  const [modelId, setModelId] = useState<MoodboardModelId>(DEFAULT_MODEL);
+  const sessionId = useClientSessionId(SESSION_STORAGE_KEY);
+  const [modelId, setModelId] = useState<MoodboardModelId>(() =>
+    readStoredValue(
+      MODEL_STORAGE_KEY,
+      (value): value is MoodboardModelId =>
+        MOODBOARD_MODELS.some((m) => m.id === value),
+      DEFAULT_MODEL,
+    ),
+  );
   const [selectedOutputSections, setSelectedOutputSections] = useState<string[]>([]);
   const [extras, setExtras] = useState<{
     brandResearch?: string;
@@ -99,17 +108,10 @@ export function MoodboardEngine() {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const initializedRef = useRef(false);
   const answersRef = useRef(answers);
-  answersRef.current = answers;
 
   useEffect(() => {
-    const stored = localStorage.getItem(MODEL_STORAGE_KEY) as MoodboardModelId | null;
-    if (stored && MOODBOARD_MODELS.some((m) => m.id === stored)) {
-      setModelId(stored);
-    }
-    const sid = localStorage.getItem(SESSION_STORAGE_KEY) ?? crypto.randomUUID();
-    localStorage.setItem(SESSION_STORAGE_KEY, sid);
-    setSessionId(sid);
-  }, []);
+    answersRef.current = answers;
+  }, [answers]);
 
   useEffect(() => {
     localStorage.setItem(MODEL_STORAGE_KEY, modelId);
@@ -118,11 +120,6 @@ export function MoodboardEngine() {
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, thinking, generating, currentQuestion, showPreConfirm]);
-
-  useEffect(() => {
-    setComposerText("");
-    setPendingFiles([]);
-  }, [currentQuestion?.key]);
 
   const addEaMessage = useCallback((text: string) => {
     setMessages((m) => [...m, { id: uid(), role: "assistant", text }]);
@@ -572,14 +569,9 @@ export function MoodboardEngine() {
   if (intakeComplete) {
     return (
       <div className="min-h-screen bg-[#0d0d0d] text-zinc-100">
-        <Link
-          href="/"
-          className="fixed left-4 top-4 z-30 text-sm text-white/80 transition hover:text-white"
-        >
-          designbyganesh
-        </Link>
+        <MoodboardNav />
 
-        <div className="mx-auto max-w-[680px] border-b border-white/10 px-4 pb-3 pt-14">
+        <div className="mx-auto max-w-[680px] border-b border-white/10 px-4 pb-3 pt-4">
           <p className="text-sm font-medium text-white">{brandName}</p>
           <p className="text-xs text-zinc-500">3 moodboard directions</p>
         </div>
@@ -598,14 +590,9 @@ export function MoodboardEngine() {
 
   return (
     <div className="flex min-h-screen flex-col bg-[#0d0d0d] text-zinc-100">
-      <Link
-        href="/"
-        className="fixed left-4 top-4 z-30 text-sm text-white/80 transition hover:text-white"
-      >
-        designbyganesh
-      </Link>
+      <MoodboardNav />
 
-      <div className="mx-auto flex w-full max-w-[680px] flex-1 flex-col px-4 pb-6 pt-14">
+      <div className="mx-auto flex w-full max-w-[680px] flex-1 flex-col px-4 pb-6 pt-4">
         <div className="min-h-0 flex-1 overflow-y-auto overscroll-y-contain">
           <MoodboardChatHistory
             messages={messages}

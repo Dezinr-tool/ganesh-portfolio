@@ -1,3 +1,5 @@
+import type { MoodboardPresentationDirection } from "./db-types";
+
 const UNSPLASH_PHOTOS = [
   "photo-1561070791-2526d30994b5",
   "photo-1558655146-d09347e92766",
@@ -51,39 +53,65 @@ export function buildReferenceCards(
 }
 
 export async function enrichDirectionImages(
-  direction: {
-    uiSection: { references: { url: string; caption: string }[] };
-    illustrations: { references: { url: string; caption: string }[] };
-    typography: { references: { url: string; caption: string }[] };
-  },
+  direction: MoodboardPresentationDirection,
   keywords: string[],
+  selectedSections?: string[],
 ): Promise<void> {
   const baseKeyword = keywords.join(" ") || "modern design";
+  const sections = selectedSections ?? direction.selectedSections ?? [];
 
-  direction.uiSection.references = direction.uiSection.references.map(
-    (ref, i) => ({
-      ...ref,
-      url: ref.url.startsWith("http")
-        ? ref.url
-        : unsplashUrl(`${baseKeyword} ui ${ref.caption}`, i),
-    }),
-  );
+  if (sections.includes("ui_references") && direction.uiSection) {
+    direction.uiSection.references = direction.uiSection.references.map(
+      (ref, i) => ({
+        ...ref,
+        url: ref.url.startsWith("http")
+          ? ref.url
+          : unsplashUrl(`${baseKeyword} ui ${ref.caption}`, i),
+      }),
+    );
+  }
 
-  direction.illustrations.references = direction.illustrations.references.map(
-    (ref, i) => ({
-      ...ref,
-      url: ref.url.startsWith("http")
-        ? ref.url
-        : unsplashUrl(`${baseKeyword} illustration ${ref.caption}`, i + 10),
-    }),
-  );
+  if (sections.includes("illustration_style") && direction.illustrations) {
+    direction.illustrations.references = direction.illustrations.references.map(
+      (ref, i) => ({
+        ...ref,
+        url: ref.url.startsWith("http")
+          ? ref.url
+          : unsplashUrl(`${baseKeyword} illustration ${ref.caption}`, i + 10),
+      }),
+    );
+  }
 
-  direction.typography.references = direction.typography.references.map(
-    (ref, i) => ({
-      ...ref,
-      url: ref.url.startsWith("http")
-        ? ref.url
-        : unsplashUrl(`${baseKeyword} typography ${ref.caption}`, i + 20),
-    }),
-  );
+  if (sections.includes("typography") && direction.typography) {
+    direction.typography.references = direction.typography.references.map(
+      (ref, i) => ({
+        ...ref,
+        url: ref.url.startsWith("http")
+          ? ref.url
+          : unsplashUrl(`${baseKeyword} typography ${ref.caption}`, i + 20),
+      }),
+    );
+  }
+
+  if (sections.includes("photography_style") && direction.photography) {
+    direction.photography.references = direction.photography.references.map(
+      (ref, i) => ({
+        ...ref,
+        url: ref.url.startsWith("http")
+          ? ref.url
+          : unsplashUrl(`${baseKeyword} photography ${ref.caption}`, i + 30),
+      }),
+    );
+  }
+
+  if (sections.includes("product_images") && direction.productImages) {
+    direction.productImages.references = direction.productImages.references.map(
+      (ref, i) => ({
+        ...ref,
+        url: ref.url.startsWith("http")
+          ? ref.url
+          : unsplashUrl(`${baseKeyword} product ${ref.caption}`, i + 40),
+      }),
+    );
+  }
 }

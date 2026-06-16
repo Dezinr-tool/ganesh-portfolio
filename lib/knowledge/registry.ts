@@ -1,6 +1,6 @@
 import path from "path";
 
-export type KnowledgeCategory = "ux_rules" | "design_framework";
+export type KnowledgeCategory = "ux_rules" | "design_framework" | "ia";
 
 export type KnowledgeEntryMeta = {
   fileName: string;
@@ -8,7 +8,7 @@ export type KnowledgeEntryMeta = {
   title: string;
   topic: string;
   researchQuery: string;
-  skillSubdir: "ux-rules" | "design-frameworks";
+  skillSubdir: "ux-rules" | "design-frameworks" | "ia";
 };
 
 export const KNOWLEDGE_ROOT = path.join(process.cwd(), ".agents", "skills");
@@ -188,6 +188,60 @@ export const KNOWLEDGE_REGISTRY: KnowledgeEntryMeta[] = [
     skillSubdir: "design-frameworks",
     researchQuery:
       "UX research methods taxonomy card sorting tree testing sample sizes moderated unmoderated 2024",
+  },
+  {
+    fileName: "ia-principles.md",
+    category: "ia",
+    title: "IA Principles",
+    topic: "Card sorting, tree testing, wayfinding, cognitive load, Miller's Law, progressive disclosure",
+    skillSubdir: "ia",
+    researchQuery:
+      "information architecture card sorting tree testing wayfinding cognitive load Miller's Law progressive disclosure 2024 2025",
+  },
+  {
+    fileName: "navigation-patterns.md",
+    category: "ia",
+    title: "Navigation Patterns",
+    topic: "Bottom tabs, hamburger, sidebar, mega menu, mobile vs desktop navigation",
+    skillSubdir: "ia",
+    researchQuery:
+      "mobile navigation patterns bottom tab bar hamburger menu sidebar mega menu Nielsen Norman 2024",
+  },
+  {
+    fileName: "content-strategy.md",
+    category: "ia",
+    title: "Content Strategy for IA",
+    topic: "Content hierarchy, labeling, taxonomy, search architecture, filtering",
+    skillSubdir: "ia",
+    researchQuery:
+      "content strategy information architecture labeling taxonomy search architecture filtering UX 2024",
+  },
+  {
+    fileName: "competitor-analysis.md",
+    category: "ia",
+    title: "Competitor IA Analysis",
+    topic: "Analyzing competitor navigation from screenshots, differentiation through IA",
+    skillSubdir: "ia",
+    researchQuery:
+      "competitive UX analysis information architecture navigation screenshot analysis differentiation 2024",
+  },
+  {
+    fileName: "ux-controversies.md",
+    category: "ia",
+    title: "UX Controversies in IA",
+    topic: "Hamburger vs tabs, infinite scroll vs pagination, SPA vs multi-page, search vs browse",
+    skillSubdir: "ia",
+    researchQuery:
+      "UX debates hamburger menu bottom tabs infinite scroll pagination SPA multi-page search browse cards lists tables 2024 2025",
+  },
+  {
+    fileName: "ia-patterns-by-industry.md",
+    category: "ia",
+    title: "Industry IA Patterns",
+    topic: "IA patterns for fintech, e-commerce, SaaS, healthcare, EdTech, social, marketplace, enterprise",
+    skillSubdir: "ia",
+    researchQuery:
+      "information architecture patterns fintech e-commerce SaaS healthcare EdTech marketplace enterprise dashboard 2024",
   },
 ];
 

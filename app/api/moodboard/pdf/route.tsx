@@ -15,14 +15,14 @@ function toLegacyDirection(
       id: direction.id,
       name: direction.directionName,
       concept: direction.tagline,
-      colors: direction.colorPalette.map((c) => ({ hex: c.hex, name: c.name })),
+      colors: (direction.colorPalette ?? []).map((c) => ({ hex: c.hex, name: c.name })),
       typography: {
-        heading: direction.typography.heading.font,
-        body: direction.typography.body.font,
+        heading: direction.typography?.heading.font ?? "Syne",
+        body: direction.typography?.body.font ?? "DM Sans",
       },
-      imagery: direction.illustrations.styleDescription,
-      mood: direction.moodKeywords,
-      visual_references: direction.uiSection.description,
+      imagery: direction.illustrations?.styleDescription ?? direction.photography?.styleDescription ?? "",
+      mood: direction.moodKeywords ?? [],
+      visual_references: direction.uiSection?.description ?? "",
     };
   }
   return direction;

@@ -64,6 +64,38 @@ export type IaHealthScore = {
   recommendations: string[];
 };
 
+export type IaUxControversy = {
+  id: string;
+  title: string;
+  debate: string;
+  research: string;
+  recommendation: string;
+  rationale: string;
+};
+
+export type CompetitorScreenshotAnalysis = {
+  filename: string;
+  primary_nav: string[];
+  top_level_count: number;
+  nav_pattern: string;
+  content_hierarchy: string;
+  strengths: string[];
+  improvements: string[];
+};
+
+export type IaCompetitorAnalysis = {
+  summary: string;
+  screenshots: CompetitorScreenshotAnalysis[];
+  differentiation_notes?: string;
+  analyzed_at?: string;
+};
+
+export type IaUxControversyDecision = {
+  controversy_id: string;
+  title: string;
+  decision: "applied" | "rejected";
+};
+
 export type IaOutput = {
   product_overview: {
     product_name: string;
@@ -85,6 +117,7 @@ export type IaOutput = {
     rationale: string;
   };
   health_score: IaHealthScore;
+  ux_controversy_recommendations?: IaUxControversy[];
 };
 
 export type IaSession = {
@@ -96,6 +129,10 @@ export type IaSession = {
   product_type: string | null;
   answers: Record<string, unknown>;
   ia_output: IaOutput | null;
+  competitor_analysis: IaCompetitorAnalysis | null;
+  competitor_screenshots: string[];
+  ux_controversy_decisions: Record<string, IaUxControversyDecision>;
+  industry_pattern_used: string | null;
   status: "in_progress" | "complete";
   created_at: string;
   updated_at: string;

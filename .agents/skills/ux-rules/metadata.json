@@ -1,14 +1,77 @@
 {
   "version": 1,
-  "lastUpdated": "2026-06-06",
-  "updateFrequency": "weekly",
+  "lastUpdated": "2026-06-16",
   "entryCount": 8,
+  "description": "Evidence-based UX knowledge base covering heuristics, accessibility, mobile, web, conversion, data visualization, voice/AI, and emerging trends.",
+  "files": [
+  {
+    "name": "heuristics.md",
+    "topic": "Usability Heuristics",
+    "topics": ["Nielsen 10 heuristics", "Shneiderman Golden Rules", "Gerhardt-Powals principles", "NNG 2024-2025 updates", "severity rating 0-4"]
+  },
+  {
+    "name": "accessibility.md",
+    "topic": "Accessibility",
+    "topics": ["WCAG 2.1 A/AA/AAA", "WCAG 3.0", "contrast ratios", "touch targets", "screen readers", "keyboard navigation", "ARIA", "testing tools"]
+  },
+  {
+    "name": "mobile-ux.md",
+    "topic": "Mobile UX",
+    "topics": ["iOS HIG", "Material Design 3", "Hoober thumb zones", "mobile navigation", "gestures", "typography", "performance", "offline", "notifications", "forms"]
+  },
+  {
+    "name": "web-ux.md",
+    "topic": "Web UX",
+    "topics": ["F/Z patterns", "above the fold", "navigation", "typography", "CTAs", "forms", "tables", "modals", "infinite scroll vs pagination", "search", "empty states", "404 UX"]
+  },
+  {
+    "name": "conversion-ux.md",
+    "topic": "Conversion UX",
+    "topics": ["Baymard checkout", "Fogg behavior model", "Cialdini persuasion", "trust signals", "friction reduction", "cognitive load", "progress indicators", "social proof", "ethical urgency", "onboarding", "pricing pages"]
+  },
+  {
+    "name": "data-viz-ux.md",
+    "topic": "Data Visualization UX",
+    "topics": ["chart type guide", "color in visualization", "Tufte principles", "dashboard UX", "table vs chart", "accessible data viz", "real-time", "mobile visualization"]
+  },
+  {
+    "name": "voice-ai-ux.md",
+    "topic": "Voice and AI UX",
+    "topics": ["conversational UI", "chatbot patterns", "VUI", "AI error handling", "prompt design", "AI trust", "latency patterns", "AI disclosure", "2024-2025 AI UX research"]
+  },
+  {
+    "name": "emerging-trends.md",
+    "topic": "Emerging UX Trends",
+    "topics": ["UX trends 2024-2025", "spatial/AR UX", "gesture interfaces", "biometric auth UX", "dark patterns", "inclusive design", "neurodesign", "emotion-responsive design"]
+  }
+  ],
   "sources": [
-    "https://www.nngroup.com/",
-    "https://www.w3.org/WAI/WCAG21/Understanding/",
+    "https://www.nngroup.com/articles/ten-usability-heuristics/",
+    "https://www.nngroup.com/articles/how-to-rate-the-severity-of-usability-problems/",
+    "https://www.nngroup.com/articles/",
+    "https://www.w3.org/TR/WCAG21/",
+    "https://www.w3.org/WAI/standards-guidelines/wcag/wcag3-intro/",
+    "https://www.w3.org/WAI/ARIA/apg/",
+    "https://webaim.org/resources/contrastchecker/",
     "https://developer.apple.com/design/human-interface-guidelines/",
     "https://m3.material.io/",
-    "https://baymard.com/",
-    "https://www.smashingmagazine.com/"
+    "https://www.uxmatters.com/mt/archives/2013/02/how-do-users-really-hold-mobile-devices.php",
+    "https://web.dev/vitals/",
+    "https://baymard.com/checkout-usability",
+    "https://baymard.com/lists/cart-abandonment-rate",
+    "https://www.behaviormodel.org/",
+    "https://www.deceptive.design/",
+    "https://www.edwardtufte.com/",
+    "https://colorbrewer2.org/",
+    "https://pair.withgoogle.com/guidebook/",
+    "https://developers.google.com/assistant/conversation-design",
+    "https://learn.microsoft.com/en-us/microsoft-copilot-studio/authoring-fundamentals",
+    "https://www.microsoft.com/en-us/research/publication/guidelines-for-human-ai-interaction/",
+    "https://inclusive.microsoft.design/",
+    "https://artificialintelligenceact.eu/",
+    "https://digital-strategy.ec.europa.eu/en/policies/digital-services-act-package",
+    "https://www.ftc.gov/news-events/news/press-releases/2022/09/ftc-report-shows-rise-sophisticated-dark-patterns-designed-trick-trap-consumers",
+    "https://developer.apple.com/design/human-interface-guidelines/designing-for-visionos",
+    "https://www.iso.org/standard/77520.html"
   ]
 }

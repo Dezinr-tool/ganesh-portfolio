@@ -447,6 +447,6 @@ export function buildHeroRevealTimeline(els: HeroRevealElements) {
 }
 
 /** @deprecated Use scroll trigger onLeave/onEnterBack instead */
-export function bindHeroRevealHide(_revealWrap: HTMLElement) {
+export function bindHeroRevealHide() {
   ScrollTrigger.getById("hero-reveal-hide")?.kill();
 }

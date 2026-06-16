@@ -29,6 +29,11 @@ export type PreConfirmation = {
   meeting_observations: Observation[];
   confirmation_questions: ConfirmationQuestion[];
   skip_confirmation: boolean;
+  ia_preview?: {
+    industry_pattern: string;
+    navigation_pattern: string;
+    controversies_to_address: string[];
+  };
 };
 
 export type ObservationAnswer = {

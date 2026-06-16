@@ -2,6 +2,7 @@ import type { UnifiedContext } from "@/lib/context-loader";
 import { loadUnifiedContext } from "@/lib/context-loader";
 import { extractBrandName, normalizeAnswer } from "@/lib/moodboard/question-flow";
 import { extractClientName as extractIaClient } from "@/lib/ia/question-flow";
+import { getIndustryPatternForAnswers } from "@/lib/ia/generator";
 import type {
   ConfirmationQuestion,
   Observation,
@@ -365,7 +366,6 @@ function buildConfirmationQuestions(
   params: PreGenerationParams,
   frameworks: ProposedItem[],
   rules: ProposedItem[],
-  observations: Observation[],
 ): ConfirmationQuestion[] {
   const questions: ConfirmationQuestion[] = [];
   const mobile = isMobileProject(params.projectType, params.sessionAnswers);
@@ -447,12 +447,22 @@ export async function generatePreConfirmation(
 
   const context =
     params.context ??
-    (await loadUnifiedContext({
-      tool: params.tool,
-      client_name: clientName,
-      project_type: projectType,
-      input_type: params.inputType,
-    }));
+    (await loadUnifiedContext(
+      {
+        tool: params.tool,
+        client_name: clientName,
+        project_type: projectType,
+        input_type: params.inputType,
+        session_answers: params.sessionAnswers,
+      },
+      params.tool === "ia"
+        ? {
+            has_competitor_screenshots: Boolean(params.sessionAnswers.q7a),
+            is_mobile: /mobile/i.test(String(params.sessionAnswers.q2 ?? "")),
+            is_complex: /complex|30|50/i.test(String(params.sessionAnswers.q8 ?? "")),
+          }
+        : {},
+    ));
 
   const blob = textBlob(params.sessionAnswers);
 
@@ -463,8 +473,31 @@ export async function generatePreConfirmation(
     params,
     proposed_frameworks,
     proposed_rules,
-    meeting_observations,
   );
+
+  let ia_preview: PreConfirmation["ia_preview"];
+  if (params.tool === "ia") {
+    const industry = getIndustryPatternForAnswers(params.sessionAnswers);
+    const navHint = /mobile/i.test(String(params.sessionAnswers.q2 ?? ""))
+      ? "Bottom tab bar (3–5 sections)"
+      : /complex|30|50/i.test(String(params.sessionAnswers.q8 ?? ""))
+        ? "Sidebar + hub pages"
+        : "Top navigation or sidebar";
+    ia_preview = {
+      industry_pattern: industry,
+      navigation_pattern: navHint,
+      controversies_to_address: [
+        "Navigation pattern (tabs vs hamburger vs sidebar)",
+        /complex|30|50/i.test(String(params.sessionAnswers.q8 ?? ""))
+          ? "Progressive disclosure vs flat IA"
+          : "Search-first vs browse-first",
+        /mobile/i.test(String(params.sessionAnswers.q2 ?? ""))
+          ? "Icon + label vs icon-only"
+          : "Cards vs lists vs tables",
+        "Onboarding approach",
+      ],
+    };
+  }
 
   const skip_confirmation = shouldSkipConfirmation(
     meeting_observations,
@@ -478,6 +511,7 @@ export async function generatePreConfirmation(
     meeting_observations,
     confirmation_questions: skip_confirmation ? [] : confirmation_questions.slice(0, 4),
     skip_confirmation,
+    ia_preview,
   };
 }
 

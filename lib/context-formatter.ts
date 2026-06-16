@@ -20,10 +20,7 @@ Competitors: ${(profile.competitors ?? []).join(", ") || "—"}
 Tone of Voice: ${profile.tone_of_voice ?? "—"}`;
 }
 
-export function formatContextForAI(
-  context: UnifiedContext,
-  _tool: string,
-): string {
+export function formatContextForAI(context: UnifiedContext): string {
   const sections: string[] = [
     "=== UNIFIED INTELLIGENCE CONTEXT ===",
     "[Only use this context to inform your response.",
@@ -124,6 +121,14 @@ export function formatContextForAI(
     sections.push(
       "DESIGN FRAMEWORKS IN USE:",
       context.frameworks.map((f) => f.slice(0, 300)).join("\n---\n"),
+      "",
+    );
+  }
+
+  if (context.ia_knowledge.length > 0) {
+    sections.push(
+      "IA KNOWLEDGE BASE IN EFFECT:",
+      context.ia_knowledge.map((r) => r.slice(0, 800)).join("\n---\n"),
       "",
     );
   }

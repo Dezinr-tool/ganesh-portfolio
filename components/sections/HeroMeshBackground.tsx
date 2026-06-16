@@ -219,10 +219,10 @@ export function HeroMeshBackground() {
           canvas.style.width = `${width}px`;
           canvas.style.height = `${height}px`;
 
-          fboA?.tex && gl.deleteTexture(fboA.tex);
-          fboA?.fbo && gl.deleteFramebuffer(fboA.fbo);
-          fboB?.tex && gl.deleteTexture(fboB.tex);
-          fboB?.fbo && gl.deleteFramebuffer(fboB.fbo);
+          if (fboA?.tex) gl.deleteTexture(fboA.tex);
+          if (fboA?.fbo) gl.deleteFramebuffer(fboA.fbo);
+          if (fboB?.tex) gl.deleteTexture(fboB.tex);
+          if (fboB?.fbo) gl.deleteFramebuffer(fboB.fbo);
           fboA = createFbo(gl, pw, ph);
           fboB = createFbo(gl, pw, ph);
         };
