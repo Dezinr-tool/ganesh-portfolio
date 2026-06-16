@@ -1,12 +1,11 @@
-import type { MoodboardQuestion, MoodboardSession } from "./db-types";
+import type { MoodboardSession } from "./db-types";
 import type { MoodboardPresentationDirection } from "./db-types";
 import { MOODBOARD_MODELS } from "./models";
 import type { MoodboardModelId } from "./types";
-import { getNextQuestion, hasStoredAnswer } from "./question-flow";
+import { hasStoredAnswer } from "./question-flow";
 import { getSelectedOutputSections } from "./output-sections";
 import { PRE_CONFIRMATION_ANSWERS_KEY } from "../pre-generation-types";
-
-export { hasStoredAnswer };
+import { isReadyToGenerate } from "./intake-fields";
 
 export type RestoredChatMessage = {
   id: string;
@@ -21,40 +20,18 @@ export type RestoredSessionState = {
   selectedOutputSections: string[];
   modelId: MoodboardModelId | null;
   conversationStarted: boolean;
-  currentQuestion: MoodboardQuestion | null;
+  readyToGenerate: boolean;
   intakeComplete: boolean;
 };
 
-export function questionUsesOptionsCard(question: MoodboardQuestion): boolean {
-  if (question.question_type === "multi_section_select") return true;
-  if (question.question_type === "chips") {
-    const opts = question.chips_options;
-    return Array.isArray(opts) && opts.length > 0;
-  }
-  return false;
-}
-
-function formatAnswerDisplay(value: unknown): string {
-  if (typeof value === "string") return value;
-  if (Array.isArray(value)) return value.join(", ");
-  if (typeof value === "object" && value !== null && "text" in value) {
-    const obj = value as { text?: string; files?: unknown[] };
-    const parts = [obj.text?.trim()].filter(Boolean);
-    if (obj.files?.length) parts.push(`${obj.files.length} file(s)`);
-    return parts.join(" · ") || "[uploaded files]";
-  }
-  return String(value);
-}
+export { hasStoredAnswer };
 
 function parseModelId(value: string | null | undefined): MoodboardModelId | null {
   if (!value) return null;
   return MOODBOARD_MODELS.some((m) => m.id === value) ? (value as MoodboardModelId) : null;
 }
 
-export function restoreSessionState(
-  session: MoodboardSession,
-  questions: MoodboardQuestion[],
-): RestoredSessionState {
+export function restoreSessionState(session: MoodboardSession): RestoredSessionState {
   const answers = { ...(session.answers ?? {}) };
   delete answers[PRE_CONFIRMATION_ANSWERS_KEY];
 
@@ -73,67 +50,38 @@ export function restoreSessionState(
       selectedOutputSections,
       modelId,
       conversationStarted: true,
-      currentQuestion: null,
+      readyToGenerate: false,
       intakeComplete: true,
     };
   }
 
-  const hasProgress = Object.keys(answers).some((key) => hasStoredAnswer(answers[key]));
-  if (!hasProgress) {
-    return {
-      answers,
-      messages: [],
-      directions: [],
-      selectedOutputSections,
-      modelId,
-      conversationStarted: false,
-      currentQuestion: null,
-      intakeComplete: false,
-    };
-  }
+  const rawHistory = answers._chat_history;
+  let messages: RestoredChatMessage[] = [];
 
-  const messages: RestoredChatMessage[] = [
-    {
-      id: "restore-welcome",
-      role: "assistant",
-      text: "Great — I'll ask a few questions to understand your brand, then generate 3 visual directions.",
-    },
-  ];
-
-  let currentQuestion: MoodboardQuestion | null = null;
-  let cursor: string | null = null;
-
-  while (true) {
-    const next = getNextQuestion(cursor, answers, questions);
-    if (!next) break;
-    if (!hasStoredAnswer(answers[next.key], next.key)) {
-      currentQuestion = next;
-      break;
-    }
-
-    if (!questionUsesOptionsCard(next)) {
-      messages.push({
-        id: `restore-q-${next.key}`,
-        role: "assistant",
-        text: next.question_text,
-      });
-    }
-    messages.push({
-      id: `restore-a-${next.key}`,
-      role: "user",
-      text: formatAnswerDisplay(answers[next.key]),
+  if (Array.isArray(rawHistory)) {
+    messages = rawHistory.map((entry, index) => {
+      const row = entry as { role?: string; text?: string };
+      return {
+        id: `restore-${index}`,
+        role: row.role === "assistant" ? "assistant" : "user",
+        text: String(row.text ?? ""),
+      };
     });
-
-    cursor = next.key;
+  } else if (answers._opening_message) {
+    messages = [
+      {
+        id: "restore-user",
+        role: "user",
+        text: String(answers._opening_message),
+      },
+    ];
   }
 
-  if (currentQuestion && !questionUsesOptionsCard(currentQuestion)) {
-    messages.push({
-      id: `restore-q-active-${currentQuestion.key}`,
-      role: "assistant",
-      text: currentQuestion.question_text,
-    });
-  }
+  const hasProgress =
+    messages.length > 0 ||
+    Object.keys(answers).some(
+      (key) => !key.startsWith("_") && hasStoredAnswer(answers[key], key),
+    );
 
   return {
     answers,
@@ -141,8 +89,8 @@ export function restoreSessionState(
     directions: [],
     selectedOutputSections,
     modelId,
-    conversationStarted: true,
-    currentQuestion,
+    conversationStarted: hasProgress,
+    readyToGenerate: isReadyToGenerate(answers),
     intakeComplete: false,
   };
 }
