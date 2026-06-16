@@ -67,6 +67,21 @@ function RefreshIcon() {
   );
 }
 
+function escapeHtml(text: string): string {
+  return text
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+}
+
+function renderAssistantMarkdown(text: string): string {
+  const escaped = escapeHtml(text);
+  return escaped
+    .replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>")
+    .replace(/\*(.+?)\*/g, "<em>$1</em>");
+}
+
 function AssistantActions({ text }: { text: string }) {
   const handleCopy = useCallback(async () => {
     try {
@@ -113,7 +128,10 @@ export function MoodboardChatHistory({
       {messages.map((msg) =>
         msg.role === "assistant" ? (
           <div key={msg.id}>
-            <p className="moodboard-assistant-message whitespace-pre-wrap">{msg.text}</p>
+            <p
+              className="moodboard-assistant-message whitespace-pre-wrap"
+              dangerouslySetInnerHTML={{ __html: renderAssistantMarkdown(msg.text) }}
+            />
             <AssistantActions text={msg.text} />
           </div>
         ) : (

@@ -6,7 +6,7 @@ import type { MoodboardPresentationDirection } from "@/lib/moodboard/db-types";
 import { extractBrandName, extractProjectType } from "@/lib/moodboard/question-flow";
 import { MOODBOARD_MODELS } from "@/lib/moodboard/models";
 import type { MoodboardModelId } from "@/lib/moodboard/types";
-import { getSelectedOutputSections } from "@/lib/moodboard/output-sections";
+import { getSelectedOutputSections, DEFAULT_MOODBOARD_PICKER_KEYS } from "@/lib/moodboard/output-sections";
 import { PreConfirmationPanel } from "@/app/_components/pre-confirmation-panel";
 import type { PreConfirmation, UserPreConfirmation } from "@/lib/pre-generation-types";
 import { PRE_CONFIRMATION_ANSWERS_KEY } from "@/lib/pre-generation-types";
@@ -16,14 +16,15 @@ import {
   type HistoryMessage,
 } from "./moodboard-chat-history";
 import { MoodboardComposer, type MoodboardComposerHandle } from "./moodboard-composer";
-import { PresentationView } from "./presentation-view";
+import { MoodboardOutputShell } from "./moodboard-output-shell";
 import { MoodboardNav } from "./moodboard-nav";
 import { MoodboardLanding } from "./moodboard-landing";
 import { readStoredValue, useClientSessionId } from "@/lib/client-storage";
 import { restoreSessionState } from "@/lib/moodboard/session-restore";
-import { registerSession, upsertSessionIndex } from "@/lib/moodboard/session-index";
+import { registerSession, startNewSession, upsertSessionIndex } from "@/lib/moodboard/session-index";
 import type { MoodboardSession } from "@/lib/moodboard/db-types";
 import { MoodboardSessionsSidebar } from "./moodboard-sessions-sidebar";
+import { MoodboardSectionsPicker } from "./moodboard-sections-picker";
 
 const MODEL_STORAGE_KEY = "moodboard-model-id";
 const SESSION_STORAGE_KEY = "moodboard-session-id";
@@ -148,8 +149,8 @@ export function MoodboardEngine() {
       const brand = extractBrandName(nextAnswers);
       addAssistantMessage(
         confirmations
-          ? "Got it. Generating now with your preferences…"
-          : `Perfect. Creating 3 moodboard directions for ${brand}…`,
+          ? "Generating your directions now…"
+          : `Creating three moodboard directions for ${brand}…`,
       );
       setShowPreConfirm(false);
       setGenerating(true);
@@ -253,6 +254,18 @@ export function MoodboardEngine() {
     [startGeneration],
   );
 
+  const handleSectionsConfirm = useCallback(
+    async (sections: string[]) => {
+      const nextAnswers = { ...answersRef.current, q_output_sections: sections };
+      setAnswers(nextAnswers);
+      answersRef.current = nextAnswers;
+      setSelectedOutputSections(sections);
+      await persistSession(nextAnswers, messagesRef.current);
+      await requestPreConfirmation(nextAnswers);
+    },
+    [persistSession, requestPreConfirmation],
+  );
+
   const handlePreConfirm = useCallback(
     async (selections: UserPreConfirmation) => {
       await startGeneration(pendingAnswersRef.current, selections);
@@ -276,10 +289,13 @@ export function MoodboardEngine() {
 
       if (!res.ok) throw new Error("Chat failed");
       return (await res.json()) as {
-        reply: string;
+        type?: "chat" | "moodboard_output";
+        reply?: string;
+        directions?: MoodboardPresentationDirection[];
         answers: Record<string, unknown>;
         extras?: typeof extras;
         readyToGenerate: boolean;
+        showSectionsPicker?: boolean;
         researched?: boolean;
       };
     },
@@ -292,7 +308,12 @@ export function MoodboardEngine() {
       if (!trimmed || busy) return;
 
       if (GENERATE_INTENT.test(trimmed) && readyToGenerate) {
-        await requestPreConfirmation(answersRef.current);
+        const sections = getSelectedOutputSections(answersRef.current);
+        if (sections.length === 0) {
+          await handleSectionsConfirm(DEFAULT_MOODBOARD_PICKER_KEYS);
+        } else {
+          await requestPreConfirmation(answersRef.current);
+        }
         setComposerText("");
         return;
       }
@@ -315,15 +336,38 @@ export function MoodboardEngine() {
       try {
         const data = await callIntakeChat(chatMessages);
 
+        if (data.type === "moodboard_output" && data.directions?.length) {
+          setDirections(data.directions);
+          setAnswers(data.answers);
+          answersRef.current = data.answers;
+          if (data.extras) setExtras((prev) => ({ ...prev, ...data.extras }));
+          setReadyToGenerate(data.readyToGenerate);
+          void trackMoodboardEvent(sessionId, "generation_complete", {
+            modelId,
+            directionCount: data.directions.length,
+            directionNames: data.directions.map((d) => d.directionName),
+          });
+          await persistSession(data.answers, chatMessages, { status: "complete" });
+          setThinking(false);
+          setBusy(false);
+          return;
+        }
+
         setAnswers(data.answers);
         answersRef.current = data.answers;
         if (data.extras) setExtras((prev) => ({ ...prev, ...data.extras }));
         setReadyToGenerate(data.readyToGenerate);
+        if (data.showSectionsPicker && getSelectedOutputSections(data.answers).length === 0) {
+          setSelectedOutputSections(DEFAULT_MOODBOARD_PICKER_KEYS);
+        }
+        if (getSelectedOutputSections(data.answers).length > 0) {
+          setSelectedOutputSections(getSelectedOutputSections(data.answers));
+        }
 
         const assistantMsg: HistoryMessage = {
           id: uid(),
           role: "assistant",
-          text: data.reply,
+          text: data.reply ?? "",
         };
         const fullHistory = [...chatMessages, assistantMsg];
         setMessages(fullHistory);
@@ -347,6 +391,7 @@ export function MoodboardEngine() {
       persistSession,
       readyToGenerate,
       requestPreConfirmation,
+      handleSectionsConfirm,
       sessionId,
     ],
   );
@@ -455,22 +500,25 @@ export function MoodboardEngine() {
   }, [sessionId]);
 
   const brandName = extractBrandName(answers);
-  const intakeComplete = directions.length > 0;
+  const presentationMode = directions.length > 0;
   const composerDisabled = busy || generating || loadingPreConfirm;
 
-  if (intakeComplete) {
+  if (presentationMode) {
     return (
-      <div className="relative flex min-h-screen flex-col bg-black text-zinc-100">
-        <MoodboardSessionsSidebar activeSessionId={sessionId} theme="dark" />
-        <MoodboardNav />
-        <div className="moodboard-output-enter">
-          <PresentationView
-            directions={directions}
+      <div className="relative flex min-h-screen flex-col bg-white">
+        <MoodboardSessionsSidebar activeSessionId={sessionId} theme="light" />
+        <MoodboardNav theme="light" />
+        <div className="moodboard-output-enter flex-1">
+          <MoodboardOutputShell
+            messages={messages}
             brandName={brandName}
+            directions={directions}
             selectedOutputSections={selectedOutputSections}
             sessionId={sessionId}
-            onRefine={handleRefine}
+            generating={generating}
+            genStatus={genStatus}
             onSelectDirection={handleSelectDirection}
+            onRefine={handleRefine}
           />
         </div>
       </div>
@@ -528,15 +576,16 @@ export function MoodboardEngine() {
                   ) : null}
 
                   {readyToGenerate && !generating && !showPreConfirm && !loadingPreConfirm ? (
-                    <div className="mb-3 flex justify-center">
-                      <button
-                        type="button"
-                        disabled={composerDisabled}
-                        onClick={() => void requestPreConfirmation(answersRef.current)}
-                        className="rounded-full bg-[#1a1a1a] px-5 py-2 text-sm font-medium text-white transition hover:bg-[#333] disabled:opacity-50"
-                      >
-                        Generate moodboard directions
-                      </button>
+                    <div className="mb-3">
+                      <MoodboardSectionsPicker
+                        initialSelected={
+                          selectedOutputSections.length > 0
+                            ? selectedOutputSections
+                            : DEFAULT_MOODBOARD_PICKER_KEYS
+                        }
+                        onConfirm={handleSectionsConfirm}
+                        loading={loadingPreConfirm || generating}
+                      />
                     </div>
                   ) : null}
 

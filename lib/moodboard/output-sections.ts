@@ -1,5 +1,26 @@
 import type { MoodboardQuestion, OutputSectionOption } from "./db-types";
 
+/** Sections shown in the pre-generation picker (user-facing moodboard elements). */
+export const MOODBOARD_PICKER_SECTIONS: OutputSectionOption[] = [
+  { key: "color_palette", label: "Color palette", group: "VISUAL FOUNDATION" },
+  { key: "typography", label: "Typography", group: "VISUAL FOUNDATION" },
+  { key: "icon_library", label: "Icons & iconography", group: "VISUAL FOUNDATION" },
+  { key: "micro_interactions", label: "Micro-interactions", group: "UI & INTERACTION" },
+  { key: "illustration_style", label: "Illustrations", group: "ASSETS & IMAGERY" },
+  { key: "photography_style", label: "Image assets & photography", group: "ASSETS & IMAGERY" },
+  { key: "product_images", label: "Product image direction", group: "ASSETS & IMAGERY" },
+  {
+    key: "ui_references",
+    label: "UI references (Pinterest, Dribbble, Behance, Mobbin)",
+    group: "UI & INTERACTION",
+  },
+];
+
+export const DEFAULT_MOODBOARD_PICKER_KEYS = MOODBOARD_PICKER_SECTIONS.map((s) => s.key);
+
+export const UI_REFERENCES_SOURCES =
+  "Pinterest, Dribbble, Behance, and Mobbin";
+
 export const OUTPUT_SECTIONS: OutputSectionOption[] = [
   { key: "color_palette", label: "Color Palette", group: "VISUAL FOUNDATION" },
   { key: "typography", label: "Typography", group: "VISUAL FOUNDATION" },
@@ -87,7 +108,8 @@ export const SECTION_GENERATION_SPEC: Record<
   ui_references: {
     title: "UI References",
     jsonKey: "uiSection",
-    description: "title, description, principles (3-4 bullets), references (6-8 UI screens with captions)",
+    description:
+      "title, description, principles (3-4 bullets), references (6-8 UI screens with captions citing source platforms: Pinterest, Dribbble, Behance, or Mobbin)",
   },
   micro_interactions: {
     title: "Micro-interactions & Motion",

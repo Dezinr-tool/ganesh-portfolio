@@ -1,5 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
-import { updateSession, getSessionBySessionId } from "@/lib/moodboard/db-store";
+import {
+  clearSessionDirections,
+  getSessionBySessionId,
+  markSessionGenerationComplete,
+  saveSingleDirectionToDb,
+  updateSession,
+} from "@/lib/moodboard/db-store";
 import { extractKnownInfoFromMessages } from "@/lib/moodboard/extract-known-info";
 import { generateIntakeReply } from "@/lib/moodboard/intake-chat";
 import {
@@ -14,6 +20,10 @@ import {
   hasStoredAnswer,
   normalizeAnswer,
 } from "@/lib/moodboard/question-flow";
+import {
+  looksLikeMarkdownDirections,
+  tryParseDirectionsFromText,
+} from "@/lib/moodboard/direction-json";
 import type { MoodboardModelId } from "@/lib/moodboard/types";
 
 export const dynamic = "force-dynamic";
@@ -92,6 +102,42 @@ export async function POST(request: NextRequest) {
     const fieldCount = countCoreFields(answers);
     const readyToGenerate = isReadyToGenerate(answers);
 
+    const parsedDirections = tryParseDirectionsFromText(reply);
+
+    if (parsedDirections?.length && sessionId) {
+      await clearSessionDirections(sessionId);
+      for (const dir of parsedDirections) {
+        await saveSingleDirectionToDb(sessionId, dir, { modelUsed: modelId });
+      }
+      await markSessionGenerationComplete(sessionId, parsedDirections, {
+        modelUsed: modelId,
+      });
+      await updateSession(sessionId, {
+        answers: {
+          ...(await getSessionBySessionId(sessionId))?.answers,
+          ...answers,
+          _chat_history: messages,
+        },
+        brand_name: extractBrandName(answers),
+        project_type: extractProjectType(answers),
+      });
+
+      return NextResponse.json({
+        type: "moodboard_output",
+        directions: parsedDirections,
+        answers,
+        extras,
+        readyToGenerate,
+        fieldCount,
+        researched,
+      });
+    }
+
+    const blockedMarkdown = looksLikeMarkdownDirections(reply);
+    const safeReply = blockedMarkdown
+      ? "I have enough context. Choose the moodboard elements you want below — color, typography, icons, and more — then click **Generate 3 directions** to open your slide presentation."
+      : reply;
+
     if (sessionId) {
       const existing = await getSessionBySessionId(sessionId);
       const chatHistory = messages;
@@ -108,10 +154,12 @@ export async function POST(request: NextRequest) {
     }
 
     return NextResponse.json({
-      reply,
+      type: "chat",
+      reply: safeReply,
       answers,
       extras,
       readyToGenerate,
+      showSectionsPicker: blockedMarkdown || readyToGenerate,
       fieldCount,
       researched,
     });

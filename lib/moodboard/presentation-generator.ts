@@ -25,6 +25,7 @@ import {
   buildQualityRetryPrompt,
   validateDirectionQuality,
 } from "./direction-quality";
+import { normalizeCardDirection } from "./direction-json";
 
 function buildSectionSpec(selectedSections: string[]): string {
   const sections = selectedSections.length
@@ -105,6 +106,14 @@ function normalizeDirection(
   index: number,
   selectedSections: string[],
 ): MoodboardPresentationDirection {
+  if (raw.name || raw.colors || raw.concept || raw.colorPalette || raw.color_palette) {
+    const dir = normalizeCardDirection(raw, index);
+    dir.directionIndex = Number(raw.index ?? raw.directionIndex ?? index + 1);
+    dir.selectedSections = selectedSections;
+    ensureReferenceCounts(dir, selectedSections);
+    return dir;
+  }
+
   const dir: MoodboardPresentationDirection = {
     id: randomUUID(),
     directionName: String(raw.directionName ?? raw.direction_name ?? raw.name ?? `Direction ${index + 1}`),
@@ -405,7 +414,7 @@ Each direction must feel DISTINCTLY different from the others in personality, pa
 ${existingSummary}
 ${retryNote ? `\n${retryNote}` : ""}
 
-Return JSON: { "direction": { directionName, tagline, moodKeywords, ...sections } }`;
+Return JSON only — use the exact direction schema from the system prompt.`;
 }
 
 async function generateSingleIntentDirection(input: {
