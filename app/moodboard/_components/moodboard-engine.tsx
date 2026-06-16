@@ -508,13 +508,6 @@ export function MoodboardEngine() {
     void startConversation(composerText);
   }, [composerText, startConversation]);
 
-  const handleLandingChip = useCallback(
-    (message: string) => {
-      void startConversation(message);
-    },
-    [startConversation],
-  );
-
   const handleUploadContinue = useCallback(() => {
     if (!currentQuestion || pendingFiles.length === 0) return;
     handleAnswer({ text: composerText.trim(), files: pendingFiles });
@@ -625,24 +618,21 @@ export function MoodboardEngine() {
   }
 
   return (
-    <div className="flex min-h-screen flex-col bg-[#0d0d0d] text-zinc-100">
+    <div className="flex min-h-screen flex-col bg-black text-zinc-100">
       <MoodboardNav />
 
-      <div className="relative mx-auto flex w-full max-w-[680px] flex-1 flex-col px-4 pb-6">
-        {!conversationStarted ? (
-          <div className="flex flex-1 items-center justify-center pt-4">
-            <MoodboardLanding
-              value={composerText}
-              onChange={setComposerText}
-              onSubmit={handleLandingSubmit}
-              onChip={handleLandingChip}
-              modelId={modelId}
-              onModelChange={setModelId}
-              disabled={busy || !questionsReady}
-              fading={landingFading}
-            />
-          </div>
-        ) : (
+      {!conversationStarted ? (
+        <MoodboardLanding
+          value={composerText}
+          onChange={setComposerText}
+          onSubmit={handleLandingSubmit}
+          modelId={modelId}
+          onModelChange={setModelId}
+          disabled={busy || !questionsReady}
+          fading={landingFading}
+        />
+      ) : (
+        <div className="relative mx-auto flex w-full max-w-[680px] flex-1 flex-col px-4 pb-6">
           <div className="moodboard-fade-in flex min-h-0 flex-1 flex-col pt-4">
             <div className="min-h-0 flex-1 overflow-y-auto overscroll-y-contain">
               <MoodboardChatHistory
@@ -654,7 +644,7 @@ export function MoodboardEngine() {
               <div ref={messagesEndRef} className="h-4 shrink-0" />
             </div>
 
-            <div className="sticky bottom-0 shrink-0 bg-gradient-to-t from-[#0d0d0d] via-[#0d0d0d] to-transparent pb-2 pt-4">
+            <div className="sticky bottom-0 shrink-0 bg-gradient-to-t from-black via-black to-transparent pb-2 pt-4">
               {showPreConfirm && preConfirmation ? (
                 <div className="moodboard-card-enter mb-3 rounded-xl border border-white/10 bg-white/[0.05] p-4">
                   <PreConfirmationPanel
@@ -708,8 +698,8 @@ export function MoodboardEngine() {
               />
             </div>
           </div>
-        )}
-      </div>
+        </div>
+      )}
     </div>
   );
 }

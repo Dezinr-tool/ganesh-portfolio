@@ -40,3 +40,17 @@
     opacity: 1;
   }
 }
+
+.moodboard-hero-scroll-col {
+  animation: moodboard-hero-scroll-up 60s linear infinite;
+  will-change: transform;
+}
+
+@keyframes moodboard-hero-scroll-up {
+  from {
+    transform: translateY(0);
+  }
+  to {
+    transform: translateY(-50%);
+  }
+}
