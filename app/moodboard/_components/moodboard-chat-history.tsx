@@ -1,8 +1,6 @@
 "use client";
 
 import { useCallback } from "react";
-import type { MoodboardQuestion } from "@/lib/moodboard/db-types";
-import { MoodboardInlineOptions } from "./active-question-card";
 
 export type HistoryMessage = {
   id: string;
@@ -104,35 +102,12 @@ export function MoodboardChatHistory({
   thinking,
   generating,
   genStatus,
-  currentQuestion,
-  questionDisabled,
-  pendingFiles,
-  onChip,
-  onMultiChipSubmit,
-  onSectionSubmit,
-  onUploadContinue,
 }: {
   messages: HistoryMessage[];
   thinking?: boolean;
   generating?: boolean;
   genStatus?: string;
-  currentQuestion?: MoodboardQuestion | null;
-  questionDisabled?: boolean;
-  pendingFiles?: File[];
-  onChip?: (value: string) => void;
-  onMultiChipSubmit?: (values: string[]) => void;
-  onSectionSubmit?: (keys: string[]) => void;
-  onUploadContinue?: () => void;
 }) {
-  const showInlineOptions =
-    currentQuestion &&
-    !thinking &&
-    !generating &&
-    (currentQuestion.question_type === "chips" ||
-      currentQuestion.question_type === "multi_section_select" ||
-      currentQuestion.question_type === "upload" ||
-      currentQuestion.key === "q4b");
-
   return (
     <div className="moodboard-chat-messages">
       {messages.map((msg) =>
@@ -147,21 +122,6 @@ export function MoodboardChatHistory({
           </div>
         ),
       )}
-
-      {showInlineOptions && currentQuestion && onChip && onMultiChipSubmit && onSectionSubmit ? (
-        <div className="moodboard-card-enter">
-          <MoodboardInlineOptions
-            question={currentQuestion}
-            disabled={questionDisabled}
-            pendingFiles={pendingFiles}
-            onChip={onChip}
-            onMultiChipSubmit={onMultiChipSubmit}
-            onSectionSubmit={onSectionSubmit}
-            onUploadContinue={onUploadContinue}
-            variant="chat"
-          />
-        </div>
-      ) : null}
 
       {thinking ? (
         <div className="moodboard-thinking-dots flex items-center gap-1.5 py-1">

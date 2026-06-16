@@ -36,6 +36,10 @@ import {
   type HistoryMessage,
 } from "./moodboard-chat-history";
 import { MoodboardComposer, type MoodboardComposerHandle } from "./moodboard-composer";
+import {
+  QuestionOptionsCard,
+  showsQuestionCard,
+} from "./question-options-card";
 import { PresentationView } from "./presentation-view";
 import { MoodboardNav } from "./moodboard-nav";
 import { MoodboardLanding } from "./moodboard-landing";
@@ -108,6 +112,7 @@ export function MoodboardEngine() {
   const [conversationStarted, setConversationStarted] = useState(false);
   const [landingFading, setLandingFading] = useState(false);
   const [questionsReady, setQuestionsReady] = useState(false);
+  const [cardDismissed, setCardDismissed] = useState(false);
 
   const pendingAnswersRef = useRef<Record<string, unknown>>({});
   const lastSubmitRef = useRef<{ text: string; at: number } | null>(null);
@@ -132,11 +137,14 @@ export function MoodboardEngine() {
     if (currentQuestion?.key) {
       markQuestionStarted(currentQuestion.key);
     }
-    if (currentQuestion?.key && usesComposerInput(currentQuestion)) {
+    if (
+      currentQuestion?.key &&
+      (usesComposerInput(currentQuestion) || showsQuestionCard(currentQuestion))
+    ) {
       const t = window.setTimeout(() => composerRef.current?.focus(), 80);
       return () => window.clearTimeout(t);
     }
-  }, [currentQuestion?.key]);
+  }, [currentQuestion?.key, currentQuestion]);
 
   const addEaMessage = useCallback((text: string) => {
     setMessages((m) => [...m, { id: uid(), role: "assistant", text }]);
@@ -148,7 +156,10 @@ export function MoodboardEngine() {
 
   const showQuestion = useCallback((question: MoodboardQuestion) => {
     setCurrentQuestion(question);
-    addEaMessage(question.question_text);
+    setCardDismissed(false);
+    if (!showsQuestionCard(question)) {
+      addEaMessage(question.question_text);
+    }
   }, [addEaMessage]);
 
   const persistSession = useCallback(
@@ -625,8 +636,23 @@ export function MoodboardEngine() {
   const composerHidden = useMemo(() => {
     if (generating || showPreConfirm || loadingPreConfirm) return true;
     if (!currentQuestion) return true;
-    return !usesComposerInput(currentQuestion);
+    return false;
   }, [currentQuestion, generating, loadingPreConfirm, showPreConfirm]);
+
+  const showOptionsCard = useMemo(() => {
+    if (!currentQuestion || generating || showPreConfirm || loadingPreConfirm) {
+      return false;
+    }
+    return showsQuestionCard(currentQuestion) && !cardDismissed;
+  }, [cardDismissed, currentQuestion, generating, loadingPreConfirm, showPreConfirm]);
+
+  const composerPlaceholder = useMemo(() => {
+    if (!currentQuestion) return "Write a message...";
+    if (showOptionsCard) return "Or reply directly...";
+    if (currentQuestion.question_type === "url") return "https://";
+    if (usesUpload(currentQuestion)) return "Add a note (optional)…";
+    return "Write your answer...";
+  }, [currentQuestion, showOptionsCard]);
 
   const uploadAccept = useMemo(() => {
     if (!currentQuestion) return undefined;
@@ -635,14 +661,22 @@ export function MoodboardEngine() {
     return "image/*,.pdf,.docx,.txt";
   }, [currentQuestion]);
 
-  const composerPlaceholder = useMemo(() => {
-    if (!currentQuestion) return "Write a message...";
-    if (currentQuestion.question_type === "url") return "https://";
-    if (usesUpload(currentQuestion)) return "Add a note (optional)…";
-    return "Write a message...";
-  }, [currentQuestion]);
+  const handleComposerChange = useCallback(
+    (value: string) => {
+      setComposerText(value);
+      if (value.trim() && showOptionsCard) {
+        setCardDismissed(true);
+      }
+    },
+    [showOptionsCard],
+  );
 
   const showSkip = currentQuestion ? isQuestionOptional(currentQuestion.key) : false;
+
+  const handleSomethingElse = useCallback(() => {
+    setCardDismissed(true);
+    window.setTimeout(() => composerRef.current?.focus(), 50);
+  }, []);
 
   if (intakeComplete) {
     return (
@@ -688,17 +722,6 @@ export function MoodboardEngine() {
                 thinking={thinking}
                 generating={generating}
                 genStatus={genStatus}
-                currentQuestion={
-                  !generating && !showPreConfirm && !loadingPreConfirm
-                    ? currentQuestion
-                    : null
-                }
-                questionDisabled={busy}
-                pendingFiles={pendingFiles}
-                onChip={handleAnswer}
-                onMultiChipSubmit={handleAnswer}
-                onSectionSubmit={handleAnswer}
-                onUploadContinue={handleUploadContinue}
               />
               <div ref={messagesEndRef} className="h-4 shrink-0" />
             </div>
@@ -723,10 +746,46 @@ export function MoodboardEngine() {
                 />
               ) : null}
 
+              {showOptionsCard && currentQuestion ? (
+                <QuestionOptionsCard
+                  key={currentQuestion.key}
+                  question={currentQuestion}
+                  disabled={busy}
+                  optional={showSkip}
+                  dismissed={cardDismissed}
+                  onSelect={handleAnswer}
+                  onMultiSubmit={handleAnswer}
+                  onSkip={() => void handleSkip()}
+                  onDismiss={() => setCardDismissed(true)}
+                  onSomethingElse={handleSomethingElse}
+                />
+              ) : null}
+
+              {usesUpload(currentQuestion) && pendingFiles.length > 0 ? (
+                <div className="mb-3 rounded-xl border border-[#e8e8e8] bg-white px-4 py-3 text-sm text-[#666]">
+                  <p className="font-medium text-[#1a1a1a]">
+                    {pendingFiles.length} file{pendingFiles.length > 1 ? "s" : ""} attached
+                  </p>
+                  <ul className="mt-1 space-y-0.5 text-xs">
+                    {pendingFiles.map((f) => (
+                      <li key={f.name}>{f.name}</li>
+                    ))}
+                  </ul>
+                  <button
+                    type="button"
+                    disabled={busy}
+                    onClick={handleUploadContinue}
+                    className="mt-3 rounded-lg bg-[#1a1a1a] px-4 py-1.5 text-xs font-medium text-white hover:bg-[#333]"
+                  >
+                    Continue
+                  </button>
+                </div>
+              ) : null}
+
               <MoodboardComposer
                 ref={composerRef}
                 value={composerText}
-                onChange={setComposerText}
+                onChange={handleComposerChange}
                 onSubmit={handleComposerSubmit}
                 disabled={busy || generating}
                 hidden={composerHidden}
@@ -741,7 +800,7 @@ export function MoodboardEngine() {
                 }}
                 modelId={modelId}
                 onModelChange={setModelId}
-                showSkip={showSkip && !composerHidden}
+                showSkip={showSkip && !showOptionsCard && !composerHidden}
                 onSkip={() => void handleSkip()}
                 variant="chat"
               />

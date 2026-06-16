@@ -182,6 +182,144 @@
   padding: 12px 0 4px;
 }
 
+/* Claude-style question options card */
+.moodboard-question-card {
+  background: #fff;
+  border: 1px solid #e8e8e8;
+  border-radius: 16px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+  padding: 20px;
+  max-width: 680px;
+  width: 100%;
+}
+
+.moodboard-question-card-enter {
+  animation: moodboard-question-card-in 200ms ease-out forwards;
+}
+
+.moodboard-question-card-exit {
+  animation: moodboard-question-card-out 150ms ease-in forwards;
+}
+
+@keyframes moodboard-question-card-in {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes moodboard-question-card-out {
+  from {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+}
+
+.moodboard-question-option {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: 10px;
+  text-align: left;
+  transition: background-color 120ms ease;
+}
+
+.moodboard-question-option:hover:not(:disabled),
+.moodboard-question-option-highlighted {
+  background: #f8f8f8;
+}
+
+.moodboard-question-option-selected {
+  background: #f0f0f0;
+}
+
+.moodboard-question-option-badge {
+  flex-shrink: 0;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: #f0f0f0;
+  color: #666;
+  font-size: 13px;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 120ms ease, color 120ms ease;
+}
+
+.moodboard-question-option-selected .moodboard-question-option-badge,
+.moodboard-question-option-highlighted .moodboard-question-option-badge {
+  background: #e0e0e0;
+  color: #333;
+}
+
+.moodboard-question-option-label {
+  flex: 1;
+  font-size: 15px;
+  color: #1a1a1a;
+  line-height: 1.4;
+}
+
+.moodboard-question-option-arrow {
+  flex-shrink: 0;
+  color: #bbb;
+  opacity: 0;
+  transition: opacity 120ms ease;
+}
+
+.moodboard-question-option:hover .moodboard-question-option-arrow,
+.moodboard-question-option-highlighted .moodboard-question-option-arrow {
+  opacity: 1;
+}
+
+.moodboard-question-option-stagger {
+  animation: moodboard-option-fade-in 200ms ease-out backwards;
+}
+
+@keyframes moodboard-option-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.moodboard-question-skip-btn {
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  padding: 4px 12px;
+  font-size: 13px;
+  color: #666;
+  background: #fff;
+  transition: background-color 120ms ease, border-color 120ms ease;
+}
+
+.moodboard-question-skip-btn:hover:not(:disabled) {
+  background: #f8f8f8;
+  border-color: #ccc;
+}
+
+.moodboard-question-kbd-hint {
+  text-align: center;
+  font-size: 12px;
+  color: #999;
+  margin-top: 10px;
+}
+
 .moodboard-thinking-dots span {
   display: inline-block;
   width: 6px;

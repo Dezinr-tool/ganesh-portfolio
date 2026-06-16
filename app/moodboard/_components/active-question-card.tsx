@@ -5,7 +5,12 @@ import type { MoodboardQuestion } from "@/lib/moodboard/db-types";
 import { MULTI_SELECT_KEYS } from "@/lib/moodboard/question-seed";
 import { SectionSelector } from "./section-selector";
 
-export function MoodboardInlineOptions({
+const CHIP =
+  "rounded-full border border-white/10 bg-white/[0.04] px-3 py-1.5 text-xs text-zinc-300 transition hover:border-white/20 hover:bg-white/[0.08] hover:text-white disabled:opacity-40";
+const CHIP_ACTIVE = "border-white/25 bg-white/10 text-white";
+
+/** Legacy card for IA tool — moodboard uses QuestionOptionsCard instead. */
+export function ActiveQuestionCard({
   question,
   disabled,
   pendingFiles,
@@ -13,7 +18,6 @@ export function MoodboardInlineOptions({
   onMultiChipSubmit,
   onSectionSubmit,
   onUploadContinue,
-  variant = "chat",
 }: {
   question: MoodboardQuestion;
   disabled?: boolean;
@@ -22,7 +26,6 @@ export function MoodboardInlineOptions({
   onMultiChipSubmit: (values: string[]) => void;
   onSectionSubmit: (keys: string[]) => void;
   onUploadContinue?: () => void;
-  variant?: "chat" | "card";
 }) {
   const [selected, setSelected] = useState<string[]>([]);
   const multi = MULTI_SELECT_KEYS.has(question.key);
@@ -47,26 +50,33 @@ export function MoodboardInlineOptions({
 
   if (isSectionSelect) {
     return (
-      <SectionSelector
-        question={question}
-        disabled={disabled}
-        variant={variant}
-        onSubmit={onSectionSubmit}
-      />
+      <div className="moodboard-card-enter mb-3 rounded-xl border border-white/10 bg-white/[0.05] p-4">
+        <p className="text-[15px] leading-relaxed text-white">{question.question_text}</p>
+        <div className="mt-4">
+          <SectionSelector
+            question={question}
+            disabled={disabled}
+            variant="card"
+            onSubmit={onSectionSubmit}
+          />
+        </div>
+      </div>
     );
   }
 
   return (
-    <div className="space-y-3">
+    <div className="moodboard-card-enter mb-3 rounded-xl border border-white/10 bg-white/[0.05] p-4">
+      <p className="text-[15px] leading-relaxed text-white">{question.question_text}</p>
+
       {isChips && chips.length > 0 ? (
-        <div className="flex flex-wrap gap-2">
+        <div className="mt-4 flex flex-wrap gap-2">
           {chips.map((chip) => (
             <button
               key={chip}
               type="button"
               disabled={disabled}
               onClick={() => handleChip(chip)}
-              className={`moodboard-chip ${multi && selected.includes(chip) ? "moodboard-chip-active" : ""}`}
+              className={`${CHIP} ${multi && selected.includes(chip) ? CHIP_ACTIVE : ""}`}
             >
               {chip}
             </button>
@@ -76,7 +86,7 @@ export function MoodboardInlineOptions({
               type="button"
               disabled={disabled || selected.length === 0}
               onClick={() => onMultiChipSubmit(selected)}
-              className="moodboard-chip-continue disabled:opacity-40"
+              className="rounded-full bg-white px-3 py-1.5 text-xs font-medium text-black transition hover:bg-zinc-200 disabled:opacity-40"
             >
               Continue
             </button>
@@ -85,10 +95,10 @@ export function MoodboardInlineOptions({
       ) : null}
 
       {isUpload && pendingFiles && pendingFiles.length > 0 ? (
-        <div className="space-y-3">
+        <div className="mt-4 space-y-3">
           <div className="space-y-1">
             {pendingFiles.map((f) => (
-              <p key={f.name} className="text-sm text-[#888]">
+              <p key={f.name} className="text-xs text-zinc-400">
                 {f.name}
               </p>
             ))}
@@ -98,7 +108,7 @@ export function MoodboardInlineOptions({
               type="button"
               disabled={disabled}
               onClick={onUploadContinue}
-              className="moodboard-chip-continue disabled:opacity-40"
+              className="rounded-full bg-white px-4 py-1.5 text-xs font-medium text-black transition hover:bg-zinc-200"
             >
               Continue
             </button>
@@ -109,11 +119,6 @@ export function MoodboardInlineOptions({
   );
 }
 
-/** @deprecated Use inline options in chat history */
-export function ActiveQuestionCard(props: Parameters<typeof MoodboardInlineOptions>[0]) {
-  return <MoodboardInlineOptions {...props} />;
-}
-
 export function FloatingStatusCard({
   title,
   subtitle,
@@ -122,7 +127,7 @@ export function FloatingStatusCard({
   subtitle?: string;
 }) {
   return (
-    <div className="moodboard-card-enter">
+    <div className="moodboard-card-enter mb-3">
       <p className="moodboard-assistant-message">{title}</p>
       {subtitle ? <p className="mt-1 text-sm text-[#888]">{subtitle}</p> : null}
     </div>
