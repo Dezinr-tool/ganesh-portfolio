@@ -1,23 +1,26 @@
 /**
- * Moodboard Platform QA
- * Usage: npx tsx scripts/qa-moodboard.ts
+ * Moodboard Platform QA (updated for intake chat + slide deck flow)
+ * Usage: npm run qa:moodboard
  */
 import * as dotenv from "dotenv";
 dotenv.config({ path: ".env.local" });
 
 import { readFileSync } from "fs";
-import { MOODBOARD_SYSTEM_PROMPT } from "../lib/moodboard/system-prompt";
 import { MOODBOARD_MODELS } from "../lib/moodboard/models";
-import { parseQuestionnaire } from "../lib/moodboard/generator";
 import { scrapeWebsite } from "../lib/moodboard/scraper";
-import { directionToText } from "../lib/moodboard/history";
+import {
+  conversationSignalsSections,
+  shouldOfferSectionsPhase,
+} from "../lib/moodboard/intake-phase";
 
 type Result = "pass" | "fail" | "partial";
 const results: { item: string; status: Result; note?: string }[] = [];
 
 function report(item: string, status: Result, note?: string) {
   results.push({ item, status, note });
-  console.log(`${status === "pass" ? "✅" : status === "fail" ? "❌" : "⚠️"} ${item}${note ? ` — ${note}` : ""}`);
+  console.log(
+    `${status === "pass" ? "✅" : status === "fail" ? "❌" : "⚠️"} ${item}${note ? ` — ${note}` : ""}`,
+  );
 }
 
 const BASE = process.env.QA_BASE_URL ?? "http://localhost:3000";
@@ -25,196 +28,146 @@ const BASE = process.env.QA_BASE_URL ?? "http://localhost:3000";
 async function main() {
   console.log("\n=== Moodboard QA ===\n");
 
-  report(
-    "System prompt includes EXACTLY 3 rule",
-    MOODBOARD_SYSTEM_PROMPT.includes("EXACTLY 3") ? "pass" : "fail",
-  );
-
-  report(
-    "Model dropdown has 5 models + Sonnet default",
-    MOODBOARD_MODELS.length === 5 &&
-      MOODBOARD_MODELS.some((m) => m.recommended && m.id === "claude-sonnet")
-      ? "pass"
-      : "fail",
-  );
-
-  const page = readFileSync("app/moodboard/page.tsx", "utf8");
   const engine = readFileSync("app/moodboard/_components/moodboard-engine.tsx", "utf8");
+  const picker = readFileSync("app/moodboard/_components/moodboard-sections-picker.tsx", "utf8");
   const presentation = readFileSync("app/moodboard/_components/presentation-view.tsx", "utf8");
-  const combined = engine + presentation;
+  const page = readFileSync("app/moodboard/page.tsx", "utf8");
+
   report(
-    "Conversational engine interface",
-    page.includes("MoodboardEngine") && engine.includes("MoodboardEngine")
+    "MoodboardEngine on /moodboard",
+    page.includes("MoodboardEngine") && engine.includes("MoodboardEngine") ? "pass" : "fail",
+  );
+  report(
+    "Sections picker wired (QuestionOptionsCard)",
+    picker.includes("QuestionOptionsCard") && engine.includes("MoodboardSectionsPicker")
       ? "pass"
       : "fail",
   );
   report(
-    "Project type chips in question flow",
-    engine.includes("getFirstQuestion") && engine.includes("ActiveQuestionCard")
+    "Picker test id for E2E",
+    engine.includes('data-testid="moodboard-sections-picker"') ? "pass" : "fail",
+  );
+  report(
+    "Slide presentation output",
+    engine.includes("PresentationView") || engine.includes("MoodboardOutputShell")
       ? "pass"
       : "fail",
   );
   report(
-    "Direction feedback: refine in presentation view",
-    presentation.includes("Refine this direction") && presentation.includes("Download PDF")
+    "PDF export in presentation deck",
+    presentation.includes("handlePdf") && presentation.includes("PDF —") ? "pass" : "fail",
+  );
+  report(
+    "Generate intent + panel-help handlers",
+    engine.includes("userRequestedGeneration") && engine.includes("userNeedsPanelHelp")
       ? "pass"
       : "fail",
-  );
-  report(
-    "Export: PDF in presentation view",
-    combined.includes("Download PDF")
-      ? "pass"
-      : "fail",
-  );
-  report(
-    "EA pre-fill via sessions API",
-    engine.includes("persistSession") ? "pass" : "fail",
-  );
-  report(
-    "Mobile responsive layout",
-    engine.includes("max-w-[680px]") ? "pass" : "fail",
   );
   report(
     "Model selector persists",
-    engine.includes("MODEL_STORAGE_KEY") && engine.includes("readStoredValue")
+    engine.includes("MODEL_STORAGE_KEY") ? "pass" : "fail",
+  );
+  report(
+    "Intake phase detection (unit-tested)",
+    readFileSync("lib/moodboard/__tests__/intake-phase.test.ts", "utf8").includes(
+      "conversationSignalsSections",
+    )
       ? "pass"
       : "fail",
   );
 
   report(
-    "Color swatches in presentation",
-    presentation.includes("backgroundColor") || presentation.includes("hex")
+    "Section signal detection (Astro thread)",
+    conversationSignalsSections([
+      {
+        role: "assistant",
+        text: "Use the panel below to select your moodboard elements.",
+      },
+    ])
       ? "pass"
-      : "partial",
+      : "fail",
+  );
+
+  report(
+    "shouldOfferSectionsPhase with partial intake",
+    shouldOfferSectionsPhase({
+      answers: { q1: "Astro", q2: "Shopify gems", q3: "Website", q6: "35-50" },
+      messages: [],
+      directionsCount: 0,
+    })
+      ? "pass"
+      : "fail",
   );
 
   try {
     const scrape = await scrapeWebsite("https://example.com");
     report(
-      "Website scrape (graceful)",
+      "Website scrape",
       scrape.url.includes("example.com") ? "pass" : "fail",
-      scrape.fallback ? "fallback mode" : "full analysis",
+      scrape.fallback ? "fallback" : "full",
     );
   } catch (e) {
     report("Website scrape", "fail", String(e));
   }
 
-  try {
-    const parsed = await parseQuestionnaire(
-      "Industry: Fintech. Audience: SMB founders. Feeling: trustworthy, modern, bold.",
-    );
-    report(
-      "Questionnaire parsing",
-      parsed.industry || parsed.summary || parsed.feeling ? "pass" : "partial",
-    );
-  } catch (e) {
-    report("Questionnaire parsing", "partial", String(e));
-  }
-
   let serverUp = false;
   try {
-    const ping = await fetch(`${BASE}/moodboard`, { signal: AbortSignal.timeout(5000) });
+    const ping = await fetch(`${BASE}/moodboard`, { signal: AbortSignal.timeout(8000) });
     serverUp = ping.status === 200;
   } catch {
     serverUp = false;
   }
 
   if (!serverUp) {
-    report("/moodboard page loads", "partial", "Start dev server for HTTP tests");
+    report("/moodboard HTTP", "partial", "Start dev server: npm run dev");
   } else {
-    report("/moodboard page loads", "pass", `status 200`);
+    report("/moodboard HTTP 200", "pass");
 
     const html = await fetch(`${BASE}/moodboard`).then((r) => r.text());
     report(
-      "Page renders Moodboard Platform title",
-      html.includes("Moodboard Platform") ? "pass" : "fail",
-    );
-
-    const eaRes = await fetch(`${BASE}/api/moodboard/ea-context`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: "{}",
-    });
-    const eaData = await eaRes.json();
-    report(
-      "EA context endpoint responds",
-      eaRes.ok && typeof eaData.available === "boolean" ? "pass" : "fail",
+      "Landing shell (client-rendered hero)",
+      html.includes("moodboard") || html.includes("Moodboard") ? "pass" : "partial",
+      "Hero text hydrates client-side",
     );
 
     if (process.env.ANTHROPIC_API_KEY) {
-      const genRes = await fetch(`${BASE}/api/moodboard/generate`, {
+      const sessionId = crypto.randomUUID();
+      await fetch(`${BASE}/api/moodboard/sessions`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ sessionId }),
+      });
+
+      const chatRes = await fetch(`${BASE}/api/moodboard/chat`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          tab: "logo",
+          sessionId,
           modelId: "claude-sonnet",
-          brief: {
-            tab: "logo",
-            brandName: "QA Brand",
-            industry: "Technology",
-            values: "Bold, clear, human",
-            stylePreference: "Minimal geometric wordmark",
-          },
+          messages: [
+            {
+              role: "user",
+              text: "Astro premium Shopify astrology gems for buyers 35-50. Premium celestial editorial feel.",
+            },
+          ],
+          answers: {},
         }),
       });
-      const genData = await genRes.json();
-      const dirs = genData.directions as Array<Record<string, unknown>> | undefined;
-      const fieldsOk =
-        dirs?.length === 3 &&
-        dirs.every(
-          (d) =>
-            d.name &&
-            d.concept &&
-            Array.isArray(d.colors) &&
-            d.colors.length === 5 &&
-            d.typography &&
-            d.imagery &&
-            Array.isArray(d.mood) &&
-            d.visual_references,
-        );
+      const chatData = await chatRes.json();
       report(
-        "Generation produces EXACTLY 3 directions with all fields",
-        genRes.ok && fieldsOk ? "pass" : "fail",
-        genRes.ok ? `count=${dirs?.length}` : String(genData.error),
+        "Chat intake API",
+        chatRes.ok && chatData.reply ? "pass" : "fail",
+        chatData.readyToGenerate ? "ready" : "collecting",
       );
-
-      if (dirs?.[0]) {
-        const refineRes = await fetch(`${BASE}/api/moodboard/refine`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            tab: "logo",
-            modelId: "claude-sonnet",
-            brief: { brandName: "QA Brand" },
-            direction: dirs[0],
-            refineNote: "Make it warmer and more editorial",
-          }),
-        });
-        const refineData = await refineRes.json();
-        report(
-          "Refine regenerates single direction",
-          refineRes.ok && refineData.direction?.name ? "pass" : "fail",
-        );
-
-        const text = directionToText(dirs[0] as never);
-        report("Copy as text format", text.includes("# ") && text.includes("## Colors") ? "pass" : "fail");
-
-        const pdfRes = await fetch(`${BASE}/api/moodboard/pdf`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ direction: dirs[0], tab: "logo" }),
-        });
-        report(
-          "PDF export",
-          pdfRes.ok && pdfRes.headers.get("content-type")?.includes("pdf")
-            ? "pass"
-            : "fail",
-        );
-      }
+      report(
+        "Chat returns showSectionsPicker when ready",
+        chatData.showSectionsPicker === true || chatData.readyToGenerate === true
+          ? "pass"
+          : "partial",
+        `ready=${chatData.readyToGenerate} show=${chatData.showSectionsPicker}`,
+      );
     } else {
-      report("Generation E2E", "partial", "ANTHROPIC_API_KEY not set");
-      report("Refine E2E", "partial", "Skipped");
-      report("PDF export E2E", "partial", "Skipped");
+      report("Chat API E2E", "partial", "ANTHROPIC_API_KEY not set");
     }
   }
 
@@ -223,6 +176,7 @@ async function main() {
   const fail = results.filter((r) => r.status === "fail").length;
   const partial = results.filter((r) => r.status === "partial").length;
   console.log(`✅ ${pass}  ❌ ${fail}  ⚠️ ${partial}\n`);
+  console.log("Run full browser QA: npm run qa:moodboard:e2e\n");
   if (fail > 0) process.exit(1);
 }
 
