@@ -9,6 +9,18 @@ import {
   EA_TOKEN_COOKIE,
   hasEaMiddlewareAuth,
 } from "./lib/ea-token-edge";
+import {
+  MB_ADMIN_AUTH_COOKIE,
+  hasMbAdminAuth,
+} from "./lib/mb-admin-auth-edge";
+
+const MB_ADMIN_LOGIN = "/moodboard/admin/login";
+
+function mbAdminLoginUrl(request: NextRequest, from?: string) {
+  const loginUrl = new URL(MB_ADMIN_LOGIN, request.url);
+  if (from) loginUrl.searchParams.set("from", from);
+  return loginUrl;
+}
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
@@ -18,6 +30,8 @@ export async function middleware(request: NextRequest) {
   const eaToken = request.cookies.get(EA_TOKEN_COOKIE)?.value;
   const eaCookie = request.cookies.get(EA_AUTH_COOKIE)?.value;
   const isEaAuthed = hasEaMiddlewareAuth(eaToken, eaCookie);
+  const mbAdminCookie = request.cookies.get(MB_ADMIN_AUTH_COOKIE)?.value;
+  const isMbAdminAuthed = hasMbAdminAuth(mbAdminCookie);
 
   if (pathname.startsWith("/ea/login") || pathname.startsWith("/ea/signup")) {
     if (isEaAuthed) {
@@ -77,34 +91,39 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(loginUrl);
   }
 
-  if (pathname.startsWith("/moodboard/admin") || pathname.startsWith("/api/moodboard/admin")) {
-    if (!isEaAuthed) {
-      if (pathname.startsWith("/api/")) {
-        return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-      }
-      if (pathname !== "/moodboard/admin") {
-        return NextResponse.redirect(new URL("/moodboard/admin", request.url));
-      }
+  if (pathname === MB_ADMIN_LOGIN) {
+    if (isMbAdminAuthed) {
+      const from = request.nextUrl.searchParams.get("from");
+      const dest =
+        from &&
+        (from.startsWith("/moodboard/admin") ||
+          from.startsWith("/tools") ||
+          from.startsWith("/knowledge-admin") ||
+          from.startsWith("/moodboard/sessions"))
+          ? from
+          : "/moodboard/admin";
+      return NextResponse.redirect(new URL(dest, request.url));
     }
+    return NextResponse.next();
   }
 
-  if (pathname.startsWith("/moodboard/sessions")) {
-    if (!isEaAuthed) {
-      if (pathname !== "/moodboard/sessions") {
-        return NextResponse.redirect(new URL("/moodboard/sessions", request.url));
-      }
-    }
+  if (pathname === "/api/moodboard/admin/auth") {
+    return NextResponse.next();
   }
 
-  if (pathname.startsWith("/knowledge-admin") || pathname.startsWith("/api/knowledge")) {
-    if (!isEaAuthed) {
-      if (pathname.startsWith("/api/")) {
-        return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-      }
-      if (pathname !== "/knowledge-admin") {
-        return NextResponse.redirect(new URL("/knowledge-admin", request.url));
-      }
+  const requiresMbAdmin =
+    pathname.startsWith("/moodboard/admin") ||
+    pathname.startsWith("/api/moodboard/admin") ||
+    pathname === "/tools" ||
+    pathname.startsWith("/knowledge-admin") ||
+    pathname.startsWith("/api/knowledge") ||
+    pathname.startsWith("/moodboard/sessions");
+
+  if (requiresMbAdmin && !isMbAdminAuthed) {
+    if (pathname.startsWith("/api/")) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
+    return NextResponse.redirect(mbAdminLoginUrl(request, pathname));
   }
 
   return NextResponse.next();
@@ -119,6 +138,7 @@ export const config = {
     "/moodboard/sessions",
     "/moodboard/sessions/:path*",
     "/api/moodboard/admin/:path*",
+    "/tools",
     "/knowledge-admin",
     "/knowledge-admin/:path*",
     "/api/knowledge/:path*",

@@ -1,15 +1,14 @@
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
-import type { NextRequest } from "next/server";
-import { isBrainOwner } from "@/lib/brain-owner-auth";
-import {
-  MB_ADMIN_AUTH_COOKIE,
-  verifyMbAdminAuthCookie,
-} from "@/lib/mb-admin-auth";
 
-export async function requireKnowledgeAdmin(request?: NextRequest) {
-  if (request && isBrainOwner(request)) return null;
+export const MB_ADMIN_AUTH_COOKIE = "mb_admin_auth";
+export const MB_ADMIN_SESSION_VALUE = "true";
 
+export function verifyMbAdminAuthCookie(cookieValue: string | undefined): boolean {
+  return cookieValue === MB_ADMIN_SESSION_VALUE;
+}
+
+export async function requireMbAdmin() {
   const cookieStore = await cookies();
   const auth = cookieStore.get(MB_ADMIN_AUTH_COOKIE)?.value;
   if (!verifyMbAdminAuthCookie(auth)) {

@@ -1,23 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
-import { cookies } from "next/headers";
-import { verifyEaAuthCookie } from "@/lib/ea-auth";
+import { requireMbAdmin } from "@/lib/mb-admin-auth";
 import { deleteQuestion, updateQuestion } from "@/lib/moodboard/db-store";
 
 export const dynamic = "force-dynamic";
 
 type RouteContext = { params: Promise<{ id: string }> };
 
-async function requireAdmin() {
-  const cookieStore = await cookies();
-  const auth = cookieStore.get("ea_auth")?.value;
-  if (!verifyEaAuthCookie(auth)) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
-  return null;
-}
-
 export async function PATCH(request: NextRequest, context: RouteContext) {
-  const denied = await requireAdmin();
+  const denied = await requireMbAdmin();
   if (denied) return denied;
 
   const { id } = await context.params;
@@ -36,7 +26,7 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
 }
 
 export async function DELETE(_request: NextRequest, context: RouteContext) {
-  const denied = await requireAdmin();
+  const denied = await requireMbAdmin();
   if (denied) return denied;
 
   const { id } = await context.params;
