@@ -1,9 +1,11 @@
 export type SseEvent = {
-  type: "status" | "delta" | "complete" | "error" | "cached";
+  type: "status" | "delta" | "complete" | "error" | "cached" | "direction";
   message?: string;
   text?: string;
   result?: unknown;
   cached?: boolean;
+  direction?: unknown;
+  directionIndex?: number;
 };
 
 export function createSseStream(

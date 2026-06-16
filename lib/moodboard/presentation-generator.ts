@@ -15,13 +15,23 @@ import {
   OUTPUT_SECTIONS,
   SECTION_GENERATION_SPEC,
 } from "./output-sections";
+import {
+  buildIntentSummary,
+  buildIntentSystemPrompt,
+  formatIntentForPrompt,
+  type IntentSummary,
+} from "./build-intent-summary";
+import {
+  buildQualityRetryPrompt,
+  validateDirectionQuality,
+} from "./direction-quality";
 
-function buildSystemPrompt(selectedSections: string[]): string {
+function buildSectionSpec(selectedSections: string[]): string {
   const sections = selectedSections.length
     ? selectedSections
     : OUTPUT_SECTIONS.map((s) => s.key);
 
-  const sectionLines = sections
+  return sections
     .map((key) => {
       const spec = SECTION_GENERATION_SPEC[key];
       if (!spec) return null;
@@ -29,6 +39,10 @@ function buildSystemPrompt(selectedSections: string[]): string {
     })
     .filter(Boolean)
     .join("\n");
+}
+
+function buildSystemPrompt(selectedSections: string[]): string {
+  const sectionLines = buildSectionSpec(selectedSections);
 
   return `You are a senior brand strategist and visual designer at a premium design agency.
 Generate exactly 3 contrasting moodboard directions as JSON.
@@ -298,6 +312,7 @@ async function callAnthropic(
   systemPrompt: string,
   userPrompt: string,
   onDelta?: (chunk: string) => void,
+  maxTokens = 8192,
 ): Promise<string> {
   const apiKey = process.env.ANTHROPIC_API_KEY;
   if (!apiKey) throw new Error("ANTHROPIC_API_KEY not configured");
@@ -307,7 +322,7 @@ async function callAnthropic(
   if (!onDelta) {
     const response = await anthropic.messages.create({
       model,
-      max_tokens: 8192,
+      max_tokens: maxTokens,
       system: systemPrompt,
       messages: [{ role: "user", content: userPrompt }],
     });
@@ -318,7 +333,7 @@ async function callAnthropic(
 
   const stream = anthropic.messages.stream({
     model,
-    max_tokens: 8192,
+    max_tokens: maxTokens,
     system: systemPrompt,
     messages: [{ role: "user", content: userPrompt }],
   });
@@ -334,6 +349,184 @@ async function callAnthropic(
     }
   }
   return text;
+}
+
+function parseSingleDirection(
+  text: string,
+  index: number,
+  selectedSections: string[],
+): MoodboardPresentationDirection {
+  const jsonMatch = text.match(/\{[\s\S]*\}/);
+  if (!jsonMatch) throw new Error("No JSON in model response");
+
+  const parsed = JSON.parse(jsonMatch[0]) as {
+    direction?: unknown;
+    directions?: unknown[];
+  };
+
+  const raw =
+    parsed.direction ??
+    (Array.isArray(parsed.directions) ? parsed.directions[0] : null);
+
+  if (!raw) throw new Error("Invalid direction in response");
+
+  const dir = normalizeDirection(raw as Record<string, unknown>, index, selectedSections);
+  ensureReferenceCounts(dir, selectedSections);
+  return dir;
+}
+
+function buildSingleDirectionUserPrompt(
+  intent: IntentSummary,
+  selectedSections: string[],
+  directionIndex: number,
+  existingDirections: MoodboardPresentationDirection[],
+  retryNote?: string,
+): string {
+  const intentBlock = formatIntentForPrompt(intent);
+  const sectionLines = buildSectionSpec(selectedSections);
+  const existingSummary =
+    existingDirections.length > 0
+      ? `\nAlready generated (must be distinctly different):\n${existingDirections
+          .map(
+            (d) =>
+              `- Direction ${d.directionIndex}: "${d.directionName}" — ${d.tagline}`,
+          )
+          .join("\n")}`
+      : "";
+
+  return `${intentBlock}
+
+Generate direction ${directionIndex} of 3 for this brand.
+
+Include ONLY these sections:
+${sectionLines}
+
+Each direction must feel DISTINCTLY different from the others in personality, palette, and emotional register.
+${existingSummary}
+${retryNote ? `\n${retryNote}` : ""}
+
+Return JSON: { "direction": { directionName, tagline, moodKeywords, ...sections } }`;
+}
+
+async function generateSingleIntentDirection(input: {
+  intent: IntentSummary;
+  directionIndex: number;
+  selectedSections: string[];
+  existingDirections: MoodboardPresentationDirection[];
+  model: string;
+  onDelta?: (chunk: string) => void;
+}): Promise<MoodboardPresentationDirection> {
+  const systemPrompt = buildIntentSystemPrompt();
+  let retryNote: string | undefined;
+  let lastDirection: MoodboardPresentationDirection | null = null;
+
+  for (let attempt = 0; attempt < 2; attempt++) {
+    const userPrompt = buildSingleDirectionUserPrompt(
+      input.intent,
+      input.selectedSections,
+      input.directionIndex,
+      input.existingDirections,
+      retryNote,
+    );
+
+    const text = await callAnthropic(
+      input.model,
+      systemPrompt,
+      userPrompt,
+      input.onDelta,
+      2800,
+    );
+
+    const dir = parseSingleDirection(
+      text,
+      input.directionIndex - 1,
+      input.selectedSections,
+    );
+    dir.directionIndex = input.directionIndex;
+
+    const quality = validateDirectionQuality(
+      input.intent,
+      dir,
+      input.existingDirections,
+    );
+
+    if (quality.ok || attempt === 1) {
+      lastDirection = dir;
+      break;
+    }
+
+    retryNote = buildQualityRetryPrompt(quality.reasons);
+    lastDirection = dir;
+  }
+
+  if (!lastDirection) throw new Error("Failed to generate direction");
+
+  const keywords = [
+    input.intent.brand_name,
+    ...(input.intent.emotional_signals ?? []),
+    ...(lastDirection.moodKeywords ?? []),
+  ].filter(Boolean);
+
+  await enrichDirectionImages(lastDirection, keywords, input.selectedSections);
+  return lastDirection;
+}
+
+export async function generatePresentationDirectionsSequential(input: {
+  answers: Record<string, unknown>;
+  modelId?: MoodboardModelId;
+  selectedOutputSections: string[];
+  clientName?: string;
+  projectName?: string;
+  projectType?: string;
+  userConfirmations?: import("@/lib/pre-generation-types").UserPreConfirmation;
+  extras?: {
+    brandResearch?: string;
+    websiteAnalysis?: string;
+    competitorResearch?: string;
+    documentExtract?: string;
+  };
+  onDelta?: (chunk: string) => void;
+  onDirection?: (direction: MoodboardPresentationDirection, index: number) => void | Promise<void>;
+  onStatus?: (message: string) => void;
+}): Promise<MoodboardPresentationDirection[]> {
+  const selectedSections = input.selectedOutputSections.length
+    ? input.selectedOutputSections
+    : OUTPUT_SECTIONS.map((s) => s.key);
+
+  const intent = buildIntentSummary(input.answers, input.extras);
+  const generationModelId: MoodboardModelId = "claude-sonnet";
+  const config = getModelConfig(generationModelId);
+
+  const cacheHash = hashString(
+    formatIntentForPrompt(intent) + selectedSections.join(",") + intent.brand_name,
+  );
+  const key = cacheKey("moodboard-intent", generationModelId, cacheHash);
+  const cached = cacheGet<MoodboardPresentationDirection[]>(key);
+  if (cached?.length === 3) {
+    for (const dir of cached) {
+      await input.onDirection?.(dir, dir.directionIndex);
+    }
+    return cached;
+  }
+
+  const directions: MoodboardPresentationDirection[] = [];
+
+  for (let i = 1; i <= 3; i++) {
+    input.onStatus?.(`Generating direction ${i} of 3…`);
+    const dir = await generateSingleIntentDirection({
+      intent,
+      directionIndex: i,
+      selectedSections,
+      existingDirections: directions,
+      model: config.model,
+      onDelta: input.onDelta,
+    });
+    directions.push(dir);
+    await input.onDirection?.(dir, i);
+  }
+
+  cacheSet(key, directions);
+  return directions;
 }
 
 function parseDirections(
@@ -376,63 +569,10 @@ export async function generatePresentationDirections(input: {
     documentExtract?: string;
   };
   onDelta?: (chunk: string) => void;
+  onDirection?: (direction: MoodboardPresentationDirection, index: number) => void | Promise<void>;
+  onStatus?: (message: string) => void;
 }): Promise<MoodboardPresentationDirection[]> {
-  const selectedSections = input.selectedOutputSections.length
-    ? input.selectedOutputSections
-    : OUTPUT_SECTIONS.map((s) => s.key);
-
-  const brief = buildBriefFromAnswers(input.answers, input.extras);
-  const clientName =
-    input.clientName?.trim() || extractBrandName(input.answers) || undefined;
-  const config = getModelConfig(input.modelId);
-  const key = cacheKey(
-    "moodboard-pres",
-    input.modelId,
-    hashString(brief + selectedSections.join(",") + (clientName ?? "")),
-  );
-  const cached = cacheGet<MoodboardPresentationDirection[]>(key);
-  if (cached) return cached;
-
-  const systemPromptBase = buildSystemPrompt(selectedSections);
-  const { block: contextBlock } = await loadAndFormatContext({
-    tool: "moodboard",
-    client_name: clientName,
-    project_name: input.projectName,
-    project_type: input.projectType,
-    userConfirmations: input.userConfirmations,
-  });
-  const systemPrompt = contextBlock
-    ? `${contextBlock}\n\n${systemPromptBase}`
-    : systemPromptBase;
-  const userPrompt = `Create 3 moodboard directions for this brand brief.\nOnly include these sections: ${selectedSections.join(", ")}\n\n${brief}`;
-
-  let text: string;
-  try {
-    text = await callAnthropic(config.model, systemPrompt, userPrompt, input.onDelta);
-  } catch (primaryErr) {
-    if (input.modelId !== "claude-sonnet") {
-      text = await callAnthropic("claude-sonnet-4-6", systemPrompt, userPrompt, input.onDelta);
-    } else {
-      throw primaryErr;
-    }
-  }
-
-  const directions = parseDirections(text, selectedSections);
-
-  const keywords = [
-    String(input.answers.q1 ?? ""),
-    String(input.answers.q5 ?? ""),
-    ...(Array.isArray(input.answers.q14)
-      ? (input.answers.q14 as string[])
-      : [String(input.answers.q14 ?? "")]),
-  ].filter(Boolean);
-
-  for (const dir of directions) {
-    await enrichDirectionImages(dir, keywords, selectedSections);
-  }
-
-  cacheSet(key, directions);
-  return directions;
+  return generatePresentationDirectionsSequential(input);
 }
 
 export async function refinePresentationDirection(input: {

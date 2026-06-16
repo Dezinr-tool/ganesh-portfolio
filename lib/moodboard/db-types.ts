@@ -46,6 +46,8 @@ export type MoodboardSessionStatus =
   | "complete"
   | "error";
 
+export type MoodboardGenerationStatus = "pending" | "generating" | "completed" | "error";
+
 export type MoodboardSession = {
   id: string;
   session_id: string;
@@ -55,7 +57,11 @@ export type MoodboardSession = {
   selected_output_sections: string[] | null;
   generated_directions: MoodboardPresentationDirection[] | null;
   selected_direction: string | null;
+  selected_direction_index?: number | null;
+  selected_at?: string | null;
   selected_model?: string | null;
+  generation_status?: MoodboardGenerationStatus | null;
+  generated_at?: string | null;
   status: MoodboardSessionStatus;
   created_at: string;
   updated_at: string;

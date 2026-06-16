@@ -140,6 +140,17 @@ async function initMoodboardTables() {
     ALTER TABLE moodboard_directions ADD COLUMN IF NOT EXISTS is_selected BOOLEAN DEFAULT false;
     ALTER TABLE moodboard_directions ADD COLUMN IF NOT EXISTS refinement_notes TEXT;
     ALTER TABLE moodboard_directions ADD COLUMN IF NOT EXISTS refined_count INTEGER DEFAULT 0;
+    ALTER TABLE moodboard_directions ADD COLUMN IF NOT EXISTS tagline TEXT;
+    ALTER TABLE moodboard_directions ADD COLUMN IF NOT EXISTS concept TEXT;
+    ALTER TABLE moodboard_directions ADD COLUMN IF NOT EXISTS imagery_style TEXT;
+    ALTER TABLE moodboard_directions ADD COLUMN IF NOT EXISTS typography JSONB;
+    ALTER TABLE moodboard_directions ADD COLUMN IF NOT EXISTS persona JSONB;
+    ALTER TABLE moodboard_directions ADD COLUMN IF NOT EXISTS brand_voice JSONB;
+    ALTER TABLE moodboard_directions ADD COLUMN IF NOT EXISTS full_output_json JSONB;
+    ALTER TABLE moodboard_sessions ADD COLUMN IF NOT EXISTS generation_status TEXT;
+    ALTER TABLE moodboard_sessions ADD COLUMN IF NOT EXISTS generated_at TIMESTAMPTZ;
+    ALTER TABLE moodboard_sessions ADD COLUMN IF NOT EXISTS selected_direction_index INTEGER;
+    ALTER TABLE moodboard_sessions ADD COLUMN IF NOT EXISTS selected_at TIMESTAMPTZ;
   `);
 
   await sql.query(CREATE_INDEXES);

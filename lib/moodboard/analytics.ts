@@ -37,6 +37,25 @@ export type MoodboardDirectionAnalytics = {
   refined_count: number;
   full_content: MoodboardPresentationDirection | null;
   created_at: string;
+  tagline?: unknown;
+  concept?: unknown;
+  imagery_style?: unknown;
+  typography?: unknown;
+  persona?: unknown;
+  brand_voice?: unknown;
+  full_output_json?: unknown;
+  color_palette?: unknown;
+  mood_keywords?: unknown;
+  typography_heading?: unknown;
+  typography_body?: unknown;
+  ui_references?: unknown;
+  illustration_references?: unknown;
+  illustration_style?: unknown;
+  brand_strategy?: unknown;
+  persona_name?: unknown;
+  persona_description?: unknown;
+  pain_points?: unknown;
+  tone_of_voice?: unknown;
 };
 
 const UUID_RE =
@@ -60,7 +79,16 @@ function rowToSession(row: Record<string, unknown>): MoodboardSession {
     selected_direction: row.selected_direction
       ? String(row.selected_direction)
       : null,
+    selected_direction_index:
+      row.selected_direction_index != null
+        ? Number(row.selected_direction_index)
+        : null,
+    selected_at: row.selected_at ? String(row.selected_at) : null,
     selected_model: row.selected_model ? String(row.selected_model) : null,
+    generation_status: row.generation_status
+      ? (String(row.generation_status) as MoodboardSession["generation_status"])
+      : null,
+    generated_at: row.generated_at ? String(row.generated_at) : null,
     status: row.status as MoodboardSession["status"],
     created_at: String(row.created_at),
     updated_at: String(row.updated_at),
@@ -79,6 +107,21 @@ function rowToEvent(row: Record<string, unknown>): MoodboardEventRow {
   };
 }
 
+function parseFullContent(value: unknown): MoodboardPresentationDirection | null {
+  if (!value) return null;
+  let obj: unknown = value;
+  if (typeof value === "string") {
+    try {
+      obj = JSON.parse(value);
+    } catch {
+      return null;
+    }
+  }
+  if (typeof obj !== "object" || obj === null) return null;
+  const dir = obj as MoodboardPresentationDirection;
+  return dir.directionName ? dir : null;
+}
+
 function rowToDirectionAnalytics(
   row: Record<string, unknown>,
 ): MoodboardDirectionAnalytics {
@@ -95,6 +138,9 @@ function rowToDirectionAnalytics(
     }
   }
 
+  const fullContent =
+    parseFullContent(row.full_output_json) ?? parseFullContent(row.full_content);
+
   return {
     id: String(row.id),
     direction_name: String(row.direction_name),
@@ -104,8 +150,27 @@ function rowToDirectionAnalytics(
     is_selected: Boolean(row.is_selected),
     refinement_notes: row.refinement_notes ? String(row.refinement_notes) : null,
     refined_count: Number(row.refined_count ?? 0),
-    full_content: (row.full_content as MoodboardPresentationDirection) ?? null,
+    full_content: fullContent,
     created_at: String(row.created_at),
+    tagline: row.tagline,
+    concept: row.concept,
+    color_palette: row.color_palette,
+    mood_keywords: row.mood_keywords,
+    typography: row.typography,
+    typography_heading: row.typography_heading,
+    typography_body: row.typography_body,
+    imagery_style: row.imagery_style,
+    ui_references: row.ui_references,
+    illustration_references: row.illustration_references,
+    illustration_style: row.illustration_style,
+    brand_strategy: row.brand_strategy,
+    persona: row.persona,
+    persona_name: row.persona_name,
+    persona_description: row.persona_description,
+    pain_points: row.pain_points,
+    tone_of_voice: row.tone_of_voice,
+    brand_voice: row.brand_voice,
+    full_output_json: row.full_output_json,
   };
 }
 

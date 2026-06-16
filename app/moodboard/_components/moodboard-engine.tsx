@@ -187,11 +187,19 @@ export function MoodboardEngine() {
 
         if (!res.ok || !res.body) throw new Error("Generation failed");
 
+        const partialDirections: MoodboardPresentationDirection[] = [];
+
         const result = await readSseStream<{ directions: MoodboardPresentationDirection[] }>(
           res,
           (event) => {
             if (event.type === "status" && event.message) {
               setGenStatus(event.message);
+            }
+            if (event.type === "direction" && event.direction) {
+              const dir = event.direction as MoodboardPresentationDirection;
+              partialDirections.push(dir);
+              setDirections([...partialDirections]);
+              setGenStatus(`Direction ${event.directionIndex ?? partialDirections.length} ready…`);
             }
           },
         );
@@ -351,6 +359,26 @@ export function MoodboardEngine() {
     void handleUserMessage(composerText);
   }, [composerText, handleUserMessage]);
 
+  const handleSelectDirection = useCallback(
+    async (direction: MoodboardPresentationDirection) => {
+      if (!sessionId) return;
+      await fetch("/api/moodboard/select-direction", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          sessionId,
+          directionIndex: direction.directionIndex,
+          directionName: direction.directionName,
+        }),
+      });
+      void trackMoodboardEvent(sessionId, "direction_selected", {
+        directionIndex: direction.directionIndex,
+        directionName: direction.directionName,
+      });
+    },
+    [sessionId],
+  );
+
   const handleRefine = useCallback(
     async (directionId: string, note: string) => {
       const dir = directions.find((d) => d.id === directionId);
@@ -432,19 +460,18 @@ export function MoodboardEngine() {
 
   if (intakeComplete) {
     return (
-      <div className="flex min-h-screen bg-black text-zinc-100">
+      <div className="relative flex min-h-screen flex-col bg-black text-zinc-100">
         <MoodboardSessionsSidebar activeSessionId={sessionId} theme="dark" />
-        <div className="flex min-w-0 flex-1 flex-col">
-          <MoodboardNav />
-          <div className="moodboard-output-enter">
-            <PresentationView
-              directions={directions}
-              brandName={brandName}
-              selectedOutputSections={selectedOutputSections}
-              sessionId={sessionId}
-              onRefine={handleRefine}
-            />
-          </div>
+        <MoodboardNav />
+        <div className="moodboard-output-enter">
+          <PresentationView
+            directions={directions}
+            brandName={brandName}
+            selectedOutputSections={selectedOutputSections}
+            sessionId={sessionId}
+            onRefine={handleRefine}
+            onSelectDirection={handleSelectDirection}
+          />
         </div>
       </div>
     );
@@ -452,16 +479,14 @@ export function MoodboardEngine() {
 
   return (
     <div
-      className={`flex min-h-screen flex-col ${
+      className={`relative flex min-h-screen flex-col ${
         conversationStarted ? "moodboard-chat-shell" : "bg-white"
       }`}
     >
+      <MoodboardSessionsSidebar activeSessionId={sessionId} theme="light" />
       <MoodboardNav theme="light" />
 
-      <div className="flex min-h-0 flex-1">
-        <MoodboardSessionsSidebar activeSessionId={sessionId} theme="light" />
-
-        <div className="flex min-h-0 min-w-0 flex-1 flex-col bg-white">
+      <div className="flex min-h-0 flex-1 flex-col bg-white">
           {!sessionReady ? (
             <div className="flex flex-1 items-center justify-center">
               <p className="text-sm text-[#888]">Loading session…</p>
@@ -534,7 +559,6 @@ export function MoodboardEngine() {
               </div>
             </div>
           )}
-        </div>
       </div>
     </div>
   );

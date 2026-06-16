@@ -1,6 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createSseStream, sseResponse } from "@/lib/ai-sse";
-import { saveDirectionsToDb, updateSession, getSessionBySessionId } from "@/lib/moodboard/db-store";
+import {
+  clearSessionDirections,
+  getSessionBySessionId,
+  markSessionGenerationComplete,
+  saveSingleDirectionToDb,
+  updateSession,
+} from "@/lib/moodboard/db-store";
 import { generatePresentationDirections } from "@/lib/moodboard/presentation-generator";
 import { getSelectedOutputSections } from "@/lib/moodboard/output-sections";
 import { extractBrandName } from "@/lib/moodboard/question-flow";
@@ -17,11 +23,13 @@ const VALID_MODELS = new Set<MoodboardModelId>([
   "gemini-pro",
 ]);
 
+/** Generation always uses Sonnet for quality; chat model is ignored here. */
+const GENERATION_MODEL: MoodboardModelId = "claude-sonnet";
+
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
     const answers = (body.answers ?? {}) as Record<string, unknown>;
-    const modelId = (body.modelId ?? "claude-sonnet") as MoodboardModelId;
     const sessionId = body.sessionId as string | undefined;
     const stream = body.stream === true;
     const extras = body.extras as
@@ -32,10 +40,6 @@ export async function POST(request: NextRequest) {
           documentExtract?: string;
         }
       | undefined;
-
-    if (!VALID_MODELS.has(modelId)) {
-      return NextResponse.json({ error: "Invalid model." }, { status: 400 });
-    }
 
     const selectedOutputSections = (
       (body.selectedOutputSections as string[] | undefined)?.length
@@ -55,21 +59,27 @@ export async function POST(request: NextRequest) {
       | undefined;
     const userConfirmations = preConfirmation ?? fromAnswers;
 
+    async function persistDirection(
+      direction: Awaited<ReturnType<typeof generatePresentationDirections>>[number],
+    ) {
+      if (!sessionId) return;
+      await saveSingleDirectionToDb(sessionId, direction, {
+        modelUsed: GENERATION_MODEL,
+        selectedOutputSections,
+      });
+    }
+
     async function persistAndLearn(
       directions: Awaited<ReturnType<typeof generatePresentationDirections>>,
     ) {
       if (sessionId) {
-        await updateSession(sessionId, {
-          generated_directions: directions,
-          brand_name: extractBrandName(answers),
-          selected_output_sections: selectedOutputSections,
-          status: "complete",
-        });
-        await saveDirectionsToDb(sessionId, directions, {
-          modelUsed: modelId,
+        await markSessionGenerationComplete(sessionId, directions, {
+          modelUsed: GENERATION_MODEL,
           selectedOutputSections,
         });
-        await updateSession(sessionId, { selected_model: modelId });
+        await updateSession(sessionId, {
+          brand_name: extractBrandName(answers),
+        });
       }
       if (clientName) {
         try {
@@ -86,19 +96,37 @@ export async function POST(request: NextRequest) {
       }
     }
 
+    const generationInput = {
+      answers,
+      modelId: GENERATION_MODEL,
+      extras,
+      selectedOutputSections,
+      clientName,
+      projectType: projectType ? String(projectType) : undefined,
+      userConfirmations,
+    };
+
     if (stream) {
       const sse = createSseStream(async (send) => {
-        send({ type: "status", message: "Building three distinct directions…" });
+        if (sessionId) {
+          await updateSession(sessionId, {
+            status: "generating",
+            generation_status: "generating",
+          });
+          await clearSessionDirections(sessionId);
+        }
+
+        send({ type: "status", message: "Analyzing your brief…" });
+
+        const collected: Awaited<ReturnType<typeof generatePresentationDirections>> = [];
+
         const directions = await generatePresentationDirections({
-          answers,
-          modelId,
-          extras,
-          selectedOutputSections,
-          clientName,
-          projectType: projectType ? String(projectType) : undefined,
-          userConfirmations,
-          onDelta: () => {
-            send({ type: "status", message: "Generating moodboard directions…" });
+          ...generationInput,
+          onStatus: (message) => send({ type: "status", message }),
+          onDirection: async (direction, index) => {
+            await persistDirection(direction);
+            collected.push(direction);
+            send({ type: "direction", direction, directionIndex: index });
           },
         });
 
@@ -107,20 +135,22 @@ export async function POST(request: NextRequest) {
         }
 
         await persistAndLearn(directions);
-
         send({ type: "complete", result: { directions } });
       });
       return sseResponse(sse);
     }
 
+    if (sessionId) {
+      await updateSession(sessionId, {
+        status: "generating",
+        generation_status: "generating",
+      });
+      await clearSessionDirections(sessionId);
+    }
+
     const directions = await generatePresentationDirections({
-      answers,
-      modelId,
-      extras,
-      selectedOutputSections,
-      clientName,
-      projectType: projectType ? String(projectType) : undefined,
-      userConfirmations,
+      ...generationInput,
+      onDirection: persistDirection,
     });
 
     if (directions.length !== 3) {

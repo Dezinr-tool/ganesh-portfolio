@@ -1,11 +1,17 @@
 import { sql } from "@/lib/db";
 import type {
   MoodboardDirectionRow,
+  MoodboardGenerationStatus,
   MoodboardPresentationDirection,
   MoodboardQuestion,
   MoodboardSession,
   OutputSectionOption,
 } from "./db-types";
+import {
+  extractConceptFromDirection,
+  extractImageryStyleFromDirection,
+  extractTypographyJson,
+} from "./direction-fields";
 
 function parseChipsOptions(chips: unknown): MoodboardQuestion["chips_options"] {
   if (!chips) return null;
@@ -170,7 +176,16 @@ function rowToSession(row: Record<string, unknown>): MoodboardSession {
     selected_direction: row.selected_direction
       ? String(row.selected_direction)
       : null,
+    selected_direction_index:
+      row.selected_direction_index != null
+        ? Number(row.selected_direction_index)
+        : null,
+    selected_at: row.selected_at ? String(row.selected_at) : null,
     selected_model: row.selected_model ? String(row.selected_model) : null,
+    generation_status: row.generation_status
+      ? (String(row.generation_status) as MoodboardGenerationStatus)
+      : null,
+    generated_at: row.generated_at ? String(row.generated_at) : null,
     status: row.status as MoodboardSession["status"],
     created_at: String(row.created_at),
     updated_at: String(row.updated_at),
@@ -208,8 +223,12 @@ export async function updateSession(
     selected_output_sections: string[];
     generated_directions: MoodboardPresentationDirection[];
     selected_direction: string;
+    selected_direction_index: number;
+    selected_at: string;
     status: string;
     selected_model: string;
+    generation_status: MoodboardGenerationStatus;
+    generated_at: string;
   }>,
 ): Promise<MoodboardSession | null> {
   const existing = await getSessionBySessionId(sessionId);
@@ -223,14 +242,121 @@ export async function updateSession(
       selected_output_sections = ${data.selected_output_sections !== undefined ? JSON.stringify(data.selected_output_sections) : existing.selected_output_sections ? JSON.stringify(existing.selected_output_sections) : null},
       generated_directions = ${data.generated_directions ? JSON.stringify(data.generated_directions) : existing.generated_directions ? JSON.stringify(existing.generated_directions) : null},
       selected_direction = ${data.selected_direction ?? existing.selected_direction},
+      selected_direction_index = ${data.selected_direction_index !== undefined ? data.selected_direction_index : existing.selected_direction_index ?? null},
+      selected_at = ${data.selected_at !== undefined ? data.selected_at : existing.selected_at ?? null},
       status = ${data.status ?? existing.status},
       selected_model = ${data.selected_model !== undefined ? data.selected_model : existing.selected_model ?? null},
+      generation_status = ${data.generation_status !== undefined ? data.generation_status : existing.generation_status ?? null},
+      generated_at = ${data.generated_at !== undefined ? data.generated_at : existing.generated_at ?? null},
       updated_at = NOW()
     WHERE session_id = ${sessionId}
     RETURNING *
   `;
   const row = result.rows[0];
   return row ? rowToSession(row as Record<string, unknown>) : null;
+}
+
+export async function clearSessionDirections(sessionId: string): Promise<void> {
+  await sql`DELETE FROM moodboard_directions WHERE session_id = ${sessionId}`;
+}
+
+export async function saveSingleDirectionToDb(
+  sessionId: string,
+  dir: MoodboardPresentationDirection,
+  options?: {
+    modelUsed?: string;
+    selectedOutputSections?: string[];
+  },
+): Promise<void> {
+  const concept = extractConceptFromDirection(dir);
+  const imageryStyle = extractImageryStyleFromDirection(dir);
+  const typography = extractTypographyJson(dir);
+  const fullJson = JSON.stringify(dir);
+
+  await sql`
+    DELETE FROM moodboard_directions
+    WHERE session_id = ${sessionId} AND direction_index = ${dir.directionIndex}
+  `;
+
+  await sql`
+    INSERT INTO moodboard_directions (
+      session_id, direction_name, direction_index, tagline, concept,
+      persona_name, persona_description, pain_points,
+      brand_strategy, tone_of_voice, ui_references,
+      illustration_style, illustration_references,
+      typography_heading, typography_body, typography_references,
+      typography, imagery_style, color_palette, mood_keywords,
+      persona, brand_voice,
+      full_content, full_output_json, model_used, selected_output_sections
+    ) VALUES (
+      ${sessionId},
+      ${dir.directionName},
+      ${dir.directionIndex},
+      ${dir.tagline || null},
+      ${concept || null},
+      ${dir.persona?.name ?? null},
+      ${dir.persona?.description ?? null},
+      ${JSON.stringify(dir.persona?.painPoints ?? [])},
+      ${dir.persona?.brandStrategy ?? null},
+      ${dir.persona?.toneOfVoice ?? null},
+      ${JSON.stringify(dir.uiSection?.references ?? [])},
+      ${dir.illustrations?.styleDescription ?? null},
+      ${JSON.stringify(dir.illustrations?.references ?? [])},
+      ${JSON.stringify(dir.typography?.heading ?? null)},
+      ${JSON.stringify(dir.typography?.body ?? null)},
+      ${JSON.stringify(dir.typography?.references ?? [])},
+      ${typography ? JSON.stringify(typography) : null},
+      ${imageryStyle || null},
+      ${JSON.stringify(dir.colorPalette ?? [])},
+      ${JSON.stringify(dir.moodKeywords ?? [])},
+      ${dir.persona ? JSON.stringify(dir.persona) : null},
+      ${dir.brandVoice ? JSON.stringify(dir.brandVoice) : null},
+      ${fullJson},
+      ${fullJson},
+      ${options?.modelUsed ?? null},
+      ${options?.selectedOutputSections ? JSON.stringify(options.selectedOutputSections) : null}
+    )
+  `;
+}
+
+export async function markSessionGenerationComplete(
+  sessionId: string,
+  directions: MoodboardPresentationDirection[],
+  options?: {
+    modelUsed?: string;
+    selectedOutputSections?: string[];
+  },
+): Promise<void> {
+  await updateSession(sessionId, {
+    generated_directions: directions,
+    status: "complete",
+    generation_status: "completed",
+    generated_at: new Date().toISOString(),
+    selected_model: options?.modelUsed,
+    selected_output_sections: options?.selectedOutputSections,
+  });
+}
+
+export async function markDirectionSelected(
+  sessionId: string,
+  directionIndex: number,
+  directionName: string,
+): Promise<void> {
+  await sql`
+    UPDATE moodboard_directions
+    SET is_selected = false
+    WHERE session_id = ${sessionId}
+  `;
+  await sql`
+    UPDATE moodboard_directions
+    SET is_selected = true
+    WHERE session_id = ${sessionId} AND direction_index = ${directionIndex}
+  `;
+  await updateSession(sessionId, {
+    selected_direction: directionName,
+    selected_direction_index: directionIndex,
+    selected_at: new Date().toISOString(),
+  });
 }
 
 export async function saveDirectionsToDb(
@@ -241,40 +367,9 @@ export async function saveDirectionsToDb(
     selectedOutputSections?: string[];
   },
 ): Promise<void> {
-  await sql`DELETE FROM moodboard_directions WHERE session_id = ${sessionId}`;
-
+  await clearSessionDirections(sessionId);
   for (const dir of directions) {
-    await sql`
-      INSERT INTO moodboard_directions (
-        session_id, direction_name, direction_index,
-        persona_name, persona_description, pain_points,
-        brand_strategy, tone_of_voice, ui_references,
-        illustration_style, illustration_references,
-        typography_heading, typography_body, typography_references,
-        color_palette, mood_keywords,
-        full_content, model_used, selected_output_sections
-      ) VALUES (
-        ${sessionId},
-        ${dir.directionName},
-        ${dir.directionIndex},
-        ${dir.persona?.name ?? null},
-        ${dir.persona?.description ?? null},
-        ${JSON.stringify(dir.persona?.painPoints ?? [])},
-        ${dir.persona?.brandStrategy ?? null},
-        ${dir.persona?.toneOfVoice ?? null},
-        ${JSON.stringify(dir.uiSection?.references ?? [])},
-        ${dir.illustrations?.styleDescription ?? null},
-        ${JSON.stringify(dir.illustrations?.references ?? [])},
-        ${JSON.stringify(dir.typography?.heading ?? null)},
-        ${JSON.stringify(dir.typography?.body ?? null)},
-        ${JSON.stringify(dir.typography?.references ?? [])},
-        ${JSON.stringify(dir.colorPalette ?? [])},
-        ${JSON.stringify(dir.moodKeywords ?? [])},
-        ${JSON.stringify(dir)},
-        ${options?.modelUsed ?? null},
-        ${options?.selectedOutputSections ? JSON.stringify(options.selectedOutputSections) : null}
-      )
-    `;
+    await saveSingleDirectionToDb(sessionId, dir, options);
   }
 }
 

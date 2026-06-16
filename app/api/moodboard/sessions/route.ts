@@ -102,6 +102,18 @@ export async function PATCH(request: NextRequest) {
     if (body.selected_direction) {
       patch.selected_direction = body.selected_direction;
     }
+    if (body.selected_direction_index != null) {
+      patch.selected_direction_index = Number(body.selected_direction_index);
+    }
+    if (body.selected_at) {
+      patch.selected_at = body.selected_at;
+    }
+    if (body.generation_status) {
+      patch.generation_status = body.generation_status;
+    }
+    if (body.generated_at) {
+      patch.generated_at = body.generated_at;
+    }
     if (body.status) {
       patch.status = body.status;
     }

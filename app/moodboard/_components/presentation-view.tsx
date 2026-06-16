@@ -16,17 +16,21 @@ export function PresentationView({
   selectedOutputSections = [],
   sessionId,
   onRefine,
+  onSelectDirection,
 }: {
   directions: MoodboardPresentationDirection[];
   brandName: string;
   selectedOutputSections?: string[];
   sessionId?: string | null;
   onRefine?: (directionId: string, note: string) => Promise<void>;
+  onSelectDirection?: (direction: MoodboardPresentationDirection) => Promise<void>;
 }) {
   const [copyMsg, setCopyMsg] = useState("");
   const [refineId, setRefineId] = useState<string | null>(null);
   const [refineNote, setRefineNote] = useState("");
   const [refining, setRefining] = useState(false);
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [selectingId, setSelectingId] = useState<string | null>(null);
 
   const handleCopy = async () => {
     const md = presentationToMarkdown(directions, brandName, selectedOutputSections);
@@ -57,6 +61,17 @@ export function PresentationView({
       directionId: direction.id,
       directionName: direction.directionName,
     });
+  };
+
+  const handleSelect = async (direction: MoodboardPresentationDirection) => {
+    if (!onSelectDirection || selectingId) return;
+    setSelectingId(direction.id);
+    try {
+      await onSelectDirection(direction);
+      setSelectedId(direction.id);
+    } finally {
+      setSelectingId(null);
+    }
   };
 
   const handleRefine = async () => {
@@ -115,9 +130,27 @@ export function PresentationView({
       {directions.map((dir) => (
         <div key={dir.id}>
           <DirectionDeck direction={dir} selectedSections={selectedOutputSections} />
-          {onRefine && directions.length > 1 ? (
-            <div className="border-b border-neutral-100 px-5 py-4 sm:px-8">
-              <div className="mx-auto flex max-w-[1824px] justify-end">
+          <div className="border-b border-neutral-100 px-5 py-4 sm:px-8">
+            <div className="mx-auto flex max-w-[1824px] flex-wrap justify-end gap-2">
+              {onSelectDirection ? (
+                <button
+                  type="button"
+                  disabled={selectingId === dir.id || selectedId === dir.id}
+                  onClick={() => void handleSelect(dir)}
+                  className={`rounded-md px-4 py-2 text-sm transition ${
+                    selectedId === dir.id
+                      ? "border border-green-600 bg-green-50 text-green-700"
+                      : "border border-neutral-200 text-neutral-700 hover:bg-neutral-50"
+                  } disabled:opacity-50`}
+                >
+                  {selectedId === dir.id
+                    ? "✓ Selected"
+                    : selectingId === dir.id
+                      ? "Saving…"
+                      : "Select this direction"}
+                </button>
+              ) : null}
+              {onRefine && directions.length > 1 ? (
                 <button
                   type="button"
                   onClick={() => setRefineId(dir.id)}
@@ -125,9 +158,9 @@ export function PresentationView({
                 >
                   Refine — {dir.directionName}
                 </button>
-              </div>
+              ) : null}
             </div>
-          ) : null}
+          </div>
         </div>
       ))}
 
