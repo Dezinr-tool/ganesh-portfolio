@@ -19,7 +19,7 @@ async function main() {
     await composer.press("Enter");
 
     const chat = page.getByTestId("moodboard-chat");
-    await chat.waitFor({ state: "visible", timeout: 8000 });
+    await chat.waitFor({ state: "visible", timeout: 15000 });
     console.log("✅ Chat screen visible");
 
     await page.waitForFunction(

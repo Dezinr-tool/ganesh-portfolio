@@ -10,7 +10,9 @@ type MoodboardLandingProps = {
   modelId: MoodboardModelId;
   onModelChange: (id: MoodboardModelId) => void;
   disabled?: boolean;
+  submitting?: boolean;
   onFilesSelected?: (files: File[]) => void;
+  onStartFresh?: () => void;
 };
 
 export function MoodboardLanding({
@@ -20,10 +22,21 @@ export function MoodboardLanding({
   modelId,
   onModelChange,
   disabled,
+  submitting,
   onFilesSelected,
+  onStartFresh,
 }: MoodboardLandingProps) {
   return (
-    <div className="flex flex-1 flex-col items-center justify-center bg-white px-5 sm:px-8">
+    <div className="relative flex flex-1 flex-col items-center justify-center bg-white px-5 sm:px-8">
+      {submitting ? (
+        <div
+          className="absolute inset-0 z-10 flex items-center justify-center bg-white/80"
+          role="status"
+          aria-live="polite"
+        >
+          <p className="text-sm text-[#666]">Starting your session…</p>
+        </div>
+      ) : null}
       <div className="mx-auto w-full max-w-[680px] text-center">
         <h1 className="text-[2.25rem] font-medium leading-[1.1] tracking-[-0.02em] text-[#1a1a1a] sm:text-5xl lg:text-[64px]">
           Great design starts with personality.
@@ -47,6 +60,19 @@ export function MoodboardLanding({
             uploadAccept=".pdf,.docx,.txt"
           />
         </div>
+
+        {onStartFresh ? (
+          <p className="mt-6 text-center text-xs text-[#999]">
+            Stuck?{" "}
+            <button
+              type="button"
+              onClick={onStartFresh}
+              className="underline decoration-[#ccc] underline-offset-2 hover:text-[#666]"
+            >
+              Start a fresh session
+            </button>
+          </p>
+        ) : null}
       </div>
     </div>
   );

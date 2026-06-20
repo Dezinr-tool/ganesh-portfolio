@@ -78,6 +78,7 @@ export function MoodboardEngine() {
   const composerRef = useRef<MoodboardComposerHandle>(null);
   const initializedRef = useRef(false);
   const interactionStartedRef = useRef(false);
+  const conversationLockedRef = useRef(false);
   const answersRef = useRef(answers);
   const messagesRef = useRef(messages);
   const extrasRef = useRef(extras);
@@ -113,8 +114,43 @@ export function MoodboardEngine() {
   }, [messages, thinking, generating, showPreConfirm, offerSections]);
 
   const addAssistantMessage = useCallback((text: string) => {
-    setMessages((m) => [...m, { id: uid(), role: "assistant", text }]);
+    setMessages((m) => {
+      const next = [...m, { id: uid(), role: "assistant" as const, text }];
+      messagesRef.current = next;
+      return next;
+    });
   }, []);
+
+  const lockConversation = useCallback(() => {
+    interactionStartedRef.current = true;
+    conversationLockedRef.current = true;
+    setConversationStarted(true);
+  }, []);
+
+  const saveSnapshotNow = useCallback(
+    (
+      nextAnswers: Record<string, unknown>,
+      chatHistory: HistoryMessage[],
+      patch?: Partial<Parameters<typeof saveSessionSnapshot>[0]>,
+    ) => {
+      if (!sessionId) return;
+      saveSessionSnapshot({
+        sessionId,
+        answers: {
+          ...nextAnswers,
+          _chat_history: chatHistory.map(({ role, text }) => ({ role, text })),
+        },
+        messages: chatHistory.map(({ role, text }) => ({ role, text })),
+        directions,
+        selectedOutputSections,
+        modelId,
+        extras: extrasRef.current,
+        savedAt: new Date().toISOString(),
+        ...patch,
+      });
+    },
+    [directions, modelId, selectedOutputSections, sessionId],
+  );
 
   const handleAttachFiles = useCallback(
     async (files: File[]) => {
@@ -122,8 +158,7 @@ export function MoodboardEngine() {
       if (!doc) {
         addAssistantMessage("Please upload a PDF, DOCX, or TXT file.");
         if (!conversationStarted) {
-          interactionStartedRef.current = true;
-          setConversationStarted(true);
+          lockConversation();
         }
         return;
       }
@@ -151,8 +186,7 @@ export function MoodboardEngine() {
         extrasRef.current = nextExtras;
 
         if (!interactionStartedRef.current) {
-          interactionStartedRef.current = true;
-          setConversationStarted(true);
+          lockConversation();
         }
 
         addAssistantMessage(
@@ -165,14 +199,13 @@ export function MoodboardEngine() {
             : "Could not read that file. Try PDF, DOCX, or TXT.",
         );
         if (!conversationStarted) {
-          interactionStartedRef.current = true;
-          setConversationStarted(true);
+          lockConversation();
         }
       } finally {
         setBusy(false);
       }
     },
-    [addAssistantMessage, conversationStarted],
+    [addAssistantMessage, conversationStarted, lockConversation],
   );
 
   const persistSession = useCallback(
@@ -367,43 +400,53 @@ export function MoodboardEngine() {
 
   const callIntakeChat = useCallback(
     async (chatMessages: HistoryMessage[], assistantId: string) => {
-      const res = await fetch("/api/moodboard/chat", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          sessionId,
-          modelId,
-          stream: true,
-          messages: chatMessages.map(({ role, text }) => ({ role, text })),
-          answers: answersRef.current,
-          extras: extrasRef.current,
-        }),
-      });
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 90000);
 
-      if (!res.ok) throw new Error("Chat failed");
+      try {
+        const res = await fetch("/api/moodboard/chat", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          signal: controller.signal,
+          body: JSON.stringify({
+            sessionId,
+            modelId,
+            stream: true,
+            messages: chatMessages.map(({ role, text }) => ({ role, text })),
+            answers: answersRef.current,
+            extras: extrasRef.current,
+          }),
+        });
 
-      const result = await readSseStream<{
-        type?: "chat" | "moodboard_output";
-        reply?: string;
-        directions?: MoodboardPresentationDirection[];
-        answers: Record<string, unknown>;
-        extras?: typeof extras;
-        readyToGenerate: boolean;
-        showSectionsPicker?: boolean;
-        researched?: boolean;
-      }>(res, (event) => {
-        if (event.type === "delta" && event.text) {
-          setThinking(false);
-          setMessages((prev) =>
-            prev.map((m) =>
-              m.id === assistantId ? { ...m, text: event.text ?? "" } : m,
-            ),
-          );
-        }
-      });
+        if (!res.ok) throw new Error("Chat failed");
 
-      if (!result) throw new Error("Chat failed");
-      return result;
+        const result = await readSseStream<{
+          type?: "chat" | "moodboard_output";
+          reply?: string;
+          directions?: MoodboardPresentationDirection[];
+          answers: Record<string, unknown>;
+          extras?: typeof extras;
+          readyToGenerate: boolean;
+          showSectionsPicker?: boolean;
+          researched?: boolean;
+        }>(res, (event) => {
+          if (event.type === "delta" && event.text) {
+            setThinking(false);
+            setMessages((prev) => {
+              const next = prev.map((m) =>
+                m.id === assistantId ? { ...m, text: event.text ?? "" } : m,
+              );
+              messagesRef.current = next;
+              return next;
+            });
+          }
+        });
+
+        if (!result) throw new Error("Chat failed");
+        return result;
+      } finally {
+        clearTimeout(timeout);
+      }
     },
     [modelId, sessionId],
   );
@@ -429,15 +472,15 @@ export function MoodboardEngine() {
 
       setBusy(true);
       setComposerText("");
-      interactionStartedRef.current = true;
+      lockConversation();
 
       if (options?.isLanding) {
-        setConversationStarted(true);
         void trackMoodboardEvent(sessionId, "session_started", { openingMessage: trimmed });
       }
 
       const userMsg: HistoryMessage = { id: uid(), role: "user", text: trimmed };
       const chatMessages = [...messagesRef.current, userMsg];
+      messagesRef.current = chatMessages;
       setMessages(chatMessages);
 
       setThinking(true);
@@ -446,7 +489,9 @@ export function MoodboardEngine() {
         ...chatMessages,
         { id: assistantId, role: "assistant" as const, text: "" },
       ];
+      messagesRef.current = chatWithPlaceholder;
       setMessages(chatWithPlaceholder);
+      saveSnapshotNow(answersRef.current, chatMessages);
 
       try {
         const data = await callIntakeChat(chatMessages, assistantId);
@@ -482,10 +527,11 @@ export function MoodboardEngine() {
           text: data.reply ?? "",
         };
         const fullHistory = [...chatMessages, assistantMsg];
-        setMessages(fullHistory);
         messagesRef.current = fullHistory;
+        setMessages(fullHistory);
+        saveSnapshotNow(data.answers, fullHistory);
 
-        await persistSession(data.answers, fullHistory, { selected_model: modelId });
+        void persistSession(data.answers, fullHistory, { selected_model: modelId });
       } catch {
         setMessages((prev) => prev.filter((m) => m.id !== assistantId));
         addAssistantMessage(
@@ -500,12 +546,18 @@ export function MoodboardEngine() {
       addAssistantMessage,
       busy,
       callIntakeChat,
+      lockConversation,
       modelId,
       persistSession,
+      saveSnapshotNow,
       triggerGeneration,
       sessionId,
     ],
   );
+
+  const handleStartFresh = useCallback(() => {
+    startNewSession();
+  }, []);
 
   const handleLandingSubmit = useCallback(() => {
     void handleUserMessage(composerText, { isLanding: true });
@@ -595,6 +647,7 @@ export function MoodboardEngine() {
         cached.messages.length > 0 || cached.directions.length > 0,
       );
       if (cached.messages.length > 0 || cached.directions.length > 0) {
+        conversationLockedRef.current = true;
         interactionStartedRef.current = true;
       }
     }
@@ -621,6 +674,7 @@ export function MoodboardEngine() {
               setSelectedOutputSections(restored.selectedOutputSections);
               if (restored.modelId) setModelId(restored.modelId);
               setConversationStarted(true);
+              conversationLockedRef.current = true;
               interactionStartedRef.current = true;
               saveSessionSnapshot({
                 sessionId,
@@ -639,7 +693,11 @@ export function MoodboardEngine() {
               return;
             }
 
-            if (interactionStartedRef.current || messagesRef.current.length > 0) {
+            if (
+              interactionStartedRef.current ||
+              conversationLockedRef.current ||
+              messagesRef.current.length > 0
+            ) {
               return;
             }
 
@@ -732,7 +790,9 @@ export function MoodboardEngine() {
               modelId={modelId}
               onModelChange={setModelId}
               disabled={composerDisabled}
+              submitting={busy && !conversationStarted}
               onFilesSelected={handleAttachFiles}
+              onStartFresh={handleStartFresh}
             />
           ) : (
             <div
