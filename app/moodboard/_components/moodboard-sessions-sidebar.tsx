@@ -70,8 +70,10 @@ export function MoodboardSessionsSidebar({
   theme?: "light" | "dark";
 }) {
   const [open, setOpen] = useState(false);
-  const [sessions, setSessions] = useState<SessionIndexEntry[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [sessions, setSessions] = useState<SessionIndexEntry[]>(() =>
+    typeof window !== "undefined" ? loadSessionIndex() : [],
+  );
+  const [loading, setLoading] = useState(false);
 
   const refresh = useCallback(async () => {
     const local = loadSessionIndex();
@@ -107,13 +109,16 @@ export function MoodboardSessionsSidebar({
   }, []);
 
   useEffect(() => {
+    if (!open) return;
+    setLoading(true);
     void refresh();
-    const onUpdate = () => {
-      void refresh();
-    };
+  }, [open, refresh]);
+
+  useEffect(() => {
+    const onUpdate = () => setSessions(loadSessionIndex());
     window.addEventListener("moodboard-session-index-updated", onUpdate);
     return () => window.removeEventListener("moodboard-session-index-updated", onUpdate);
-  }, [refresh]);
+  }, []);
 
   useEffect(() => {
     if (!open) return;

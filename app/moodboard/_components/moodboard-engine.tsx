@@ -27,6 +27,7 @@ import { MoodboardLanding } from "./moodboard-landing";
 import { readStoredValue, useClientSessionId } from "@/lib/client-storage";
 import { restoreSessionState } from "@/lib/moodboard/session-restore";
 import { registerSession, startNewSession, upsertSessionIndex } from "@/lib/moodboard/session-index";
+import { loadSessionSnapshot, saveSessionSnapshot } from "@/lib/moodboard/session-snapshot";
 import type { MoodboardSession } from "@/lib/moodboard/db-types";
 import { MoodboardSessionsSidebar } from "./moodboard-sessions-sidebar";
 import { MoodboardSectionsPicker } from "./moodboard-sections-picker";
@@ -70,7 +71,7 @@ export function MoodboardEngine() {
   const [composerText, setComposerText] = useState("");
   const [conversationStarted, setConversationStarted] = useState(false);
   const [landingFading, setLandingFading] = useState(false);
-  const [sessionReady, setSessionReady] = useState(false);
+  const [sessionSyncing, setSessionSyncing] = useState(false);
   const [readyToGenerate, setReadyToGenerate] = useState(false);
 
   const pendingAnswersRef = useRef<Record<string, unknown>>({});
@@ -149,8 +150,18 @@ export function MoodboardEngine() {
           updatedAt: new Date().toISOString(),
         });
       }
+
+      saveSessionSnapshot({
+        sessionId,
+        answers: payload,
+        messages: chatHistory.map(({ role, text }) => ({ role, text })),
+        directions,
+        selectedOutputSections,
+        modelId,
+        savedAt: new Date().toISOString(),
+      });
     },
-    [sessionId],
+    [directions, modelId, selectedOutputSections, sessionId],
   );
 
   const startGeneration = useCallback(
@@ -477,19 +488,38 @@ export function MoodboardEngine() {
   );
 
   useEffect(() => {
-    if (initializedRef.current) return;
+    if (!sessionId || initializedRef.current) return;
+    initializedRef.current = true;
 
-    async function init() {
+    const cached = loadSessionSnapshot(sessionId);
+    if (cached) {
+      setAnswers(cached.answers);
+      answersRef.current = cached.answers;
+      const cachedMessages: HistoryMessage[] = cached.messages.map((m, i) => ({
+        id: `snap-${i}`,
+        role: m.role,
+        text: m.text,
+      }));
+      setMessages(cachedMessages);
+      messagesRef.current = cachedMessages;
+      setDirections(cached.directions);
+      setSelectedOutputSections(cached.selectedOutputSections);
+      if (cached.modelId) setModelId(cached.modelId);
+      setConversationStarted(
+        cached.messages.length > 0 || cached.directions.length > 0,
+      );
+    }
+
+    setSessionSyncing(true);
+    void (async () => {
       try {
-        const sessionRes = sessionId
-          ? await fetch("/api/moodboard/sessions", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ sessionId }),
-            })
-          : null;
+        const sessionRes = await fetch("/api/moodboard/sessions", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ sessionId }),
+        });
 
-        if (sessionRes?.ok) {
+        if (sessionRes.ok) {
           const sessionData = (await sessionRes.json()) as { session?: MoodboardSession };
           if (sessionData.session) {
             registerSession(sessionData.session);
@@ -503,19 +533,24 @@ export function MoodboardEngine() {
             if (restored.modelId) setModelId(restored.modelId);
             setConversationStarted(restored.conversationStarted);
             setReadyToGenerate(restored.readyToGenerate);
+
+            saveSessionSnapshot({
+              sessionId,
+              answers: restored.answers,
+              messages: restored.messages.map(({ role, text }) => ({ role, text })),
+              directions: restored.directions,
+              selectedOutputSections: restored.selectedOutputSections,
+              modelId: restored.modelId,
+              savedAt: new Date().toISOString(),
+            });
           }
         }
-
-        initializedRef.current = true;
       } catch {
-        /* session load optional */
+        /* server sync optional — local snapshot still works */
       } finally {
-        setSessionReady(true);
+        setSessionSyncing(false);
       }
-    }
-
-    if (sessionId) void init();
-    else setSessionReady(true);
+    })();
   }, [sessionId]);
 
   const brandName = extractBrandName(answers);
@@ -555,12 +590,17 @@ export function MoodboardEngine() {
       <MoodboardSessionsSidebar activeSessionId={sessionId} theme="light" />
       <MoodboardNav theme="light" />
 
+      {sessionSyncing ? (
+        <div
+          className="border-b border-[#f0f0f0] bg-[#fafafa] px-4 py-1.5 text-center text-xs text-[#888]"
+          role="status"
+        >
+          Syncing session…
+        </div>
+      ) : null}
+
       <div className="flex min-h-0 flex-1 flex-col bg-white">
-          {!sessionReady ? (
-            <div className="flex flex-1 items-center justify-center">
-              <p className="text-sm text-[#888]">Loading session…</p>
-            </div>
-          ) : !conversationStarted ? (
+          {!conversationStarted ? (
             <MoodboardLanding
               value={composerText}
               onChange={setComposerText}

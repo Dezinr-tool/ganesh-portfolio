@@ -1,4 +1,5 @@
 import type { MoodboardSession } from "./db-types";
+import { clearSessionSnapshot } from "./session-snapshot";
 
 export type SessionIndexEntry = {
   sessionId: string;
@@ -53,6 +54,7 @@ export function switchToSession(sessionId: string): void {
 export function startNewSession(): void {
   const id = crypto.randomUUID();
   localStorage.setItem("moodboard-session-id", id);
+  clearSessionSnapshot();
   upsertSessionIndex({
     sessionId: id,
     brandName: null,

@@ -61,6 +61,9 @@ export async function POST(request: NextRequest) {
     }
     const existing = await getSessionBySessionId(sessionId);
     if (existing) {
+      if (existing.brand_name) {
+        return NextResponse.json({ session: existing });
+      }
       const session = await backfillBrandFromOpening(existing);
       return NextResponse.json({ session });
     }
