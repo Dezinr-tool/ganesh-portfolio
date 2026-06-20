@@ -52,6 +52,14 @@ function extractExtendedSignals(text: string): Partial<Record<string, string>> {
     if (avoidMatch?.[1]) out.q18 = avoidMatch[1].trim();
   }
 
+  if (
+    /\b(proceed without|without (?:the )?(?:ppt|pptx|pdf|upload|file|brief|document)|skip (?:the )?(?:upload|file|brief)|no (?:ppt|file|brief)(?: to share)?)\b/i.test(
+      trimmed,
+    )
+  ) {
+    out.q19 = "skipped — proceeding without document upload";
+  }
+
   return out;
 }
 

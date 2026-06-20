@@ -225,8 +225,8 @@ export function ColorPaletteSlide({
         </div>
         <div className="presentation-visual-panel flex-1 p-8">
           <div className="grid grid-cols-2 gap-6 sm:grid-cols-3 lg:grid-cols-5">
-            {colors.map((color) => (
-              <div key={color.role} className="text-center">
+            {colors.map((color, index) => (
+              <div key={`${color.role}-${color.hex}-${index}`} className="text-center">
                 <div
                   className="presentation-color-swatch mx-auto border border-neutral-200"
                   style={{ backgroundColor: color.hex }}

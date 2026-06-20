@@ -83,7 +83,7 @@ export const MoodboardComposer = forwardRef<
     hidden,
     placeholder = "Write a message...",
     showUpload,
-    uploadAccept = ".pdf,.docx,.txt",
+    uploadAccept = ".pdf,.docx,.txt,.ppt,.pptx",
     onFilesSelected,
     modelId,
     onModelChange,

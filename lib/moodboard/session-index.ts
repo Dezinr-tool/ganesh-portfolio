@@ -1,5 +1,8 @@
+import { setClientSessionId } from "@/lib/client-storage";
 import type { MoodboardSession } from "./db-types";
 import { clearSessionSnapshot } from "./session-snapshot";
+
+export const MOODBOARD_SESSION_STORAGE_KEY = "moodboard-session-id";
 
 export type SessionIndexEntry = {
   sessionId: string;
@@ -51,9 +54,10 @@ export function switchToSession(sessionId: string): void {
   window.location.reload();
 }
 
-export function startNewSession(): void {
+/** New session id in localStorage + cleared snapshot; does not reload the page. */
+export function createFreshSessionId(): string {
   const id = crypto.randomUUID();
-  localStorage.setItem("moodboard-session-id", id);
+  setClientSessionId(MOODBOARD_SESSION_STORAGE_KEY, id);
   clearSessionSnapshot();
   upsertSessionIndex({
     sessionId: id,
@@ -61,6 +65,11 @@ export function startNewSession(): void {
     status: "in_progress",
     updatedAt: new Date().toISOString(),
   });
+  return id;
+}
+
+export function startNewSession(): void {
+  createFreshSessionId();
   window.location.reload();
 }
 

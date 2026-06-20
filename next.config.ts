@@ -1,7 +1,14 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  serverExternalPackages: ["@react-pdf/renderer", "qrcode"],
+  serverExternalPackages: [
+    "@react-pdf/renderer",
+    "qrcode",
+    "pdf-parse",
+    "pdfjs-dist",
+    "@napi-rs/canvas",
+    "jszip",
+  ],
   env: {
     EA_PASSWORD: process.env.EA_PASSWORD,
   },

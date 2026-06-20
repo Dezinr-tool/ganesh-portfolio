@@ -26,7 +26,7 @@ import { MoodboardNav } from "./moodboard-nav";
 import { MoodboardLanding } from "./moodboard-landing";
 import { readStoredValue, useClientSessionId } from "@/lib/client-storage";
 import { restoreSessionState } from "@/lib/moodboard/session-restore";
-import { registerSession, startNewSession, upsertSessionIndex } from "@/lib/moodboard/session-index";
+import { registerSession, startNewSession, upsertSessionIndex, createFreshSessionId } from "@/lib/moodboard/session-index";
 import { loadSessionSnapshot, saveSessionSnapshot } from "@/lib/moodboard/session-snapshot";
 import type { MoodboardSession } from "@/lib/moodboard/db-types";
 import { MoodboardSessionsSidebar } from "./moodboard-sessions-sidebar";
@@ -50,6 +50,10 @@ export function MoodboardEngine() {
   const [genStatus, setGenStatus] = useState("");
   const [directions, setDirections] = useState<MoodboardPresentationDirection[]>([]);
   const sessionId = useClientSessionId(SESSION_STORAGE_KEY);
+  const sessionIdRef = useRef(sessionId);
+  useEffect(() => {
+    sessionIdRef.current = sessionId;
+  }, [sessionId]);
   const [modelId, setModelId] = useState<MoodboardModelId>(() =>
     readStoredValue(
       MODEL_STORAGE_KEY,
@@ -82,7 +86,7 @@ export function MoodboardEngine() {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const sessionSyncGenRef = useRef(0);
   const composerRef = useRef<MoodboardComposerHandle>(null);
-  const initializedRef = useRef(false);
+  const lastInitializedSessionIdRef = useRef<string | null>(null);
   const interactionStartedRef = useRef(false);
   const conversationLockedRef = useRef(false);
   const answersRef = useRef(answers);
@@ -134,15 +138,37 @@ export function MoodboardEngine() {
     setConversationStarted(true);
   }, []);
 
+  const resetForFreshLandingSession = useCallback(() => {
+    const emptyAnswers: Record<string, unknown> = {};
+    setMessages([]);
+    messagesRef.current = [];
+    setAnswers(emptyAnswers);
+    answersRef.current = emptyAnswers;
+    setDirections([]);
+    setSelectedOutputSections([]);
+    setExtras({});
+    extrasRef.current = {};
+    pendingAnswersRef.current = emptyAnswers;
+    setReadyToGenerate(false);
+    setPreConfirmation(null);
+    setShowPreConfirm(false);
+    setGenerating(false);
+    setThinking(false);
+    setGenStatus("");
+    setLoadingPreConfirm(false);
+    interactionStartedRef.current = false;
+    conversationLockedRef.current = false;
+  }, []);
+
   const saveSnapshotNow = useCallback(
     (
       nextAnswers: Record<string, unknown>,
       chatHistory: HistoryMessage[],
       patch?: Partial<Parameters<typeof saveSessionSnapshot>[0]>,
     ) => {
-      if (!sessionId) return;
+      if (!sessionIdRef.current) return;
       saveSessionSnapshot({
-        sessionId,
+        sessionId: sessionIdRef.current,
         answers: {
           ...nextAnswers,
           _chat_history: chatHistory.map(({ role, text }) => ({ role, text })),
@@ -156,63 +182,7 @@ export function MoodboardEngine() {
         ...patch,
       });
     },
-    [directions, modelId, selectedOutputSections, sessionId],
-  );
-
-  const handleAttachFiles = useCallback(
-    async (files: File[]) => {
-      const doc = files.find((f) => /\.(pdf|docx|txt)$/i.test(f.name));
-      if (!doc) {
-        addAssistantMessage("Please upload a PDF, DOCX, or TXT file.");
-        if (!conversationStarted) {
-          lockConversation();
-        }
-        return;
-      }
-
-      setBusy(true);
-      try {
-        const form = new FormData();
-        form.append("file", doc);
-        const res = await fetch("/api/moodboard/extract-document", {
-          method: "POST",
-          body: form,
-        });
-        const data = (await res.json()) as { text?: string; error?: string };
-        if (!res.ok || !data.text) {
-          throw new Error(data.error ?? "Could not read file");
-        }
-
-        const nextExtras = {
-          ...extrasRef.current,
-          documentExtract: [extrasRef.current.documentExtract, data.text]
-            .filter(Boolean)
-            .join("\n\n"),
-        };
-        setExtras(nextExtras);
-        extrasRef.current = nextExtras;
-
-        if (!interactionStartedRef.current) {
-          lockConversation();
-        }
-
-        addAssistantMessage(
-          `I've read **${doc.name}** — I'll use that as context. Tell me about the brand or project when you're ready.`,
-        );
-      } catch (error) {
-        addAssistantMessage(
-          error instanceof Error
-            ? error.message
-            : "Could not read that file. Try PDF, DOCX, or TXT.",
-        );
-        if (!conversationStarted) {
-          lockConversation();
-        }
-      } finally {
-        setBusy(false);
-      }
-    },
-    [addAssistantMessage, conversationStarted, lockConversation],
+    [directions, modelId, selectedOutputSections],
   );
 
   const persistSession = useCallback(
@@ -221,17 +191,18 @@ export function MoodboardEngine() {
       chatHistory: HistoryMessage[],
       patch?: Record<string, unknown>,
     ) => {
-      if (!sessionId) return;
+      if (!sessionIdRef.current) return;
       const brandName = extractBrandName(nextAnswers);
       const payload = {
         ...nextAnswers,
         _chat_history: chatHistory.map(({ role, text }) => ({ role, text })),
       };
+      const activeSessionId = sessionIdRef.current;
       const res = await fetch("/api/moodboard/sessions", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          sessionId,
+          sessionId: activeSessionId,
           answers: payload,
           brand_name: brandName !== "Your Brand" ? brandName : undefined,
           project_type: extractProjectType(nextAnswers),
@@ -243,7 +214,7 @@ export function MoodboardEngine() {
         if (data.session) registerSession(data.session);
       } else {
         upsertSessionIndex({
-          sessionId,
+          sessionId: activeSessionId,
           brandName: brandName !== "Your Brand" ? brandName : null,
           status: String(patch?.status ?? "in_progress"),
           updatedAt: new Date().toISOString(),
@@ -251,7 +222,7 @@ export function MoodboardEngine() {
       }
 
       saveSessionSnapshot({
-        sessionId,
+        sessionId: activeSessionId,
         answers: payload,
         messages: chatHistory.map(({ role, text }) => ({ role, text })),
         directions,
@@ -261,7 +232,7 @@ export function MoodboardEngine() {
         savedAt: new Date().toISOString(),
       });
     },
-    [directions, modelId, selectedOutputSections, sessionId],
+    [directions, modelId, selectedOutputSections],
   );
 
   const startGeneration = useCallback(
@@ -289,7 +260,8 @@ export function MoodboardEngine() {
         status: "generating",
         selected_model: modelId,
       });
-      void trackMoodboardEvent(sessionId, "generation_started", {
+      const activeSessionId = sessionIdRef.current;
+      void trackMoodboardEvent(activeSessionId, "generation_started", {
         modelId,
         selectedOutputSections: sections,
       });
@@ -301,7 +273,7 @@ export function MoodboardEngine() {
           body: JSON.stringify({
             answers: answersWithConfirm,
             modelId,
-            sessionId,
+            sessionId: activeSessionId,
             stream: true,
             extras: extrasRef.current,
             selectedOutputSections: sections,
@@ -329,7 +301,7 @@ export function MoodboardEngine() {
         );
         if (result?.directions) {
           setDirections(result.directions);
-          void trackMoodboardEvent(sessionId, "generation_complete", {
+          void trackMoodboardEvent(activeSessionId, "generation_complete", {
             modelId,
             directionCount: result.directions.length,
             directionNames: result.directions.map((d) => d.directionName),
@@ -341,7 +313,7 @@ export function MoodboardEngine() {
         setGenerating(false);
       }
     },
-    [addAssistantMessage, modelId, persistSession, selectedOutputSections, sessionId],
+    [addAssistantMessage, modelId, persistSession, selectedOutputSections],
   );
 
   const requestPreConfirmation = useCallback(
@@ -416,7 +388,7 @@ export function MoodboardEngine() {
           headers: { "Content-Type": "application/json" },
           signal: controller.signal,
           body: JSON.stringify({
-            sessionId,
+            sessionId: sessionIdRef.current,
             modelId,
             stream: true,
             messages: chatMessages.map(({ role, text }) => ({ role, text })),
@@ -455,7 +427,7 @@ export function MoodboardEngine() {
         clearTimeout(timeout);
       }
     },
-    [modelId, sessionId],
+    [modelId],
   );
 
   const handleUserMessage = useCallback(
@@ -472,7 +444,7 @@ export function MoodboardEngine() {
         return;
       }
 
-      if (userRequestedGeneration(trimmed)) {
+      if (!options?.isLanding && userRequestedGeneration(trimmed)) {
         setComposerText("");
         lockConversation();
         await triggerGeneration();
@@ -484,7 +456,9 @@ export function MoodboardEngine() {
       lockConversation();
 
       if (options?.isLanding) {
-        void trackMoodboardEvent(sessionId, "session_started", { openingMessage: trimmed });
+        void trackMoodboardEvent(sessionIdRef.current, "session_started", {
+          openingMessage: trimmed,
+        });
       }
 
       const userMsg: HistoryMessage = { id: uid(), role: "user", text: trimmed };
@@ -511,7 +485,7 @@ export function MoodboardEngine() {
           answersRef.current = data.answers;
           if (data.extras) setExtras((prev) => ({ ...prev, ...data.extras }));
           setReadyToGenerate(data.readyToGenerate);
-          void trackMoodboardEvent(sessionId, "generation_complete", {
+          void trackMoodboardEvent(sessionIdRef.current, "generation_complete", {
             modelId,
             directionCount: data.directions.length,
             directionNames: data.directions.map((d) => d.directionName),
@@ -560,7 +534,101 @@ export function MoodboardEngine() {
       persistSession,
       saveSnapshotNow,
       triggerGeneration,
-      sessionId,
+    ],
+  );
+
+  const handleAttachFiles = useCallback(
+    async (files: File[]) => {
+      const supportedMime = new Set([
+        "application/pdf",
+        "text/plain",
+        "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+        "application/vnd.ms-powerpoint",
+      ]);
+      const doc = files.find(
+        (f) =>
+          /\.(pdf|docx|txt|pptx|ppt)$/i.test(f.name) ||
+          supportedMime.has(f.type),
+      );
+      if (!doc) {
+        addAssistantMessage("Please upload a PDF, PowerPoint, DOCX, or TXT file.");
+        if (!conversationStarted) {
+          lockConversation();
+        }
+        return;
+      }
+
+      const inActiveIntake = messagesRef.current.some((m) => m.role === "user");
+      let continueIntakeMessage: string | null = null;
+
+      setBusy(true);
+      try {
+        const form = new FormData();
+        form.append("file", doc);
+        const res = await fetch("/api/moodboard/extract-document", {
+          method: "POST",
+          body: form,
+        });
+        const data = (await res.json()) as { text?: string; error?: string };
+        if (!res.ok || !data.text) {
+          throw new Error(data.error ?? "Could not read file");
+        }
+
+        const nextExtras = {
+          ...extrasRef.current,
+          documentExtract: [extrasRef.current.documentExtract, data.text]
+            .filter(Boolean)
+            .join("\n\n"),
+        };
+        setExtras(nextExtras);
+        extrasRef.current = nextExtras;
+
+        const nextAnswers = {
+          ...answersRef.current,
+          q19: doc.name,
+          _moodboard_extras: nextExtras,
+        };
+        setAnswers(nextAnswers);
+        answersRef.current = nextAnswers;
+
+        if (!interactionStartedRef.current) {
+          lockConversation();
+        }
+
+        void persistSession(nextAnswers, messagesRef.current);
+
+        if (inActiveIntake) {
+          continueIntakeMessage = `I've uploaded **${doc.name}** — please use it as context and continue with the next question.`;
+        } else {
+          addAssistantMessage(
+            `I've read **${doc.name}** — I'll use that as context. Tell me about the brand or project when you're ready.`,
+          );
+        }
+      } catch (error) {
+        addAssistantMessage(
+          error instanceof Error
+            ? error.message
+            : "Could not read that file. Try PDF, PowerPoint, DOCX, or TXT.",
+        );
+        if (!conversationStarted) {
+          lockConversation();
+        }
+      } finally {
+        setBusy(false);
+        if (continueIntakeMessage) {
+          queueMicrotask(() => {
+            void handleUserMessage(continueIntakeMessage!);
+          });
+        }
+      }
+    },
+    [
+      addAssistantMessage,
+      conversationStarted,
+      handleUserMessage,
+      lockConversation,
+      persistSession,
     ],
   );
 
@@ -569,8 +637,12 @@ export function MoodboardEngine() {
   }, []);
 
   const handleLandingSubmit = useCallback(() => {
+    const freshId = createFreshSessionId();
+    sessionIdRef.current = freshId;
+    sessionSyncGenRef.current += 1;
+    resetForFreshLandingSession();
     void handleUserMessage(composerTextRef.current, { isLanding: true });
-  }, [handleUserMessage]);
+  }, [handleUserMessage, resetForFreshLandingSession]);
 
   const handleComposerSubmit = useCallback(() => {
     void handleUserMessage(composerText);
@@ -630,8 +702,8 @@ export function MoodboardEngine() {
   );
 
   useEffect(() => {
-    if (!sessionId || initializedRef.current) return;
-    initializedRef.current = true;
+    if (!sessionId || lastInitializedSessionIdRef.current === sessionId) return;
+    lastInitializedSessionIdRef.current = sessionId;
 
     const cached = loadSessionSnapshot(sessionId);
     if (cached) {
@@ -887,7 +959,7 @@ export function MoodboardEngine() {
                     variant="chat"
                     showAttach
                     onFilesSelected={handleAttachFiles}
-                    uploadAccept=".pdf,.docx,.txt"
+                    uploadAccept=".pdf,.docx,.txt,.ppt,.pptx"
                   />
 
                   <p className="moodboard-chat-footer">

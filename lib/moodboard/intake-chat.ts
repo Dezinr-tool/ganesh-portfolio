@@ -24,6 +24,7 @@ export function buildIntakeSystemPrompt(
   extras?: {
     websiteAnalysis?: string;
     brandResearch?: string;
+    documentExtract?: string;
   },
 ): string {
   const collected = formatCollectedForPrompt(answers);
@@ -37,6 +38,10 @@ export function buildIntakeSystemPrompt(
   }
   if (extras?.brandResearch) {
     researchBlock += `\n\nBrand research:\n${extras.brandResearch}`;
+  }
+  if (extras?.documentExtract) {
+    const docText = extras.documentExtract.slice(0, 12_000);
+    researchBlock += `\n\nUploaded brief / document (already read — do NOT ask the user to upload again):\n${docText}`;
   }
 
   return `You are a moodboard creation assistant for a premium design tool.
@@ -72,7 +77,8 @@ RULES:
 8. Keep replies under 120 words unless summarizing research.
 9. You may use **bold** for emphasis on key terms sparingly.
 10. NEVER output moodboard directions as markdown, prose, or bullet lists. Do not use --- dividers or **Direction 1** headers. When ready, say ONE short line like: "Pick what to include in the selector above the input, then Continue." The UI card renders automatically — do not describe a panel the user cannot see.
-${ready ? `11. You have ${coreCount} core fields — enough to generate. Prompt the user to use the element selector card (already visible above the input).` : `11. Need at least 5 core fields before offering generation (currently ${coreCount}/5).`}
+11. If the user uploaded a document or said to proceed without one, treat that step as done — never ask them to upload again.
+${ready ? `12. You have ${coreCount} core fields — enough to generate. Prompt the user to use the element selector card (already visible above the input).` : `12. Need at least 5 core fields before offering generation (currently ${coreCount}/5).`}
 
 Already collected:
 ${collected}
@@ -90,6 +96,7 @@ export async function generateIntakeReply(
   extras?: {
     websiteAnalysis?: string;
     brandResearch?: string;
+    documentExtract?: string;
   },
 ): Promise<string> {
   const apiKey = process.env.ANTHROPIC_API_KEY;

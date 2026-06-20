@@ -2,9 +2,7 @@
 
 import { useCallback, useSyncExternalStore } from "react";
 
-function subscribeNoop() {
-  return () => {};
-}
+const SESSION_ID_CHANGED = "client-session-id-changed";
 
 function getServerSessionSnapshot() {
   return "";
@@ -19,10 +17,31 @@ export function ensureStoredId(storageKey: string): string {
   return sid;
 }
 
+/** Persist a new client session id and notify subscribers (no page reload). */
+export function setClientSessionId(storageKey: string, id: string): void {
+  localStorage.setItem(storageKey, id);
+  window.dispatchEvent(
+    new CustomEvent(SESSION_ID_CHANGED, { detail: { storageKey } }),
+  );
+}
+
 /** Client session id — getSnapshot runs on first client paint with real localStorage value. */
 export function useClientSessionId(storageKey: string): string {
   const getSnapshot = useCallback(() => ensureStoredId(storageKey), [storageKey]);
-  return useSyncExternalStore(subscribeNoop, getSnapshot, getServerSessionSnapshot);
+  const subscribe = useCallback(
+    (callback: () => void) => {
+      const handler = (event: Event) => {
+        const detail = (event as CustomEvent<{ storageKey?: string }>).detail;
+        if (!detail?.storageKey || detail.storageKey === storageKey) {
+          callback();
+        }
+      };
+      window.addEventListener(SESSION_ID_CHANGED, handler);
+      return () => window.removeEventListener(SESSION_ID_CHANGED, handler);
+    },
+    [storageKey],
+  );
+  return useSyncExternalStore(subscribe, getSnapshot, getServerSessionSnapshot);
 }
 
 export function readStoredValue<T extends string>(

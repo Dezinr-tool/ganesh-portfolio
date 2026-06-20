@@ -57,7 +57,7 @@ export function MoodboardLanding({
             onModelChange={onModelChange}
             showAttach
             onFilesSelected={onFilesSelected}
-            uploadAccept=".pdf,.docx,.txt"
+            uploadAccept=".pdf,.docx,.txt,.ppt,.pptx"
           />
         </div>
 
