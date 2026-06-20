@@ -73,8 +73,14 @@ export function MoodboardEngine() {
   const [sessionSyncing, setSessionSyncing] = useState(false);
   const [readyToGenerate, setReadyToGenerate] = useState(false);
 
+  const composerTextRef = useRef(composerText);
+  useEffect(() => {
+    composerTextRef.current = composerText;
+  }, [composerText]);
+
   const pendingAnswersRef = useRef<Record<string, unknown>>({});
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const sessionSyncGenRef = useRef(0);
   const composerRef = useRef<MoodboardComposerHandle>(null);
   const initializedRef = useRef(false);
   const interactionStartedRef = useRef(false);
@@ -124,6 +130,7 @@ export function MoodboardEngine() {
   const lockConversation = useCallback(() => {
     interactionStartedRef.current = true;
     conversationLockedRef.current = true;
+    sessionSyncGenRef.current += 1;
     setConversationStarted(true);
   }, []);
 
@@ -457,6 +464,7 @@ export function MoodboardEngine() {
       if (!trimmed || busy) return;
 
       if (userNeedsPanelHelp(trimmed)) {
+        lockConversation();
         addAssistantMessage(
           "The selector is pinned above the input — choose your elements, then press Continue.",
         );
@@ -466,6 +474,7 @@ export function MoodboardEngine() {
 
       if (userRequestedGeneration(trimmed)) {
         setComposerText("");
+        lockConversation();
         await triggerGeneration();
         return;
       }
@@ -560,8 +569,8 @@ export function MoodboardEngine() {
   }, []);
 
   const handleLandingSubmit = useCallback(() => {
-    void handleUserMessage(composerText, { isLanding: true });
-  }, [composerText, handleUserMessage]);
+    void handleUserMessage(composerTextRef.current, { isLanding: true });
+  }, [handleUserMessage]);
 
   const handleComposerSubmit = useCallback(() => {
     void handleUserMessage(composerText);
@@ -643,16 +652,30 @@ export function MoodboardEngine() {
       if (storedExtras && typeof storedExtras === "object") {
         setExtras((prev) => ({ ...prev, ...(storedExtras as typeof extras) }));
       }
-      setConversationStarted(
-        cached.messages.length > 0 || cached.directions.length > 0,
+      const cachedHasAnswers = Object.keys(cached.answers ?? {}).some(
+        (key) =>
+          !key.startsWith("_") &&
+          cached.answers[key] !== null &&
+          cached.answers[key] !== undefined &&
+          String(cached.answers[key]).trim() !== "",
       );
-      if (cached.messages.length > 0 || cached.directions.length > 0) {
+      setConversationStarted(
+        cached.messages.length > 0 ||
+          cached.directions.length > 0 ||
+          cachedHasAnswers,
+      );
+      if (
+        cached.messages.length > 0 ||
+        cached.directions.length > 0 ||
+        cachedHasAnswers
+      ) {
         conversationLockedRef.current = true;
         interactionStartedRef.current = true;
       }
     }
 
     setSessionSyncing(true);
+    const syncGeneration = sessionSyncGenRef.current;
     void (async () => {
       try {
         const sessionRes = await fetch("/api/moodboard/sessions", {
@@ -661,9 +684,13 @@ export function MoodboardEngine() {
           body: JSON.stringify({ sessionId }),
         });
 
+        if (syncGeneration !== sessionSyncGenRef.current) return;
+
         if (sessionRes.ok) {
           const sessionData = (await sessionRes.json()) as { session?: MoodboardSession };
           if (sessionData.session) {
+            if (syncGeneration !== sessionSyncGenRef.current) return;
+
             registerSession(sessionData.session);
             const restored = restoreSessionState(sessionData.session);
 
@@ -694,6 +721,7 @@ export function MoodboardEngine() {
             }
 
             if (
+              syncGeneration !== sessionSyncGenRef.current ||
               interactionStartedRef.current ||
               conversationLockedRef.current ||
               messagesRef.current.length > 0
@@ -703,12 +731,15 @@ export function MoodboardEngine() {
 
             setAnswers(restored.answers);
             answersRef.current = restored.answers;
-            setMessages(restored.messages);
-            messagesRef.current = restored.messages;
+            setMessages((prev) => {
+              if (prev.length > 0) return prev;
+              messagesRef.current = restored.messages;
+              return restored.messages;
+            });
             setDirections(restored.directions);
             setSelectedOutputSections(restored.selectedOutputSections);
             if (restored.modelId) setModelId(restored.modelId);
-            setConversationStarted(restored.conversationStarted);
+            setConversationStarted((prev) => prev || restored.conversationStarted);
             setReadyToGenerate(restored.readyToGenerate);
 
             saveSessionSnapshot({
@@ -730,7 +761,9 @@ export function MoodboardEngine() {
       } catch {
         /* server sync optional — local snapshot still works */
       } finally {
-        setSessionSyncing(false);
+        if (syncGeneration === sessionSyncGenRef.current) {
+          setSessionSyncing(false);
+        }
       }
     })();
   }, [sessionId]);

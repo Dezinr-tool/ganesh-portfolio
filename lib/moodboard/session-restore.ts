@@ -80,8 +80,13 @@ export function restoreSessionState(session: MoodboardSession): RestoredSessionS
   const hasAnswerFields = Object.keys(answers).some(
     (key) => !key.startsWith("_") && hasStoredAnswer(answers[key], key),
   );
-
-  const conversationStarted = messages.length > 0 || directions.length > 0;
+  const readyToGenerate = isReadyToGenerate(answers) || hasAnswerFields;
+  const conversationStarted =
+    messages.length > 0 ||
+    directions.length > 0 ||
+    readyToGenerate ||
+    session.status === "generating" ||
+    session.generation_status === "generating";
 
   return {
     answers,
@@ -90,7 +95,7 @@ export function restoreSessionState(session: MoodboardSession): RestoredSessionS
     selectedOutputSections,
     modelId,
     conversationStarted,
-    readyToGenerate: isReadyToGenerate(answers) || hasAnswerFields,
+    readyToGenerate,
     intakeComplete: false,
   };
 }

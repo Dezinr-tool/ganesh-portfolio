@@ -1,6 +1,14 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useSyncExternalStore } from "react";
+
+function subscribeNoop() {
+  return () => {};
+}
+
+function getServerSessionSnapshot() {
+  return "";
+}
 
 export function ensureStoredId(storageKey: string): string {
   let sid = localStorage.getItem(storageKey);
@@ -11,20 +19,10 @@ export function ensureStoredId(storageKey: string): string {
   return sid;
 }
 
-/** Stable session id from first client paint — avoids empty id during hydration. */
+/** Client session id — getSnapshot runs on first client paint with real localStorage value. */
 export function useClientSessionId(storageKey: string): string {
-  const [sessionId, setSessionId] = useState(() => {
-    if (typeof window === "undefined") return "";
-    return ensureStoredId(storageKey);
-  });
-
-  useEffect(() => {
-    if (!sessionId) {
-      setSessionId(ensureStoredId(storageKey));
-    }
-  }, [sessionId, storageKey]);
-
-  return sessionId;
+  const getSnapshot = useCallback(() => ensureStoredId(storageKey), [storageKey]);
+  return useSyncExternalStore(subscribeNoop, getSnapshot, getServerSessionSnapshot);
 }
 
 export function readStoredValue<T extends string>(
