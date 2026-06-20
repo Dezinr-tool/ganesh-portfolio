@@ -36,3 +36,28 @@ export async function researchBrandName(brandName: string): Promise<BrandResearc
 
   return { found: false };
 }
+
+/** Fast path for intake chat — one candidate, short timeout budget. */
+export async function researchBrandNameFast(
+  brandName: string,
+): Promise<BrandResearchResult> {
+  const slug = brandName
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "")
+    .slice(0, 40);
+
+  if (!slug) return { found: false };
+
+  const url = `https://www.${slug}.com`;
+  try {
+    const analysis = await scrapeWebsite(url);
+    if (!analysis.fallback && analysis.title && analysis.title !== url) {
+      return { found: true, url, analysis };
+    }
+  } catch {
+    /* optional */
+  }
+
+  return { found: false };
+}

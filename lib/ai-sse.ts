@@ -73,19 +73,18 @@ export async function readSseStream<T>(
 
     for (const line of lines) {
       if (!line.startsWith("data: ")) continue;
+      let event: SseEvent;
       try {
-        const event = JSON.parse(line.slice(6)) as SseEvent;
-        onEvent(event);
-        if (event.type === "complete" && event.result !== undefined) {
-          result = event.result as T;
-        }
-        if (event.type === "error") {
-          throw new Error(event.message ?? "Stream failed");
-        }
-      } catch (err) {
-        if (err instanceof Error && err.message !== "Stream failed") {
-          throw err;
-        }
+        event = JSON.parse(line.slice(6)) as SseEvent;
+      } catch {
+        continue;
+      }
+      onEvent(event);
+      if (event.type === "complete" && event.result !== undefined) {
+        result = event.result as T;
+      }
+      if (event.type === "error") {
+        throw new Error(event.message ?? "Stream failed");
       }
     }
   }

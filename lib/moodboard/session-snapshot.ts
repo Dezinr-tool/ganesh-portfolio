@@ -10,6 +10,12 @@ export type SessionSnapshot = {
   directions: MoodboardPresentationDirection[];
   selectedOutputSections: string[];
   modelId: MoodboardModelId | null;
+  extras?: {
+    websiteAnalysis?: string;
+    brandResearch?: string;
+    competitorResearch?: string;
+    documentExtract?: string;
+  };
   savedAt: string;
 };
 

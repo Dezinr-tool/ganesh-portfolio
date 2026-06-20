@@ -12,25 +12,6 @@ function PlusIcon() {
   );
 }
 
-function MicIcon() {
-  return (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden>
-      <path
-        d="M12 14a3 3 0 003-3V6a3 3 0 10-6 0v5a3 3 0 003 3z"
-        stroke="currentColor"
-        strokeWidth="1.5"
-        strokeLinecap="round"
-      />
-      <path
-        d="M19 11v1a7 7 0 01-14 0v-1M12 18v3"
-        stroke="currentColor"
-        strokeWidth="1.5"
-        strokeLinecap="round"
-      />
-    </svg>
-  );
-}
-
 function WaveformSendIcon() {
   return (
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden>
@@ -102,7 +83,7 @@ export const MoodboardComposer = forwardRef<
     hidden,
     placeholder = "Write a message...",
     showUpload,
-    uploadAccept,
+    uploadAccept = ".pdf,.docx,.txt",
     onFilesSelected,
     modelId,
     onModelChange,
@@ -194,15 +175,6 @@ export const MoodboardComposer = forwardRef<
             </div>
             <div className="moodboard-composer-toolbar-right">
               <ModelPicker modelId={modelId} onModelChange={onModelChange} chat />
-              <button
-                type="button"
-                disabled={disabled}
-                className="moodboard-composer-icon-btn"
-                aria-label="Voice input"
-                tabIndex={-1}
-              >
-                <MicIcon />
-              </button>
               <button
                 type="button"
                 onClick={onSubmit}

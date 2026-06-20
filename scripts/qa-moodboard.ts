@@ -77,6 +77,14 @@ async function main() {
   );
 
   report(
+    "Session sync does not clobber active chat",
+    engine.includes("interactionStartedRef") &&
+      engine.includes("messagesRef.current.length > 0")
+      ? "pass"
+      : "fail",
+  );
+
+  report(
     "Section signal detection (Astro thread)",
     conversationSignalsSections([
       {

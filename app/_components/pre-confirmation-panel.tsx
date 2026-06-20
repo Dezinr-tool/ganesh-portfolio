@@ -260,6 +260,7 @@ export function PreConfirmationPanel({
 
       <button
         type="button"
+        data-testid="pre-confirmation-generate"
         disabled={loading || !allQuestionsAnswered}
         onClick={handleSubmit}
         className={`w-full py-3 text-sm font-medium disabled:opacity-50 ${

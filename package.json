@@ -28,6 +28,7 @@
     "qa:virtual-ea": "tsx scripts/qa-virtual-ea.ts",
     "qa:moodboard": "tsx scripts/qa-moodboard.ts",
     "qa:moodboard:e2e": "tsx scripts/qa-moodboard-e2e.ts",
+    "qa:moodboard:intake": "tsx scripts/qa-moodboard-intake-only.ts",
     "qa:design-audit": "tsx scripts/qa-design-audit.ts",
     "qa:p11-p12": "tsx scripts/qa-p11-p12-full.ts"
   },

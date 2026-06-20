@@ -70,7 +70,6 @@ export function MoodboardEngine() {
   const [loadingPreConfirm, setLoadingPreConfirm] = useState(false);
   const [composerText, setComposerText] = useState("");
   const [conversationStarted, setConversationStarted] = useState(false);
-  const [landingFading, setLandingFading] = useState(false);
   const [sessionSyncing, setSessionSyncing] = useState(false);
   const [readyToGenerate, setReadyToGenerate] = useState(false);
 
@@ -78,6 +77,7 @@ export function MoodboardEngine() {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const composerRef = useRef<MoodboardComposerHandle>(null);
   const initializedRef = useRef(false);
+  const interactionStartedRef = useRef(false);
   const answersRef = useRef(answers);
   const messagesRef = useRef(messages);
   const extrasRef = useRef(extras);
@@ -115,6 +115,65 @@ export function MoodboardEngine() {
   const addAssistantMessage = useCallback((text: string) => {
     setMessages((m) => [...m, { id: uid(), role: "assistant", text }]);
   }, []);
+
+  const handleAttachFiles = useCallback(
+    async (files: File[]) => {
+      const doc = files.find((f) => /\.(pdf|docx|txt)$/i.test(f.name));
+      if (!doc) {
+        addAssistantMessage("Please upload a PDF, DOCX, or TXT file.");
+        if (!conversationStarted) {
+          interactionStartedRef.current = true;
+          setConversationStarted(true);
+        }
+        return;
+      }
+
+      setBusy(true);
+      try {
+        const form = new FormData();
+        form.append("file", doc);
+        const res = await fetch("/api/moodboard/extract-document", {
+          method: "POST",
+          body: form,
+        });
+        const data = (await res.json()) as { text?: string; error?: string };
+        if (!res.ok || !data.text) {
+          throw new Error(data.error ?? "Could not read file");
+        }
+
+        const nextExtras = {
+          ...extrasRef.current,
+          documentExtract: [extrasRef.current.documentExtract, data.text]
+            .filter(Boolean)
+            .join("\n\n"),
+        };
+        setExtras(nextExtras);
+        extrasRef.current = nextExtras;
+
+        if (!interactionStartedRef.current) {
+          interactionStartedRef.current = true;
+          setConversationStarted(true);
+        }
+
+        addAssistantMessage(
+          `I've read **${doc.name}** — I'll use that as context. Tell me about the brand or project when you're ready.`,
+        );
+      } catch (error) {
+        addAssistantMessage(
+          error instanceof Error
+            ? error.message
+            : "Could not read that file. Try PDF, DOCX, or TXT.",
+        );
+        if (!conversationStarted) {
+          interactionStartedRef.current = true;
+          setConversationStarted(true);
+        }
+      } finally {
+        setBusy(false);
+      }
+    },
+    [addAssistantMessage, conversationStarted],
+  );
 
   const persistSession = useCallback(
     async (
@@ -158,6 +217,7 @@ export function MoodboardEngine() {
         directions,
         selectedOutputSections,
         modelId,
+        extras: extrasRef.current,
         savedAt: new Date().toISOString(),
       });
     },
@@ -306,13 +366,14 @@ export function MoodboardEngine() {
   );
 
   const callIntakeChat = useCallback(
-    async (chatMessages: HistoryMessage[]) => {
+    async (chatMessages: HistoryMessage[], assistantId: string) => {
       const res = await fetch("/api/moodboard/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           sessionId,
           modelId,
+          stream: true,
           messages: chatMessages.map(({ role, text }) => ({ role, text })),
           answers: answersRef.current,
           extras: extrasRef.current,
@@ -320,7 +381,8 @@ export function MoodboardEngine() {
       });
 
       if (!res.ok) throw new Error("Chat failed");
-      return (await res.json()) as {
+
+      const result = await readSseStream<{
         type?: "chat" | "moodboard_output";
         reply?: string;
         directions?: MoodboardPresentationDirection[];
@@ -329,7 +391,19 @@ export function MoodboardEngine() {
         readyToGenerate: boolean;
         showSectionsPicker?: boolean;
         researched?: boolean;
-      };
+      }>(res, (event) => {
+        if (event.type === "delta" && event.text) {
+          setThinking(false);
+          setMessages((prev) =>
+            prev.map((m) =>
+              m.id === assistantId ? { ...m, text: event.text ?? "" } : m,
+            ),
+          );
+        }
+      });
+
+      if (!result) throw new Error("Chat failed");
+      return result;
     },
     [modelId, sessionId],
   );
@@ -355,10 +429,9 @@ export function MoodboardEngine() {
 
       setBusy(true);
       setComposerText("");
+      interactionStartedRef.current = true;
 
       if (options?.isLanding) {
-        setLandingFading(true);
-        await new Promise((r) => setTimeout(r, 280));
         setConversationStarted(true);
         void trackMoodboardEvent(sessionId, "session_started", { openingMessage: trimmed });
       }
@@ -368,8 +441,15 @@ export function MoodboardEngine() {
       setMessages(chatMessages);
 
       setThinking(true);
+      const assistantId = uid();
+      const chatWithPlaceholder = [
+        ...chatMessages,
+        { id: assistantId, role: "assistant" as const, text: "" },
+      ];
+      setMessages(chatWithPlaceholder);
+
       try {
-        const data = await callIntakeChat(chatMessages);
+        const data = await callIntakeChat(chatMessages, assistantId);
 
         if (data.type === "moodboard_output" && data.directions?.length) {
           setDirections(data.directions);
@@ -397,7 +477,7 @@ export function MoodboardEngine() {
         }
 
         const assistantMsg: HistoryMessage = {
-          id: uid(),
+          id: assistantId,
           role: "assistant",
           text: data.reply ?? "",
         };
@@ -407,6 +487,7 @@ export function MoodboardEngine() {
 
         await persistSession(data.answers, fullHistory, { selected_model: modelId });
       } catch {
+        setMessages((prev) => prev.filter((m) => m.id !== assistantId));
         addAssistantMessage(
           "Something went wrong on my end. Could you try sending that again?",
         );
@@ -505,9 +586,17 @@ export function MoodboardEngine() {
       setDirections(cached.directions);
       setSelectedOutputSections(cached.selectedOutputSections);
       if (cached.modelId) setModelId(cached.modelId);
+      if (cached.extras) setExtras(cached.extras);
+      const storedExtras = cached.answers._moodboard_extras;
+      if (storedExtras && typeof storedExtras === "object") {
+        setExtras((prev) => ({ ...prev, ...(storedExtras as typeof extras) }));
+      }
       setConversationStarted(
         cached.messages.length > 0 || cached.directions.length > 0,
       );
+      if (cached.messages.length > 0 || cached.directions.length > 0) {
+        interactionStartedRef.current = true;
+      }
     }
 
     setSessionSyncing(true);
@@ -524,6 +613,36 @@ export function MoodboardEngine() {
           if (sessionData.session) {
             registerSession(sessionData.session);
             const restored = restoreSessionState(sessionData.session);
+
+            if (restored.directions.length > 0) {
+              setDirections(restored.directions);
+              setAnswers(restored.answers);
+              answersRef.current = restored.answers;
+              setSelectedOutputSections(restored.selectedOutputSections);
+              if (restored.modelId) setModelId(restored.modelId);
+              setConversationStarted(true);
+              interactionStartedRef.current = true;
+              saveSessionSnapshot({
+                sessionId,
+                answers: restored.answers,
+                messages: restored.messages.map(({ role, text }) => ({ role, text })),
+                directions: restored.directions,
+                selectedOutputSections: restored.selectedOutputSections,
+                modelId: restored.modelId,
+                extras:
+                  restored.answers._moodboard_extras &&
+                  typeof restored.answers._moodboard_extras === "object"
+                    ? (restored.answers._moodboard_extras as typeof extras)
+                    : undefined,
+                savedAt: new Date().toISOString(),
+              });
+              return;
+            }
+
+            if (interactionStartedRef.current || messagesRef.current.length > 0) {
+              return;
+            }
+
             setAnswers(restored.answers);
             answersRef.current = restored.answers;
             setMessages(restored.messages);
@@ -541,6 +660,11 @@ export function MoodboardEngine() {
               directions: restored.directions,
               selectedOutputSections: restored.selectedOutputSections,
               modelId: restored.modelId,
+              extras:
+                restored.answers._moodboard_extras &&
+                typeof restored.answers._moodboard_extras === "object"
+                  ? (restored.answers._moodboard_extras as typeof extras)
+                  : undefined,
               savedAt: new Date().toISOString(),
             });
           }
@@ -608,10 +732,13 @@ export function MoodboardEngine() {
               modelId={modelId}
               onModelChange={setModelId}
               disabled={composerDisabled}
-              fading={landingFading}
+              onFilesSelected={handleAttachFiles}
             />
           ) : (
-            <div className="relative mx-auto flex w-full max-w-[680px] flex-1 flex-col px-6 pb-6">
+            <div
+              className="relative mx-auto flex w-full max-w-[680px] flex-1 flex-col px-6 pb-6"
+              data-testid="moodboard-chat"
+            >
               <div className="moodboard-fade-in flex min-h-0 flex-1 flex-col pt-4">
                 <div className="min-h-0 flex-1 overflow-y-auto overscroll-y-contain">
                   <MoodboardChatHistory
@@ -665,6 +792,9 @@ export function MoodboardEngine() {
                     modelId={modelId}
                     onModelChange={setModelId}
                     variant="chat"
+                    showAttach
+                    onFilesSelected={handleAttachFiles}
+                    uploadAccept=".pdf,.docx,.txt"
                   />
 
                   <p className="moodboard-chat-footer">

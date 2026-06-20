@@ -1,5 +1,4 @@
 import Anthropic from "@anthropic-ai/sdk";
-import { getModelConfig } from "./models";
 import {
   countCoreFields,
   formatCollectedForPrompt,
@@ -13,10 +12,11 @@ export type IntakeChatMessage = {
   text: string;
 };
 
-function intakeModel(modelId: MoodboardModelId): string {
-  const config = getModelConfig(modelId);
-  if (config.provider === "anthropic") return config.model;
-  return "claude-haiku-4-5-20251001";
+/** Intake always uses Haiku — generation model is chosen separately. */
+const INTAKE_MODEL = "claude-haiku-4-5-20251001";
+
+function intakeModel(_modelId: MoodboardModelId): string {
+  return INTAKE_MODEL;
 }
 
 export function buildIntakeSystemPrompt(
@@ -112,7 +112,7 @@ export async function generateIntakeReply(
   try {
     const response = await anthropic.messages.create({
       model: intakeModel(modelId),
-      max_tokens: 450,
+      max_tokens: 280,
       system,
       messages: apiMessages,
     });
@@ -122,6 +122,63 @@ export async function generateIntakeReply(
     return text || fallbackReply(answers);
   } catch {
     return fallbackReply(answers);
+  }
+}
+
+export async function streamIntakeReply(
+  messages: IntakeChatMessage[],
+  answers: Record<string, unknown>,
+  modelId: MoodboardModelId,
+  extras: Parameters<typeof buildIntakeSystemPrompt>[1],
+  onDelta: (text: string) => void,
+): Promise<string> {
+  const apiKey = process.env.ANTHROPIC_API_KEY;
+  if (!apiKey) {
+    const text = fallbackReply(answers);
+    onDelta(text);
+    return text;
+  }
+
+  const anthropic = new Anthropic({ apiKey });
+  const system = buildIntakeSystemPrompt(answers, extras);
+
+  const apiMessages: Anthropic.MessageParam[] = messages.map((m) => ({
+    role: m.role,
+    content: m.text,
+  }));
+
+  if (apiMessages.length === 0) {
+    const text = "Tell me about the brand or project you'd like to explore.";
+    onDelta(text);
+    return text;
+  }
+
+  try {
+    let full = "";
+    const stream = anthropic.messages.stream({
+      model: intakeModel(modelId),
+      max_tokens: 280,
+      system,
+      messages: apiMessages,
+    });
+
+    for await (const event of stream) {
+      if (
+        event.type === "content_block_delta" &&
+        event.delta.type === "text_delta"
+      ) {
+        full += event.delta.text;
+        onDelta(full);
+      }
+    }
+
+    const text = full.trim() || fallbackReply(answers);
+    if (!full.trim()) onDelta(text);
+    return text;
+  } catch {
+    const text = fallbackReply(answers);
+    onDelta(text);
+    return text;
   }
 }
 

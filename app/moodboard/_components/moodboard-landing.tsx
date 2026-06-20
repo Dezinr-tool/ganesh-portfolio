@@ -10,7 +10,7 @@ type MoodboardLandingProps = {
   modelId: MoodboardModelId;
   onModelChange: (id: MoodboardModelId) => void;
   disabled?: boolean;
-  fading?: boolean;
+  onFilesSelected?: (files: File[]) => void;
 };
 
 export function MoodboardLanding({
@@ -20,14 +20,10 @@ export function MoodboardLanding({
   modelId,
   onModelChange,
   disabled,
-  fading,
+  onFilesSelected,
 }: MoodboardLandingProps) {
   return (
-    <div
-      className={`flex flex-1 flex-col items-center justify-center bg-white px-5 transition-opacity duration-300 ease-out sm:px-8 ${
-        fading ? "pointer-events-none opacity-0" : "opacity-100"
-      }`}
-    >
+    <div className="flex flex-1 flex-col items-center justify-center bg-white px-5 sm:px-8">
       <div className="mx-auto w-full max-w-[680px] text-center">
         <h1 className="text-[2.25rem] font-medium leading-[1.1] tracking-[-0.02em] text-[#1a1a1a] sm:text-5xl lg:text-[64px]">
           Great design starts with personality.
@@ -47,6 +43,8 @@ export function MoodboardLanding({
             modelId={modelId}
             onModelChange={onModelChange}
             showAttach
+            onFilesSelected={onFilesSelected}
+            uploadAccept=".pdf,.docx,.txt"
           />
         </div>
       </div>

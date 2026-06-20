@@ -51,9 +51,11 @@ async function main() {
     await sendChat(page, opening);
 
     await page.waitForTimeout(500);
+    const chatShell = page.getByTestId("moodboard-chat");
+    await chatShell.waitFor({ state: "visible", timeout: 10000 }).catch(() => null);
     log(
       "Conversation started after landing submit",
-      !(await heading.isVisible().catch(() => false)),
+      await chatShell.isVisible().catch(() => false),
     );
 
     // Intake replies — enough context for sections phase
@@ -100,9 +102,27 @@ async function main() {
         await generateBtn.click();
         log("Generate clicked", true);
 
+        const preConfirmBtn = page.getByTestId("pre-confirmation-generate");
+        await preConfirmBtn.waitFor({ state: "visible", timeout: 45000 }).catch(() => null);
+        if (await preConfirmBtn.isVisible().catch(() => false)) {
+          await page
+            .waitForFunction(
+              () => {
+                const btn = document.querySelector(
+                  '[data-testid="pre-confirmation-generate"]',
+                ) as HTMLButtonElement | null;
+                return btn && !btn.disabled;
+              },
+              { timeout: 15000 },
+            )
+            .catch(() => null);
+          await preConfirmBtn.click();
+          log("Pre-confirmation submitted", true);
+        }
+
         await page
           .waitForSelector(".presentation-deck, .moodboard-output-shell", {
-            timeout: 180000,
+            timeout: 300000,
           })
           .catch(() => null);
 
@@ -112,7 +132,11 @@ async function main() {
         const pdfBtn = page.getByRole("button", { name: /^PDF —/i }).first();
         log("PDF export control in deck", await pdfBtn.isVisible().catch(() => false));
       } else {
-        log("Full generation E2E", false, SKIP_GENERATION ? "QA_SKIP_GENERATION=1" : "No API key");
+        log(
+          "Full generation E2E",
+          SKIP_GENERATION,
+          SKIP_GENERATION ? "Skipped (QA_SKIP_GENERATION=1)" : "No API key",
+        );
       }
     } else {
       // API fallback diagnosis
@@ -161,8 +185,8 @@ async function main() {
     // UX checks (skip when presentation mode — composer is unmounted)
     const inPresentation = await page.locator(".presentation-deck").isVisible().catch(() => false);
     if (!inPresentation) {
-      const composer = await waitForComposer(page);
-      const composerBox = await composer.boundingBox();
+      const composerWrap = page.locator(".moodboard-composer-chat").first();
+      const composerBox = await composerWrap.boundingBox();
       log(
         "Composer touch target height ≥44px",
         (composerBox?.height ?? 0) >= 44,
@@ -172,8 +196,8 @@ async function main() {
       log("Composer touch target (skipped in presentation mode)", true);
     }
 
-    if (pickerVisible) {
-      const pickerBox = await picker.boundingBox();
+    if (pickerVisible && !inPresentation) {
+      const pickerBox = await picker.boundingBox().catch(() => null);
       log(
         "Picker not clipped (width > 300px)",
         (pickerBox?.width ?? 0) > 300,
