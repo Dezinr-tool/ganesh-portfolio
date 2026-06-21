@@ -60,7 +60,7 @@ export function AboutText({ sectionLabel, bodyText }: AboutTextProps) {
       className="relative isolate z-10 flex h-svh min-h-svh w-full items-center justify-center bg-[var(--color-bg)] text-[var(--color-text)]"
       aria-label="About me"
     >
-      <div className="mx-auto flex w-full max-w-[min(94vw,56rem)] flex-col items-center px-8 text-center sm:px-12 lg:px-16">
+      <div className="mx-auto flex w-full max-w-[min(94vw,56rem)] flex-col items-center px-5 text-center sm:px-12 lg:px-16">
         <p className="text-consultant-label mb-6 text-[var(--color-text)]">
           <span className="uppercase">{sectionLabel}</span>
         </p>

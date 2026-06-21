@@ -215,7 +215,7 @@ export function Hero({ content }: HeroProps) {
     <section
       ref={sectionRef}
       id="hero"
-      className="sticky top-0 z-0 relative h-dvh min-h-[700px] w-full overflow-x-clip overflow-y-hidden bg-background text-foreground"
+      className="sticky top-0 z-0 relative h-dvh min-h-svh w-full overflow-x-clip overflow-y-hidden bg-background text-foreground md:min-h-[700px]"
       aria-label="Introduction"
     >
       {/* GANESH watermark — behind portrait torso/chest */}
@@ -228,10 +228,6 @@ export function Hero({ content }: HeroProps) {
           <span
             ref={ganeshRef}
             className={`${mohave.className} hero-ganesh-watermark block w-full whitespace-nowrap text-center font-bold leading-[0.82] text-[var(--color-text)] will-change-transform`}
-            style={{
-              fontSize: "clamp(16rem, 38vw, 34rem)",
-              letterSpacing: "0.02em",
-            }}
           >
             GANESH
           </span>
@@ -252,12 +248,12 @@ export function Hero({ content }: HeroProps) {
           >
           <div
             ref={photoRef}
-            className="relative h-[min(94vh,1080px)] min-h-[86vh] w-full overflow-visible will-change-transform"
+            className="relative h-[min(82vh,640px)] min-h-[70vh] w-full overflow-visible will-change-transform md:h-[min(94vh,1080px)] md:min-h-[86vh]"
           >
             {/* Badges beside head — positioned relative to portrait frame */}
             <header
               ref={badgeRef}
-              className="pointer-events-auto absolute top-[13%] left-[51%] z-[3] sm:top-[12%] sm:left-[54%] md:top-[11%] md:left-[57%] lg:top-[10%] lg:left-[61%]"
+              className="pointer-events-auto absolute top-[12%] left-[46%] z-[3] max-w-[48vw] sm:top-[12%] sm:left-[54%] sm:max-w-none md:top-[11%] md:left-[57%] lg:top-[10%] lg:left-[61%]"
             >
               <div className="flex flex-col items-start gap-1">
                 {content.badgeLines.map((line, index) => (
@@ -301,13 +297,13 @@ export function Hero({ content }: HeroProps) {
       {/* Headline — bottom left, visible on load */}
       <div
         ref={bottomRef}
-        className="pointer-events-none absolute bottom-0 left-0 z-[2] max-w-[min(100%,42rem)] px-8 pb-10 sm:px-10 sm:pb-12 lg:px-14 lg:pb-14"
+        className="pointer-events-none absolute bottom-0 left-0 z-[2] max-w-[min(100%,42rem)] px-5 pb-8 sm:px-10 sm:pb-12 lg:px-14 lg:pb-14"
       >
         <motion.div style={{ y: bottomY, opacity: bottomOpacity }}>
           <h1
             ref={headlineRef}
             data-hero-headline
-            className="text-[clamp(2.25rem,4.5vw,3.75rem)] leading-[1.04] font-medium tracking-[-0.02em] text-foreground"
+            className="text-[clamp(36px,8vw,64px)] leading-[1.04] font-medium tracking-[-0.02em] text-foreground md:text-[clamp(2.25rem,4.5vw,3.75rem)]"
           >
             {content.headlineLines.map((line) => (
               <span key={line} className="block">
@@ -319,12 +315,12 @@ export function Hero({ content }: HeroProps) {
       </div>
 
       {/* Subtext — bottom right, separate from headline */}
-      <div className="pointer-events-none absolute right-0 bottom-0 z-[2] max-w-[min(100%,22rem)] px-8 pb-10 text-right sm:max-w-[24rem] sm:px-10 sm:pb-12 lg:max-w-[26rem] lg:px-14 lg:pb-14">
+      <div className="pointer-events-none absolute right-0 bottom-0 z-[2] max-w-[min(100%,22rem)] px-5 pb-8 text-right sm:max-w-[24rem] sm:px-10 sm:pb-12 lg:max-w-[26rem] lg:px-14 lg:pb-14">
         <motion.div style={{ y: bottomY, opacity: bottomOpacity }}>
           <p
             ref={subtextRef}
             data-hero-reveal
-            className="text-[15px] leading-[1.48] font-normal text-foreground lg:text-[16px] lg:leading-[1.5]"
+            className="text-[max(16px,1rem)] leading-[1.48] font-normal text-foreground md:text-[15px] lg:text-[16px] lg:leading-[1.5]"
           >
             {content.subtext}
           </p>

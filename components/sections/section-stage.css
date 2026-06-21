@@ -17,6 +17,13 @@
   will-change: transform, opacity;
 }
 
+@media (max-width: 48rem) {
+  .section-stage {
+    --section-stage-pt: clamp(4rem, 12vw, 5rem);
+    --section-stage-pb: clamp(4rem, 12vw, 5rem);
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .section-stage__reveal {
     will-change: auto;

@@ -31,6 +31,9 @@ function buildBracketNavLinks(socialLinks: SanitySocialLinks) {
     socialLinks.linkedin
       ? { label: "[ LINKEDIN ]", href: socialLinks.linkedin }
       : null,
+    socialLinks.instagram
+      ? { label: "[ INSTAGRAM ]", href: socialLinks.instagram }
+      : null,
   ].filter(Boolean) as { label: string; href: string }[];
 }
 
@@ -120,9 +123,7 @@ export function Footer({ siteSettings, socialLinks }: FooterContent) {
 
       if (!section || !runway || !content || !pin) return;
 
-      const isDesktop = window.matchMedia("(min-width: 901px)").matches;
-
-      if (reducedMotion || !isDesktop || !circle) {
+      if (reducedMotion || !circle) {
         animateRevealOnScroll(content, {
           trigger: runway,
           y: 24,

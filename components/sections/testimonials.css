@@ -132,6 +132,30 @@
   scroll-snap-align: start;
 }
 
+@media (max-width: 48rem) {
+  .testimonials-section__heading {
+    max-width: none;
+    padding-inline: var(--section-px);
+    font-size: clamp(1.75rem, 7vw, 2.5rem);
+  }
+
+  .testimonials-section__track {
+    padding-inline: var(--section-px);
+  }
+
+  .testimonials-card {
+    flex: 0 0 calc(100vw - 2 * var(--section-px));
+    width: calc(100vw - 2 * var(--section-px));
+    min-height: auto;
+    padding: 1.75rem 1.25rem 1.5rem;
+  }
+
+  .testimonials-card__quote {
+    font-size: max(0.9375rem, 15px);
+    line-height: 1.5;
+  }
+}
+
 @media (min-width: 64rem) {
   .testimonials-section__heading {
     padding-inline: var(--section-px-md);

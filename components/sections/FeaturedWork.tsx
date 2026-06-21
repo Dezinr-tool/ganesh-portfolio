@@ -4,7 +4,7 @@ import { useGSAP } from "@gsap/react";
 import gsap from "gsap";
 import { useReducedMotion } from "framer-motion";
 import Link from "next/link";
-import { useCallback, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { registerGsapPlugins } from "@/lib/gsap-scroll";
 import { scheduleScrollTriggerRefresh } from "@/lib/scroll-refresh";
 import {
@@ -54,8 +54,17 @@ export function FeaturedWork({
   const [activeCategory, setActiveCategory] = useState<WorksCategory>("product-design");
   const [activeIndex, setActiveIndex] = useState(0);
   const [isStageHovered, setIsStageHovered] = useState(false);
+  const [isMobileGallery, setIsMobileGallery] = useState(false);
   const isDraggingRef = useRef(false);
   const isGalleryHoveredRef = useRef(false);
+
+  useEffect(() => {
+    const mq = window.matchMedia("(max-width: 68.75rem)");
+    const sync = () => setIsMobileGallery(mq.matches);
+    sync();
+    mq.addEventListener("change", sync);
+    return () => mq.removeEventListener("change", sync);
+  }, []);
 
   const categoryProjects = useMemo(
     () => getProjectsByCategory(activeCategory, projects),
@@ -256,7 +265,7 @@ export function FeaturedWork({
           />
 
           <WorksCarouselArrows
-            visible={isStageHovered}
+            visible={isMobileGallery || isStageHovered}
             canGoPrev={activeIndex > 0}
             canGoNext={activeIndex < categoryProjects.length - 1}
             onPrev={goToPrevProject}
