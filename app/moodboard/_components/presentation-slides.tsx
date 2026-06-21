@@ -16,7 +16,7 @@ const PHONE_SLOTS = [
 
 export function SlideShell({ children }: { children: React.ReactNode }) {
   return (
-    <section className="presentation-slide border-b border-neutral-100">
+    <section className="presentation-slide border-b border-[var(--color-text)]">
       <div className="mx-auto max-w-[1824px]">{children}</div>
     </section>
   );
@@ -32,9 +32,9 @@ export function CoverSlide({ brandName }: { brandName: string }) {
   return (
     <SlideShell>
       <div className="flex min-h-[min(80vh,640px)] flex-col justify-between">
-        <div className="h-24 w-24 rounded-2xl bg-neutral-100" aria-hidden />
+        <div className="h-24 w-24 rounded-2xl bg-[var(--color-bg)]" aria-hidden />
         <h1 className="presentation-cover-title max-w-4xl">{brandName} Moodboard</h1>
-        <div className="flex items-end justify-between text-sm text-neutral-500">
+        <div className="flex items-end justify-between text-sm text-[var(--color-text)]">
           <span>© Brucira</span>
           <span>{date}</span>
         </div>
@@ -45,7 +45,7 @@ export function CoverSlide({ brandName }: { brandName: string }) {
 
 function VisualPlaceholder({ label }: { label: string }) {
   return (
-    <div className="flex h-full min-h-[420px] items-center justify-center p-8 text-sm text-neutral-400">
+    <div className="flex h-full min-h-[420px] items-center justify-center p-8 text-sm text-[var(--color-text)]">
       {label}
     </div>
   );
@@ -80,7 +80,7 @@ function PhoneScatter({ items }: { items: MoodboardReferenceCard[] }) {
                 unoptimized
               />
             ) : (
-              <div className="flex h-full items-center justify-center bg-neutral-200 text-[10px] text-neutral-500">
+              <div className="flex h-full items-center justify-center bg-[var(--color-bg)] text-[10px] text-[var(--color-text)]">
                 Ref
               </div>
             )}
@@ -114,7 +114,7 @@ function MasonryGrid({ items }: { items: MoodboardReferenceCard[] }) {
               />
             </div>
           ) : (
-            <div className="flex aspect-[4/3] items-center justify-center bg-neutral-200 text-xs text-neutral-500">
+            <div className="flex aspect-[4/3] items-center justify-center bg-[var(--color-bg)] text-xs text-[var(--color-text)]">
               Reference
             </div>
           )}
@@ -146,12 +146,12 @@ export function PersonaSlide({ direction }: { direction: MoodboardPresentationDi
         <p className="presentation-body-large max-w-4xl flex-1">{persona.description}</p>
       </div>
 
-      <div className="mt-16 flex flex-col gap-8 border-t border-neutral-200 pt-10 sm:flex-row sm:gap-0">
+      <div className="mt-16 flex flex-col gap-8 border-t border-[var(--color-text)] pt-10 sm:flex-row sm:gap-0">
         <div className="sm:flex-1 sm:pr-10">
           <p className="presentation-label">About</p>
           <p className="presentation-body-muted mt-3 max-w-md">{about}</p>
         </div>
-        <div className="hidden w-px shrink-0 bg-neutral-200 sm:block" />
+        <div className="hidden w-px shrink-0 bg-[var(--color-bg)] sm:block" />
         <div className="sm:flex-1 sm:pl-10">
           <p className="presentation-label">Financials</p>
           <p className="presentation-body-muted mt-3 max-w-md">
@@ -228,14 +228,14 @@ export function ColorPaletteSlide({
             {colors.map((color, index) => (
               <div key={`${color.role}-${color.hex}-${index}`} className="text-center">
                 <div
-                  className="presentation-color-swatch mx-auto border border-neutral-200"
+                  className="presentation-color-swatch mx-auto border border-[var(--color-text)]"
                   style={{ backgroundColor: color.hex }}
                 />
-                <p className="mt-3 text-xs font-medium uppercase tracking-wide text-neutral-500">
+                <p className="mt-3 text-xs font-medium uppercase tracking-wide text-[var(--color-text)]">
                   {color.role}
                 </p>
-                <p className="text-sm text-neutral-800">{color.name}</p>
-                <p className="font-mono text-xs text-neutral-400">{color.hex}</p>
+                <p className="text-sm text-[var(--color-text)]">{color.name}</p>
+                <p className="font-mono text-xs text-[var(--color-text)]">{color.hex}</p>
               </div>
             ))}
           </div>
@@ -273,7 +273,7 @@ export function DirectionDeck({
     .join(" ");
 
   return (
-    <div className="border-t-4 border-black">
+    <div className="border-t-4 border-[var(--color-text)]">
       {has("persona") && direction.persona ? <PersonaSlide direction={direction} /> : null}
 
       {has("persona") && painPoints ? (

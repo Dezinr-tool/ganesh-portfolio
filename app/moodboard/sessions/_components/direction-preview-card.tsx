@@ -39,23 +39,23 @@ export function DirectionPreviewCard({ direction }: { direction: ResolvedSession
 
   return (
     <article
-      className={`rounded-xl border bg-zinc-950/50 p-5 ${
+      className={`rounded-xl border bg-[var(--color-bg)]/50 p-5 ${
         isSelected
-          ? "border-green-500/60 ring-1 ring-green-500/30"
-          : "border-zinc-800"
+          ? "border-[var(--color-accent)] ring-1 ring-[var(--color-accent)]"
+          : "border-[var(--color-text)]"
       }`}
     >
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <h3 className="text-lg font-medium text-white">
+          <h3 className="text-lg font-medium text-[var(--color-bg)]">
             Direction {index}: {name}
           </h3>
           {content.tagline ? (
-            <p className="mt-1 text-sm italic text-zinc-400">{content.tagline}</p>
+            <p className="mt-1 text-sm italic text-[var(--color-text)]">{content.tagline}</p>
           ) : null}
         </div>
         {isSelected ? (
-          <span className="rounded-full bg-green-500/15 px-3 py-1 text-xs font-medium text-green-400">
+          <span className="rounded-full bg-[var(--color-accent)] px-3 py-1 text-xs font-medium text-[var(--color-accent)]">
             User selected this
           </span>
         ) : null}
@@ -63,28 +63,28 @@ export function DirectionPreviewCard({ direction }: { direction: ResolvedSession
 
       {concept ? (
         <div className="mt-5">
-          <p className="text-xs font-medium uppercase tracking-wide text-zinc-500">Concept</p>
-          <p className="mt-2 text-sm leading-relaxed text-zinc-200">{concept}</p>
+          <p className="text-xs font-medium uppercase tracking-wide text-[var(--color-text)]">Concept</p>
+          <p className="mt-2 text-sm leading-relaxed text-[var(--color-text)]">{concept}</p>
         </div>
       ) : null}
 
       {colors.length > 0 ? (
         <div className="mt-5">
-          <p className="text-xs font-medium uppercase tracking-wide text-zinc-500">
+          <p className="text-xs font-medium uppercase tracking-wide text-[var(--color-text)]">
             Color palette
           </p>
           <div className="mt-3 flex flex-wrap gap-3">
             {colors.map((color) => (
               <div key={`${color.role}-${color.hex}`} className="flex items-center gap-2">
                 <span
-                  className="h-10 w-10 shrink-0 rounded-lg border border-zinc-700"
+                  className="h-10 w-10 shrink-0 rounded-lg border border-[var(--color-text)]"
                   style={{ backgroundColor: color.hex }}
                   title={`${color.name} (${color.hex})`}
                 />
                 <div className="min-w-0">
-                  <p className="text-xs font-medium text-zinc-300">{color.role}</p>
-                  <p className="truncate text-xs text-zinc-500">{color.name}</p>
-                  <p className="font-mono text-[10px] text-zinc-600">{color.hex}</p>
+                  <p className="text-xs font-medium text-[var(--color-text)]">{color.role}</p>
+                  <p className="truncate text-xs text-[var(--color-text)]">{color.name}</p>
+                  <p className="font-mono text-[10px] text-[var(--color-text)]">{color.hex}</p>
                 </div>
               </div>
             ))}
@@ -94,31 +94,31 @@ export function DirectionPreviewCard({ direction }: { direction: ResolvedSession
 
       {typography ? (
         <div className="mt-5">
-          <p className="text-xs font-medium uppercase tracking-wide text-zinc-500">
+          <p className="text-xs font-medium uppercase tracking-wide text-[var(--color-text)]">
             Typography
           </p>
-          <p className="mt-2 text-sm text-zinc-200">{typography}</p>
+          <p className="mt-2 text-sm text-[var(--color-text)]">{typography}</p>
           {content.typography ? (
-            <p className="mt-1 text-xs text-zinc-500">{content.typography.heading.rationale}</p>
+            <p className="mt-1 text-xs text-[var(--color-text)]">{content.typography.heading.rationale}</p>
           ) : null}
         </div>
       ) : null}
 
       {imagery ? (
         <div className="mt-5">
-          <p className="text-xs font-medium uppercase tracking-wide text-zinc-500">Imagery</p>
-          <p className="mt-2 text-sm leading-relaxed text-zinc-200">{imagery}</p>
+          <p className="text-xs font-medium uppercase tracking-wide text-[var(--color-text)]">Imagery</p>
+          <p className="mt-2 text-sm leading-relaxed text-[var(--color-text)]">{imagery}</p>
         </div>
       ) : null}
 
       {mood.length > 0 ? (
         <div className="mt-5">
-          <p className="text-xs font-medium uppercase tracking-wide text-zinc-500">Mood</p>
+          <p className="text-xs font-medium uppercase tracking-wide text-[var(--color-text)]">Mood</p>
           <div className="mt-2 flex flex-wrap gap-2">
             {mood.map((keyword) => (
               <span
                 key={keyword}
-                className="rounded-full bg-zinc-800 px-2.5 py-1 text-xs text-zinc-300"
+                className="rounded-full bg-[var(--color-bg)] px-2.5 py-1 text-xs text-[var(--color-text)]"
               >
                 {keyword}
               </span>
@@ -128,18 +128,18 @@ export function DirectionPreviewCard({ direction }: { direction: ResolvedSession
       ) : null}
 
       {direction.refinedCount > 0 || direction.refinementNotes ? (
-        <div className="mt-5 border-t border-zinc-800 pt-4">
+        <div className="mt-5 border-t border-[var(--color-text)] pt-4">
           {direction.refinedCount > 0 ? (
-            <p className="text-xs text-amber-400">Refined ×{direction.refinedCount}</p>
+            <p className="text-xs text-[var(--color-accent)]">Refined ×{direction.refinedCount}</p>
           ) : null}
           {direction.refinementNotes ? (
-            <p className="mt-1 text-sm text-zinc-400">{direction.refinementNotes}</p>
+            <p className="mt-1 text-sm text-[var(--color-text)]">{direction.refinementNotes}</p>
           ) : null}
         </div>
       ) : null}
 
       {isSelected ? (
-        <p className="mt-5 text-xs font-medium uppercase tracking-wide text-green-400">
+        <p className="mt-5 text-xs font-medium uppercase tracking-wide text-[var(--color-accent)]">
           ✓ Selected
         </p>
       ) : null}

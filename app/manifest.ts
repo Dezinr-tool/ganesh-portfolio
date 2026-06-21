@@ -8,8 +8,8 @@ export default function manifest(): MetadataRoute.Manifest {
     start_url: "/ea/chat",
     scope: "/ea",
     display: "standalone",
-    background_color: "#000000",
-    theme_color: "#0a0a0a",
+    background_color: "var(--color-text)",
+    theme_color: "var(--color-text)",
     icons: [
       {
         src: "/ganesh-profile.jpg",

@@ -61,7 +61,7 @@ export function DeleteAgreementButton({
         disabled={loading}
         aria-label={`Delete agreement ${title}`}
         title="Delete agreement"
-        className="rounded-md p-1.5 text-neutral-500 hover:text-red-400 disabled:opacity-50"
+        className="rounded-md p-1.5 text-[var(--color-text)] hover:text-[var(--color-accent)] disabled:opacity-50"
       >
         <svg
           width="16"
@@ -83,7 +83,7 @@ export function DeleteAgreementButton({
         type="button"
         onClick={handleDelete}
         disabled={loading}
-        className="text-sm text-neutral-500 hover:text-red-400 disabled:opacity-50"
+        className="text-sm text-[var(--color-text)] hover:text-[var(--color-accent)] disabled:opacity-50"
       >
         {loading ? "Deleting…" : "Delete"}
       </button>
@@ -93,7 +93,7 @@ export function DeleteAgreementButton({
     return (
       <div className="flex flex-col items-end gap-1">
         {control}
-        <span className="max-w-[120px] text-right text-xs text-red-400">
+        <span className="max-w-[120px] text-right text-xs text-[var(--color-accent)]">
           {error}
         </span>
       </div>
@@ -104,7 +104,7 @@ export function DeleteAgreementButton({
     <div className="flex flex-col items-end gap-1">
       {control}
       {error ? (
-        <span className="text-xs text-red-400" role="alert">
+        <span className="text-xs text-[var(--color-accent)]" role="alert">
           {error}
         </span>
       ) : null}

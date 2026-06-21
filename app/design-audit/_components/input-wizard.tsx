@@ -56,12 +56,12 @@ export function ImageDropZone({
         }}
         className={`cursor-pointer rounded-lg border-2 border-dashed px-6 py-10 text-center transition-colors ${
           dragging
-            ? "border-zinc-500 bg-zinc-900/50"
-            : "border-zinc-800 hover:border-zinc-600"
+            ? "border-[var(--color-text)] bg-[var(--color-bg)]/50"
+            : "border-[var(--color-text)] hover:border-[var(--color-text)]"
         }`}
       >
-        <p className="text-sm text-zinc-300">Drop screenshots here</p>
-        <p className="mt-1 text-xs text-zinc-500">
+        <p className="text-sm text-[var(--color-text)]">Drop screenshots here</p>
+        <p className="mt-1 text-xs text-[var(--color-text)]">
           JPG, PNG, WebP — up to {max} images
         </p>
       </div>
@@ -81,7 +81,7 @@ export function ImageDropZone({
               <img
                 src={url}
                 alt={`Preview ${i + 1}`}
-                className="h-32 w-full rounded-lg border border-zinc-800 object-cover"
+                className="h-32 w-full rounded-lg border border-[var(--color-text)] object-cover"
               />
               <div className="absolute inset-x-1 bottom-1 flex gap-1 opacity-0 transition-opacity group-hover:opacity-100">
                 {i > 0 ? (
@@ -92,7 +92,7 @@ export function ImageDropZone({
                       [next[i - 1], next[i]] = [next[i]!, next[i - 1]!];
                       onChange(next);
                     }}
-                    className="flex-1 rounded bg-black/80 py-1 text-[10px] text-white"
+                    className="flex-1 rounded bg-[var(--color-text)]/80 py-1 text-[10px] text-[var(--color-bg)]"
                   >
                     ←
                   </button>
@@ -100,7 +100,7 @@ export function ImageDropZone({
                 <button
                   type="button"
                   onClick={() => onChange(files.filter((_, j) => j !== i))}
-                  className="flex-1 rounded bg-black/80 py-1 text-[10px] text-red-300"
+                  className="flex-1 rounded bg-[var(--color-text)]/80 py-1 text-[10px] text-[var(--color-accent)]"
                 >
                   Remove
                 </button>
@@ -112,7 +112,7 @@ export function ImageDropZone({
                       [next[i], next[i + 1]] = [next[i + 1]!, next[i]!];
                       onChange(next);
                     }}
-                    className="flex-1 rounded bg-black/80 py-1 text-[10px] text-white"
+                    className="flex-1 rounded bg-[var(--color-text)]/80 py-1 text-[10px] text-[var(--color-bg)]"
                   >
                     →
                   </button>
@@ -174,13 +174,13 @@ export function ContextWizard({
         {CONTEXT_STEPS.map((_, i) => (
           <div
             key={i}
-            className={`h-1 flex-1 rounded-full ${i <= step ? "bg-zinc-400" : "bg-zinc-800"}`}
+            className={`h-1 flex-1 rounded-full ${i <= step ? "bg-[var(--color-bg)]" : "bg-[var(--color-bg)]"}`}
           />
         ))}
       </div>
       {current ? (
         <div>
-          <label className="mb-2 block text-sm text-zinc-300">
+          <label className="mb-2 block text-sm text-[var(--color-text)]">
             {step + 1}. {current.label}
           </label>
           <input
@@ -193,7 +193,7 @@ export function ContextWizard({
       ) : null}
       {step === CONTEXT_STEPS.length ? (
         <div>
-          <label className="mb-2 block text-sm text-zinc-400">
+          <label className="mb-2 block text-sm text-[var(--color-text)]">
             Any specific concerns? (optional)
           </label>
           <textarea

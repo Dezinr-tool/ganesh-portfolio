@@ -30,14 +30,14 @@ export default async function EditAgreementPage({
       <div className="mb-6">
         <Link
           href={`/dashboard/agreements/${id}`}
-          className="text-sm text-neutral-400 hover:text-white"
+          className="text-sm text-[var(--color-text)] hover:text-[var(--color-bg)]"
         >
           ← Back to agreement
         </Link>
       </div>
 
-      <h1 className="text-2xl font-semibold text-white">Edit agreement</h1>
-      <p className="mt-2 text-sm text-neutral-400">{agreement.title}</p>
+      <h1 className="text-2xl font-semibold text-[var(--color-bg)]">Edit agreement</h1>
+      <p className="mt-2 text-sm text-[var(--color-text)]">{agreement.title}</p>
 
       <div className="mt-8">
         <AgreementForm agreement={agreement} />

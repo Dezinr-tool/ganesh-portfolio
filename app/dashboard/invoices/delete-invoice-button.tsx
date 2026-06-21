@@ -53,7 +53,7 @@ export function DeleteInvoiceButton({
         disabled={loading}
         aria-label={`Delete invoice ${invoiceNumber}`}
         title="Delete invoice"
-        className="rounded-md p-1.5 text-neutral-500 hover:bg-red-950/40 hover:text-red-400 disabled:opacity-50"
+        className="rounded-md p-1.5 text-[var(--color-text)] hover:bg-[var(--color-accent)] hover:text-[var(--color-accent)] disabled:opacity-50"
       >
         <svg
           width="16"
@@ -78,7 +78,7 @@ export function DeleteInvoiceButton({
       type="button"
       onClick={handleDelete}
       disabled={loading}
-      className="rounded-md border border-red-900 bg-red-950/40 px-4 py-2 text-sm font-medium text-red-400 hover:border-red-700 disabled:opacity-50"
+      className="rounded-md border border-[var(--color-accent)] bg-[var(--color-accent)] px-4 py-2 text-sm font-medium text-[var(--color-accent)] hover:border-[var(--color-accent)] disabled:opacity-50"
     >
       {loading ? "Deleting…" : "Delete"}
     </button>

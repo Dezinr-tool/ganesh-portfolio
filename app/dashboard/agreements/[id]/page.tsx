@@ -1,7 +1,8 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { AgreementDocument } from "@/components/agreements/agreement-document";
+import { AgreementDocument } from "@/components/dashboard/agreements/agreement-document";
 import { getAgreementById } from "@/lib/agreements-store";
+import { getDesignTokens } from "@/lib/design-tokens";
 import { statusLabel } from "../../_lib/agreements";
 import type { AgreementStatus } from "../../_lib/agreements";
 import { DeleteAgreementButton } from "../delete-agreement-button";
@@ -12,10 +13,10 @@ export const dynamic = "force-dynamic";
 
 function StatusBadge({ status }: { status: AgreementStatus }) {
   const styles: Record<AgreementStatus, string> = {
-    draft: "bg-neutral-500/10 text-neutral-400 ring-neutral-500/20",
-    awaiting_client: "bg-amber-500/10 text-amber-400 ring-amber-500/20",
-    sent: "bg-blue-500/10 text-blue-400 ring-blue-500/20",
-    signed: "bg-emerald-500/10 text-emerald-400 ring-emerald-500/20",
+    draft: "bg-[var(--color-bg)]/10 text-[var(--color-text)] ring-[var(--color-text)]",
+    awaiting_client: "bg-[var(--color-accent)] text-[var(--color-accent)] ring-[var(--color-accent)]",
+    sent: "bg-[var(--color-accent)] text-[var(--color-accent)] ring-[var(--color-accent)]",
+    signed: "bg-[var(--color-accent)] text-[var(--color-accent)] ring-[var(--color-accent)]",
   };
 
   return (
@@ -35,7 +36,10 @@ export default async function AgreementDetailPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const agreement = await getAgreementById(id);
+  const [agreement, designTokens] = await Promise.all([
+    getAgreementById(id),
+    getDesignTokens(),
+  ]);
 
   if (!agreement) {
     notFound();
@@ -49,7 +53,7 @@ export default async function AgreementDetailPage({
       <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
         <Link
           href="/dashboard/agreements"
-          className="text-sm text-neutral-400 hover:text-white"
+          className="text-sm text-[var(--color-text)] hover:text-[var(--color-bg)]"
         >
           ← Back to agreements
         </Link>
@@ -58,12 +62,12 @@ export default async function AgreementDetailPage({
           {canEdit ? (
             <Link
               href={`/dashboard/agreements/${agreement.id}/edit`}
-              className="rounded-md border border-neutral-600 px-4 py-2 text-sm font-medium text-white hover:bg-neutral-800"
+              className="rounded-md border border-[var(--color-text)] px-4 py-2 text-sm font-medium text-[var(--color-bg)] hover:bg-[var(--color-bg)]"
             >
               Edit
             </Link>
           ) : isSigned ? (
-            <span className="text-sm text-neutral-400">
+            <span className="text-sm text-[var(--color-text)]">
               Agreement is fully signed
             </span>
           ) : null}
@@ -86,10 +90,11 @@ export default async function AgreementDetailPage({
         </div>
       </div>
 
-      <div className="rounded-lg border border-neutral-800 bg-neutral-900/50 p-6">
+      <div className="rounded-lg border border-[var(--color-text)] bg-[var(--color-bg)]/50 p-6">
         <AgreementDocument
           agreement={agreement}
           allowEmailEdit={!isSigned}
+          designTokens={designTokens}
         />
       </div>
     </div>

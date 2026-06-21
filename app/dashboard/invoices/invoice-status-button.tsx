@@ -46,8 +46,8 @@ export function InvoiceStatusButton({
       disabled={loading}
       className={
         isPaid
-          ? "rounded-md border border-amber-800 bg-amber-950/40 px-4 py-2 text-sm font-medium text-amber-400 hover:border-amber-600 disabled:opacity-50"
-          : "rounded-md border border-emerald-800 bg-emerald-950/40 px-4 py-2 text-sm font-medium text-emerald-400 hover:border-emerald-600 disabled:opacity-50"
+          ? "rounded-md border border-[var(--color-accent)] bg-[var(--color-accent)] px-4 py-2 text-sm font-medium text-[var(--color-accent)] hover:border-[var(--color-accent)] disabled:opacity-50"
+          : "rounded-md border border-[var(--color-accent)] bg-[var(--color-accent)] px-4 py-2 text-sm font-medium text-[var(--color-accent)] hover:border-[var(--color-accent)] disabled:opacity-50"
       }
     >
       {loading ? "Updating…" : label}

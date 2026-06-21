@@ -10,18 +10,18 @@ export default function MaxTermsPage() {
   return (
     <MaxShell>
       <main className="mx-auto max-w-3xl px-6 py-16">
-        <p className="text-sm text-zinc-500">
-          <Link href="/max" className="hover:text-zinc-300">
+        <p className="text-sm text-[var(--color-text)]">
+          <Link href="/max" className="hover:text-[var(--color-text)]">
             ← Back to Virtual EA
           </Link>
         </p>
 
-        <h1 className="mt-6 text-3xl font-light text-white">Terms of Service</h1>
-        <p className="mt-2 text-sm text-zinc-500">Last updated: June 2026</p>
+        <h1 className="mt-6 text-3xl font-light text-[var(--color-bg)]">Terms of Service</h1>
+        <p className="mt-2 text-sm text-[var(--color-text)]">Last updated: June 2026</p>
 
-        <div className="mt-10 space-y-8 text-sm leading-relaxed text-zinc-400">
+        <div className="mt-10 space-y-8 text-sm leading-relaxed text-[var(--color-text)]">
           <section>
-            <h2 className="text-lg font-medium text-white">Agreement</h2>
+            <h2 className="text-lg font-medium text-[var(--color-bg)]">Agreement</h2>
             <p className="mt-3">
               By accessing or using Virtual EA, you agree to these Terms of
               Service. If you do not agree, do not use the service.
@@ -29,7 +29,7 @@ export default function MaxTermsPage() {
           </section>
 
           <section>
-            <h2 className="text-lg font-medium text-white">Personal use</h2>
+            <h2 className="text-lg font-medium text-[var(--color-bg)]">Personal use</h2>
             <p className="mt-3">
               Virtual EA is intended for personal and professional productivity
               use by individuals and small teams. You may not use Virtual EA to
@@ -39,7 +39,7 @@ export default function MaxTermsPage() {
           </section>
 
           <section>
-            <h2 className="text-lg font-medium text-white">Your responsibilities</h2>
+            <h2 className="text-lg font-medium text-[var(--color-bg)]">Your responsibilities</h2>
             <p className="mt-3">You are responsible for:</p>
             <ul className="mt-4 list-inside list-disc space-y-2">
               <li>Maintaining the security of your account credentials</li>
@@ -57,7 +57,7 @@ export default function MaxTermsPage() {
           </section>
 
           <section>
-            <h2 className="text-lg font-medium text-white">AI-generated content</h2>
+            <h2 className="text-lg font-medium text-[var(--color-bg)]">AI-generated content</h2>
             <p className="mt-3">
               Virtual EA uses AI models that can make mistakes. Outputs are
               provided for assistance only and are not professional, legal, or
@@ -67,7 +67,7 @@ export default function MaxTermsPage() {
           </section>
 
           <section>
-            <h2 className="text-lg font-medium text-white">No warranty</h2>
+            <h2 className="text-lg font-medium text-[var(--color-bg)]">No warranty</h2>
             <p className="mt-3">
               Virtual EA is provided &quot;as is&quot; and &quot;as available&quot;
               without warranties of any kind, express or implied, including
@@ -78,7 +78,7 @@ export default function MaxTermsPage() {
           </section>
 
           <section>
-            <h2 className="text-lg font-medium text-white">Service changes</h2>
+            <h2 className="text-lg font-medium text-[var(--color-bg)]">Service changes</h2>
             <p className="mt-3">
               We may modify, suspend, or discontinue Virtual EA — or any feature
               — at any time, with or without notice. We are not liable for any
@@ -87,7 +87,7 @@ export default function MaxTermsPage() {
           </section>
 
           <section>
-            <h2 className="text-lg font-medium text-white">Limitation of liability</h2>
+            <h2 className="text-lg font-medium text-[var(--color-bg)]">Limitation of liability</h2>
             <p className="mt-3">
               To the fullest extent permitted by law, Ganesh Das shall not be
               liable for any indirect, incidental, special, or consequential
@@ -97,7 +97,7 @@ export default function MaxTermsPage() {
           </section>
 
           <section>
-            <h2 className="text-lg font-medium text-white">Your data</h2>
+            <h2 className="text-lg font-medium text-[var(--color-bg)]">Your data</h2>
             <p className="mt-3">
               Your data is stored in the database you provide. You retain ownership
               of your content. We recommend regular backups. If you stop using
@@ -106,12 +106,12 @@ export default function MaxTermsPage() {
           </section>
 
           <section>
-            <h2 className="text-lg font-medium text-white">Contact</h2>
+            <h2 className="text-lg font-medium text-[var(--color-bg)]">Contact</h2>
             <p className="mt-3">
               Questions about these terms? Email{" "}
               <a
                 href="mailto:hello@designbyganesh.com"
-                className="text-white underline hover:text-zinc-300"
+                className="text-[var(--color-bg)] underline hover:text-[var(--color-text)]"
               >
                 hello@designbyganesh.com
               </a>

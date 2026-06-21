@@ -358,33 +358,33 @@ export default function DesignAuditPage() {
   };
 
   return (
-    <div className="min-h-screen bg-black text-zinc-100">
+    <div className="min-h-screen bg-[var(--color-text)] text-[var(--color-text)]">
       <DesignAuditNav />
       <main className="mx-auto max-w-5xl px-6 py-10">
         <div className="mb-8">
-          <h1 className="text-2xl font-light text-white">Design Audit</h1>
-          <p className="mt-1 text-sm text-zinc-500">
+          <h1 className="text-2xl font-light text-[var(--color-bg)]">Design Audit</h1>
+          <p className="mt-1 text-sm text-[var(--color-text)]">
             Brutally honest UX/UI audits across 10 dimensions — Figma, live sites, or screenshots.
           </p>
         </div>
         {eaClient ? (
-          <div className="mb-6 rounded-lg border border-zinc-800 bg-zinc-900/30 px-4 py-3 text-sm text-zinc-300">
+          <div className="mb-6 rounded-lg border border-[var(--color-text)] bg-[var(--color-bg)]/30 px-4 py-3 text-sm text-[var(--color-text)]">
             Audit context pre-filled from your EA session with{" "}
-            <span className="font-medium text-white">{eaClient}</span>
+            <span className="font-medium text-[var(--color-bg)]">{eaClient}</span>
           </div>
         ) : null}
 
         {error ? (
-          <p className="mb-4 rounded-lg border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-300">
+          <p className="mb-4 rounded-lg border border-[var(--color-accent)] bg-[var(--color-accent)] px-4 py-3 text-sm text-[var(--color-accent)]">
             {error}
           </p>
         ) : null}
-        {message ? <p className="mb-4 text-sm text-emerald-400">{message}</p> : null}
+        {message ? <p className="mb-4 text-sm text-[var(--color-accent)]">{message}</p> : null}
         {loading && auditStatus ? (
-          <p className="mb-4 text-sm text-zinc-400">{auditStatus}</p>
+          <p className="mb-4 text-sm text-[var(--color-text)]">{auditStatus}</p>
         ) : null}
         {loadingPreConfirm ? (
-          <p className="mb-4 text-sm text-zinc-400">Analyzing context and preparing approach…</p>
+          <p className="mb-4 text-sm text-[var(--color-text)]">Analyzing context and preparing approach…</p>
         ) : null}
 
         {phase !== "report" ? (
@@ -411,7 +411,7 @@ export default function DesignAuditPage() {
               <div className={`space-y-6 ${EA_CARD_PADDED}`}>
                 {inputMode === "figma" ? (
                   <div>
-                    <label className="mb-2 block text-xs text-zinc-400">Figma frame URL</label>
+                    <label className="mb-2 block text-xs text-[var(--color-text)]">Figma frame URL</label>
                     <input
                       type="url"
                       value={figmaUrl}
@@ -424,7 +424,7 @@ export default function DesignAuditPage() {
 
                 {inputMode === "website" ? (
                   <div>
-                    <label className="mb-2 block text-xs text-zinc-400">Website URL</label>
+                    <label className="mb-2 block text-xs text-[var(--color-text)]">Website URL</label>
                     <input
                       type="url"
                       value={websiteUrl}
@@ -457,12 +457,12 @@ export default function DesignAuditPage() {
                   <img
                     src={previewUrl}
                     alt="Preview"
-                    className="max-h-64 rounded-lg border border-zinc-800 object-contain"
+                    className="max-h-64 rounded-lg border border-[var(--color-text)] object-contain"
                   />
                 ) : null}
 
                 <div className={`space-y-4 ${EA_CARD_PADDED}`}>
-                  <h2 className="text-sm font-medium text-zinc-300">Audit context</h2>
+                  <h2 className="text-sm font-medium text-[var(--color-text)]">Audit context</h2>
 
                   <ContextWizard
                     context={context}
@@ -476,7 +476,7 @@ export default function DesignAuditPage() {
                   <button
                     type="button"
                     onClick={() => setPhase("input")}
-                    className="text-xs text-zinc-500 hover:text-white"
+                    className="text-xs text-[var(--color-text)] hover:text-[var(--color-bg)]"
                   >
                     ← Back to input
                   </button>
@@ -491,7 +491,7 @@ export default function DesignAuditPage() {
                   <img
                     src={previewUrl}
                     alt="Preview"
-                    className="max-h-48 rounded-lg border border-zinc-800 object-contain opacity-60"
+                    className="max-h-48 rounded-lg border border-[var(--color-text)] object-contain opacity-60"
                   />
                 ) : null}
                 <div className={`${EA_CARD_PADDED}`}>
@@ -500,7 +500,7 @@ export default function DesignAuditPage() {
                     onModelChange={setModelId}
                     disabled={loading}
                   />
-                  <p className="mb-4 text-sm text-zinc-400">
+                  <p className="mb-4 text-sm text-[var(--color-text)]">
                     Before I generate, let me share what I&apos;m planning to use and check a few
                     things with you.
                   </p>
@@ -512,7 +512,7 @@ export default function DesignAuditPage() {
                   <button
                     type="button"
                     onClick={() => setPhase("context")}
-                    className="mt-4 text-xs text-zinc-500 hover:text-white"
+                    className="mt-4 text-xs text-[var(--color-text)] hover:text-[var(--color-bg)]"
                   >
                     ← Back to context
                   </button>
@@ -530,7 +530,7 @@ export default function DesignAuditPage() {
                 setPhase("input");
                 setResult(null);
               }}
-              className="text-xs text-zinc-500 hover:text-white"
+              className="text-xs text-[var(--color-text)] hover:text-[var(--color-bg)]"
             >
               ← New audit
             </button>

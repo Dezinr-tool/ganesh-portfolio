@@ -14,11 +14,11 @@ function ColorSwatches({ colors }: { colors: MoodboardDirection["colors"] }) {
       {colors.map((color) => (
         <div key={color.hex} className="flex flex-col items-center gap-1">
           <div
-            className="h-10 w-10 rounded-lg border border-zinc-700 shadow-inner"
+            className="h-10 w-10 rounded-lg border border-[var(--color-text)] shadow-inner"
             style={{ backgroundColor: color.hex }}
             title={`${color.name} ${color.hex}`}
           />
-          <span className="max-w-[56px] truncate text-[10px] text-zinc-500">
+          <span className="max-w-[56px] truncate text-[10px] text-[var(--color-text)]">
             {color.name}
           </span>
         </div>
@@ -44,10 +44,10 @@ export function DirectionCard({
 }) {
   return (
     <article
-      className={`flex flex-col rounded-xl border bg-zinc-900/50 transition-all ${
+      className={`flex flex-col rounded-xl border bg-[var(--color-bg)]/50 transition-all ${
         chosen
-          ? "border-emerald-500/40 ring-1 ring-emerald-500/20"
-          : "border-zinc-800 hover:border-zinc-700"
+          ? "border-[var(--color-accent)] ring-1 ring-[var(--color-accent)]"
+          : "border-[var(--color-text)] hover:border-[var(--color-text)]"
       }`}
     >
       <button
@@ -55,11 +55,11 @@ export function DirectionCard({
         onClick={onExpand}
         className="flex flex-1 flex-col p-5 text-left"
       >
-        <p className="text-xs font-medium uppercase tracking-wide text-zinc-500">
+        <p className="text-xs font-medium uppercase tracking-wide text-[var(--color-text)]">
           Direction
         </p>
-        <h3 className="mt-2 text-lg font-medium text-white">{direction.name}</h3>
-        <p className="mt-3 line-clamp-3 text-sm leading-relaxed text-zinc-400">
+        <h3 className="mt-2 text-lg font-medium text-[var(--color-bg)]">{direction.name}</h3>
+        <p className="mt-3 line-clamp-3 text-sm leading-relaxed text-[var(--color-text)]">
           {direction.concept}
         </p>
         <div className="mt-4">
@@ -69,7 +69,7 @@ export function DirectionCard({
           {direction.mood.slice(0, 4).map((word) => (
             <span
               key={word}
-              className="rounded-full border border-zinc-800 bg-zinc-900/80 px-2 py-0.5 text-[10px] text-zinc-400"
+              className="rounded-full border border-[var(--color-text)] bg-[var(--color-bg)]/80 px-2 py-0.5 text-[10px] text-[var(--color-text)]"
             >
               {word}
             </span>
@@ -77,13 +77,13 @@ export function DirectionCard({
         </div>
       </button>
 
-      <div className="flex flex-wrap gap-2 border-t border-zinc-800 p-4">
+      <div className="flex flex-wrap gap-2 border-t border-[var(--color-text)] p-4">
         <button
           type="button"
           onClick={onSelect}
           className={`rounded-lg px-3 py-1.5 text-xs font-medium transition-colors ${
             chosen
-              ? "bg-emerald-500/20 text-emerald-300"
+              ? "bg-[var(--color-accent)] text-[var(--color-accent)]"
               : EA_BTN_PRIMARY
           }`}
         >
@@ -99,7 +99,7 @@ export function DirectionCard({
         <button
           type="button"
           onClick={onReject}
-          className="rounded-lg px-3 py-1.5 text-xs text-zinc-500 hover:text-zinc-300"
+          className="rounded-lg px-3 py-1.5 text-xs text-[var(--color-text)] hover:text-[var(--color-text)]"
         >
           ✗ Not this
         </button>
@@ -116,19 +116,19 @@ export function DirectionDetailModal({
   onClose: () => void;
 }) {
   return (
-    <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/80 p-4 sm:items-center">
+    <div className="fixed inset-0 z-50 flex items-end justify-center bg-[var(--color-text)]/80 p-4 sm:items-center">
       <div className={`max-h-[90vh] w-full max-w-2xl overflow-y-auto shadow-2xl ${EA_CARD_PADDED}`}>
         <div className="mb-6 flex items-start justify-between gap-4">
           <div>
-            <p className="text-xs font-medium uppercase tracking-wide text-zinc-500">
+            <p className="text-xs font-medium uppercase tracking-wide text-[var(--color-text)]">
               Full direction
             </p>
-            <h2 className="mt-1 text-2xl font-light text-white">{direction.name}</h2>
+            <h2 className="mt-1 text-2xl font-light text-[var(--color-bg)]">{direction.name}</h2>
           </div>
           <button
             type="button"
             onClick={onClose}
-            className="text-zinc-500 hover:text-white"
+            className="text-[var(--color-text)] hover:text-[var(--color-bg)]"
             aria-label="Close"
           >
             ✕
@@ -137,45 +137,45 @@ export function DirectionDetailModal({
 
         <div className="space-y-6 text-sm">
           <section>
-            <h3 className="mb-2 text-xs font-medium uppercase tracking-wide text-zinc-500">
+            <h3 className="mb-2 text-xs font-medium uppercase tracking-wide text-[var(--color-text)]">
               Concept
             </h3>
-            <p className="leading-relaxed text-zinc-300">{direction.concept}</p>
+            <p className="leading-relaxed text-[var(--color-text)]">{direction.concept}</p>
           </section>
 
           <section>
-            <h3 className="mb-2 text-xs font-medium uppercase tracking-wide text-zinc-500">
+            <h3 className="mb-2 text-xs font-medium uppercase tracking-wide text-[var(--color-text)]">
               Color palette
             </h3>
             <ColorSwatches colors={direction.colors} />
           </section>
 
           <section>
-            <h3 className="mb-2 text-xs font-medium uppercase tracking-wide text-zinc-500">
+            <h3 className="mb-2 text-xs font-medium uppercase tracking-wide text-[var(--color-text)]">
               Typography
             </h3>
-            <p className="text-zinc-300">
+            <p className="text-[var(--color-text)]">
               Heading: {direction.typography.heading}
             </p>
-            <p className="text-zinc-300">Body: {direction.typography.body}</p>
+            <p className="text-[var(--color-text)]">Body: {direction.typography.body}</p>
           </section>
 
           <section>
-            <h3 className="mb-2 text-xs font-medium uppercase tracking-wide text-zinc-500">
+            <h3 className="mb-2 text-xs font-medium uppercase tracking-wide text-[var(--color-text)]">
               Imagery
             </h3>
-            <p className="leading-relaxed text-zinc-300">{direction.imagery}</p>
+            <p className="leading-relaxed text-[var(--color-text)]">{direction.imagery}</p>
           </section>
 
           <section>
-            <h3 className="mb-2 text-xs font-medium uppercase tracking-wide text-zinc-500">
+            <h3 className="mb-2 text-xs font-medium uppercase tracking-wide text-[var(--color-text)]">
               Mood
             </h3>
             <div className="flex flex-wrap gap-2">
               {direction.mood.map((word) => (
                 <span
                   key={word}
-                  className="rounded-full border border-zinc-800 bg-zinc-900/80 px-2.5 py-1 text-xs text-zinc-300"
+                  className="rounded-full border border-[var(--color-text)] bg-[var(--color-bg)]/80 px-2.5 py-1 text-xs text-[var(--color-text)]"
                 >
                   {word}
                 </span>
@@ -184,10 +184,10 @@ export function DirectionDetailModal({
           </section>
 
           <section>
-            <h3 className="mb-2 text-xs font-medium uppercase tracking-wide text-zinc-500">
+            <h3 className="mb-2 text-xs font-medium uppercase tracking-wide text-[var(--color-text)]">
               Visual references
             </h3>
-            <p className="leading-relaxed text-zinc-300">
+            <p className="leading-relaxed text-[var(--color-text)]">
               {direction.visual_references}
             </p>
           </section>
@@ -209,8 +209,8 @@ export function ExportPanel({
   onSaveHistory: () => void;
 }) {
   return (
-    <div className={`${EA_CARD} border-emerald-500/30 bg-emerald-500/5 p-5`}>
-      <p className="text-sm font-medium text-emerald-300">
+    <div className={`${EA_CARD} border-[var(--color-accent)] bg-[var(--color-accent)] p-5`}>
+      <p className="text-sm font-medium text-[var(--color-accent)]">
         Selected: {direction.name}
       </p>
       <div className="mt-3 flex flex-wrap gap-2">

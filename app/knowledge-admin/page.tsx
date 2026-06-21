@@ -3,7 +3,7 @@ import { DesignToolNav } from "@/app/_components/design-tool-nav";
 
 export default function KnowledgeAdminPage() {
   return (
-    <div className="min-h-screen bg-[#0d0d0d] text-zinc-100">
+    <div className="min-h-screen bg-[var(--color-text)] text-[var(--color-text)]">
       <DesignToolNav
         title="Knowledge Admin"
         links={[

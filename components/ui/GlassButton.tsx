@@ -1,19 +1,19 @@
 import Link from "next/link";
 import type { AnchorHTMLAttributes, ReactNode } from "react";
 
-/** `glass` — frosted on light backgrounds. `dark` — frosted on dark sections. */
-type ButtonVariant = "glass" | "dark";
+/** `solid` — black fill, white text. `outline` — black border and text on transparent bg. */
+type ButtonVariant = "solid" | "outline";
 
 type ButtonSize = "default" | "sm";
 
 const BASE_CLASS =
-  "inline-flex shrink-0 cursor-pointer items-center justify-center gap-2.5 rounded-none border font-medium no-underline backdrop-blur-[12px] transition-[background-color,border-color,box-shadow,color] duration-300 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2";
+  "inline-flex shrink-0 cursor-pointer items-center justify-center gap-2.5 rounded-none border font-medium no-underline transition-[background-color,border-color,color] duration-300 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-text)]";
 
 const VARIANT_CLASS: Record<ButtonVariant, string> = {
-  glass:
-    "border-[var(--glass-border)] bg-[var(--glass-bg)] text-[var(--color-text)] shadow-[0_1px_2px_rgba(0,0,0,0.04)] hover:border-[rgba(255,255,255,0.55)] hover:bg-[rgba(255,255,255,0.78)] hover:shadow-[0_2px_8px_rgba(0,0,0,0.06)] focus-visible:outline-[var(--color-text)]",
-  dark:
-    "border-[var(--glass-border-dark)] bg-[var(--glass-bg-dark)] text-white shadow-[0_1px_3px_rgba(0,0,0,0.2)] hover:border-[rgba(255,255,255,0.55)] hover:bg-[rgba(255,255,255,0.14)] hover:shadow-[0_2px_10px_rgba(0,0,0,0.25)] focus-visible:outline-white",
+  solid:
+    "border-[var(--color-text)] bg-[var(--color-text)] text-[var(--color-bg)] hover:bg-[var(--color-accent)] hover:border-[var(--color-accent)] hover:text-[var(--color-bg)]",
+  outline:
+    "border-[var(--color-text)] bg-transparent text-[var(--color-text)] hover:bg-[var(--color-text)] hover:text-[var(--color-bg)]",
 };
 
 const SIZE_CLASS: Record<ButtonSize, string> = {
@@ -34,7 +34,7 @@ function cn(...classes: (string | undefined | false)[]) {
 }
 
 export function GlassButton({
-  variant = "glass",
+  variant = "solid",
   size = "default",
   children,
   className,

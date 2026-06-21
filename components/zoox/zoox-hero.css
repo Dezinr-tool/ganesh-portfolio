@@ -4,18 +4,14 @@
  */
 
 .zoox-exp {
-  --zoox-ink: #34484a;
-  --zoox-ink-dark: #0d1212;
-  --zoox-mint: #d3e4df;
-  --zoox-white: #ffffff;
   --zoox-nav-h: 6.4rem;
   --zoox-nav-mt: 2rem;
   --zoox-radius-lg: 3.6rem;
   --zoox-radius-nav: 1.6rem;
   --zoox-ease-out: cubic-bezier(0.2, 0, 0, 1);
   --zoox-ease-snap: cubic-bezier(1, 0, 1, 0.6);
-  background: var(--zoox-white);
-  color: var(--zoox-ink);
+  background: var(--color-bg);
+  color: var(--color-text);
   overflow-x: clip;
 }
 
@@ -69,7 +65,7 @@
 .zoox-nav__hamburger {
   justify-self: start;
   margin-left: -2rem;
-  color: var(--zoox-ink);
+  color: var(--color-text);
   transition: color 0.3s var(--zoox-ease-snap);
 }
 
@@ -115,7 +111,7 @@
 
 .zoox-nav__logo svg {
   width: 3.3rem;
-  color: var(--zoox-ink);
+  color: var(--color-text);
   transition: color 0.3s var(--zoox-ease-snap);
 }
 
@@ -138,10 +134,10 @@
   align-items: center;
   height: var(--zoox-nav-h);
   padding: 0 1.1rem;
-  background: var(--zoox-white);
-  border: 1px solid rgba(0, 0, 0, 0.1);
+  background: var(--color-bg);
+  border: 1px solid var(--color-text);
   border-radius: var(--zoox-radius-nav);
-  box-shadow: 0 3rem 3rem rgba(23, 33, 30, 0.031);
+  box-shadow: none;
   pointer-events: auto;
   --clip-border-radius: var(--zoox-radius-nav);
   --clip-left: 0;
@@ -155,7 +151,7 @@
   position: absolute;
   inset: -1rem;
   border-radius: 2rem;
-  box-shadow: 0 2rem 4rem rgba(0, 0, 0, 0.08);
+  box-shadow: 0 2rem 4rem var(--color-text);
   opacity: 0;
   pointer-events: none;
 }
@@ -182,7 +178,7 @@
   line-height: 0.95;
   letter-spacing: -0.02em;
   text-align: center;
-  color: var(--zoox-ink-dark);
+  color: var(--color-text);
 }
 
 .zoox-hero__word {
@@ -224,14 +220,14 @@
 
 .zoox-hero__poster {
   background:
-    linear-gradient(145deg, #c8ddd8 0%, #8fa8a3 40%, #34484a 100%);
+    linear-gradient(145deg, var(--color-bg) 0%, var(--color-text) 50%, var(--color-accent) 100%);
 }
 
 /* ─── CONTENT (Zoox HomepageContentBespoke desktop) ─── */
 .zoox-content {
   position: relative;
   min-height: 100svh;
-  background: var(--zoox-white);
+  background: var(--color-bg);
 }
 
 .zoox-content__pin {
@@ -267,7 +263,7 @@
   font-size: clamp(1.6rem, 2.2vw, 2.4rem);
   line-height: 1.35;
   font-weight: 400;
-  color: var(--zoox-ink);
+  color: var(--color-text);
   opacity: 0;
 }
 
@@ -305,7 +301,7 @@
   width: 100%;
   height: 100%;
   object-fit: cover;
-  background: linear-gradient(160deg, #263436 0%, #0d1212 55%, #34484a 100%);
+  background: linear-gradient(160deg, var(--color-text) 0%, var(--color-accent) 55%, var(--color-text) 100%);
 }
 
 /* ─── Mobile (Zoox HomepageContentBespokeMobile) ─── */

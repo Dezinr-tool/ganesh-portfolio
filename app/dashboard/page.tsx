@@ -8,8 +8,8 @@ export default async function DashboardPage() {
 
   return (
     <div>
-      <h1 className="text-2xl font-semibold text-white">Overview</h1>
-      <p className="mt-2 text-sm text-neutral-400">
+      <h1 className="text-2xl font-semibold text-[var(--color-bg)]">Overview</h1>
+      <p className="mt-2 text-sm text-[var(--color-text)]">
         Track earnings, invoices, and agreements at a glance.
       </p>
 

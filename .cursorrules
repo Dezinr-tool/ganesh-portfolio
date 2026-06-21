@@ -1,0 +1,30 @@
+---
+
+## GLOBAL RULES — ALWAYS FOLLOW, NO EXCEPTIONS
+
+### QA RULE (applies to every single task)
+After building or changing anything, you MUST:
+1. Open the result in browser
+2. If a reference URL or screenshot was provided, open it side by side
+3. Compare every visible element — layout, spacing, typography, colors, interactions, animations
+4. List every difference found
+5. Fix each difference
+6. Re-check until it matches the reference closely
+7. Only then say you are done
+
+Never say "done" without completing the QA step. Building without QA is not acceptable.
+
+### DESIGN SYSTEM RULE
+Only these 3 colors are allowed anywhere in this codebase:
+- --color-bg: #FFFFFF
+- --color-text: #111111  
+- --color-accent: #FF1E00
+No other colors. Ever. Not from reference sites, not from libraries, not hardcoded.
+
+### ANIMATION RULE
+Use GSAP as the primary animation library. Use GSAP ScrollTrigger for all scroll-based animations. Framer Motion is legacy — do not add new Framer Motion animations.
+
+### REFERENCE RULE
+When a reference website is given, open it in browser, study the code and interaction, then build. Never guess how something works — always look first.
+
+---

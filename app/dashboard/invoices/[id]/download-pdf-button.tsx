@@ -52,12 +52,12 @@ export function DownloadPdfButton({ invoice }: DownloadPdfButtonProps) {
         type="button"
         onClick={handleDownload}
         disabled={loading}
-        className="rounded-md border border-neutral-700 bg-neutral-900 px-4 py-2 text-sm font-medium text-white hover:border-neutral-500 disabled:opacity-50"
+        className="rounded-md border border-[var(--color-text)] bg-[var(--color-bg)] px-4 py-2 text-sm font-medium text-[var(--color-bg)] hover:border-[var(--color-text)] disabled:opacity-50"
       >
         {loading ? "Generating…" : "Download PDF"}
       </button>
       {error ? (
-        <p className="max-w-xs text-right text-xs text-red-400" role="alert">
+        <p className="max-w-xs text-right text-xs text-[var(--color-accent)]" role="alert">
           {error}
         </p>
       ) : null}

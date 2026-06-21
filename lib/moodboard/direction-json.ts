@@ -35,7 +35,7 @@ function normalizeColors(raw: unknown): MoodboardColorSwatch[] {
   });
   while (colors.length < 5) {
     colors.push({
-      hex: "#1a1a1a",
+      hex: "var(--color-text)",
       name: `Neutral ${colors.length + 1}`,
       role: ROLES[colors.length],
     });

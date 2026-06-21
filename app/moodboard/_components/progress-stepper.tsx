@@ -16,13 +16,13 @@ export function ProgressStepper({
           <div
             key={i}
             className={`h-1 flex-1 rounded-full transition-all duration-500 ${
-              i <= current ? "bg-zinc-400" : "bg-zinc-800"
+              i <= current ? "bg-[var(--color-bg)]" : "bg-[var(--color-bg)]"
             }`}
           />
         ))}
       </div>
       {labels?.[current] ? (
-        <p className="mt-2 text-xs text-zinc-500">{labels[current]}</p>
+        <p className="mt-2 text-xs text-[var(--color-text)]">{labels[current]}</p>
       ) : null}
     </div>
   );

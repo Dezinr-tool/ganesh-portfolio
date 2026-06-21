@@ -206,13 +206,13 @@ export function SessionsDashboard({
   };
 
   return (
-    <div className="min-h-screen bg-[#0d0d0d] text-zinc-100">
+    <div className="min-h-screen bg-[var(--color-text)] text-[var(--color-text)]">
       <MoodboardNav />
       <main className="mx-auto max-w-5xl px-4 py-8 sm:px-6">
         <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
           <div>
-            <h1 className="text-2xl font-light text-white">Tester sessions</h1>
-            <p className="mt-1 text-sm text-zinc-500">
+            <h1 className="text-2xl font-light text-[var(--color-bg)]">Tester sessions</h1>
+            <p className="mt-1 text-sm text-[var(--color-text)]">
               Private analytics — {sessions.length} session{sessions.length === 1 ? "" : "s"}
             </p>
           </div>
@@ -221,7 +221,7 @@ export function SessionsDashboard({
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Search brand or session ID"
-            className="w-full rounded-lg border border-zinc-800 bg-zinc-950 px-3 py-2 text-sm outline-none focus:border-zinc-600 sm:max-w-xs"
+            className="w-full rounded-lg border border-[var(--color-text)] bg-[var(--color-bg)] px-3 py-2 text-sm outline-none focus:border-[var(--color-text)] sm:max-w-xs"
           />
         </div>
 
@@ -233,8 +233,8 @@ export function SessionsDashboard({
               onClick={() => setFilter(f.id)}
               className={`rounded-full px-3 py-1 text-xs transition ${
                 filter === f.id
-                  ? "bg-zinc-100 text-zinc-900"
-                  : "bg-zinc-900 text-zinc-400 hover:bg-zinc-800 hover:text-zinc-200"
+                  ? "bg-[var(--color-bg)] text-[var(--color-text)]"
+                  : "bg-[var(--color-bg)] text-[var(--color-text)] hover:bg-[var(--color-bg)] hover:text-[var(--color-text)]"
               }`}
             >
               {f.label}
@@ -243,10 +243,10 @@ export function SessionsDashboard({
         </div>
 
         {selected.size > 0 ? (
-          <div className="mt-4 flex flex-wrap items-center gap-3 rounded-lg border border-zinc-800 bg-zinc-950/60 px-4 py-3">
+          <div className="mt-4 flex flex-wrap items-center gap-3 rounded-lg border border-[var(--color-text)] bg-[var(--color-bg)]/60 px-4 py-3">
             {bulkConfirming ? (
               <>
-                <p className="text-sm text-zinc-300">
+                <p className="text-sm text-[var(--color-text)]">
                   Delete {selected.size} session{selected.size === 1 ? "" : "s"}? This cannot be
                   undone.
                 </p>
@@ -254,7 +254,7 @@ export function SessionsDashboard({
                   type="button"
                   disabled={deleting}
                   onClick={handleConfirmBulk}
-                  className="rounded-md bg-red-500/15 px-3 py-1.5 text-xs font-medium text-red-400 hover:bg-red-500/25 disabled:opacity-50"
+                  className="rounded-md bg-[var(--color-accent)] px-3 py-1.5 text-xs font-medium text-[var(--color-accent)] hover:bg-[var(--color-accent)] disabled:opacity-50"
                 >
                   {deleting ? "Deleting…" : "Yes, delete all"}
                 </button>
@@ -262,25 +262,25 @@ export function SessionsDashboard({
                   type="button"
                   disabled={deleting}
                   onClick={() => setBulkConfirming(false)}
-                  className="rounded-md px-3 py-1.5 text-xs text-zinc-400 hover:text-zinc-200"
+                  className="rounded-md px-3 py-1.5 text-xs text-[var(--color-text)] hover:text-[var(--color-text)]"
                 >
                   Cancel
                 </button>
               </>
             ) : (
               <>
-                <p className="text-sm text-zinc-400">{selected.size} selected</p>
+                <p className="text-sm text-[var(--color-text)]">{selected.size} selected</p>
                 <button
                   type="button"
                   onClick={() => setBulkConfirming(true)}
-                  className="rounded-md bg-red-500/10 px-3 py-1.5 text-xs font-medium text-red-400 hover:bg-red-500/20"
+                  className="rounded-md bg-[var(--color-accent)] px-3 py-1.5 text-xs font-medium text-[var(--color-accent)] hover:bg-[var(--color-accent)]"
                 >
                   Delete selected ({selected.size})
                 </button>
                 <button
                   type="button"
                   onClick={() => setSelected(new Set())}
-                  className="text-xs text-zinc-500 hover:text-zinc-300"
+                  className="text-xs text-[var(--color-text)] hover:text-[var(--color-text)]"
                 >
                   Clear
                 </button>
@@ -289,24 +289,24 @@ export function SessionsDashboard({
           </div>
         ) : null}
 
-        <div className="mt-6 flex items-center gap-3 border-b border-zinc-800 pb-3">
-          <label className="flex cursor-pointer items-center gap-2 text-xs text-zinc-500">
+        <div className="mt-6 flex items-center gap-3 border-b border-[var(--color-text)] pb-3">
+          <label className="flex cursor-pointer items-center gap-2 text-xs text-[var(--color-text)]">
             <input
               type="checkbox"
               checked={allFilteredSelected && filteredIds.length > 0}
               onChange={toggleSelectAll}
-              className="rounded border-zinc-700 bg-zinc-950 text-zinc-100"
+              className="rounded border-[var(--color-text)] bg-[var(--color-bg)] text-[var(--color-text)]"
             />
             Select all
           </label>
-          <span className="text-xs text-zinc-600">
+          <span className="text-xs text-[var(--color-text)]">
             {filtered.length} shown
           </span>
         </div>
 
         <div className="mt-3 space-y-3">
           {filtered.length === 0 ? (
-            <p className="rounded-xl border border-zinc-800 bg-zinc-950/50 px-4 py-8 text-center text-sm text-zinc-500">
+            <p className="rounded-xl border border-[var(--color-text)] bg-[var(--color-bg)]/50 px-4 py-8 text-center text-sm text-[var(--color-text)]">
               No sessions match your filters.
             </p>
           ) : (
@@ -320,8 +320,8 @@ export function SessionsDashboard({
               return (
                 <div
                   key={sessionId}
-                  className={`flex items-stretch gap-3 rounded-xl border bg-zinc-950/40 transition ${
-                    isSelected ? "border-zinc-600" : "border-zinc-800"
+                  className={`flex items-stretch gap-3 rounded-xl border bg-[var(--color-bg)]/40 transition ${
+                    isSelected ? "border-[var(--color-text)]" : "border-[var(--color-text)]"
                   }`}
                 >
                   <label className="flex cursor-pointer items-center pl-4">
@@ -329,7 +329,7 @@ export function SessionsDashboard({
                       type="checkbox"
                       checked={isSelected}
                       onChange={() => toggleSelect(sessionId)}
-                      className="rounded border-zinc-700 bg-zinc-950 text-zinc-100"
+                      className="rounded border-[var(--color-text)] bg-[var(--color-bg)] text-[var(--color-text)]"
                       aria-label={`Select ${summary.session.brand_name || "session"}`}
                     />
                   </label>
@@ -340,37 +340,37 @@ export function SessionsDashboard({
                   >
                     <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                       <div>
-                        <p className="font-medium text-white">
+                        <p className="font-medium text-[var(--color-bg)]">
                           {summary.session.brand_name || "Untitled brand"}
                         </p>
-                        <p className="mt-1 font-mono text-xs text-zinc-500">{sessionId}</p>
+                        <p className="mt-1 font-mono text-xs text-[var(--color-text)]">{sessionId}</p>
                       </div>
                       <div className="flex flex-wrap gap-2 text-xs">
-                        <span className="rounded-full bg-zinc-800 px-2.5 py-1 text-zinc-300">
+                        <span className="rounded-full bg-[var(--color-bg)] px-2.5 py-1 text-[var(--color-text)]">
                           {summary.completionPercent}% complete
                         </span>
-                        <span className="rounded-full bg-zinc-800 px-2.5 py-1 text-zinc-300">
+                        <span className="rounded-full bg-[var(--color-bg)] px-2.5 py-1 text-[var(--color-text)]">
                           {formatDuration(summary.timeSpentMs)}
                         </span>
-                        <span className="rounded-full bg-zinc-800 px-2.5 py-1 text-zinc-300">
+                        <span className="rounded-full bg-[var(--color-bg)] px-2.5 py-1 text-[var(--color-text)]">
                           {summary.session.status}
                         </span>
                         {hasDirections ? (
-                          <span className="rounded-full bg-blue-500/15 px-2.5 py-1 text-blue-300">
+                          <span className="rounded-full bg-[var(--color-accent)] px-2.5 py-1 text-[var(--color-accent)]">
                             {directions.length} direction{directions.length === 1 ? "" : "s"}
                           </span>
                         ) : (
-                          <span className="rounded-full bg-zinc-800 px-2.5 py-1 text-zinc-500">
+                          <span className="rounded-full bg-[var(--color-bg)] px-2.5 py-1 text-[var(--color-text)]">
                             Not generated
                           </span>
                         )}
                         {summary.session.selected_direction ? (
-                          <span className="rounded-full bg-green-500/15 px-2.5 py-1 text-green-400">
+                          <span className="rounded-full bg-[var(--color-accent)] px-2.5 py-1 text-[var(--color-accent)]">
                             → {summary.session.selected_direction}
                           </span>
                         ) : null}
                       </div>
-                      <p className="text-xs text-zinc-500 sm:text-right">
+                      <p className="text-xs text-[var(--color-text)] sm:text-right">
                         {formatDate(summary.session.updated_at)}
                       </p>
                     </div>
@@ -379,14 +379,14 @@ export function SessionsDashboard({
                   <div className="flex shrink-0 items-center pr-4">
                     {isConfirming ? (
                       <div className="flex flex-col items-end gap-1.5 sm:flex-row sm:items-center">
-                        <p className="max-w-[140px] text-right text-[11px] leading-snug text-zinc-500 sm:max-w-none">
+                        <p className="max-w-[140px] text-right text-[11px] leading-snug text-[var(--color-text)] sm:max-w-none">
                           Delete this session?
                         </p>
                         <button
                           type="button"
                           disabled={deleting}
                           onClick={() => handleConfirmSingle(sessionId)}
-                          className="rounded-md bg-red-500/15 px-2.5 py-1 text-xs font-medium text-red-400 hover:bg-red-500/25 disabled:opacity-50"
+                          className="rounded-md bg-[var(--color-accent)] px-2.5 py-1 text-xs font-medium text-[var(--color-accent)] hover:bg-[var(--color-accent)] disabled:opacity-50"
                         >
                           Yes, delete
                         </button>
@@ -394,7 +394,7 @@ export function SessionsDashboard({
                           type="button"
                           disabled={deleting}
                           onClick={() => setConfirmingId(null)}
-                          className="rounded-md px-2 py-1 text-xs text-zinc-500 hover:text-zinc-300"
+                          className="rounded-md px-2 py-1 text-xs text-[var(--color-text)] hover:text-[var(--color-text)]"
                         >
                           Cancel
                         </button>
@@ -403,7 +403,7 @@ export function SessionsDashboard({
                       <button
                         type="button"
                         onClick={() => setConfirmingId(sessionId)}
-                        className="rounded-md p-2 text-zinc-600 transition hover:bg-red-500/10 hover:text-[#ef4444]"
+                        className="rounded-md p-2 text-[var(--color-text)] transition hover:bg-[var(--color-accent)] hover:text-[var(--color-accent)]"
                         aria-label="Delete session"
                       >
                         <TrashIcon />
@@ -420,7 +420,7 @@ export function SessionsDashboard({
       {toast ? (
         <div
           role="status"
-          className="fixed bottom-6 left-1/2 z-50 -translate-x-1/2 rounded-full border border-zinc-700 bg-zinc-900 px-4 py-2 text-sm text-zinc-100 shadow-lg"
+          className="fixed bottom-6 left-1/2 z-50 -translate-x-1/2 rounded-full border border-[var(--color-text)] bg-[var(--color-bg)] px-4 py-2 text-sm text-[var(--color-text)] shadow-lg"
         >
           {toast}
         </div>

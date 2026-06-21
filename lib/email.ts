@@ -32,7 +32,7 @@ export async function sendAgreementToClient(
     html: `
       <p>Hi ${clientName},</p>
       <p>Please review and sign the agreement for <strong>${title}</strong>.</p>
-      <p><a href="${signUrl}" style="display:inline-block;padding:12px 24px;background:#000;color:#fff;text-decoration:none;border-radius:6px;">Review & Sign Agreement</a></p>
+      <p><a href="${signUrl}" style="display:inline-block;padding:12px 24px;background:var(--color-text);color:var(--color-bg);text-decoration:none;border-radius:6px;">Review & Sign Agreement</a></p>
       <p>Or copy this link: <a href="${signUrl}">${signUrl}</a></p>
       <p>— Ganesh Das</p>
     `,

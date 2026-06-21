@@ -2,6 +2,7 @@ import * as dotenv from 'dotenv';
 dotenv.config({ path: '.env.local' });
 import { sql } from "../lib/db";
 import { ensureBillingDefaults } from "../lib/settings-store";
+import { ensureDesignTokenDefaults } from "../lib/design-tokens";
 
 const CREATE_INVOICES_TABLE = `
   CREATE TABLE IF NOT EXISTS invoices (
@@ -113,6 +114,10 @@ async function initDb() {
   console.log("Seeding billing settings defaults if missing…");
   await ensureBillingDefaults();
   console.log("Done. billing settings defaults are ready.");
+
+  console.log("Seeding design token defaults if missing…");
+  await ensureDesignTokenDefaults();
+  console.log("Done. design token defaults are ready.");
 
   console.log("Adding signature columns to agreements if missing…");
   await sql.query(ALTER_AGREEMENTS_ADD_SIGNATURES);

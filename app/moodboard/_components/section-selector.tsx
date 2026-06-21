@@ -9,10 +9,10 @@ import {
 } from "@/lib/moodboard/output-sections";
 
 const CHIP =
-  "rounded-full border border-white/10 bg-white/[0.04] px-3 py-1.5 text-xs text-zinc-300 transition hover:border-white/20 hover:bg-white/[0.08] hover:text-white disabled:opacity-40";
-const CHIP_ACTIVE = "border-white/25 bg-white/10 text-white";
+  "rounded-full border border-[var(--color-bg)]/10 bg-[var(--color-bg)]/[0.04] px-3 py-1.5 text-xs text-[var(--color-text)] transition hover:border-[var(--color-bg)]/20 hover:bg-[var(--color-bg)]/[0.08] hover:text-[var(--color-bg)] disabled:opacity-40";
+const CHIP_ACTIVE = "border-[var(--color-bg)]/25 bg-[var(--color-bg)]/10 text-[var(--color-bg)]";
 const BTN =
-  "rounded-full bg-white px-4 py-1.5 text-xs font-medium text-black transition hover:bg-zinc-200 disabled:opacity-40";
+  "rounded-full bg-[var(--color-bg)] px-4 py-1.5 text-xs font-medium text-[var(--color-text)] transition hover:bg-[var(--color-bg)] disabled:opacity-40";
 
 const CHIP_CHAT = "moodboard-chip";
 const CHIP_CHAT_ACTIVE = "moodboard-chip-active";
@@ -51,28 +51,28 @@ export function SectionSelector({
       ? CHIP_CHAT
       : variant === "card"
         ? CHIP
-        : "rounded-full border border-zinc-800 bg-zinc-900/80 px-3 py-1.5 text-xs text-zinc-300 transition hover:border-zinc-600 hover:text-white disabled:opacity-40";
+        : "rounded-full border border-[var(--color-text)] bg-[var(--color-bg)]/80 px-3 py-1.5 text-xs text-[var(--color-text)] transition hover:border-[var(--color-text)] hover:text-[var(--color-bg)] disabled:opacity-40";
   const chipActiveClass =
     variant === "chat"
       ? `${CHIP_CHAT} ${CHIP_CHAT_ACTIVE}`
       : variant === "card"
         ? CHIP_ACTIVE
-        : "border-zinc-500 bg-zinc-800 text-white";
+        : "border-[var(--color-text)] bg-[var(--color-bg)] text-[var(--color-bg)]";
   const btnClass =
     variant === "chat"
       ? BTN_CHAT
       : variant === "card"
         ? BTN
-        : "rounded-lg bg-zinc-100 px-4 py-2 text-sm font-medium text-zinc-900 transition hover:bg-white disabled:opacity-40";
-  const metaClass = variant === "chat" ? "text-xs text-[#888]" : "text-xs text-zinc-600";
+        : "rounded-lg bg-[var(--color-bg)] px-4 py-2 text-sm font-medium text-[var(--color-text)] transition hover:bg-[var(--color-bg)] disabled:opacity-40";
+  const metaClass = variant === "chat" ? "text-xs text-[var(--color-text)]" : "text-xs text-[var(--color-text)]";
   const linkClass =
     variant === "chat"
-      ? "text-xs text-[#888] underline hover:text-[#555]"
-      : "text-xs text-zinc-400 underline hover:text-zinc-200";
+      ? "text-xs text-[var(--color-text)] underline hover:text-[var(--color-text)]"
+      : "text-xs text-[var(--color-text)] underline hover:text-[var(--color-text)]";
   const groupLabelClass =
     variant === "chat"
-      ? "mb-2 text-[10px] font-semibold uppercase tracking-[0.12em] text-[#aaa]"
-      : "mb-2 text-[10px] font-semibold uppercase tracking-[0.12em] text-zinc-500";
+      ? "mb-2 text-[10px] font-semibold uppercase tracking-[0.12em] text-[var(--color-text)]"
+      : "mb-2 text-[10px] font-semibold uppercase tracking-[0.12em] text-[var(--color-text)]";
 
   return (
     <div className="space-y-4">

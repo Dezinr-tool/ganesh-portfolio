@@ -19,10 +19,15 @@ export async function GET(
       return NextResponse.json({ error: "Invoice not found." }, { status: 404 });
     }
 
-    const { billing, qrDataUrl } = await getInvoicePdfData(invoice);
+    const { billing, qrDataUrl, designTokens } = await getInvoicePdfData(invoice);
 
     const buffer = await renderToBuffer(
-      <InvoicePdf invoice={invoice} billing={billing} qrDataUrl={qrDataUrl} />,
+      <InvoicePdf
+        invoice={invoice}
+        billing={billing}
+        qrDataUrl={qrDataUrl}
+        designTokens={designTokens}
+      />,
     );
 
     return new NextResponse(new Uint8Array(buffer), {

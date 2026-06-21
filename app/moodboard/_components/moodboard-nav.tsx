@@ -25,15 +25,15 @@ export function MoodboardNav({ theme = "dark" }: { theme?: "dark" | "light" }) {
     <header
       className={`relative z-20 border-b transition-colors duration-[400ms] ease-out ${
         light
-          ? "border-[#e8e8e8] bg-white"
-          : "border-white/[0.06] bg-black/60 backdrop-blur-md"
+          ? "border-[var(--color-bg)] bg-[var(--color-bg)]"
+          : "border-[var(--color-bg)]/[0.06] bg-[var(--color-text)]/60 backdrop-blur-md"
       }`}
     >
       <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-6 py-4">
         <Link
           href="/moodboard"
           className={`text-sm font-medium tracking-tight transition ${
-            light ? "text-[#1a1a1a]/90 hover:text-[#1a1a1a]" : "text-white/90 hover:text-white"
+            light ? "text-[var(--color-text)]/90 hover:text-[var(--color-text)]" : "text-[var(--color-bg)]/90 hover:text-[var(--color-bg)]"
           }`}
         >
           Moodboard
@@ -48,11 +48,11 @@ export function MoodboardNav({ theme = "dark" }: { theme?: "dark" | "light" }) {
                 className={`rounded-md px-3 py-1.5 text-sm transition-colors ${
                   active
                     ? light
-                      ? "text-[#1a1a1a]"
-                      : "text-white"
+                      ? "text-[var(--color-text)]"
+                      : "text-[var(--color-bg)]"
                     : light
-                      ? "text-[#1a1a1a]/40 hover:text-[#1a1a1a]/70"
-                      : "text-white/40 hover:text-white/70"
+                      ? "text-[var(--color-text)]/40 hover:text-[var(--color-text)]/70"
+                      : "text-[var(--color-bg)]/40 hover:text-[var(--color-bg)]/70"
                 }`}
               >
                 {link.label}

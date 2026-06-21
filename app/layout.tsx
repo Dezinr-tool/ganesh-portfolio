@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { DesignTokensStyle } from "@/components/design-system/design-tokens-style";
 import { SmoothScroll } from "@/components/providers/SmoothScroll";
 import { BackToTop } from "@/components/ui/BackToTop";
 import { PageLoader } from "@/components/ui/PageLoader";
@@ -42,13 +43,13 @@ export const metadata: Metadata = {
 };
 
 export const viewport = {
-  themeColor: "#0a0a0a",
+  themeColor: "var(--color-bg)",
   width: "device-width",
   initialScale: 1,
   viewportFit: "cover",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
@@ -58,7 +59,8 @@ export default function RootLayout({
       lang="en"
       className={`${inter.variable} ${breton.variable} ${machine.variable} h-full`}
     >
-      <body className="relative min-h-full bg-[#0a0a0a] font-sans text-[#f0f0f0] antialiased">
+      <body className="relative min-h-full bg-[var(--color-bg)] font-sans text-[var(--color-text)] antialiased">
+        <DesignTokensStyle />
         <a href="#main-content" className="skip-link">
           Skip to content
         </a>

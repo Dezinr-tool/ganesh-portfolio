@@ -22,13 +22,13 @@ function NavGroup({
   if (!items.length) return null;
   return (
     <div>
-      <h4 className="text-xs font-semibold uppercase tracking-wider text-zinc-500">{title}</h4>
+      <h4 className="text-xs font-semibold uppercase tracking-wider text-[var(--color-text)]">{title}</h4>
       <ul className="mt-2 space-y-2">
         {items.map((item) => (
-          <li key={item.label} className="rounded-lg border border-zinc-100 bg-zinc-50 px-3 py-2">
-            <p className="text-sm font-medium text-zinc-900">{item.label}</p>
-            <p className="mt-0.5 text-xs text-zinc-600">{item.purpose}</p>
-            <p className="mt-1 text-[11px] text-zinc-400">{item.access_level}</p>
+          <li key={item.label} className="rounded-lg border border-[var(--color-text)] bg-[var(--color-bg)] px-3 py-2">
+            <p className="text-sm font-medium text-[var(--color-text)]">{item.label}</p>
+            <p className="mt-0.5 text-xs text-[var(--color-text)]">{item.purpose}</p>
+            <p className="mt-1 text-[11px] text-[var(--color-text)]">{item.access_level}</p>
           </li>
         ))}
       </ul>
@@ -53,23 +53,23 @@ function ControversyCard({
   const rejected = decision?.decision === "rejected";
 
   return (
-    <div className="rounded-xl border border-zinc-200 bg-white p-5 shadow-sm">
-      <p className="text-xs font-medium uppercase tracking-wider text-orange-600">
+    <div className="rounded-xl border border-[var(--color-text)] bg-[var(--color-bg)] p-5 shadow-sm">
+      <p className="text-xs font-medium uppercase tracking-wider text-[var(--color-accent)]">
         🔥 {controversy.title}
       </p>
       <div className="mt-4 space-y-3 text-sm">
         <div>
-          <p className="text-xs font-semibold text-zinc-500">The Debate</p>
-          <p className="mt-1 text-zinc-800">{controversy.debate}</p>
+          <p className="text-xs font-semibold text-[var(--color-text)]">The Debate</p>
+          <p className="mt-1 text-[var(--color-text)]">{controversy.debate}</p>
         </div>
         <div>
-          <p className="text-xs font-semibold text-zinc-500">Research says</p>
-          <p className="mt-1 text-zinc-700">{controversy.research}</p>
+          <p className="text-xs font-semibold text-[var(--color-text)]">Research says</p>
+          <p className="mt-1 text-[var(--color-text)]">{controversy.research}</p>
         </div>
-        <div className="rounded-lg bg-emerald-50 px-3 py-2">
-          <p className="text-xs font-semibold text-emerald-800">For YOUR product</p>
-          <p className="mt-1 text-sm font-medium text-emerald-900">{controversy.recommendation}</p>
-          <p className="mt-1 text-xs text-emerald-800/80">{controversy.rationale}</p>
+        <div className="rounded-lg bg-[var(--color-accent)] px-3 py-2">
+          <p className="text-xs font-semibold text-[var(--color-accent)]">For YOUR product</p>
+          <p className="mt-1 text-sm font-medium text-[var(--color-accent)]">{controversy.recommendation}</p>
+          <p className="mt-1 text-xs text-[var(--color-accent)]">{controversy.rationale}</p>
         </div>
       </div>
       <div className="mt-4 flex flex-wrap gap-2">
@@ -79,8 +79,8 @@ function ControversyCard({
           onClick={onApply}
           className={`rounded-lg px-4 py-2 text-xs font-medium transition ${
             applied
-              ? "bg-emerald-600 text-white"
-              : "border border-emerald-200 bg-emerald-50 text-emerald-800 hover:bg-emerald-100"
+              ? "bg-[var(--color-accent)] text-[var(--color-bg)]"
+              : "border border-[var(--color-accent)] bg-[var(--color-accent)] text-[var(--color-accent)] hover:bg-[var(--color-accent)]"
           } disabled:opacity-60`}
         >
           {applied ? "Applied ✓" : "Apply this recommendation ✓"}
@@ -91,8 +91,8 @@ function ControversyCard({
           onClick={onReject}
           className={`rounded-lg px-4 py-2 text-xs font-medium transition ${
             rejected
-              ? "bg-zinc-200 text-zinc-600"
-              : "border border-zinc-200 text-zinc-600 hover:bg-zinc-50"
+              ? "bg-[var(--color-bg)] text-[var(--color-text)]"
+              : "border border-[var(--color-text)] text-[var(--color-text)] hover:bg-[var(--color-bg)]"
           } disabled:opacity-60`}
         >
           {rejected ? "Rejected" : "Reject"}
@@ -162,41 +162,41 @@ export function IaOutputView({ output, sessionId, initialDecisions = {} }: IaOut
 
   return (
     <div className="mx-auto max-w-4xl px-6 py-10">
-      <div className="flex flex-col gap-4 border-b border-zinc-200 pb-8 sm:flex-row sm:items-start sm:justify-between">
+      <div className="flex flex-col gap-4 border-b border-[var(--color-text)] pb-8 sm:flex-row sm:items-start sm:justify-between">
         <div>
-          <p className="text-xs font-medium uppercase tracking-wider text-zinc-500">
+          <p className="text-xs font-medium uppercase tracking-wider text-[var(--color-text)]">
             Information Architecture
           </p>
-          <h1 className="mt-1 text-2xl font-semibold text-zinc-900">
+          <h1 className="mt-1 text-2xl font-semibold text-[var(--color-text)]">
             {output.product_overview.product_name}
           </h1>
-          <p className="mt-1 text-sm text-zinc-600">{output.product_overview.product_type}</p>
+          <p className="mt-1 text-sm text-[var(--color-text)]">{output.product_overview.product_type}</p>
         </div>
         <div className="flex flex-wrap gap-2">
           <button
             type="button"
             onClick={() => void copyMarkdown()}
-            className="rounded-lg border border-zinc-200 px-3 py-1.5 text-xs font-medium text-zinc-700 transition hover:bg-zinc-50"
+            className="rounded-lg border border-[var(--color-text)] px-3 py-1.5 text-xs font-medium text-[var(--color-text)] transition hover:bg-[var(--color-bg)]"
           >
             {copied === "md" ? "Copied!" : "Copy Markdown"}
           </button>
           <button
             type="button"
             onClick={() => void copyJson()}
-            className="rounded-lg border border-zinc-200 px-3 py-1.5 text-xs font-medium text-zinc-700 transition hover:bg-zinc-50"
+            className="rounded-lg border border-[var(--color-text)] px-3 py-1.5 text-xs font-medium text-[var(--color-text)] transition hover:bg-[var(--color-bg)]"
           >
             {copied === "json" ? "Copied!" : "Copy JSON"}
           </button>
           <button
             type="button"
             onClick={downloadJson}
-            className="rounded-lg border border-zinc-200 px-3 py-1.5 text-xs font-medium text-zinc-700 transition hover:bg-zinc-50"
+            className="rounded-lg border border-[var(--color-text)] px-3 py-1.5 text-xs font-medium text-[var(--color-text)] transition hover:bg-[var(--color-bg)]"
           >
             Download JSON
           </button>
           <Link
             href={`/wireframe/${sessionId}`}
-            className="rounded-lg bg-zinc-900 px-4 py-1.5 text-xs font-medium text-white transition hover:bg-zinc-800"
+            className="rounded-lg bg-[var(--color-bg)] px-4 py-1.5 text-xs font-medium text-[var(--color-bg)] transition hover:bg-[var(--color-bg)]"
           >
             Generate Wireframes →
           </Link>
@@ -204,29 +204,29 @@ export function IaOutputView({ output, sessionId, initialDecisions = {} }: IaOut
       </div>
 
       <section className="mt-10">
-        <h2 className="text-lg font-semibold text-zinc-900">1. Product Overview</h2>
-        <p className="mt-2 text-sm text-zinc-600">{output.product_overview.primary_goal}</p>
+        <h2 className="text-lg font-semibold text-[var(--color-text)]">1. Product Overview</h2>
+        <p className="mt-2 text-sm text-[var(--color-text)]">{output.product_overview.primary_goal}</p>
         <div className="mt-4 grid gap-4 sm:grid-cols-2">
           <div>
-            <h3 className="text-xs font-semibold uppercase tracking-wider text-zinc-500">
+            <h3 className="text-xs font-semibold uppercase tracking-wider text-[var(--color-text)]">
               User Types
             </h3>
             <ul className="mt-2 space-y-2">
               {output.product_overview.user_types.map((u) => (
-                <li key={u.name} className="text-sm text-zinc-700">
+                <li key={u.name} className="text-sm text-[var(--color-text)]">
                   <span className="font-medium">{u.name}</span>
                   {u.needs.length > 0 ? (
-                    <span className="text-zinc-500"> — {u.needs.join("; ")}</span>
+                    <span className="text-[var(--color-text)]"> — {u.needs.join("; ")}</span>
                   ) : null}
                 </li>
               ))}
             </ul>
           </div>
           <div>
-            <h3 className="text-xs font-semibold uppercase tracking-wider text-zinc-500">
+            <h3 className="text-xs font-semibold uppercase tracking-wider text-[var(--color-text)]">
               Key Tasks
             </h3>
-            <ul className="mt-2 list-inside list-disc text-sm text-zinc-700">
+            <ul className="mt-2 list-inside list-disc text-sm text-[var(--color-text)]">
               {output.product_overview.key_tasks.map((t) => (
                 <li key={t}>{t}</li>
               ))}
@@ -236,7 +236,7 @@ export function IaOutputView({ output, sessionId, initialDecisions = {} }: IaOut
       </section>
 
       <section className="mt-10">
-        <h2 className="text-lg font-semibold text-zinc-900">2. Navigation Structure</h2>
+        <h2 className="text-lg font-semibold text-[var(--color-text)]">2. Navigation Structure</h2>
         <div className="mt-4 grid gap-6 sm:grid-cols-3">
           <NavGroup title="Primary" items={output.navigation_structure.primary} />
           <NavGroup title="Secondary" items={output.navigation_structure.secondary} />
@@ -245,38 +245,38 @@ export function IaOutputView({ output, sessionId, initialDecisions = {} }: IaOut
       </section>
 
       <section className="mt-10">
-        <h2 className="text-lg font-semibold text-zinc-900">3. Sitemap</h2>
-        <div className="mt-4 rounded-xl border border-zinc-200 p-4">
+        <h2 className="text-lg font-semibold text-[var(--color-text)]">3. Sitemap</h2>
+        <div className="mt-4 rounded-xl border border-[var(--color-text)] p-4">
           <SitemapTree nodes={output.sitemap} />
         </div>
       </section>
 
       <section className="mt-10">
-        <h2 className="text-lg font-semibold text-zinc-900">4. User Flows</h2>
+        <h2 className="text-lg font-semibold text-[var(--color-text)]">4. User Flows</h2>
         <div className="mt-4 space-y-6">
           {output.user_flows.map((flow) => (
-            <div key={flow.id} className="rounded-xl border border-zinc-200 p-4">
-              <h3 className="text-sm font-semibold text-zinc-900">{flow.flow_name}</h3>
-              <p className="mt-1 text-xs text-zinc-500">{flow.flow_goal}</p>
+            <div key={flow.id} className="rounded-xl border border-[var(--color-text)] p-4">
+              <h3 className="text-sm font-semibold text-[var(--color-text)]">{flow.flow_name}</h3>
+              <p className="mt-1 text-xs text-[var(--color-text)]">{flow.flow_goal}</p>
               <ol className="mt-4 space-y-2">
                 {flow.steps.map((step) => (
                   <li key={step.step} className="flex gap-3 text-sm">
-                    <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-zinc-100 text-xs font-medium text-zinc-700">
+                    <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-[var(--color-bg)] text-xs font-medium text-[var(--color-text)]">
                       {step.step}
                     </span>
                     <div>
-                      <p className="text-zinc-800">{step.label}</p>
+                      <p className="text-[var(--color-text)]">{step.label}</p>
                       {step.screen ? (
-                        <p className="text-xs text-zinc-500">→ {step.screen}</p>
+                        <p className="text-xs text-[var(--color-text)]">→ {step.screen}</p>
                       ) : null}
                     </div>
                   </li>
                 ))}
               </ol>
               {flow.decision_points.length > 0 ? (
-                <div className="mt-3 border-t border-zinc-100 pt-3">
-                  <p className="text-xs font-medium text-zinc-500">Decision points</p>
-                  <ul className="mt-1 list-inside list-disc text-xs text-zinc-600">
+                <div className="mt-3 border-t border-[var(--color-text)] pt-3">
+                  <p className="text-xs font-medium text-[var(--color-text)]">Decision points</p>
+                  <ul className="mt-1 list-inside list-disc text-xs text-[var(--color-text)]">
                     {flow.decision_points.map((d) => (
                       <li key={d}>{d}</li>
                     ))}
@@ -289,27 +289,27 @@ export function IaOutputView({ output, sessionId, initialDecisions = {} }: IaOut
       </section>
 
       <section className="mt-10">
-        <h2 className="text-lg font-semibold text-zinc-900">5. Content Hierarchy</h2>
+        <h2 className="text-lg font-semibold text-[var(--color-text)]">5. Content Hierarchy</h2>
         <div className="mt-4 space-y-4">
           {output.content_hierarchy.map((ch) => (
-            <div key={ch.screen_name} className="rounded-xl border border-zinc-200 p-4">
-              <h3 className="text-sm font-semibold text-zinc-900">{ch.screen_name}</h3>
+            <div key={ch.screen_name} className="rounded-xl border border-[var(--color-text)] p-4">
+              <h3 className="text-sm font-semibold text-[var(--color-text)]">{ch.screen_name}</h3>
               <div className="mt-3 grid gap-3 sm:grid-cols-3">
                 <div>
-                  <p className="text-[11px] font-semibold uppercase text-zinc-500">Primary</p>
-                  <p className="mt-1 text-xs text-zinc-700">{ch.primary.join(", ") || "—"}</p>
+                  <p className="text-[11px] font-semibold uppercase text-[var(--color-text)]">Primary</p>
+                  <p className="mt-1 text-xs text-[var(--color-text)]">{ch.primary.join(", ") || "—"}</p>
                 </div>
                 <div>
-                  <p className="text-[11px] font-semibold uppercase text-zinc-500">Secondary</p>
-                  <p className="mt-1 text-xs text-zinc-700">{ch.secondary.join(", ") || "—"}</p>
+                  <p className="text-[11px] font-semibold uppercase text-[var(--color-text)]">Secondary</p>
+                  <p className="mt-1 text-xs text-[var(--color-text)]">{ch.secondary.join(", ") || "—"}</p>
                 </div>
                 <div>
-                  <p className="text-[11px] font-semibold uppercase text-zinc-500">Tertiary</p>
-                  <p className="mt-1 text-xs text-zinc-700">{ch.tertiary.join(", ") || "—"}</p>
+                  <p className="text-[11px] font-semibold uppercase text-[var(--color-text)]">Tertiary</p>
+                  <p className="mt-1 text-xs text-[var(--color-text)]">{ch.tertiary.join(", ") || "—"}</p>
                 </div>
               </div>
               {ch.key_actions.length > 0 ? (
-                <p className="mt-2 text-xs text-zinc-600">
+                <p className="mt-2 text-xs text-[var(--color-text)]">
                   <span className="font-medium">Actions:</span> {ch.key_actions.join(", ")}
                 </p>
               ) : null}
@@ -319,36 +319,36 @@ export function IaOutputView({ output, sessionId, initialDecisions = {} }: IaOut
       </section>
 
       <section className="mt-10">
-        <h2 className="text-lg font-semibold text-zinc-900">6. Navigation Patterns</h2>
-        <div className="mt-4 rounded-xl border border-zinc-200 bg-zinc-50 p-4">
-          <p className="text-sm font-medium text-zinc-900">
+        <h2 className="text-lg font-semibold text-[var(--color-text)]">6. Navigation Patterns</h2>
+        <div className="mt-4 rounded-xl border border-[var(--color-text)] bg-[var(--color-bg)] p-4">
+          <p className="text-sm font-medium text-[var(--color-text)]">
             {output.navigation_patterns.pattern}
           </p>
-          <p className="mt-2 text-sm text-zinc-600">{output.navigation_patterns.rationale}</p>
+          <p className="mt-2 text-sm text-[var(--color-text)]">{output.navigation_patterns.rationale}</p>
         </div>
       </section>
 
       <section className="mt-10">
-        <h2 className="text-lg font-semibold text-zinc-900">7. IA Health Score</h2>
-        <div className="mt-4 rounded-xl border border-zinc-200 p-4">
+        <h2 className="text-lg font-semibold text-[var(--color-text)]">7. IA Health Score</h2>
+        <div className="mt-4 rounded-xl border border-[var(--color-text)] p-4">
           <div className="flex items-center gap-6">
-            <div className="flex h-16 w-16 items-center justify-center rounded-full bg-emerald-50 text-xl font-bold text-emerald-700">
+            <div className="flex h-16 w-16 items-center justify-center rounded-full bg-[var(--color-accent)] text-xl font-bold text-[var(--color-accent)]">
               {avgScore}
             </div>
             <div className="flex-1">
               <div className="flex gap-4 text-sm">
-                <span className="text-zinc-600">
+                <span className="text-[var(--color-text)]">
                   Depth: <strong>{health_score.depth_score}</strong>/10
                 </span>
-                <span className="text-zinc-600">
+                <span className="text-[var(--color-text)]">
                   Breadth: <strong>{health_score.breadth_score}</strong>/10
                 </span>
               </div>
-              <p className="mt-2 text-sm text-zinc-700">{health_score.balance_assessment}</p>
+              <p className="mt-2 text-sm text-[var(--color-text)]">{health_score.balance_assessment}</p>
             </div>
           </div>
           {health_score.recommendations.length > 0 ? (
-            <ul className="mt-4 list-inside list-disc border-t border-zinc-100 pt-4 text-sm text-zinc-600">
+            <ul className="mt-4 list-inside list-disc border-t border-[var(--color-text)] pt-4 text-sm text-[var(--color-text)]">
               {health_score.recommendations.map((r) => (
                 <li key={r}>{r}</li>
               ))}
@@ -359,8 +359,8 @@ export function IaOutputView({ output, sessionId, initialDecisions = {} }: IaOut
 
       {controversies.length > 0 ? (
         <section className="mt-10 pb-16">
-          <h2 className="text-lg font-semibold text-zinc-900">8. UX Controversy Recommendations</h2>
-          <p className="mt-2 text-sm text-zinc-600">
+          <h2 className="text-lg font-semibold text-[var(--color-text)]">8. UX Controversy Recommendations</h2>
+          <p className="mt-2 text-sm text-[var(--color-text)]">
             Evidence-based recommendations for key UX debates relevant to your product. Accepted
             recommendations will be applied in wireframe generation.
           </p>

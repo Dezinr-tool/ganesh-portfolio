@@ -7,14 +7,14 @@ export default function NewInvoicePage() {
       <div className="mb-6">
         <Link
           href="/dashboard/invoices"
-          className="text-sm text-neutral-400 hover:text-white"
+          className="text-sm text-[var(--color-text)] hover:text-[var(--color-bg)]"
         >
           ← Back to invoices
         </Link>
       </div>
 
-      <h1 className="text-2xl font-semibold text-white">New invoice</h1>
-      <p className="mt-2 text-sm text-neutral-400">
+      <h1 className="text-2xl font-semibold text-[var(--color-bg)]">New invoice</h1>
+      <p className="mt-2 text-sm text-[var(--color-text)]">
         Create a new invoice for your client.
       </p>
 

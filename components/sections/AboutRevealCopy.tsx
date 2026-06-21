@@ -1,25 +1,29 @@
 import { ABOUT_TEXT } from "@/components/sections/about-content";
-import type { RefObject } from "react";
+import type { RefObject, HTMLAttributes } from "react";
 
-const MUTED = "#3a3a3a";
-const LIT = "#f0f0f0";
+/** Scroll reveal palette — unrevealed gray / revealed black (no accent) */
+const REVEAL_UNREVEALED = "#CCCCCC";
+const REVEAL_ACTIVE = "#111111";
 
-/** Blurred trailing edge on the highlighted portion (not on unrevealed copy) */
-export const REVEAL_COPY_BLUR_TRAIL = 3;
+/** Trailing unrevealed letters at the reveal frontier get blur (soft edge) */
+export const REVEAL_COPY_BLUR_TRAIL = 4;
+const REVEAL_MAX_BLUR = 10;
 
 type AboutRevealCopyProps = {
   className?: string;
   paragraphRef?: RefObject<HTMLParagraphElement | null>;
-};
+} & HTMLAttributes<HTMLParagraphElement>;
 
 export function AboutRevealCopy({
   className = "",
   paragraphRef,
+  ...rest
 }: AboutRevealCopyProps) {
   return (
     <p
       ref={paragraphRef}
       className={`hero-reveal-copy text-body-lg ${className}`.trim()}
+      {...rest}
     >
       <span className="hero-reveal-copy__body" data-reveal-line>
         {ABOUT_TEXT}
@@ -74,7 +78,6 @@ export function splitRevealCopy(root: HTMLElement) {
 export type RevealCopyHighlightOptions = {
   blurTrail?: number;
   maxBlur?: number;
-  useBlur?: boolean;
 };
 
 function setCharRevealStyle(
@@ -84,52 +87,49 @@ function setCharRevealStyle(
     opacity,
     blur,
     lit,
-    edgeBlur,
   }: {
     color: string;
     opacity: number;
     blur: number;
     lit: boolean;
-    edgeBlur?: boolean;
   },
 ) {
   el.classList.toggle("is-lit", lit);
-  el.classList.toggle("is-edge-blur", Boolean(edgeBlur));
+  el.classList.remove("is-edge-blur");
   el.style.visibility = "visible";
   el.style.opacity = String(opacity);
   el.style.color = color;
-  el.style.filter = blur > 0 ? `blur(${blur.toFixed(1)}px)` : "blur(0px)";
+  el.style.filter = blur > 0 ? `blur(${blur.toFixed(1)}px)` : "none";
 }
 
-/** White highlight sweep; blur only on last 2–3 lit letters at the frontier */
+/** Gray unrevealed copy; blur only on the 3–4 chars at the reveal frontier */
 export function applyRevealCopyHighlight(
   chars: HTMLElement[],
   progress: number,
   options: RevealCopyHighlightOptions = {},
 ) {
   const t = Math.min(1, Math.max(0, progress));
-  const useBlur = options.useBlur ?? true;
   const blurTrail = options.blurTrail ?? REVEAL_COPY_BLUR_TRAIL;
-  const maxBlur = options.maxBlur ?? 10;
+  const maxBlur = options.maxBlur ?? REVEAL_MAX_BLUR;
   const litCount =
     t >= 1 ? chars.length : Math.min(chars.length, Math.ceil(t * chars.length));
 
-  chars.forEach((el, i) => {
-    if (i >= litCount) {
+  if (t >= 1) {
+    chars.forEach((el) => {
       setCharRevealStyle(el, {
-        color: MUTED,
+        color: REVEAL_ACTIVE,
         opacity: 1,
         blur: 0,
-        lit: false,
+        lit: true,
       });
-      return;
-    }
+    });
+    return;
+  }
 
-    const distFromFrontier = litCount - 1 - i;
-
-    if (!useBlur || distFromFrontier >= blurTrail) {
+  chars.forEach((el, i) => {
+    if (i < litCount) {
       setCharRevealStyle(el, {
-        color: LIT,
+        color: REVEAL_ACTIVE,
         opacity: 1,
         blur: 0,
         lit: true,
@@ -137,15 +137,19 @@ export function applyRevealCopyHighlight(
       return;
     }
 
-    const trailT = (blurTrail - distFromFrontier) / blurTrail;
-    const blurPx = 2 + trailT * (maxBlur - 2);
+    const distFromFrontier = i - litCount;
+    let blurPx = 0;
+
+    if (distFromFrontier < blurTrail) {
+      const trailT = (blurTrail - distFromFrontier) / blurTrail;
+      blurPx = trailT * maxBlur;
+    }
 
     setCharRevealStyle(el, {
-      color: LIT,
+      color: REVEAL_UNREVEALED,
       opacity: 1,
       blur: blurPx,
-      lit: true,
-      edgeBlur: true,
+      lit: false,
     });
   });
 }

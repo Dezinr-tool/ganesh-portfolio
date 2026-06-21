@@ -28,8 +28,8 @@ type IaScreen = {
 type Phase = "intro" | "screen_notes" | "pre_confirm" | "generating" | "output";
 
 const CHIP =
-  "rounded-full border border-white/10 bg-white/[0.04] px-3 py-1.5 text-xs text-zinc-300 transition hover:border-white/20 hover:bg-white/[0.08] hover:text-white disabled:opacity-40";
-const CHIP_ACTIVE = "border-white/25 bg-white/10 text-white";
+  "rounded-full border border-[var(--color-bg)]/10 bg-[var(--color-bg)]/[0.04] px-3 py-1.5 text-xs text-[var(--color-text)] transition hover:border-[var(--color-bg)]/20 hover:bg-[var(--color-bg)]/[0.08] hover:text-[var(--color-bg)] disabled:opacity-40";
+const CHIP_ACTIVE = "border-[var(--color-bg)]/25 bg-[var(--color-bg)]/10 text-[var(--color-bg)]";
 
 function uid() {
   return crypto.randomUUID();
@@ -322,18 +322,18 @@ export function WireframeEngine({ iaSessionId }: { iaSessionId: string }) {
 
   if (phase === "output" && wireframeScreens.length > 0 && session) {
     return (
-      <div className="min-h-screen bg-[#0d0d0d] text-zinc-100">
+      <div className="min-h-screen bg-[var(--color-text)] text-[var(--color-text)]">
         <WireframeNav />
 
-        <div className="mx-auto max-w-[680px] border-b border-white/10 px-4 pb-3 pt-4">
-          <p className="text-sm font-medium text-white">{projectLabel}</p>
-          <p className="text-xs text-zinc-500">
+        <div className="mx-auto max-w-[680px] border-b border-[var(--color-bg)]/10 px-4 pb-3 pt-4">
+          <p className="text-sm font-medium text-[var(--color-bg)]">{projectLabel}</p>
+          <p className="text-xs text-[var(--color-text)]">
             {wireframeScreens.length} wireframe
             {wireframeScreens.length > 1 ? "s" : ""}
           </p>
         </div>
 
-        <div className="moodboard-output-enter bg-white text-neutral-900">
+        <div className="moodboard-output-enter bg-[var(--color-bg)] text-[var(--color-text)]">
           <WireframeOutputView
             screens={wireframeScreens}
             sessionId={session.session_id}
@@ -345,7 +345,7 @@ export function WireframeEngine({ iaSessionId }: { iaSessionId: string }) {
   }
 
   return (
-    <div className="flex min-h-screen flex-col bg-[#0d0d0d] text-zinc-100">
+    <div className="flex min-h-screen flex-col bg-[var(--color-text)] text-[var(--color-text)]">
       <WireframeNav />
 
       <div className="mx-auto flex w-full max-w-[680px] flex-1 flex-col px-4 pb-6 pt-4">
@@ -358,9 +358,9 @@ export function WireframeEngine({ iaSessionId }: { iaSessionId: string }) {
           <div ref={messagesEndRef} className="h-4 shrink-0" />
         </div>
 
-        <div className="sticky bottom-0 shrink-0 bg-gradient-to-t from-[#0d0d0d] via-[#0d0d0d] to-transparent pb-2 pt-4">
+        <div className="sticky bottom-0 shrink-0 bg-gradient-to-t from-[var(--color-text)] via-[var(--color-text)] to-transparent pb-2 pt-4">
           {showPreConfirm && preConfirmation ? (
-            <div className="moodboard-card-enter mb-3 rounded-xl border border-white/10 bg-white/[0.05] p-4">
+            <div className="moodboard-card-enter mb-3 rounded-xl border border-[var(--color-bg)]/10 bg-[var(--color-bg)]/[0.05] p-4">
               <PreConfirmationPanel
                 preConfirmation={preConfirmation}
                 onConfirm={handlePreConfirm}
@@ -379,8 +379,8 @@ export function WireframeEngine({ iaSessionId }: { iaSessionId: string }) {
           ) : null}
 
           {phase === "intro" && !generating && !showPreConfirm && !loadingPreConfirm ? (
-            <div className="moodboard-card-enter mb-3 rounded-xl border border-white/10 bg-white/[0.05] p-4">
-              <p className="text-[15px] leading-relaxed text-white">
+            <div className="moodboard-card-enter mb-3 rounded-xl border border-[var(--color-bg)]/10 bg-[var(--color-bg)]/[0.05] p-4">
+              <p className="text-[15px] leading-relaxed text-[var(--color-bg)]">
                 Which screens from your IA should I wireframe?
               </p>
               <div className="mt-4 flex flex-wrap gap-2">
@@ -393,7 +393,7 @@ export function WireframeEngine({ iaSessionId }: { iaSessionId: string }) {
                     className={`${CHIP} ${selectedScreens.includes(screen.screen_name) ? CHIP_ACTIVE : ""}`}
                   >
                     {screen.screen_name}
-                    <span className="ml-1 text-zinc-500">{screen.priority}</span>
+                    <span className="ml-1 text-[var(--color-text)]">{screen.priority}</span>
                   </button>
                 ))}
               </div>
@@ -402,12 +402,12 @@ export function WireframeEngine({ iaSessionId }: { iaSessionId: string }) {
                   type="button"
                   disabled={busy || selectedScreens.length === 0}
                   onClick={() => void handleScreenSelectionContinue()}
-                  className="mt-4 rounded-full bg-white px-4 py-1.5 text-xs font-medium text-black transition hover:bg-zinc-200 disabled:opacity-40"
+                  className="mt-4 rounded-full bg-[var(--color-bg)] px-4 py-1.5 text-xs font-medium text-[var(--color-text)] transition hover:bg-[var(--color-bg)] disabled:opacity-40"
                 >
                   Continue
                 </button>
               ) : (
-                <p className="mt-3 text-xs text-zinc-500">No screens found in IA inventory.</p>
+                <p className="mt-3 text-xs text-[var(--color-text)]">No screens found in IA inventory.</p>
               )}
             </div>
           ) : null}

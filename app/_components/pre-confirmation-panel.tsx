@@ -30,8 +30,8 @@ function Pill({
     <span
       className={`group relative inline-flex items-center gap-1 rounded-full px-3 py-1.5 text-xs ${
         inline
-          ? "border border-white/10 bg-white/[0.04] text-zinc-200"
-          : "border border-zinc-700 bg-zinc-900 text-zinc-200"
+          ? "border border-[var(--color-bg)]/10 bg-[var(--color-bg)]/[0.04] text-[var(--color-text)]"
+          : "border border-[var(--color-text)] bg-[var(--color-bg)] text-[var(--color-text)]"
       }`}
       title={reason}
     >
@@ -39,7 +39,7 @@ function Pill({
       <button
         type="button"
         onClick={onRemove}
-        className="ml-1 rounded-full px-1 text-zinc-500 hover:bg-zinc-800 hover:text-white"
+        className="ml-1 rounded-full px-1 text-[var(--color-text)] hover:bg-[var(--color-bg)] hover:text-[var(--color-bg)]"
         aria-label={`Remove ${label}`}
       >
         ✕
@@ -88,22 +88,22 @@ export function PreConfirmationPanel({
   const inline = variant === "inline";
   const shellClass = inline
     ? "space-y-5"
-    : "space-y-6 rounded-xl border border-zinc-800 bg-zinc-950 p-5";
+    : "space-y-6 rounded-xl border border-[var(--color-text)] bg-[var(--color-bg)] p-5";
 
   return (
     <div className={shellClass}>
       <div>
-        <p className={`${inline ? "text-[15px] leading-relaxed" : "text-sm font-medium"} text-white`}>
+        <p className={`${inline ? "text-[15px] leading-relaxed" : "text-sm font-medium"} text-[var(--color-bg)]`}>
           {inline && brandName
             ? `Here's my approach for ${brandName}`
             : "Approach I'm planning"}
         </p>
         {!inline ? (
-          <p className="mt-1 text-xs text-zinc-500">
+          <p className="mt-1 text-xs text-[var(--color-text)]">
             Review what I&apos;ll apply. Remove anything you don&apos;t want.
           </p>
         ) : (
-          <p className="mt-2 text-xs text-zinc-500">Using:</p>
+          <p className="mt-2 text-xs text-[var(--color-text)]">Using:</p>
         )}
         <div className="mt-3 flex flex-wrap gap-2">
           {activeFrameworks.map((f) => (
@@ -132,7 +132,7 @@ export function PreConfirmationPanel({
                 key={key}
                 type="button"
                 onClick={() => setRejectedFrameworks((k) => k.filter((x) => x !== key))}
-                className="rounded-full border border-dashed border-zinc-700 px-3 py-1 text-xs text-zinc-500 line-through"
+                className="rounded-full border border-dashed border-[var(--color-text)] px-3 py-1 text-xs text-[var(--color-text)] line-through"
               >
                 {f.name} (removed)
               </button>
@@ -143,21 +143,21 @@ export function PreConfirmationPanel({
 
       {preConfirmation.ia_preview ? (
         <div
-          className={`rounded-lg p-3 ${inline ? "bg-white/[0.03]" : "border border-zinc-800 bg-black/40"}`}
+          className={`rounded-lg p-3 ${inline ? "bg-[var(--color-bg)]/[0.03]" : "border border-[var(--color-text)] bg-[var(--color-text)]/40"}`}
         >
-          <p className="text-xs font-medium text-zinc-400">IA approach</p>
-          <dl className="mt-2 space-y-1.5 text-sm text-zinc-300">
+          <p className="text-xs font-medium text-[var(--color-text)]">IA approach</p>
+          <dl className="mt-2 space-y-1.5 text-sm text-[var(--color-text)]">
             <div>
-              <dt className="inline text-zinc-500">Industry pattern: </dt>
+              <dt className="inline text-[var(--color-text)]">Industry pattern: </dt>
               <dd className="inline">{preConfirmation.ia_preview.industry_pattern}</dd>
             </div>
             <div>
-              <dt className="inline text-zinc-500">Navigation: </dt>
+              <dt className="inline text-[var(--color-text)]">Navigation: </dt>
               <dd className="inline">{preConfirmation.ia_preview.navigation_pattern}</dd>
             </div>
           </dl>
-          <p className="mt-2 text-xs text-zinc-500">UX controversies to address:</p>
-          <ul className="mt-1 list-inside list-disc text-xs text-zinc-400">
+          <p className="mt-2 text-xs text-[var(--color-text)]">UX controversies to address:</p>
+          <ul className="mt-1 list-inside list-disc text-xs text-[var(--color-text)]">
             {preConfirmation.ia_preview.controversies_to_address.map((c) => (
               <li key={c}>{c}</li>
             ))}
@@ -167,17 +167,17 @@ export function PreConfirmationPanel({
 
       {preConfirmation.meeting_observations.length > 0 ? (
         <div>
-          <p className="text-xs font-medium text-zinc-400">
+          <p className="text-xs font-medium text-[var(--color-text)]">
             {inline ? "From your EA:" : "From your previous sessions"}
           </p>
           <div className="mt-3 space-y-3">
             {preConfirmation.meeting_observations.map((obs, i) => (
               <div
                 key={`${obs.source}-${i}`}
-                className={`rounded-lg p-3 ${inline ? "bg-white/[0.03]" : "border border-zinc-800 bg-black/40 p-4"}`}
+                className={`rounded-lg p-3 ${inline ? "bg-[var(--color-bg)]/[0.03]" : "border border-[var(--color-text)] bg-[var(--color-text)]/40 p-4"}`}
               >
                 {!inline ? (
-                  <p className="text-xs uppercase tracking-wider text-zinc-500">
+                  <p className="text-xs uppercase tracking-wider text-[var(--color-text)]">
                     {obs.source === "meeting"
                       ? "💬 From your EA meeting"
                       : obs.source === "ea_memory"
@@ -187,10 +187,10 @@ export function PreConfirmationPanel({
                           : "🎨 Previous moodboard"}
                   </p>
                 ) : null}
-                <p className={`${inline ? "text-sm" : "mt-2 text-sm"} text-zinc-300`}>
+                <p className={`${inline ? "text-sm" : "mt-2 text-sm"} text-[var(--color-text)]`}>
                   {inline ? `"${obs.observation}"` : `“${obs.observation}”`}
                 </p>
-                <p className="mt-2 text-sm text-zinc-400">
+                <p className="mt-2 text-sm text-[var(--color-text)]">
                   {inline ? `→ ${obs.question}` : obs.question}
                 </p>
                 <div className="mt-3 flex flex-wrap gap-2">
@@ -215,8 +215,8 @@ export function PreConfirmationPanel({
                             ? "Yes, apply this"
                             : "No, skip"
                           : opt)
-                          ? "bg-white text-black"
-                          : "border border-white/10 text-zinc-300 hover:border-white/20"
+                          ? "bg-[var(--color-bg)] text-[var(--color-text)]"
+                          : "border border-[var(--color-bg)]/10 text-[var(--color-text)] hover:border-[var(--color-bg)]/20"
                       }`}
                     >
                       {opt}
@@ -231,11 +231,11 @@ export function PreConfirmationPanel({
 
       {preConfirmation.confirmation_questions.length > 0 ? (
         <div>
-          <p className="text-sm font-medium text-white">Quick questions</p>
+          <p className="text-sm font-medium text-[var(--color-bg)]">Quick questions</p>
           <div className="mt-3 space-y-4">
             {preConfirmation.confirmation_questions.map((q) => (
               <div key={q.key}>
-                <p className="text-sm text-zinc-300">{q.question}</p>
+                <p className="text-sm text-[var(--color-text)]">{q.question}</p>
                 <div className="mt-2 flex flex-wrap gap-2">
                   {(q.options ?? []).map((opt) => (
                     <button
@@ -244,8 +244,8 @@ export function PreConfirmationPanel({
                       onClick={() => setQuestionAnswers((a) => ({ ...a, [q.key]: opt }))}
                       className={`rounded-md px-3 py-1.5 text-xs transition ${
                         (questionAnswers[q.key] ?? q.default_answer) === opt
-                          ? "bg-white text-black"
-                          : "border border-zinc-700 text-zinc-300 hover:border-zinc-500"
+                          ? "bg-[var(--color-bg)] text-[var(--color-text)]"
+                          : "border border-[var(--color-text)] text-[var(--color-text)] hover:border-[var(--color-text)]"
                       }`}
                     >
                       {opt}
@@ -265,8 +265,8 @@ export function PreConfirmationPanel({
         onClick={handleSubmit}
         className={`w-full py-3 text-sm font-medium disabled:opacity-50 ${
           inline
-            ? "rounded-full bg-white text-black hover:bg-zinc-200"
-            : "rounded-lg bg-white text-black"
+            ? "rounded-full bg-[var(--color-bg)] text-[var(--color-text)] hover:bg-[var(--color-bg)]"
+            : "rounded-lg bg-[var(--color-bg)] text-[var(--color-text)]"
         }`}
       >
         {loading ? "Starting…" : inline ? "Generate Moodboard →" : "Confirm & generate →"}

@@ -444,28 +444,6 @@ async function runAssistantTurn(
 
 export async function POST(request: NextRequest) {
   try {
-    // Billing disabled — daily message limit enforcement commented out:
-    // const eaToken = request.cookies.get(EA_TOKEN_COOKIE)?.value;
-    // if (eaToken) {
-    //   const user = await getSessionUser(eaToken);
-    //   if (user) {
-    //     const usage = await getDailyUsage(user.id);
-    //     const plan = normalizePlan(user.plan);
-    //     const limitCheck = checkLimit(plan, "messagesPerDay", usage);
-    //     if (!limitCheck.allowed) {
-    //       return NextResponse.json(
-    //         {
-    //           error:
-    //             "Daily limit reached. Upgrade your plan for more messages.",
-    //           upgrade: true,
-    //         },
-    //         { status: 429 },
-    //       );
-    //     }
-    //     await trackMessage(user.id);
-    //   }
-    // }
-
     const { messages, userMessage, language } = await request.json();
 
     if (!userMessage?.trim()) {

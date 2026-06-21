@@ -214,10 +214,10 @@ export function QuestionOptionsCard({
         }`}
       >
         <div className="flex items-start justify-between gap-3">
-          <p className="text-base font-medium leading-snug text-[#1a1a1a]">
+          <p className="text-base font-medium leading-snug text-[var(--color-text)]">
             {question.question_text}
           </p>
-          <div className="flex shrink-0 items-center gap-1 text-[#999]">
+          <div className="flex shrink-0 items-center gap-1 text-[var(--color-text)]">
             {pageCount > 1 ? (
               <div className="flex items-center gap-0.5 text-xs">
                 <button
@@ -227,7 +227,7 @@ export function QuestionOptionsCard({
                     setPage((p) => Math.max(0, p - 1));
                     setHighlight(0);
                   }}
-                  className="flex h-6 w-6 items-center justify-center rounded hover:bg-[#f5f5f5] disabled:opacity-30"
+                  className="flex h-6 w-6 items-center justify-center rounded hover:bg-[var(--color-bg)] disabled:opacity-30"
                   aria-label="Previous page"
                 >
                   <ChevronLeft />
@@ -242,7 +242,7 @@ export function QuestionOptionsCard({
                     setPage((p) => Math.min(pageCount - 1, p + 1));
                     setHighlight(0);
                   }}
-                  className="flex h-6 w-6 items-center justify-center rounded hover:bg-[#f5f5f5] disabled:opacity-30"
+                  className="flex h-6 w-6 items-center justify-center rounded hover:bg-[var(--color-bg)] disabled:opacity-30"
                   aria-label="Next page"
                 >
                   <ChevronRight />
@@ -253,7 +253,7 @@ export function QuestionOptionsCard({
               type="button"
               disabled={disabled}
               onClick={optional ? onSkip : onDismiss}
-              className="flex h-6 w-6 items-center justify-center rounded text-[#bbb] hover:bg-[#f5f5f5] hover:text-[#888]"
+              className="flex h-6 w-6 items-center justify-center rounded text-[var(--color-text)] hover:bg-[var(--color-bg)] hover:text-[var(--color-text)]"
               aria-label={optional ? "Skip question" : "Dismiss"}
             >
               ✕
@@ -295,14 +295,14 @@ export function QuestionOptionsCard({
           })}
         </div>
 
-        <div className="mt-3 flex items-center justify-between gap-3 border-t border-[#f0f0f0] pt-3">
+        <div className="mt-3 flex items-center justify-between gap-3 border-t border-[var(--color-bg)] pt-3">
           <button
             type="button"
             disabled={disabled || exiting}
             onClick={onSomethingElse}
             onMouseEnter={() => setHighlight(somethingElseIndex)}
-            className={`flex items-center gap-2 text-sm text-[#999] transition hover:text-[#666] ${
-              highlight === somethingElseIndex ? "text-[#666]" : ""
+            className={`flex items-center gap-2 text-sm text-[var(--color-text)] transition hover:text-[var(--color-text)] ${
+              highlight === somethingElseIndex ? "text-[var(--color-text)]" : ""
             }`}
           >
             <PencilIcon />
@@ -314,7 +314,7 @@ export function QuestionOptionsCard({
                 type="button"
                 disabled={disabled || exiting}
                 onClick={submitMulti}
-                className="moodboard-question-skip-btn bg-[#1a1a1a] text-white hover:bg-[#333]"
+                className="moodboard-question-skip-btn bg-[var(--color-text)] text-[var(--color-bg)] hover:bg-[var(--color-text)]"
               >
                 {question.key === "q_output_sections"
                   ? `Generate 3 directions (${selected.length})`

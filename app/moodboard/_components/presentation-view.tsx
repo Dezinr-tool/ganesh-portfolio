@@ -87,27 +87,27 @@ export function PresentationView({
   };
 
   return (
-    <div className="presentation-deck bg-white text-black">
-      <div className="sticky top-0 z-20 border-b border-neutral-100 bg-white/90 px-5 py-3 backdrop-blur-md sm:px-8">
+    <div className="presentation-deck bg-[var(--color-bg)] text-[var(--color-text)]">
+      <div className="sticky top-0 z-20 border-b border-[var(--color-text)] bg-[var(--color-bg)]/90 px-5 py-3 backdrop-blur-md sm:px-8">
         <div className="mx-auto flex max-w-[1824px] flex-wrap items-center justify-between gap-3">
-          <p className="text-sm text-neutral-500">
+          <p className="text-sm text-[var(--color-text)]">
             {directions.length} direction{directions.length > 1 ? "s" : ""}
           </p>
           <div className="flex flex-wrap items-center gap-2">
             <button
               type="button"
               onClick={handleCopy}
-              className="rounded-md border border-neutral-200 px-3 py-1.5 text-xs text-neutral-600 transition hover:bg-neutral-50"
+              className="rounded-md border border-[var(--color-text)] px-3 py-1.5 text-xs text-[var(--color-text)] transition hover:bg-[var(--color-bg)]"
             >
               Copy markdown
             </button>
-            {copyMsg ? <span className="text-xs text-green-600">{copyMsg}</span> : null}
+            {copyMsg ? <span className="text-xs text-[var(--color-accent)]">{copyMsg}</span> : null}
             {directions.map((dir) => (
               <button
                 key={dir.id}
                 type="button"
                 onClick={() => handlePdf(dir)}
-                className="rounded-md bg-black px-3 py-1.5 text-xs text-white transition hover:bg-neutral-800"
+                className="rounded-md bg-[var(--color-text)] px-3 py-1.5 text-xs text-[var(--color-bg)] transition hover:bg-[var(--color-bg)]"
               >
                 PDF — {dir.directionName}
               </button>
@@ -116,7 +116,7 @@ export function PresentationView({
               <button
                 type="button"
                 onClick={() => setRefineId(directions[0]!.id)}
-                className="rounded-md border border-neutral-200 px-3 py-1.5 text-xs text-neutral-600 transition hover:bg-neutral-50"
+                className="rounded-md border border-[var(--color-text)] px-3 py-1.5 text-xs text-[var(--color-text)] transition hover:bg-[var(--color-bg)]"
               >
                 Refine
               </button>
@@ -130,7 +130,7 @@ export function PresentationView({
       {directions.map((dir) => (
         <div key={dir.id}>
           <DirectionDeck direction={dir} selectedSections={selectedOutputSections} />
-          <div className="border-b border-neutral-100 px-5 py-4 sm:px-8">
+          <div className="border-b border-[var(--color-text)] px-5 py-4 sm:px-8">
             <div className="mx-auto flex max-w-[1824px] flex-wrap justify-end gap-2">
               {onSelectDirection ? (
                 <button
@@ -139,8 +139,8 @@ export function PresentationView({
                   onClick={() => void handleSelect(dir)}
                   className={`rounded-md px-4 py-2 text-sm transition ${
                     selectedId === dir.id
-                      ? "border border-green-600 bg-green-50 text-green-700"
-                      : "border border-neutral-200 text-neutral-700 hover:bg-neutral-50"
+                      ? "border border-[var(--color-accent)] bg-[var(--color-accent)] text-[var(--color-accent)]"
+                      : "border border-[var(--color-text)] text-[var(--color-text)] hover:bg-[var(--color-bg)]"
                   } disabled:opacity-50`}
                 >
                   {selectedId === dir.id
@@ -154,7 +154,7 @@ export function PresentationView({
                 <button
                   type="button"
                   onClick={() => setRefineId(dir.id)}
-                  className="rounded-md border border-neutral-200 px-4 py-2 text-sm text-neutral-700 transition hover:bg-neutral-50"
+                  className="rounded-md border border-[var(--color-text)] px-4 py-2 text-sm text-[var(--color-text)] transition hover:bg-[var(--color-bg)]"
                 >
                   Refine — {dir.directionName}
                 </button>
@@ -165,21 +165,21 @@ export function PresentationView({
       ))}
 
       {refineId && onRefine ? (
-        <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/40 p-4 sm:items-center">
-          <div className="w-full max-w-md rounded-xl bg-white p-6 shadow-xl">
+        <div className="fixed inset-0 z-50 flex items-end justify-center bg-[var(--color-text)]/40 p-4 sm:items-center">
+          <div className="w-full max-w-md rounded-xl bg-[var(--color-bg)] p-6 shadow-xl">
             <h3 className="text-lg font-medium">Refine direction</h3>
             <textarea
               value={refineNote}
               onChange={(e) => setRefineNote(e.target.value)}
               rows={4}
               placeholder="What should change?"
-              className="mt-3 w-full rounded-md border border-neutral-200 px-3 py-2 text-sm outline-none focus:border-neutral-400"
+              className="mt-3 w-full rounded-md border border-[var(--color-text)] px-3 py-2 text-sm outline-none focus:border-[var(--color-text)]"
             />
             <div className="mt-4 flex justify-end gap-2">
               <button
                 type="button"
                 onClick={() => setRefineId(null)}
-                className="rounded-md px-4 py-2 text-sm text-neutral-600 hover:bg-neutral-100"
+                className="rounded-md px-4 py-2 text-sm text-[var(--color-text)] hover:bg-[var(--color-bg)]"
               >
                 Cancel
               </button>
@@ -187,7 +187,7 @@ export function PresentationView({
                 type="button"
                 disabled={refining || !refineNote.trim()}
                 onClick={handleRefine}
-                className="rounded-md bg-black px-4 py-2 text-sm text-white disabled:opacity-50"
+                className="rounded-md bg-[var(--color-text)] px-4 py-2 text-sm text-[var(--color-bg)] disabled:opacity-50"
               >
                 {refining ? "Refining…" : "Refine"}
               </button>

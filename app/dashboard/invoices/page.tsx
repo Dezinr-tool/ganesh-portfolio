@@ -8,8 +8,8 @@ export const dynamic = "force-dynamic";
 function StatusBadge({ status }: { status: "Paid" | "Unpaid" }) {
   const styles =
     status === "Paid"
-      ? "bg-emerald-500/10 text-emerald-400 ring-emerald-500/20"
-      : "bg-amber-500/10 text-amber-400 ring-amber-500/20";
+      ? "bg-[var(--color-accent)] text-[var(--color-accent)] ring-[var(--color-accent)]"
+      : "bg-[var(--color-accent)] text-[var(--color-accent)] ring-[var(--color-accent)]";
 
   return (
     <span
@@ -27,8 +27,8 @@ export default async function InvoicesPage() {
     <div>
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-semibold text-white">Invoices</h1>
-          <p className="mt-2 text-sm text-neutral-400">
+          <h1 className="text-2xl font-semibold text-[var(--color-bg)]">Invoices</h1>
+          <p className="mt-2 text-sm text-[var(--color-text)]">
             {invoices.length === 0
               ? "No invoices yet."
               : `${invoices.length} invoice${invoices.length === 1 ? "" : "s"}`}
@@ -36,59 +36,59 @@ export default async function InvoicesPage() {
         </div>
         <Link
           href="/dashboard/invoices/new"
-          className="rounded-md bg-white px-4 py-2 text-sm font-medium text-neutral-950"
+          className="rounded-md bg-[var(--color-bg)] px-4 py-2 text-sm font-medium text-[var(--color-text)]"
         >
           New invoice
         </Link>
       </div>
 
       {invoices.length === 0 ? (
-        <div className="mt-8 rounded-lg border border-neutral-800 bg-neutral-900 p-8 text-center text-sm text-neutral-500">
+        <div className="mt-8 rounded-lg border border-[var(--color-text)] bg-[var(--color-bg)] p-8 text-center text-sm text-[var(--color-text)]">
           Create your first invoice to get started.
         </div>
       ) : (
-        <div className="mt-8 overflow-hidden rounded-lg border border-neutral-800">
-          <table className="min-w-full divide-y divide-neutral-800">
-            <thead className="bg-neutral-900">
+        <div className="mt-8 overflow-hidden rounded-lg border border-[var(--color-text)]">
+          <table className="min-w-full divide-y divide-[var(--color-text)]">
+            <thead className="bg-[var(--color-bg)]">
               <tr>
-                <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wide text-neutral-500">
+                <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wide text-[var(--color-text)]">
                   Invoice
                 </th>
-                <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wide text-neutral-500">
+                <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wide text-[var(--color-text)]">
                   Client
                 </th>
-                <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wide text-neutral-500">
+                <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wide text-[var(--color-text)]">
                   Issue date
                 </th>
-                <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wide text-neutral-500">
+                <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wide text-[var(--color-text)]">
                   Total
                 </th>
-                <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wide text-neutral-500">
+                <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wide text-[var(--color-text)]">
                   Status
                 </th>
-                <th className="px-4 py-3 text-right text-xs font-medium uppercase tracking-wide text-neutral-500">
+                <th className="px-4 py-3 text-right text-xs font-medium uppercase tracking-wide text-[var(--color-text)]">
                   Actions
                 </th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-neutral-800 bg-neutral-950">
+            <tbody className="divide-y divide-[var(--color-text)] bg-[var(--color-bg)]">
               {invoices.map((invoice) => (
-                <tr key={invoice.id} className="hover:bg-neutral-900/50">
+                <tr key={invoice.id} className="hover:bg-[var(--color-bg)]/50">
                   <td className="px-4 py-3 text-sm">
                     <Link
                       href={`/dashboard/invoices/${invoice.id}`}
-                      className="font-medium text-white hover:underline"
+                      className="font-medium text-[var(--color-bg)] hover:underline"
                     >
                       {invoice.invoiceNumber}
                     </Link>
                   </td>
-                  <td className="px-4 py-3 text-sm text-neutral-300">
+                  <td className="px-4 py-3 text-sm text-[var(--color-text)]">
                     {invoice.clientName}
                   </td>
-                  <td className="px-4 py-3 text-sm text-neutral-400">
+                  <td className="px-4 py-3 text-sm text-[var(--color-text)]">
                     {formatDate(invoice.issueDate)}
                   </td>
-                  <td className="px-4 py-3 text-sm text-white">
+                  <td className="px-4 py-3 text-sm text-[var(--color-bg)]">
                     {formatCurrency(invoice.total)}
                   </td>
                   <td className="px-4 py-3 text-sm">

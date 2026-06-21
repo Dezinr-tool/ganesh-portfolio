@@ -1055,15 +1055,15 @@ export function MoodboardChat() {
   const activeMessage = [...messages].reverse().find((m) => m.role === "assistant" && !m.inactive);
 
   return (
-    <div className="flex h-screen min-h-0 flex-col bg-[#0d0d0d] text-zinc-100">
+    <div className="flex h-screen min-h-0 flex-col bg-[var(--color-text)] text-[var(--color-text)]">
       <div className="shrink-0">
         <EANav />
       </div>
 
       <div className="mx-auto flex w-full min-h-0 max-w-3xl flex-1 flex-col px-4 pb-4 sm:px-6">
         {eaClient ? (
-          <p className="mt-3 shrink-0 rounded-lg border border-zinc-800 bg-zinc-900/30 px-3 py-2 text-xs text-zinc-400">
-            EA context loaded for <span className="text-zinc-200">{eaClient}</span>
+          <p className="mt-3 shrink-0 rounded-lg border border-[var(--color-text)] bg-[var(--color-bg)]/30 px-3 py-2 text-xs text-[var(--color-text)]">
+            EA context loaded for <span className="text-[var(--color-text)]">{eaClient}</span>
           </p>
         ) : null}
 
@@ -1127,7 +1127,7 @@ export function MoodboardChat() {
                 <button
                   type="button"
                   onClick={continueAfterChipMulti}
-                  className="rounded-lg bg-white px-4 py-2 text-xs font-medium text-black hover:bg-zinc-200"
+                  className="rounded-lg bg-[var(--color-bg)] px-4 py-2 text-xs font-medium text-[var(--color-text)] hover:bg-[var(--color-bg)]"
                 >
                   Continue with {multiChips.length} selected
                 </button>
@@ -1137,27 +1137,27 @@ export function MoodboardChat() {
             {busy && step !== "generate" ? (
               <div className="flex justify-start">
                 <div className="flex gap-1 px-2 py-1">
-                  <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-zinc-600 [animation-delay:0ms]" />
-                  <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-zinc-600 [animation-delay:150ms]" />
-                  <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-zinc-600 [animation-delay:300ms]" />
+                  <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-[var(--color-bg)] [animation-delay:0ms]" />
+                  <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-[var(--color-bg)] [animation-delay:150ms]" />
+                  <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-[var(--color-bg)] [animation-delay:300ms]" />
                 </div>
               </div>
             ) : null}
 
             {copyMessage ? (
-              <p className="text-center text-xs text-emerald-400">{copyMessage}</p>
+              <p className="text-center text-xs text-[var(--color-accent)]">{copyMessage}</p>
             ) : null}
 
             <div ref={messagesEndRef} className="h-px shrink-0" />
           </div>
         </div>
 
-        <div className="relative shrink-0 border-t border-zinc-800/80 pt-3">
+        <div className="relative shrink-0 border-t border-[var(--color-text)]/80 pt-3">
           <div className="absolute bottom-3 left-0 z-10">
             <select
               value={modelId}
               onChange={(e) => setModelId(e.target.value as MoodboardModelId)}
-              className="rounded-md border border-zinc-800 bg-zinc-900/90 px-2 py-1 text-[11px] text-zinc-400 outline-none hover:border-zinc-700"
+              className="rounded-md border border-[var(--color-text)] bg-[var(--color-bg)]/90 px-2 py-1 text-[11px] text-[var(--color-text)] outline-none hover:border-[var(--color-text)]"
               aria-label="AI model"
             >
               {MOODBOARD_MODELS.map((m) => (
@@ -1169,7 +1169,7 @@ export function MoodboardChat() {
             </select>
           </div>
 
-          <p className="pb-2 pl-[7.5rem] text-[10px] text-zinc-600">
+          <p className="pb-2 pl-[7.5rem] text-[10px] text-[var(--color-text)]">
             Select chips above to continue the moodboard brief
           </p>
         </div>

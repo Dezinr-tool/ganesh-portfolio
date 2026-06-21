@@ -11,8 +11,8 @@ export const dynamic = "force-dynamic";
 function StatusBadge({ status }: { status: "Paid" | "Unpaid" }) {
   const styles =
     status === "Paid"
-      ? "bg-emerald-500/10 text-emerald-400 ring-emerald-500/20"
-      : "bg-amber-500/10 text-amber-400 ring-amber-500/20";
+      ? "bg-[var(--color-accent)] text-[var(--color-accent)] ring-[var(--color-accent)]"
+      : "bg-[var(--color-accent)] text-[var(--color-accent)] ring-[var(--color-accent)]";
 
   return (
     <span
@@ -40,7 +40,7 @@ export default async function InvoiceDetailPage({
       <div className="mb-6 flex items-center justify-between gap-4">
         <Link
           href="/dashboard/invoices"
-          className="text-sm text-neutral-400 hover:text-white"
+          className="text-sm text-[var(--color-text)] hover:text-[var(--color-bg)]"
         >
           ← Back to invoices
         </Link>
@@ -56,53 +56,53 @@ export default async function InvoiceDetailPage({
         </div>
       </div>
 
-      <div className="rounded-lg border border-neutral-800 bg-neutral-900">
-        <div className="border-b border-neutral-800 px-6 py-8 sm:px-8">
+      <div className="rounded-lg border border-[var(--color-text)] bg-[var(--color-bg)]">
+        <div className="border-b border-[var(--color-text)] px-6 py-8 sm:px-8">
           <div className="flex flex-col gap-6 sm:flex-row sm:items-start sm:justify-between">
             <div>
-              <p className="text-sm text-neutral-500">Invoice</p>
-              <h1 className="mt-1 text-3xl font-semibold text-white">
+              <p className="text-sm text-[var(--color-text)]">Invoice</p>
+              <h1 className="mt-1 text-3xl font-semibold text-[var(--color-bg)]">
                 {invoice.invoiceNumber}
               </h1>
             </div>
-            <div className="text-sm text-neutral-400 sm:text-right">
+            <div className="text-sm text-[var(--color-text)] sm:text-right">
               <p>
-                <span className="text-neutral-500">Issue date:</span>{" "}
+                <span className="text-[var(--color-text)]">Issue date:</span>{" "}
                 {formatDate(invoice.issueDate)}
               </p>
               <p className="mt-1">
-                <span className="text-neutral-500">Due date:</span>{" "}
+                <span className="text-[var(--color-text)]">Due date:</span>{" "}
                 {formatDate(invoice.dueDate)}
               </p>
             </div>
           </div>
         </div>
 
-        <div className="grid gap-8 border-b border-neutral-800 px-6 py-8 sm:grid-cols-2 sm:px-8">
+        <div className="grid gap-8 border-b border-[var(--color-text)] px-6 py-8 sm:grid-cols-2 sm:px-8">
           <div>
-            <p className="text-xs uppercase tracking-wide text-neutral-500">
+            <p className="text-xs uppercase tracking-wide text-[var(--color-text)]">
               Bill to
             </p>
-            <p className="mt-2 text-lg font-medium text-white">
+            <p className="mt-2 text-lg font-medium text-[var(--color-bg)]">
               {invoice.clientName}
             </p>
             {invoice.clientCompany ? (
-              <p className="mt-1 text-sm text-neutral-300">
+              <p className="mt-1 text-sm text-[var(--color-text)]">
                 {invoice.clientCompany}
               </p>
             ) : null}
             {invoice.clientAddress ? (
-              <p className="mt-1 whitespace-pre-wrap text-sm text-neutral-300">
+              <p className="mt-1 whitespace-pre-wrap text-sm text-[var(--color-text)]">
                 {invoice.clientAddress}
               </p>
             ) : null}
-            <p className="mt-1 text-sm text-neutral-400">{invoice.clientEmail}</p>
+            <p className="mt-1 text-sm text-[var(--color-text)]">{invoice.clientEmail}</p>
           </div>
           <div className="sm:text-right">
-            <p className="text-xs uppercase tracking-wide text-neutral-500">
+            <p className="text-xs uppercase tracking-wide text-[var(--color-text)]">
               Amount due
             </p>
-            <p className="mt-2 text-3xl font-semibold text-white">
+            <p className="mt-2 text-3xl font-semibold text-[var(--color-bg)]">
               {formatCurrency(invoice.total)}
             </p>
           </div>
@@ -111,26 +111,26 @@ export default async function InvoiceDetailPage({
         <div className="overflow-x-auto px-6 py-8 sm:px-8">
           <table className="min-w-full">
             <thead>
-              <tr className="border-b border-neutral-800 text-left text-xs uppercase tracking-wide text-neutral-500">
+              <tr className="border-b border-[var(--color-text)] text-left text-xs uppercase tracking-wide text-[var(--color-text)]">
                 <th className="pb-3 pr-4 font-medium">Description</th>
                 <th className="pb-3 pr-4 font-medium">Effort (hrs)</th>
                 <th className="pb-3 pr-4 font-medium">Rate</th>
                 <th className="pb-3 font-medium text-right">Amount</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-neutral-800">
+            <tbody className="divide-y divide-[var(--color-text)]">
               {invoice.lineItems.map((item) => (
                 <tr key={item.id}>
-                  <td className="py-4 pr-4 text-sm text-neutral-200">
+                  <td className="py-4 pr-4 text-sm text-[var(--color-text)]">
                     {item.description}
                   </td>
-                  <td className="py-4 pr-4 text-sm text-neutral-400">
+                  <td className="py-4 pr-4 text-sm text-[var(--color-text)]">
                     {item.effortHrs}
                   </td>
-                  <td className="py-4 pr-4 text-sm text-neutral-400">
+                  <td className="py-4 pr-4 text-sm text-[var(--color-text)]">
                     {formatCurrency(item.rate)}
                   </td>
-                  <td className="py-4 text-right text-sm text-white">
+                  <td className="py-4 text-right text-sm text-[var(--color-bg)]">
                     {formatCurrency(item.amount)}
                   </td>
                 </tr>
@@ -139,23 +139,23 @@ export default async function InvoiceDetailPage({
           </table>
         </div>
 
-        <div className="border-t border-neutral-800 px-6 py-6 sm:px-8">
+        <div className="border-t border-[var(--color-text)] px-6 py-6 sm:px-8">
           <div className="ml-auto max-w-xs space-y-2 text-sm">
-            <div className="flex justify-between text-neutral-400">
+            <div className="flex justify-between text-[var(--color-text)]">
               <span>Subtotal</span>
-              <span className="text-white">
+              <span className="text-[var(--color-bg)]">
                 {formatCurrency(invoice.subtotal)}
               </span>
             </div>
             {invoice.taxPercent !== null && invoice.taxPercent > 0 ? (
-              <div className="flex justify-between text-neutral-400">
+              <div className="flex justify-between text-[var(--color-text)]">
                 <span>Tax ({invoice.taxPercent}%)</span>
-                <span className="text-white">
+                <span className="text-[var(--color-bg)]">
                   {formatCurrency(invoice.taxAmount)}
                 </span>
               </div>
             ) : null}
-            <div className="flex justify-between border-t border-neutral-800 pt-2 text-base font-semibold text-white">
+            <div className="flex justify-between border-t border-[var(--color-text)] pt-2 text-base font-semibold text-[var(--color-bg)]">
               <span>Total</span>
               <span>{formatCurrency(invoice.total)}</span>
             </div>
@@ -163,11 +163,11 @@ export default async function InvoiceDetailPage({
         </div>
 
         {invoice.notes ? (
-          <div className="border-t border-neutral-800 px-6 py-6 sm:px-8">
-            <p className="text-xs uppercase tracking-wide text-neutral-500">
+          <div className="border-t border-[var(--color-text)] px-6 py-6 sm:px-8">
+            <p className="text-xs uppercase tracking-wide text-[var(--color-text)]">
               Notes
             </p>
-            <p className="mt-2 whitespace-pre-wrap text-sm text-neutral-300">
+            <p className="mt-2 whitespace-pre-wrap text-sm text-[var(--color-text)]">
               {invoice.notes}
             </p>
           </div>

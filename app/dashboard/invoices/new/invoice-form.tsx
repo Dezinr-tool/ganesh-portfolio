@@ -165,22 +165,22 @@ export default function InvoiceForm() {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-8">
-      <section className="rounded-lg border border-neutral-800 bg-neutral-900 p-6">
-        <h2 className="text-sm font-medium text-white">Invoice details</h2>
+      <section className="rounded-lg border border-[var(--color-text)] bg-[var(--color-bg)] p-6">
+        <h2 className="text-sm font-medium text-[var(--color-bg)]">Invoice details</h2>
         <div className="mt-4 grid gap-4 sm:grid-cols-3">
           <div>
-            <label className="mb-1.5 block text-sm text-neutral-300">
+            <label className="mb-1.5 block text-sm text-[var(--color-text)]">
               Invoice number
             </label>
             <input
               type="text"
               value={loadingNumber ? "Loading…" : invoiceNumber}
               readOnly
-              className={`${inputClassName} text-neutral-400`}
+              className={`${inputClassName} text-[var(--color-text)]`}
             />
           </div>
           <div>
-            <label htmlFor="issueDate" className="mb-1.5 block text-sm text-neutral-300">
+            <label htmlFor="issueDate" className="mb-1.5 block text-sm text-[var(--color-text)]">
               Issue date
             </label>
             <input
@@ -193,7 +193,7 @@ export default function InvoiceForm() {
             />
           </div>
           <div>
-            <label htmlFor="dueDate" className="mb-1.5 block text-sm text-neutral-300">
+            <label htmlFor="dueDate" className="mb-1.5 block text-sm text-[var(--color-text)]">
               Due date
             </label>
             <input
@@ -208,11 +208,11 @@ export default function InvoiceForm() {
         </div>
       </section>
 
-      <section className="rounded-lg border border-neutral-800 bg-neutral-900 p-6">
-        <h2 className="text-sm font-medium text-white">Client</h2>
+      <section className="rounded-lg border border-[var(--color-text)] bg-[var(--color-bg)] p-6">
+        <h2 className="text-sm font-medium text-[var(--color-bg)]">Client</h2>
         <div className="mt-4 grid gap-4 sm:grid-cols-2">
           <div>
-            <label htmlFor="clientName" className="mb-1.5 block text-sm text-neutral-300">
+            <label htmlFor="clientName" className="mb-1.5 block text-sm text-[var(--color-text)]">
               Client name
             </label>
             <input
@@ -225,7 +225,7 @@ export default function InvoiceForm() {
             />
           </div>
           <div>
-            <label htmlFor="clientEmail" className="mb-1.5 block text-sm text-neutral-300">
+            <label htmlFor="clientEmail" className="mb-1.5 block text-sm text-[var(--color-text)]">
               Client email
             </label>
             <input
@@ -238,7 +238,7 @@ export default function InvoiceForm() {
             />
           </div>
           <div className="sm:col-span-2">
-            <label htmlFor="clientCompany" className="mb-1.5 block text-sm text-neutral-300">
+            <label htmlFor="clientCompany" className="mb-1.5 block text-sm text-[var(--color-text)]">
               Client company
             </label>
             <input
@@ -250,7 +250,7 @@ export default function InvoiceForm() {
             />
           </div>
           <div className="sm:col-span-2">
-            <label htmlFor="clientAddress" className="mb-1.5 block text-sm text-neutral-300">
+            <label htmlFor="clientAddress" className="mb-1.5 block text-sm text-[var(--color-text)]">
               Client address
             </label>
             <textarea
@@ -264,20 +264,20 @@ export default function InvoiceForm() {
         </div>
       </section>
 
-      <section className="rounded-lg border border-neutral-800 bg-neutral-900 p-6">
+      <section className="rounded-lg border border-[var(--color-text)] bg-[var(--color-bg)] p-6">
         <div className="flex items-center justify-between">
-          <h2 className="text-sm font-medium text-white">Line items</h2>
+          <h2 className="text-sm font-medium text-[var(--color-bg)]">Line items</h2>
           <button
             type="button"
             onClick={addLineItem}
-            className="text-sm text-neutral-300 hover:text-white"
+            className="text-sm text-[var(--color-text)] hover:text-[var(--color-bg)]"
           >
             + Add row
           </button>
         </div>
 
         <div className="mt-4 space-y-3">
-          <div className="hidden grid-cols-12 gap-3 text-xs uppercase tracking-wide text-neutral-500 sm:grid">
+          <div className="hidden grid-cols-12 gap-3 text-xs uppercase tracking-wide text-[var(--color-text)] sm:grid">
             <div className="col-span-5">Description</div>
             <div className="col-span-3">Effort (hrs)</div>
             <div className="col-span-2">Rate</div>
@@ -288,10 +288,10 @@ export default function InvoiceForm() {
           {resolvedLineItems.map((item) => (
             <div
               key={item.id}
-              className="grid gap-3 rounded-md border border-neutral-800 bg-neutral-950 p-3 sm:grid-cols-12 sm:border-0 sm:bg-transparent sm:p-0"
+              className="grid gap-3 rounded-md border border-[var(--color-text)] bg-[var(--color-bg)] p-3 sm:grid-cols-12 sm:border-0 sm:bg-transparent sm:p-0"
             >
               <div className="sm:col-span-5">
-                <label className="mb-1 block text-xs text-neutral-500 sm:hidden">
+                <label className="mb-1 block text-xs text-[var(--color-text)] sm:hidden">
                   Description
                 </label>
                 <input
@@ -306,7 +306,7 @@ export default function InvoiceForm() {
                 />
               </div>
               <div className="sm:col-span-3">
-                <label className="mb-1 block text-xs text-neutral-500 sm:hidden">
+                <label className="mb-1 block text-xs text-[var(--color-text)] sm:hidden">
                   Effort (hrs)
                 </label>
                 <input
@@ -327,25 +327,25 @@ export default function InvoiceForm() {
                 />
               </div>
               <div className="sm:col-span-2">
-                <label className="mb-1 block text-xs text-neutral-500 sm:hidden">
+                <label className="mb-1 block text-xs text-[var(--color-text)] sm:hidden">
                   Rate
                 </label>
                 <input
                   type="text"
                   readOnly
                   value={formatCurrency(hourlyRate)}
-                  className={`${inputClassName} text-neutral-400`}
+                  className={`${inputClassName} text-[var(--color-text)]`}
                 />
               </div>
               <div className="sm:col-span-1">
-                <label className="mb-1 block text-xs text-neutral-500 sm:hidden">
+                <label className="mb-1 block text-xs text-[var(--color-text)] sm:hidden">
                   Amount
                 </label>
                 <input
                   type="text"
                   readOnly
                   value={formatCurrency(item.amount)}
-                  className={`${inputClassName} text-neutral-400`}
+                  className={`${inputClassName} text-[var(--color-text)]`}
                 />
               </div>
               <div className="flex items-end sm:col-span-1">
@@ -353,7 +353,7 @@ export default function InvoiceForm() {
                   type="button"
                   onClick={() => removeLineItem(item.id)}
                   disabled={lineItems.length === 1}
-                  className="text-sm text-neutral-500 hover:text-red-400 disabled:opacity-30"
+                  className="text-sm text-[var(--color-text)] hover:text-[var(--color-accent)] disabled:opacity-30"
                 >
                   Remove
                 </button>
@@ -363,10 +363,10 @@ export default function InvoiceForm() {
         </div>
       </section>
 
-      <section className="rounded-lg border border-neutral-800 bg-neutral-900 p-6">
+      <section className="rounded-lg border border-[var(--color-text)] bg-[var(--color-bg)] p-6">
         <div className="grid gap-6 lg:grid-cols-2">
           <div>
-            <label htmlFor="notes" className="mb-1.5 block text-sm text-neutral-300">
+            <label htmlFor="notes" className="mb-1.5 block text-sm text-[var(--color-text)]">
               Notes (optional)
             </label>
             <textarea
@@ -380,12 +380,12 @@ export default function InvoiceForm() {
           </div>
 
           <div className="space-y-3 text-sm">
-            <div className="flex justify-between text-neutral-400">
+            <div className="flex justify-between text-[var(--color-text)]">
               <span>Subtotal</span>
-              <span className="text-white">{formatCurrency(totals.subtotal)}</span>
+              <span className="text-[var(--color-bg)]">{formatCurrency(totals.subtotal)}</span>
             </div>
             <div className="flex items-center justify-between gap-4">
-              <label htmlFor="taxPercent" className="text-neutral-400">
+              <label htmlFor="taxPercent" className="text-[var(--color-text)]">
                 Tax %
               </label>
               <input
@@ -400,14 +400,14 @@ export default function InvoiceForm() {
               />
             </div>
             {parsedTaxPercent !== null && parsedTaxPercent > 0 ? (
-              <div className="flex justify-between text-neutral-400">
+              <div className="flex justify-between text-[var(--color-text)]">
                 <span>Tax amount</span>
-                <span className="text-white">
+                <span className="text-[var(--color-bg)]">
                   {formatCurrency(totals.taxAmount)}
                 </span>
               </div>
             ) : null}
-            <div className="flex justify-between border-t border-neutral-800 pt-3 text-base font-semibold text-white">
+            <div className="flex justify-between border-t border-[var(--color-text)] pt-3 text-base font-semibold text-[var(--color-bg)]">
               <span>Total</span>
               <span>{formatCurrency(totals.total)}</span>
             </div>
@@ -416,7 +416,7 @@ export default function InvoiceForm() {
       </section>
 
       {error ? (
-        <p className="text-sm text-red-400" role="alert">
+        <p className="text-sm text-[var(--color-accent)]" role="alert">
           {error}
         </p>
       ) : null}
@@ -425,13 +425,13 @@ export default function InvoiceForm() {
         <button
           type="submit"
           disabled={submitting}
-          className="rounded-md bg-white px-4 py-2 text-sm font-medium text-neutral-950 disabled:opacity-50"
+          className="rounded-md bg-[var(--color-bg)] px-4 py-2 text-sm font-medium text-[var(--color-text)] disabled:opacity-50"
         >
           {submitting ? "Saving…" : "Save invoice"}
         </button>
         <Link
           href="/dashboard/invoices"
-          className="text-sm text-neutral-400 hover:text-white"
+          className="text-sm text-[var(--color-text)] hover:text-[var(--color-bg)]"
         >
           Cancel
         </Link>

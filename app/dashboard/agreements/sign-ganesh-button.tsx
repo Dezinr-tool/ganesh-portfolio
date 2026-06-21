@@ -5,7 +5,7 @@ import { useRef, useState } from "react";
 import {
   SignatureCanvas,
   type SignatureCanvasRef,
-} from "@/components/agreements/signature-canvas";
+} from "@/components/dashboard/agreements/signature-canvas";
 
 type SignGaneshButtonProps = {
   agreementId: string;
@@ -40,7 +40,7 @@ export function SignGaneshButton({
 
   if (alreadySigned) {
     return (
-      <span className="rounded-md border border-emerald-500/30 bg-emerald-500/10 px-4 py-2 text-sm text-emerald-400">
+      <span className="rounded-md border border-[var(--color-accent)] bg-[var(--color-accent)] px-4 py-2 text-sm text-[var(--color-accent)]">
         Signed by you
       </span>
     );
@@ -92,24 +92,24 @@ export function SignGaneshButton({
       <button
         type="button"
         onClick={openModal}
-        className="rounded-md bg-white px-4 py-2 text-sm font-medium text-neutral-950"
+        className="rounded-md bg-[var(--color-bg)] px-4 py-2 text-sm font-medium text-[var(--color-text)]"
       >
         Sign as Ganesh Das
       </button>
 
       {open ? (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
-          <div className="w-full max-w-lg rounded-lg border border-neutral-700 bg-neutral-900 p-6">
-            <h3 className="text-lg font-semibold text-white">Sign agreement</h3>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-[var(--color-text)]/60 p-4">
+          <div className="w-full max-w-lg rounded-lg border border-[var(--color-text)] bg-[var(--color-bg)] p-6">
+            <h3 className="text-lg font-semibold text-[var(--color-bg)]">Sign agreement</h3>
 
             {loadingDefault ? (
-              <p className="mt-4 text-sm text-neutral-400">Loading signature…</p>
+              <p className="mt-4 text-sm text-[var(--color-text)]">Loading signature…</p>
             ) : defaultSignature ? (
               <>
-                <p className="mt-1 text-sm text-neutral-400">
+                <p className="mt-1 text-sm text-[var(--color-text)]">
                   Using your saved default signature.
                 </p>
-                <div className="mt-4 rounded border border-neutral-700 bg-white p-3">
+                <div className="mt-4 rounded border border-[var(--color-text)] bg-[var(--color-bg)] p-3">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
                     src={defaultSignature}
@@ -118,21 +118,21 @@ export function SignGaneshButton({
                   />
                 </div>
                 {error ? (
-                  <p className="mt-2 text-sm text-red-400">{error}</p>
+                  <p className="mt-2 text-sm text-[var(--color-accent)]">{error}</p>
                 ) : null}
                 <div className="mt-4 flex gap-3">
                   <button
                     type="button"
                     onClick={handleConfirmDefault}
                     disabled={submitting}
-                    className="rounded-md bg-white px-4 py-2 text-sm font-medium text-neutral-950 disabled:opacity-50"
+                    className="rounded-md bg-[var(--color-bg)] px-4 py-2 text-sm font-medium text-[var(--color-text)] disabled:opacity-50"
                   >
                     {submitting ? "Signing…" : "Confirm & Sign"}
                   </button>
                   <button
                     type="button"
                     onClick={() => setOpen(false)}
-                    className="text-sm text-neutral-400 hover:text-white"
+                    className="text-sm text-[var(--color-text)] hover:text-[var(--color-bg)]"
                   >
                     Cancel
                   </button>
@@ -140,11 +140,11 @@ export function SignGaneshButton({
               </>
             ) : (
               <>
-                <p className="mt-1 text-sm text-neutral-400">
+                <p className="mt-1 text-sm text-[var(--color-text)]">
                   No default signature set. Draw your signature below, or{" "}
                   <a
                     href="/dashboard/settings"
-                    className="text-white underline"
+                    className="text-[var(--color-bg)] underline"
                   >
                     add one in Settings
                   </a>
@@ -159,21 +159,21 @@ export function SignGaneshButton({
                   />
                 </div>
                 {error ? (
-                  <p className="mt-2 text-sm text-red-400">{error}</p>
+                  <p className="mt-2 text-sm text-[var(--color-accent)]">{error}</p>
                 ) : null}
                 <div className="mt-4 flex gap-3">
                   <button
                     type="button"
                     onClick={handleConfirmDrawn}
                     disabled={submitting || !hasDrawnSignature}
-                    className="rounded-md bg-white px-4 py-2 text-sm font-medium text-neutral-950 disabled:opacity-50"
+                    className="rounded-md bg-[var(--color-bg)] px-4 py-2 text-sm font-medium text-[var(--color-text)] disabled:opacity-50"
                   >
                     {submitting ? "Signing…" : "Confirm & Sign"}
                   </button>
                   <button
                     type="button"
                     onClick={() => setOpen(false)}
-                    className="text-sm text-neutral-400 hover:text-white"
+                    className="text-sm text-[var(--color-text)] hover:text-[var(--color-bg)]"
                   >
                     Cancel
                   </button>

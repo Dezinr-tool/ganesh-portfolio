@@ -7,6 +7,10 @@ import {
   View,
 } from "@react-pdf/renderer";
 import type { Invoice } from "@/app/dashboard/_lib/invoices";
+import {
+  DEFAULT_DESIGN_TOKENS,
+  type DesignTokens,
+} from "@/lib/design-tokens";
 
 export type InvoicePdfBilling = {
   upiId: string;
@@ -29,13 +33,14 @@ const DEFAULT_BILLING: InvoicePdfBilling = {
 const SENDER_ADDRESS =
   "3101, Venus, Forest Enclave, Hiranandani Fortune City, Panvel";
 
-const styles = StyleSheet.create({
+function createInvoicePdfStyles(tokens: DesignTokens) {
+  return StyleSheet.create({
   page: {
     padding: 48,
     fontSize: 10,
     fontFamily: "Helvetica",
-    color: "#000000",
-    backgroundColor: "#FFFFFF",
+    color: tokens.text,
+    backgroundColor: tokens.bg,
     lineHeight: 1.45,
   },
   headerRow: {
@@ -53,7 +58,7 @@ const styles = StyleSheet.create({
   },
   senderAddress: {
     fontSize: 10,
-    color: "#111111",
+    color: tokens.text,
   },
   headerRight: {
     alignItems: "flex-end",
@@ -89,7 +94,7 @@ const styles = StyleSheet.create({
   tableHeader: {
     flexDirection: "row",
     borderBottomWidth: 1,
-    borderBottomColor: "#000000",
+    borderBottomColor: tokens.text,
     paddingBottom: 6,
     marginBottom: 2,
   },
@@ -100,7 +105,7 @@ const styles = StyleSheet.create({
   tableRow: {
     flexDirection: "row",
     borderBottomWidth: 1,
-    borderBottomColor: "#cccccc",
+    borderBottomColor: tokens.text,
     paddingVertical: 8,
   },
   descriptionCol: {
@@ -128,7 +133,7 @@ const styles = StyleSheet.create({
     marginBottom: 28,
     paddingTop: 8,
     borderTopWidth: 1,
-    borderTopColor: "#000000",
+    borderTopColor: tokens.text,
   },
   paymentTitle: {
     fontSize: 10,
@@ -148,19 +153,20 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "flex-end",
     borderTopWidth: 1,
-    borderTopColor: "#cccccc",
+    borderTopColor: tokens.text,
     paddingTop: 12,
   },
   footerLeft: {
     fontSize: 8,
-    color: "#333333",
+    color: tokens.text,
     maxWidth: "70%",
   },
   signature: {
     fontSize: 12,
     fontFamily: "Helvetica-Oblique",
   },
-});
+  });
+}
 
 function formatPdfDate(date: string): string {
   return new Intl.DateTimeFormat("en-GB", {
@@ -264,13 +270,17 @@ type InvoicePdfProps = {
   invoice: Invoice;
   billing?: InvoicePdfBilling;
   qrDataUrl?: string;
+  designTokens?: DesignTokens;
 };
 
 export function InvoicePdf({
   invoice,
   billing = DEFAULT_BILLING,
   qrDataUrl,
+  designTokens = DEFAULT_DESIGN_TOKENS,
 }: InvoicePdfProps) {
+  const styles = createInvoicePdfStyles(designTokens);
+
   return (
     <Document>
       <Page size="A4" style={styles.page}>
@@ -361,7 +371,7 @@ export function InvoicePdf({
                     fontSize: 8,
                     textAlign: "center",
                     marginTop: 4,
-                    color: "#333333",
+                    color: designTokens.text,
                   }}
                 >
                   Scan to Pay

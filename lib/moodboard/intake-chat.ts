@@ -16,6 +16,7 @@ export type IntakeChatMessage = {
 const INTAKE_MODEL = "claude-haiku-4-5-20251001";
 
 function intakeModel(_modelId: MoodboardModelId): string {
+  void _modelId;
   return INTAKE_MODEL;
 }
 

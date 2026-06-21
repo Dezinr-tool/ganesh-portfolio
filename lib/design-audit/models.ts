@@ -102,11 +102,11 @@ export function isValidAuditModelId(id: string): id is AuditModelId {
 }
 
 function tagColor(tag: string): string {
-  if (tag.includes("RECOMMENDED")) return "bg-emerald-500/15 text-emerald-400";
-  if (tag.includes("THOROUGH")) return "bg-violet-500/15 text-violet-400";
-  if (tag.includes("VISUALS")) return "bg-sky-500/15 text-sky-400";
-  if (tag.includes("FAST")) return "bg-amber-500/15 text-amber-400";
-  return "bg-zinc-700/50 text-zinc-400";
+  if (tag.includes("RECOMMENDED")) return "bg-[var(--color-accent)] text-[var(--color-accent)]";
+  if (tag.includes("THOROUGH")) return "bg-[var(--color-accent)] text-[var(--color-accent)]";
+  if (tag.includes("VISUALS")) return "bg-[var(--color-accent)] text-[var(--color-accent)]";
+  if (tag.includes("FAST")) return "bg-[var(--color-accent)] text-[var(--color-accent)]";
+  return "bg-[var(--color-bg)]/50 text-[var(--color-text)]";
 }
 
 export function auditModelTagClass(tag: string): string {

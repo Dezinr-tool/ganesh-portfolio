@@ -12,7 +12,7 @@ import {
 } from "@/lib/design-audit/types";
 
 const styles = StyleSheet.create({
-  page: { padding: 40, fontFamily: "Helvetica", fontSize: 10, color: "#111" },
+  page: { padding: 40, fontFamily: "Helvetica", fontSize: 10, color: "var(--color-text)" },
   title: { fontSize: 22, fontWeight: "bold", marginBottom: 8 },
   score: { fontSize: 16, marginBottom: 12 },
   section: { marginBottom: 14 },

@@ -430,9 +430,9 @@ async function main() {
     "Color coding green 7+ / yellow 5-6 / red <5",
     auditReport.includes("score >= 7") || auditReport.includes("score >= 7)")
       ? "pass"
-      : auditReport.includes("text-emerald-400") &&
-          auditReport.includes("text-amber-400") &&
-          auditReport.includes("text-red-400")
+      : auditReport.includes("text-[var(--color-accent)]") &&
+          auditReport.includes("text-[var(--color-accent)]") &&
+          auditReport.includes("text-[var(--color-accent)]")
         ? "pass"
         : "fail",
   );

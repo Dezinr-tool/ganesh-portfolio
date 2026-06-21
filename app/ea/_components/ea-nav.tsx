@@ -18,9 +18,9 @@ export function EANav() {
   const { eaName } = useEASettings();
 
   return (
-    <header className="border-b border-zinc-800/80">
+    <header className="border-b border-[var(--color-text)]/80">
       <div className="mx-auto flex max-w-5xl items-center justify-between px-6 py-5">
-        <Link href="/ea/dashboard" className="text-sm font-medium text-white">
+        <Link href="/ea/dashboard" className="text-sm font-medium text-[var(--color-bg)]">
           {eaName}
         </Link>
         <nav className="flex gap-1">
@@ -32,8 +32,8 @@ export function EANav() {
                 href={link.href}
                 className={`rounded-md px-3 py-1.5 text-sm transition-colors ${
                   active
-                    ? "bg-zinc-800 text-white"
-                    : "text-zinc-500 hover:text-zinc-300"
+                    ? "bg-[var(--color-bg)] text-[var(--color-bg)]"
+                    : "text-[var(--color-text)] hover:text-[var(--color-text)]"
                 }`}
               >
                 {link.label}

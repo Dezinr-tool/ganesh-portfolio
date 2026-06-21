@@ -156,12 +156,12 @@ export default function AgreementForm({ agreement }: AgreementFormProps) {
   return (
     <form onSubmit={handleSubmit} className="space-y-8">
       {needsInvalidateWarning ? (
-        <div className="rounded-lg border border-amber-500/30 bg-amber-500/10 p-4">
-          <p className="text-sm text-amber-200">
+        <div className="rounded-lg border border-[var(--color-accent)] bg-[var(--color-accent)] p-4">
+          <p className="text-sm text-[var(--color-accent)]">
             This agreement has already been sent to the client. Editing will
             invalidate the previous signing link.
           </p>
-          <label className="mt-3 flex cursor-pointer items-start gap-2 text-sm text-amber-100">
+          <label className="mt-3 flex cursor-pointer items-start gap-2 text-sm text-[var(--color-accent)]">
             <input
               type="checkbox"
               checked={confirmInvalidate}
@@ -173,10 +173,10 @@ export default function AgreementForm({ agreement }: AgreementFormProps) {
         </div>
       ) : null}
 
-      <section className="rounded-lg border border-neutral-800 bg-neutral-900 p-6">
-        <h2 className="text-sm font-medium text-white">Agreement details</h2>
+      <section className="rounded-lg border border-[var(--color-text)] bg-[var(--color-bg)] p-6">
+        <h2 className="text-sm font-medium text-[var(--color-bg)]">Agreement details</h2>
         <div className="mt-4">
-          <label htmlFor="title" className="mb-1.5 block text-sm text-neutral-300">
+          <label htmlFor="title" className="mb-1.5 block text-sm text-[var(--color-text)]">
             Title
           </label>
           <input
@@ -191,11 +191,11 @@ export default function AgreementForm({ agreement }: AgreementFormProps) {
         </div>
       </section>
 
-      <section className="rounded-lg border border-neutral-800 bg-neutral-900 p-6">
-        <h2 className="text-sm font-medium text-white">Client</h2>
+      <section className="rounded-lg border border-[var(--color-text)] bg-[var(--color-bg)] p-6">
+        <h2 className="text-sm font-medium text-[var(--color-bg)]">Client</h2>
         <div className="mt-4 grid gap-4 sm:grid-cols-2">
           <div>
-            <label htmlFor="clientName" className="mb-1.5 block text-sm text-neutral-300">
+            <label htmlFor="clientName" className="mb-1.5 block text-sm text-[var(--color-text)]">
               Client name
             </label>
             <input
@@ -208,7 +208,7 @@ export default function AgreementForm({ agreement }: AgreementFormProps) {
             />
           </div>
           <div>
-            <label htmlFor="clientCompany" className="mb-1.5 block text-sm text-neutral-300">
+            <label htmlFor="clientCompany" className="mb-1.5 block text-sm text-[var(--color-text)]">
               Company
             </label>
             <input
@@ -221,7 +221,7 @@ export default function AgreementForm({ agreement }: AgreementFormProps) {
             />
           </div>
           <div>
-            <label htmlFor="clientEmail" className="mb-1.5 block text-sm text-neutral-300">
+            <label htmlFor="clientEmail" className="mb-1.5 block text-sm text-[var(--color-text)]">
               Email
             </label>
             <input
@@ -234,7 +234,7 @@ export default function AgreementForm({ agreement }: AgreementFormProps) {
             />
           </div>
           <div>
-            <label htmlFor="clientRepresentative" className="mb-1.5 block text-sm text-neutral-300">
+            <label htmlFor="clientRepresentative" className="mb-1.5 block text-sm text-[var(--color-text)]">
               Representative name
             </label>
             <input
@@ -249,8 +249,8 @@ export default function AgreementForm({ agreement }: AgreementFormProps) {
         </div>
       </section>
 
-      <section className="rounded-lg border border-neutral-800 bg-neutral-900 p-6">
-        <label htmlFor="projectOverview" className="text-sm font-medium text-white">
+      <section className="rounded-lg border border-[var(--color-text)] bg-[var(--color-bg)] p-6">
+        <label htmlFor="projectOverview" className="text-sm font-medium text-[var(--color-bg)]">
           Project overview
         </label>
         <textarea
@@ -264,13 +264,13 @@ export default function AgreementForm({ agreement }: AgreementFormProps) {
         />
       </section>
 
-      <section className="rounded-lg border border-neutral-800 bg-neutral-900 p-6">
+      <section className="rounded-lg border border-[var(--color-text)] bg-[var(--color-bg)] p-6">
         <div className="flex items-center justify-between">
-          <h2 className="text-sm font-medium text-white">Scope of work</h2>
+          <h2 className="text-sm font-medium text-[var(--color-bg)]">Scope of work</h2>
           <button
             type="button"
             onClick={() => setScopeOfWork((items) => [...items, createScopeItem()])}
-            className="text-sm text-neutral-300 hover:text-white"
+            className="text-sm text-[var(--color-text)] hover:text-[var(--color-bg)]"
           >
             + Add row
           </button>
@@ -307,7 +307,7 @@ export default function AgreementForm({ agreement }: AgreementFormProps) {
                   )
                 }
                 disabled={scopeOfWork.length === 1}
-                className="text-sm text-neutral-500 hover:text-red-400 disabled:opacity-30"
+                className="text-sm text-[var(--color-text)] hover:text-[var(--color-accent)] disabled:opacity-30"
               >
                 Remove
               </button>
@@ -316,15 +316,15 @@ export default function AgreementForm({ agreement }: AgreementFormProps) {
         </div>
       </section>
 
-      <section className="rounded-lg border border-neutral-800 bg-neutral-900 p-6">
+      <section className="rounded-lg border border-[var(--color-text)] bg-[var(--color-bg)] p-6">
         <div className="flex items-center justify-between">
-          <h2 className="text-sm font-medium text-white">Deliverables</h2>
+          <h2 className="text-sm font-medium text-[var(--color-bg)]">Deliverables</h2>
           <button
             type="button"
             onClick={() =>
               setDeliverables((items) => [...items, createDeliverable()])
             }
-            className="text-sm text-neutral-300 hover:text-white"
+            className="text-sm text-[var(--color-text)] hover:text-[var(--color-bg)]"
           >
             + Add row
           </button>
@@ -365,7 +365,7 @@ export default function AgreementForm({ agreement }: AgreementFormProps) {
                   )
                 }
                 disabled={deliverables.length === 1}
-                className="text-sm text-neutral-500 hover:text-red-400 disabled:opacity-30"
+                className="text-sm text-[var(--color-text)] hover:text-[var(--color-accent)] disabled:opacity-30"
               >
                 Remove
               </button>
@@ -374,8 +374,8 @@ export default function AgreementForm({ agreement }: AgreementFormProps) {
         </div>
       </section>
 
-      <section className="rounded-lg border border-neutral-800 bg-neutral-900 p-6">
-        <label htmlFor="timeline" className="text-sm font-medium text-white">
+      <section className="rounded-lg border border-[var(--color-text)] bg-[var(--color-bg)] p-6">
+        <label htmlFor="timeline" className="text-sm font-medium text-[var(--color-bg)]">
           Timeline
         </label>
         <textarea
@@ -389,11 +389,11 @@ export default function AgreementForm({ agreement }: AgreementFormProps) {
         />
       </section>
 
-      <section className="rounded-lg border border-neutral-800 bg-neutral-900 p-6">
-        <h2 className="text-sm font-medium text-white">Payment</h2>
+      <section className="rounded-lg border border-[var(--color-text)] bg-[var(--color-bg)] p-6">
+        <h2 className="text-sm font-medium text-[var(--color-bg)]">Payment</h2>
         <div className="mt-4 grid gap-4 sm:grid-cols-3">
           <div>
-            <label htmlFor="hourlyRate" className="mb-1.5 block text-sm text-neutral-300">
+            <label htmlFor="hourlyRate" className="mb-1.5 block text-sm text-[var(--color-text)]">
               Hourly rate (optional)
             </label>
             <input
@@ -407,7 +407,7 @@ export default function AgreementForm({ agreement }: AgreementFormProps) {
             />
           </div>
           <div>
-            <label htmlFor="fixedCost" className="mb-1.5 block text-sm text-neutral-300">
+            <label htmlFor="fixedCost" className="mb-1.5 block text-sm text-[var(--color-text)]">
               Fixed cost (optional)
             </label>
             <input
@@ -421,7 +421,7 @@ export default function AgreementForm({ agreement }: AgreementFormProps) {
             />
           </div>
           <div>
-            <label htmlFor="advancePercent" className="mb-1.5 block text-sm text-neutral-300">
+            <label htmlFor="advancePercent" className="mb-1.5 block text-sm text-[var(--color-text)]">
               Advance %
             </label>
             <input
@@ -436,7 +436,7 @@ export default function AgreementForm({ agreement }: AgreementFormProps) {
           </div>
         </div>
         <div className="mt-4">
-          <label htmlFor="paymentNotes" className="mb-1.5 block text-sm text-neutral-300">
+          <label htmlFor="paymentNotes" className="mb-1.5 block text-sm text-[var(--color-text)]">
             Payment notes (optional)
           </label>
           <textarea
@@ -451,7 +451,7 @@ export default function AgreementForm({ agreement }: AgreementFormProps) {
       </section>
 
       {error ? (
-        <p className="text-sm text-red-400" role="alert">
+        <p className="text-sm text-[var(--color-accent)]" role="alert">
           {error}
         </p>
       ) : null}
@@ -460,7 +460,7 @@ export default function AgreementForm({ agreement }: AgreementFormProps) {
         <button
           type="submit"
           disabled={submitting}
-          className="rounded-md bg-white px-4 py-2 text-sm font-medium text-neutral-950 disabled:opacity-50"
+          className="rounded-md bg-[var(--color-bg)] px-4 py-2 text-sm font-medium text-[var(--color-text)] disabled:opacity-50"
         >
           {submitting
             ? "Saving…"
@@ -470,7 +470,7 @@ export default function AgreementForm({ agreement }: AgreementFormProps) {
         </button>
         <Link
           href={cancelHref}
-          className="text-sm text-neutral-400 hover:text-white"
+          className="text-sm text-[var(--color-text)] hover:text-[var(--color-bg)]"
         >
           Cancel
         </Link>

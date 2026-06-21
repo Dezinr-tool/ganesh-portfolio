@@ -14,7 +14,7 @@ export function ModelSelect({
   const selected = MOODBOARD_MODELS.find((m) => m.id === value);
   return (
     <div>
-      <label className="mb-2 block text-xs font-medium uppercase tracking-wide text-zinc-500">
+      <label className="mb-2 block text-xs font-medium uppercase tracking-wide text-[var(--color-text)]">
         AI model
       </label>
       <select
@@ -32,7 +32,7 @@ export function ModelSelect({
         ))}
       </select>
       {selected ? (
-        <p className="mt-1.5 text-xs text-zinc-500">
+        <p className="mt-1.5 text-xs text-[var(--color-text)]">
           Estimated generation time: ~{selected.estimatedSeconds} seconds
         </p>
       ) : null}
@@ -57,7 +57,7 @@ export function Field({
 }) {
   return (
     <div>
-      <label className="mb-2 block text-xs text-zinc-400">
+      <label className="mb-2 block text-xs text-[var(--color-text)]">
         {label}
         {optional ? " (optional)" : ""}
       </label>

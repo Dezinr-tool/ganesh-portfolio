@@ -2,7 +2,7 @@ import Anthropic from "@anthropic-ai/sdk";
 import { randomUUID } from "crypto";
 import { cacheGet, cacheKey, cacheSet, hashString } from "../ai-cache";
 import { getModelConfig } from "./models";
-import { buildBriefFromAnswers, extractBrandName } from "./question-flow";
+import { buildBriefFromAnswers } from "./question-flow";
 import type {
   MoodboardPresentationDirection,
   MoodboardColorSwatch,
@@ -10,7 +10,6 @@ import type {
 } from "./db-types";
 import type { MoodboardModelId } from "./types";
 import { enrichDirectionImages } from "./unsplash";
-import { loadAndFormatContext } from "../context-loader";
 import {
   OUTPUT_SECTIONS,
   SECTION_GENERATION_SPEC,
@@ -93,7 +92,7 @@ function normalizeColorPalette(raw: unknown): MoodboardColorSwatch[] {
   });
   while (colorPalette.length < 5) {
     colorPalette.push({
-      hex: "#1a1a1a",
+      hex: "var(--color-text)",
       name: `Neutral ${colorPalette.length + 1}`,
       role: roles[colorPalette.length],
     });

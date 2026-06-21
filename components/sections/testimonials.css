@@ -1,0 +1,149 @@
+/* Testimonials — madewithgsap.com proportions + GSAP marquee */
+
+.testimonials-section {
+  position: relative;
+  z-index: 20;
+  isolation: isolate;
+  color: var(--color-text);
+  overflow: hidden;
+  background: var(--color-bg);
+}
+
+.testimonials-section.section-stage {
+  --section-stage-pt: max(7.5rem, 120px);
+  --section-stage-pb: max(7.5rem, 120px);
+}
+
+.testimonials-section__heading {
+  margin: 0 auto clamp(3rem, 7vw, 5rem);
+  padding: 0 var(--section-px);
+  max-width: 18ch;
+  text-align: center;
+  font-family: var(--font-display);
+  font-size: clamp(2.25rem, 5.5vw, 4rem);
+  font-weight: 500;
+  line-height: 1.05;
+  letter-spacing: -0.03em;
+  color: var(--color-text);
+}
+
+.testimonials-section__viewport {
+  overflow: hidden;
+  width: 100%;
+  cursor: default;
+}
+
+.testimonials-section__track {
+  display: flex;
+  width: max-content;
+  gap: clamp(0.5rem, 0.85vw, 0.65rem);
+  padding-inline: max(var(--section-px), calc((100% - 72rem) / 2 + var(--section-px)));
+  will-change: transform;
+}
+
+/* ~3 cards visible on desktop — MWG proportions */
+.testimonials-card {
+  flex: 0 0 clamp(19rem, 31vw, 30rem);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-height: clamp(26rem, 44vw, 32rem);
+  padding: clamp(2rem, 3.5vw, 2.75rem) clamp(1.75rem, 3vw, 2.5rem)
+    clamp(1.75rem, 3vw, 2.35rem);
+  text-align: center;
+  background: var(--color-bg);
+  border: 1px solid color-mix(in srgb, var(--color-text) 4%, transparent);
+  border-radius: 0.65rem;
+}
+
+.testimonials-card__quote {
+  flex: 1;
+  margin: 0 0 clamp(1.75rem, 3.5vw, 2.25rem);
+  font-size: clamp(0.875rem, 1.15vw, 1rem);
+  font-weight: 400;
+  line-height: 1.55;
+  letter-spacing: -0.01em;
+  color: var(--color-text);
+}
+
+.testimonials-card__avatar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: clamp(3.25rem, 5vw, 4rem);
+  height: clamp(3.25rem, 5vw, 4rem);
+  margin-bottom: 0.85rem;
+  border-radius: 50%;
+  flex-shrink: 0;
+  background: color-mix(in srgb, var(--color-text) 6%, var(--color-bg));
+  border: 1px solid color-mix(in srgb, var(--color-text) 8%, transparent);
+}
+
+.testimonials-card__initials {
+  font-family: var(--font-display);
+  font-size: clamp(0.875rem, 1.4vw, 1rem);
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: var(--color-text);
+}
+
+.testimonials-card__name {
+  margin: 0 0 0.45rem;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  line-height: 1.35;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--color-text);
+}
+
+.testimonials-card__meta {
+  margin: 0;
+  font-size: 0.625rem;
+  font-weight: 500;
+  line-height: 1.45;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-text);
+}
+
+.testimonials-card__dot {
+  display: block;
+  width: 0.5rem;
+  height: 0.5rem;
+  margin-top: auto;
+  border-radius: 50%;
+  background: var(--color-accent);
+  flex-shrink: 0;
+}
+
+.testimonials-section__viewport--static .testimonials-section__track {
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+}
+
+.testimonials-section__viewport--static .testimonials-section__track::-webkit-scrollbar {
+  display: none;
+}
+
+.testimonials-section__viewport--static .testimonials-card {
+  scroll-snap-align: start;
+}
+
+@media (min-width: 64rem) {
+  .testimonials-section__heading {
+    padding-inline: var(--section-px-md);
+  }
+
+  .testimonials-section__track {
+    padding-inline: max(var(--section-px-md), calc((100% - 72rem) / 2 + var(--section-px-md)));
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .testimonials-section__viewport--static .testimonials-section__track {
+    cursor: auto;
+  }
+}

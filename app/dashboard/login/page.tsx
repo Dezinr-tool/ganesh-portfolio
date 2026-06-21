@@ -5,7 +5,7 @@ export default function DashboardLoginPage() {
   return (
     <Suspense
       fallback={
-        <div className="flex min-h-screen items-center justify-center bg-neutral-950 text-sm text-neutral-400">
+        <div className="flex min-h-screen items-center justify-center bg-[var(--color-bg)] text-sm text-[var(--color-text)]">
           Loading…
         </div>
       }

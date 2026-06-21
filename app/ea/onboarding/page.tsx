@@ -82,53 +82,53 @@ export default function EAOnboardingPage() {
   };
 
   return (
-    <div className="min-h-screen bg-black text-white flex items-center justify-center px-4">
+    <div className="min-h-screen bg-[var(--color-text)] text-[var(--color-bg)] flex items-center justify-center px-4">
       <div className="w-full max-w-lg">
-        <p className="text-zinc-500 text-sm mb-2">Welcome to {eaName}</p>
+        <p className="text-[var(--color-text)] text-sm mb-2">Welcome to {eaName}</p>
         <h1 className="text-2xl font-light mb-2">Quick setup</h1>
-        <p className="text-zinc-400 text-sm mb-8">
+        <p className="text-[var(--color-text)] text-sm mb-8">
           Tell me a bit about you so I can match your style and timezone.
         </p>
 
         <form onSubmit={handleSubmit} className="space-y-5">
           <label className="block">
-            <span className="text-zinc-400 text-sm">Your name</span>
+            <span className="text-[var(--color-text)] text-sm">Your name</span>
             <input
               type="text"
               required
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder="Ganesh"
-              className="mt-1 w-full bg-zinc-900 border border-zinc-800 rounded-lg px-4 py-3 text-white placeholder:text-zinc-600 focus:outline-none focus:border-zinc-600"
+              className="mt-1 w-full bg-[var(--color-bg)] border border-[var(--color-text)] rounded-lg px-4 py-3 text-[var(--color-bg)] placeholder:text-[var(--color-text)] focus:outline-none focus:border-[var(--color-text)]"
             />
           </label>
 
           <label className="block">
-            <span className="text-zinc-400 text-sm">Role</span>
+            <span className="text-[var(--color-text)] text-sm">Role</span>
             <input
               type="text"
               required
               value={role}
               onChange={(e) => setRole(e.target.value)}
               placeholder="Design Manager"
-              className="mt-1 w-full bg-zinc-900 border border-zinc-800 rounded-lg px-4 py-3 text-white placeholder:text-zinc-600 focus:outline-none focus:border-zinc-600"
+              className="mt-1 w-full bg-[var(--color-bg)] border border-[var(--color-text)] rounded-lg px-4 py-3 text-[var(--color-bg)] placeholder:text-[var(--color-text)] focus:outline-none focus:border-[var(--color-text)]"
             />
           </label>
 
           <label className="block">
-            <span className="text-zinc-400 text-sm">Industry</span>
+            <span className="text-[var(--color-text)] text-sm">Industry</span>
             <input
               type="text"
               required
               value={industry}
               onChange={(e) => setIndustry(e.target.value)}
               placeholder="Design / Technology"
-              className="mt-1 w-full bg-zinc-900 border border-zinc-800 rounded-lg px-4 py-3 text-white placeholder:text-zinc-600 focus:outline-none focus:border-zinc-600"
+              className="mt-1 w-full bg-[var(--color-bg)] border border-[var(--color-text)] rounded-lg px-4 py-3 text-[var(--color-bg)] placeholder:text-[var(--color-text)] focus:outline-none focus:border-[var(--color-text)]"
             />
           </label>
 
           <fieldset>
-            <legend className="text-zinc-400 text-sm mb-2">
+            <legend className="text-[var(--color-text)] text-sm mb-2">
               Preferred communication style
             </legend>
             <div className="grid gap-2">
@@ -137,8 +137,8 @@ export default function EAOnboardingPage() {
                   key={style.id}
                   className={`flex items-start gap-3 rounded-lg border px-4 py-3 cursor-pointer transition-colors ${
                     communicationStyle === style.id
-                      ? "border-white bg-zinc-900"
-                      : "border-zinc-800 hover:border-zinc-700"
+                      ? "border-[var(--color-bg)] bg-[var(--color-bg)]"
+                      : "border-[var(--color-text)] hover:border-[var(--color-text)]"
                   }`}
                 >
                   <input
@@ -151,7 +151,7 @@ export default function EAOnboardingPage() {
                   />
                   <span>
                     <span className="block text-sm">{style.label}</span>
-                    <span className="block text-zinc-500 text-xs mt-0.5">
+                    <span className="block text-[var(--color-text)] text-xs mt-0.5">
                       {style.hint}
                     </span>
                   </span>
@@ -161,11 +161,11 @@ export default function EAOnboardingPage() {
           </fieldset>
 
           <label className="block">
-            <span className="text-zinc-400 text-sm">Timezone</span>
+            <span className="text-[var(--color-text)] text-sm">Timezone</span>
             <select
               value={timezone}
               onChange={(e) => setTimezone(e.target.value)}
-              className="mt-1 w-full bg-zinc-900 border border-zinc-800 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-zinc-600"
+              className="mt-1 w-full bg-[var(--color-bg)] border border-[var(--color-text)] rounded-lg px-4 py-3 text-[var(--color-bg)] focus:outline-none focus:border-[var(--color-text)]"
             >
               {TIMEZONES.map((tz) => (
                 <option key={tz} value={tz}>
@@ -176,13 +176,13 @@ export default function EAOnboardingPage() {
           </label>
 
           {error ? (
-            <p className="text-red-400 text-sm">{error}</p>
+            <p className="text-[var(--color-accent)] text-sm">{error}</p>
           ) : null}
 
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-white text-black rounded-lg py-3 font-medium hover:bg-zinc-200 disabled:opacity-50 transition-colors"
+            className="w-full bg-[var(--color-bg)] text-[var(--color-text)] rounded-lg py-3 font-medium hover:bg-[var(--color-bg)] disabled:opacity-50 transition-colors"
           >
             {loading ? "Saving…" : "Continue to chat"}
           </button>

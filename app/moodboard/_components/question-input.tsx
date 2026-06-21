@@ -10,12 +10,12 @@ import { isQuestionOptional } from "@/lib/moodboard/question-flow";
 import { SectionSelector } from "./section-selector";
 
 const INPUT =
-  "w-full rounded-lg border border-zinc-800 bg-zinc-950 px-3 py-2 text-sm text-zinc-100 outline-none placeholder:text-zinc-600 focus:border-zinc-600";
+  "w-full rounded-lg border border-[var(--color-text)] bg-[var(--color-bg)] px-3 py-2 text-sm text-[var(--color-text)] outline-none placeholder:text-[var(--color-text)] focus:border-[var(--color-text)]";
 const BTN =
-  "rounded-lg bg-zinc-100 px-4 py-2 text-sm font-medium text-zinc-900 transition hover:bg-white disabled:opacity-40";
+  "rounded-lg bg-[var(--color-bg)] px-4 py-2 text-sm font-medium text-[var(--color-text)] transition hover:bg-[var(--color-bg)] disabled:opacity-40";
 const CHIP =
-  "rounded-full border border-zinc-800 bg-zinc-900/80 px-3 py-1.5 text-xs text-zinc-300 transition hover:border-zinc-600 hover:text-white disabled:opacity-40";
-const CHIP_ACTIVE = "border-zinc-500 bg-zinc-800 text-white";
+  "rounded-full border border-[var(--color-text)] bg-[var(--color-bg)]/80 px-3 py-1.5 text-xs text-[var(--color-text)] transition hover:border-[var(--color-text)] hover:text-[var(--color-bg)] disabled:opacity-40";
+const CHIP_ACTIVE = "border-[var(--color-text)] bg-[var(--color-bg)] text-[var(--color-bg)]";
 
 export function ChatBubble({
   role,
@@ -29,8 +29,8 @@ export function ChatBubble({
       <div
         className={`max-w-[92%] space-y-3 rounded-2xl px-3.5 py-2.5 text-sm leading-relaxed sm:max-w-[85%] ${
           role === "user"
-            ? "bg-zinc-800 text-zinc-100"
-            : "border border-zinc-800/80 bg-zinc-900/40 text-zinc-300"
+            ? "bg-[var(--color-bg)] text-[var(--color-text)]"
+            : "border border-[var(--color-text)]/80 bg-[var(--color-bg)]/40 text-[var(--color-text)]"
         }`}
       >
         {children}
@@ -187,14 +187,14 @@ export function QuestionInput({
                 type="button"
                 disabled={disabled}
                 onClick={() => fileRef.current?.click()}
-                className="text-xs text-zinc-500 underline hover:text-zinc-300"
+                className="text-xs text-[var(--color-text)] underline hover:text-[var(--color-text)]"
               >
                 {question.key === "q19"
                   ? "Upload PDF, DOCX, or TXT"
                   : `Upload files${question.key === "q13" ? ` (up to ${MAX_REFERENCE_IMAGES})` : ""}`}
               </button>
               {files.length > 0 ? (
-                <p className="text-xs text-zinc-500">{files.length} file(s) selected</p>
+                <p className="text-xs text-[var(--color-text)]">{files.length} file(s) selected</p>
               ) : null}
             </div>
           )}
@@ -213,7 +213,7 @@ export function QuestionInput({
                 type="button"
                 disabled={disabled}
                 onClick={onSkip}
-                className="rounded-lg border border-zinc-800 px-4 py-2 text-sm text-zinc-500 hover:text-zinc-300"
+                className="rounded-lg border border-[var(--color-text)] px-4 py-2 text-sm text-[var(--color-text)] hover:text-[var(--color-text)]"
               >
                 Skip
               </button>

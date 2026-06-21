@@ -108,13 +108,13 @@ export function PaymentBillingSettingsForm() {
   }
 
   if (loading) {
-    return <p className="text-sm text-neutral-400">Loading…</p>;
+    return <p className="text-sm text-[var(--color-text)]">Loading…</p>;
   }
 
   return (
     <div className="space-y-4">
       <div>
-        <label htmlFor="hourlyRate" className="mb-1.5 block text-sm text-neutral-300">
+        <label htmlFor="hourlyRate" className="mb-1.5 block text-sm text-[var(--color-text)]">
           Default hourly rate (₹)
         </label>
         <input
@@ -130,7 +130,7 @@ export function PaymentBillingSettingsForm() {
 
       <div className="grid gap-4 sm:grid-cols-2">
         <div className="sm:col-span-2">
-          <label htmlFor="upiId" className="mb-1.5 block text-sm text-neutral-300">
+          <label htmlFor="upiId" className="mb-1.5 block text-sm text-[var(--color-text)]">
             UPI ID
           </label>
           <input
@@ -145,7 +145,7 @@ export function PaymentBillingSettingsForm() {
         <div className="sm:col-span-2">
           <label
             htmlFor="bankAccountHolder"
-            className="mb-1.5 block text-sm text-neutral-300"
+            className="mb-1.5 block text-sm text-[var(--color-text)]"
           >
             Account holder
           </label>
@@ -159,7 +159,7 @@ export function PaymentBillingSettingsForm() {
         </div>
 
         <div>
-          <label htmlFor="bankName" className="mb-1.5 block text-sm text-neutral-300">
+          <label htmlFor="bankName" className="mb-1.5 block text-sm text-[var(--color-text)]">
             Bank name
           </label>
           <input
@@ -172,7 +172,7 @@ export function PaymentBillingSettingsForm() {
         </div>
 
         <div>
-          <label htmlFor="bankIfsc" className="mb-1.5 block text-sm text-neutral-300">
+          <label htmlFor="bankIfsc" className="mb-1.5 block text-sm text-[var(--color-text)]">
             IFSC code
           </label>
           <input
@@ -187,7 +187,7 @@ export function PaymentBillingSettingsForm() {
         <div>
           <label
             htmlFor="bankAccountNumber"
-            className="mb-1.5 block text-sm text-neutral-300"
+            className="mb-1.5 block text-sm text-[var(--color-text)]"
           >
             Account number
           </label>
@@ -201,7 +201,7 @@ export function PaymentBillingSettingsForm() {
         </div>
 
         <div>
-          <label htmlFor="panNumber" className="mb-1.5 block text-sm text-neutral-300">
+          <label htmlFor="panNumber" className="mb-1.5 block text-sm text-[var(--color-text)]">
             PAN number
           </label>
           <input
@@ -215,20 +215,20 @@ export function PaymentBillingSettingsForm() {
       </div>
 
       {error ? (
-        <p className="text-sm text-red-400" role="alert">
+        <p className="text-sm text-[var(--color-accent)]" role="alert">
           {error}
         </p>
       ) : null}
 
       {success ? (
-        <p className="text-sm text-emerald-400">Payment & billing settings saved.</p>
+        <p className="text-sm text-[var(--color-accent)]">Payment & billing settings saved.</p>
       ) : null}
 
       <button
         type="button"
         onClick={handleSave}
         disabled={saving}
-        className="rounded-md bg-white px-4 py-2 text-sm font-medium text-neutral-950 disabled:opacity-50"
+        className="rounded-md bg-[var(--color-bg)] px-4 py-2 text-sm font-medium text-[var(--color-text)] disabled:opacity-50"
       >
         {saving ? "Saving…" : "Save settings"}
       </button>

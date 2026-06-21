@@ -1,5 +1,6 @@
 import QRCode from "qrcode";
 import type { Invoice } from "@/app/dashboard/_lib/invoices";
+import { getDesignTokens } from "@/lib/design-tokens";
 import type { InvoicePdfBilling } from "@/lib/invoice-pdf";
 import { getBillingSettings } from "@/lib/settings-store";
 
@@ -26,8 +27,12 @@ function buildUpiString(
 export async function getInvoicePdfData(invoice: Invoice): Promise<{
   billing: InvoicePdfBilling;
   qrDataUrl: string;
+  designTokens: Awaited<ReturnType<typeof getDesignTokens>>;
 }> {
-  const settings = await getBillingSettings();
+  const [settings, designTokens] = await Promise.all([
+    getBillingSettings(),
+    getDesignTokens(),
+  ]);
   const billing = billingFromSettings(settings);
   const upiString = buildUpiString(billing, invoice);
 
@@ -37,5 +42,5 @@ export async function getInvoicePdfData(invoice: Invoice): Promise<{
     type: "image/png",
   });
 
-  return { billing, qrDataUrl };
+  return { billing, qrDataUrl, designTokens };
 }

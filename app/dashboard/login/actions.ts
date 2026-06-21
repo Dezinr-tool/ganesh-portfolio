@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import {
   createDashboardAuthToken,
   DASHBOARD_AUTH_COOKIE,
+  isDashboardLoginRedirect,
 } from "../_lib/auth";
 
 export type LoginState = {
@@ -38,7 +39,7 @@ export async function loginAction(
   });
 
   const from = formData.get("from");
-  if (typeof from === "string" && from.startsWith("/dashboard") && from !== "/dashboard/login") {
+  if (typeof from === "string" && isDashboardLoginRedirect(from)) {
     redirect(from);
   }
 

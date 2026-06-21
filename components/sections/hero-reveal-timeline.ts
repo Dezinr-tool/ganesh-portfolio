@@ -1,5 +1,6 @@
 import {
   applyRevealCopyHighlight,
+  REVEAL_COPY_BLUR_TRAIL,
   resetRevealCopyHighlight,
   splitRevealCopy,
 } from "@/components/sections/AboutRevealCopy";
@@ -202,9 +203,9 @@ export function buildHeroRevealTimeline(els: HeroRevealElements) {
   }
 
   const highlightOpts = {
-    useBlur: true,
-    blurTrail: 3,
+    blurTrail: REVEAL_COPY_BLUR_TRAIL,
     maxBlur: isMobileNameViewport() ? 8 : 10,
+    baseBlur: 4,
   };
 
   if (copyChars.length) {

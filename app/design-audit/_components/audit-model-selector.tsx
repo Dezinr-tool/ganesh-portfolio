@@ -65,7 +65,7 @@ export function AuditModelSelector({
           type="button"
           disabled={disabled}
           onClick={() => setOpen((v) => !v)}
-          className="text-xs text-zinc-500 underline-offset-2 transition hover:text-zinc-300 hover:underline disabled:opacity-50"
+          className="text-xs text-[var(--color-text)] underline-offset-2 transition hover:text-[var(--color-text)] hover:underline disabled:opacity-50"
         >
           Change model ↓
         </button>
@@ -74,7 +74,7 @@ export function AuditModelSelector({
           type="button"
           disabled={disabled}
           onClick={() => setOpen((v) => !v)}
-          className="inline-flex items-center gap-1 text-xs text-zinc-500 transition hover:text-zinc-300 disabled:opacity-50"
+          className="inline-flex items-center gap-1 text-xs text-[var(--color-text)] transition hover:text-[var(--color-text)] disabled:opacity-50"
           aria-expanded={open}
           aria-haspopup="listbox"
         >
@@ -82,12 +82,12 @@ export function AuditModelSelector({
             {selected.shortLabel}
             {selected.recommended ? " ⭐" : ""}
           </span>
-          <span className="text-[10px] text-zinc-600">{open ? "∧" : "∨"}</span>
+          <span className="text-[10px] text-[var(--color-text)]">{open ? "∧" : "∨"}</span>
         </button>
       )}
 
       {!hideReason && !compact ? (
-        <p className="mt-1.5 max-w-md text-[11px] leading-relaxed text-zinc-600">
+        <p className="mt-1.5 max-w-md text-[11px] leading-relaxed text-[var(--color-text)]">
           {modelId === "claude-sonnet" ? AUDIT_DEFAULT_REASON : reason}
         </p>
       ) : null}
@@ -96,12 +96,12 @@ export function AuditModelSelector({
         <div
           role="listbox"
           aria-label="Select model for audit"
-          className={`absolute z-50 mt-2 w-[min(calc(100vw-2rem),22rem)] rounded-xl border border-zinc-800 bg-[#141414] shadow-xl ${
+          className={`absolute z-50 mt-2 w-[min(calc(100vw-2rem),22rem)] rounded-xl border border-[var(--color-text)] bg-[var(--color-text)] shadow-xl ${
             compact ? "right-0" : "left-0"
           }`}
         >
-          <div className="border-b border-zinc-800 px-3 py-2">
-            <p className="text-xs font-medium text-zinc-300">Select Model for Audit</p>
+          <div className="border-b border-[var(--color-text)] px-3 py-2">
+            <p className="text-xs font-medium text-[var(--color-text)]">Select Model for Audit</p>
           </div>
 
           <ul className="max-h-[min(60vh,20rem)] overflow-y-auto py-1">
@@ -123,11 +123,11 @@ export function AuditModelSelector({
                       close();
                     }}
                     className={`w-full px-3 py-2.5 text-left transition ${
-                      active ? "bg-white/[0.06]" : "hover:bg-white/[0.04]"
+                      active ? "bg-[var(--color-bg)]/[0.06]" : "hover:bg-[var(--color-bg)]/[0.04]"
                     }`}
                   >
                     <div className="flex flex-wrap items-center gap-2">
-                      <span className="text-sm text-zinc-100">
+                      <span className="text-sm text-[var(--color-text)]">
                         {m.recommended ? "⭐ " : ""}
                         {m.label}
                       </span>
@@ -137,15 +137,15 @@ export function AuditModelSelector({
                         {m.tag}
                       </span>
                     </div>
-                    <p className="mt-0.5 text-xs text-zinc-500">{m.description}</p>
+                    <p className="mt-0.5 text-xs text-[var(--color-text)]">{m.description}</p>
                   </button>
                 </li>
               );
             })}
           </ul>
 
-          <div className="border-t border-zinc-800 px-3 py-2">
-            <p className="text-[11px] leading-relaxed text-zinc-500">{tooltipText}</p>
+          <div className="border-t border-[var(--color-text)] px-3 py-2">
+            <p className="text-[11px] leading-relaxed text-[var(--color-text)]">{tooltipText}</p>
           </div>
         </div>
       ) : null}
@@ -164,10 +164,10 @@ export function AuditModelConfirmLine({
 }) {
   const selected = getAuditModel(modelId);
   return (
-    <div className="mb-4 flex flex-wrap items-center justify-between gap-2 rounded-lg border border-zinc-800 bg-zinc-900/40 px-3 py-2.5">
-      <p className="text-sm text-zinc-300">
+    <div className="mb-4 flex flex-wrap items-center justify-between gap-2 rounded-lg border border-[var(--color-text)] bg-[var(--color-bg)]/40 px-3 py-2.5">
+      <p className="text-sm text-[var(--color-text)]">
         Running audit with:{" "}
-        <span className="font-medium text-white">
+        <span className="font-medium text-[var(--color-bg)]">
           {selected.label}
           {selected.recommended ? " ⭐" : ""}
         </span>

@@ -16,7 +16,7 @@ Output format (JSON only, no markdown):
     {
       "name": "string",
       "concept": "string (2-3 sentences)",
-      "colors": [{"hex": "#000000", "name": "string"}] (exactly 5 colors),
+      "colors": [{"hex": "var(--color-text)", "name": "string"}] (exactly 5 colors),
       "typography": {"heading": "string", "body": "string"},
       "imagery": "string (describe style in detail)",
       "mood": ["string"] (5-7 keywords),

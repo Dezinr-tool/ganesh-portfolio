@@ -12,9 +12,9 @@ type StatCardConfig = {
 
 function StatCard({ label, value, data, color, variant }: StatCardConfig) {
   return (
-    <div className="rounded-lg border border-neutral-800 bg-neutral-900 p-5">
-      <p className="text-sm text-neutral-400">{label}</p>
-      <p className="mt-1 text-2xl font-semibold tracking-tight text-white">
+    <div className="rounded-lg border border-[var(--color-text)] bg-[var(--color-bg)] p-5">
+      <p className="text-sm text-[var(--color-text)]">{label}</p>
+      <p className="mt-1 text-2xl font-semibold tracking-tight text-[var(--color-bg)]">
         {value}
       </p>
       <div className="mt-4">
@@ -34,28 +34,28 @@ export function DashboardStatsCards({ stats }: DashboardStatsCardsProps) {
       label: "Total Earned",
       value: formatCurrency(stats.totalEarned),
       data: stats.monthlyEarned,
-      color: "#4ade80",
+      color: "var(--color-accent)",
       variant: "bar",
     },
     {
       label: "Pending Amount",
       value: formatCurrency(stats.pendingAmount),
       data: stats.monthlyPending,
-      color: "#f59e0b",
+      color: "var(--color-accent)",
       variant: "bar",
     },
     {
       label: "Total Invoices",
       value: String(stats.totalInvoices),
       data: stats.monthlyInvoices,
-      color: "#ffffff",
+      color: "var(--color-bg)",
       variant: "line",
     },
     {
       label: "Total Agreements",
       value: String(stats.totalAgreements),
       data: stats.monthlyAgreements,
-      color: "#60a5fa",
+      color: "var(--color-accent)",
       variant: "line",
     },
   ];

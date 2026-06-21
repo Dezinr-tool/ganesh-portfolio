@@ -3,12 +3,10 @@ html.page-loader-active {
 }
 
 .page-loader {
-  --loader-bg: #0a0a0a;
-  --loader-text: #f0f0f0;
   --hero-radius: clamp(180px, 26.2vw, 312px);
   --sub-radius: clamp(138px, 18vw, 246px);
 
-  background-color: var(--loader-bg);
+  background-color: var(--color-bg);
   height: 100dvh;
   left: 0;
   overflow: visible;
@@ -78,7 +76,7 @@ html.page-loader-active {
 
 .page-loader__glyph {
   backface-visibility: visible;
-  color: var(--loader-text);
+  color: var(--color-text);
   display: inline-block;
   left: 50%;
   position: absolute;
@@ -110,7 +108,7 @@ html.page-loader-active {
 
 .page-loader__counter {
   bottom: clamp(28px, 5vh, 56px);
-  color: var(--loader-text);
+  color: var(--color-text);
   font-family: var(--font-display);
   font-size: clamp(20px, 2vw, 28px);
   font-variant-numeric: tabular-nums;

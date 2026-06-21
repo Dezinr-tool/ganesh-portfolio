@@ -12,10 +12,10 @@ export default function DashboardLoginForm() {
   const [state, formAction, pending] = useActionState(loginAction, initialState);
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-neutral-950 px-4">
-      <div className="w-full max-w-sm rounded-lg border border-neutral-800 bg-neutral-900 p-8">
-        <h1 className="text-xl font-semibold text-white">Dashboard</h1>
-        <p className="mt-2 text-sm text-neutral-400">
+    <div className="flex min-h-screen items-center justify-center bg-[var(--color-bg)] px-4">
+      <div className="w-full max-w-sm rounded-lg border border-[var(--color-text)] bg-[var(--color-bg)] p-8">
+        <h1 className="text-xl font-semibold text-[var(--color-bg)]">Dashboard</h1>
+        <p className="mt-2 text-sm text-[var(--color-text)]">
           Enter the password to continue.
         </p>
 
@@ -25,7 +25,7 @@ export default function DashboardLoginForm() {
           <div>
             <label
               htmlFor="password"
-              className="mb-1.5 block text-sm text-neutral-300"
+              className="mb-1.5 block text-sm text-[var(--color-text)]"
             >
               Password
             </label>
@@ -35,12 +35,12 @@ export default function DashboardLoginForm() {
               type="password"
               required
               autoComplete="current-password"
-              className="w-full rounded-md border border-neutral-700 bg-neutral-950 px-3 py-2 text-sm text-white outline-none focus:border-neutral-500"
+              className="w-full rounded-md border border-[var(--color-text)] bg-[var(--color-bg)] px-3 py-2 text-sm text-[var(--color-bg)] outline-none focus:border-[var(--color-text)]"
             />
           </div>
 
           {state.error ? (
-            <p className="text-sm text-red-400" role="alert">
+            <p className="text-sm text-[var(--color-accent)]" role="alert">
               {state.error}
             </p>
           ) : null}
@@ -48,7 +48,7 @@ export default function DashboardLoginForm() {
           <button
             type="submit"
             disabled={pending}
-            className="w-full rounded-md bg-white px-4 py-2 text-sm font-medium text-neutral-950 disabled:opacity-50"
+            className="w-full rounded-md bg-[var(--color-bg)] px-4 py-2 text-sm font-medium text-[var(--color-text)] disabled:opacity-50"
           >
             {pending ? "Signing in…" : "Sign in"}
           </button>

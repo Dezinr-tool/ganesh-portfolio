@@ -45,13 +45,13 @@ export default function EASignupPage() {
   };
 
   const inputClass =
-    "w-full bg-zinc-900 text-white border border-zinc-800 rounded-lg px-4 py-3 outline-none focus:border-zinc-600";
+    "w-full bg-[var(--color-bg)] text-[var(--color-bg)] border border-[var(--color-text)] rounded-lg px-4 py-3 outline-none focus:border-[var(--color-text)]";
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-black">
+    <div className="flex min-h-screen items-center justify-center bg-[var(--color-text)]">
       <div className="w-full max-w-md p-8">
-        <h1 className="mb-2 text-2xl font-light text-white">Start with {eaName}</h1>
-        <p className="mb-8 text-sm text-zinc-500">{buildEAPreview(eaName)}</p>
+        <h1 className="mb-2 text-2xl font-light text-[var(--color-bg)]">Start with {eaName}</h1>
+        <p className="mb-8 text-sm text-[var(--color-text)]">{buildEAPreview(eaName)}</p>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <input
@@ -96,20 +96,20 @@ export default function EASignupPage() {
             className={inputClass}
           />
 
-          {error ? <p className="text-sm text-red-400">{error}</p> : null}
+          {error ? <p className="text-sm text-[var(--color-accent)]">{error}</p> : null}
 
           <button
             type="submit"
             disabled={loading}
-            className="w-full rounded-lg bg-white py-3 font-medium text-black transition-colors hover:bg-zinc-200 disabled:opacity-50"
+            className="w-full rounded-lg bg-[var(--color-bg)] py-3 font-medium text-[var(--color-text)] transition-colors hover:bg-[var(--color-bg)] disabled:opacity-50"
           >
             {loading ? "Creating account…" : "Create account"}
           </button>
         </form>
 
-        <p className="mt-6 text-center text-sm text-zinc-500">
+        <p className="mt-6 text-center text-sm text-[var(--color-text)]">
           Already have an account?{" "}
-          <Link href="/ea/login" className="text-zinc-300 underline hover:text-white">
+          <Link href="/ea/login" className="text-[var(--color-text)] underline hover:text-[var(--color-bg)]">
             Sign in
           </Link>
         </p>

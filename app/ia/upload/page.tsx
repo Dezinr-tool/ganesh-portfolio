@@ -42,12 +42,12 @@ export default function IaUploadPage() {
   );
 
   return (
-    <div className="flex min-h-screen flex-col bg-[#0d0d0d] text-zinc-100">
+    <div className="flex min-h-screen flex-col bg-[var(--color-text)] text-[var(--color-text)]">
       <IaNav />
 
       <div className="mx-auto flex w-full max-w-[680px] flex-1 flex-col items-center justify-center px-4 py-12">
-        <h1 className="text-xl font-medium text-white">Upload existing IA</h1>
-        <p className="mt-2 max-w-md text-center text-sm text-zinc-500">
+        <h1 className="text-xl font-medium text-[var(--color-bg)]">Upload existing IA</h1>
+        <p className="mt-2 max-w-md text-center text-sm text-[var(--color-text)]">
           Upload a PDF, DOCX, TXT, JSON, or image file. We&apos;ll extract the structure and
           jump straight to wireframes.
         </p>
@@ -68,20 +68,20 @@ export default function IaUploadPage() {
           type="button"
           disabled={busy}
           onClick={() => fileRef.current?.click()}
-          className="mt-8 rounded-full border border-white/10 bg-white/[0.05] px-6 py-3 text-sm font-medium text-white transition hover:bg-white/[0.08] disabled:opacity-50"
+          className="mt-8 rounded-full border border-[var(--color-bg)]/10 bg-[var(--color-bg)]/[0.05] px-6 py-3 text-sm font-medium text-[var(--color-bg)] transition hover:bg-[var(--color-bg)]/[0.08] disabled:opacity-50"
         >
           {busy ? "Processing…" : "Choose file"}
         </button>
 
         {fileName ? (
-          <p className="mt-4 text-xs text-zinc-500">{fileName}</p>
+          <p className="mt-4 text-xs text-[var(--color-text)]">{fileName}</p>
         ) : null}
 
         {error ? (
-          <p className="mt-4 text-sm text-red-400">{error}</p>
+          <p className="mt-4 text-sm text-[var(--color-accent)]">{error}</p>
         ) : null}
 
-        <Link href="/ia" className="mt-8 text-sm text-zinc-500 transition hover:text-zinc-300">
+        <Link href="/ia" className="mt-8 text-sm text-[var(--color-text)] transition hover:text-[var(--color-text)]">
           ← Back to IA session
         </Link>
       </div>

@@ -7,14 +7,14 @@ export default function NewAgreementPage() {
       <div className="mb-6">
         <Link
           href="/dashboard/agreements"
-          className="text-sm text-neutral-400 hover:text-white"
+          className="text-sm text-[var(--color-text)] hover:text-[var(--color-bg)]"
         >
           ← Back to agreements
         </Link>
       </div>
 
-      <h1 className="text-2xl font-semibold text-white">New agreement</h1>
-      <p className="mt-2 text-sm text-neutral-400">
+      <h1 className="text-2xl font-semibold text-[var(--color-bg)]">New agreement</h1>
+      <p className="mt-2 text-sm text-[var(--color-text)]">
         Create a new design services agreement for your client.
       </p>
 

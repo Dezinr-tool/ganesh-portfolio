@@ -98,7 +98,7 @@ export function MoodboardChatHistory({
             <span />
           </div>
           {genStatus ? (
-            <p className="text-sm text-[#888]">{genStatus}</p>
+            <p className="text-sm text-[var(--color-text)]">{genStatus}</p>
           ) : null}
         </div>
       ) : null}

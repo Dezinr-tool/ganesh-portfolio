@@ -177,11 +177,9 @@ Return ONLY this structure:
     "tagline": "one line summary",
     "concept": "paragraph description",
     "colors": [
-      {"hex": "#0a0a0f", "name": "Obsidian", "role": "Primary"},
-      {"hex": "#c9a84c", "name": "24k Gold", "role": "Accent"},
-      {"hex": "#1a1a2e", "name": "Midnight Navy", "role": "Secondary"},
-      {"hex": "#f5f0e8", "name": "Parchment", "role": "Light"},
-      {"hex": "#2d2d2d", "name": "Charcoal", "role": "Surface"}
+      {"hex": "#FFFFFF", "name": "Background", "role": "Primary"},
+      {"hex": "#111111", "name": "Text", "role": "Secondary"},
+      {"hex": "#FF0000", "name": "Accent", "role": "Accent"}
     ],
     "typography": {
       "heading": "Playfair Display",

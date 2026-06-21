@@ -2,6 +2,10 @@
 
 import { useEffect, useMemo, useState } from "react";
 
+const DS_TEXT = "var(--color-text)";
+const DS_ACCENT = "var(--color-accent)";
+const DS_BG = "var(--color-bg)";
+
 type AbstractCard = {
   id: string;
   aspect: "portrait" | "landscape" | "square";
@@ -15,9 +19,9 @@ const CARD_POOL: AbstractCard[] = [
     id: "a",
     aspect: "portrait",
     blocks: [
-      { color: "#2a2a2a", flex: 3 },
-      { color: "#3d3d3d", flex: 1 },
-      { color: "#1f1f1f", flex: 2 },
+      { color: DS_TEXT, flex: 3 },
+      { color: DS_ACCENT, flex: 1 },
+      { color: DS_TEXT, flex: 2 },
     ],
     fragment: "visual tone",
   },
@@ -25,8 +29,8 @@ const CARD_POOL: AbstractCard[] = [
     id: "b",
     aspect: "landscape",
     blocks: [
-      { color: "#333", flex: 2 },
-      { color: "#252525", flex: 1 },
+      { color: DS_TEXT, flex: 2 },
+      { color: DS_ACCENT, flex: 1 },
     ],
     shape: "line",
   },
@@ -34,8 +38,8 @@ const CARD_POOL: AbstractCard[] = [
     id: "c",
     aspect: "square",
     blocks: [
-      { color: "#2e2e2e", flex: 1 },
-      { color: "#404040", flex: 1 },
+      { color: DS_TEXT, flex: 1 },
+      { color: DS_ACCENT, flex: 1 },
     ],
     fragment: "brand system",
     shape: "grid",
@@ -44,8 +48,8 @@ const CARD_POOL: AbstractCard[] = [
     id: "d",
     aspect: "portrait",
     blocks: [
-      { color: "#222", flex: 2 },
-      { color: "#383838", flex: 2 },
+      { color: DS_ACCENT, flex: 2 },
+      { color: DS_TEXT, flex: 2 },
     ],
     shape: "circle",
   },
@@ -53,15 +57,15 @@ const CARD_POOL: AbstractCard[] = [
     id: "e",
     aspect: "landscape",
     blocks: [
-      { color: "#2c2c2c", flex: 1 },
-      { color: "#1a1a1a", flex: 3 },
+      { color: DS_TEXT, flex: 1 },
+      { color: DS_ACCENT, flex: 3 },
     ],
     fragment: "direction",
   },
   {
     id: "f",
     aspect: "square",
-    blocks: [{ color: "#303030", flex: 1 }],
+    blocks: [{ color: DS_TEXT, flex: 1 }],
     shape: "line",
   },
 ];
@@ -77,7 +81,7 @@ function AbstractMoodCard({ card }: { card: AbstractCard }) {
 
   return (
     <div
-      className={`${aspectClass(card.aspect)} relative flex shrink-0 flex-col overflow-hidden rounded-lg border border-white/[0.06] bg-[#111]`}
+      className={`${aspectClass(card.aspect)} relative flex shrink-0 flex-col overflow-hidden rounded-lg border border-[var(--color-text)] bg-[var(--color-bg)]`}
     >
       <div className={`flex flex-1 ${isRow ? "flex-row" : "flex-col"}`}>
         {card.blocks.map((block, i) => (
@@ -89,25 +93,28 @@ function AbstractMoodCard({ card }: { card: AbstractCard }) {
         ))}
       </div>
       {card.fragment ? (
-        <p className="px-2 py-1.5 text-[9px] uppercase tracking-widest text-white/30">
+        <p className="px-2 py-1.5 text-[9px] uppercase tracking-widest text-[var(--color-text)]">
           {card.fragment}
         </p>
       ) : null}
       {card.shape === "circle" ? (
         <div className="absolute inset-0 flex items-center justify-center">
-          <div className="h-8 w-8 rounded-full border border-white/10" />
+          <div className="h-8 w-8 rounded-full border border-[var(--color-text)]" />
         </div>
       ) : null}
       {card.shape === "line" ? (
         <div className="px-2 pb-2">
-          <div className="h-px w-full bg-white/10" />
-          <div className="mt-1 h-px w-2/3 bg-white/5" />
+          <div className="h-px w-full bg-[var(--color-text)]" />
+          <div className="mt-1 h-px w-2/3 bg-[var(--color-accent)]" />
         </div>
       ) : null}
       {card.shape === "grid" ? (
         <div className="grid grid-cols-3 gap-0.5 p-2">
           {Array.from({ length: 6 }).map((_, i) => (
-            <div key={i} className="aspect-square rounded-sm bg-white/[0.04]" />
+            <div
+              key={i}
+              className="aspect-square rounded-sm bg-[var(--color-accent)]"
+            />
           ))}
         </div>
       ) : null}
@@ -182,7 +189,7 @@ export function MoodboardHeroBackground() {
       className="pointer-events-none fixed inset-0 z-0 overflow-hidden blur-[8px]"
       aria-hidden
     >
-      <div className="absolute inset-0 bg-[#fafafa]" />
+      <div className="absolute inset-0 bg-[var(--color-bg)]" />
       <div className="absolute inset-0 opacity-[0.35]">
         <div className="flex h-[200vh] justify-center gap-6 px-6 pt-8 sm:gap-10">
           {columns.map((cards, i) => (

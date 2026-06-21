@@ -96,7 +96,7 @@ function RenderElement({
 
   return (
     <div
-      className={`relative ${selectedId === el.id ? "ring-2 ring-blue-500 ring-offset-2" : ""} ${onSelect ? "cursor-pointer" : ""}`}
+      className={`relative ${selectedId === el.id ? "ring-2 ring-[var(--color-accent)] ring-offset-2" : ""} ${onSelect ? "cursor-pointer" : ""}`}
       onClick={
         onSelect
           ? (e) => {
@@ -134,7 +134,7 @@ export function WireframeRenderer({
           : "flex min-h-[480px] flex-col gap-4";
 
   return (
-    <div className={`rounded-lg border border-neutral-200 bg-neutral-50 p-4 ${layoutClass}`}>
+    <div className={`rounded-lg border border-[var(--color-text)] bg-[var(--color-bg)] p-4 ${layoutClass}`}>
       {elements.map((el) => (
         <RenderElement
           key={el.id}

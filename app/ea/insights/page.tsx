@@ -59,10 +59,10 @@ function sentimentLabel(score: number | null): string {
 }
 
 function sentimentColor(score: number | null): string {
-  if (score === null) return "text-zinc-400";
-  if (score >= 0.3) return "text-emerald-400";
-  if (score <= -0.3) return "text-red-400";
-  return "text-amber-400";
+  if (score === null) return "text-[var(--color-text)]";
+  if (score >= 0.3) return "text-[var(--color-accent)]";
+  if (score <= -0.3) return "text-[var(--color-accent)]";
+  return "text-[var(--color-accent)]";
 }
 
 export default function EAInsightsPage() {
@@ -138,13 +138,13 @@ export default function EAInsightsPage() {
   const stats = summary?.stats;
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-zinc-100">
+    <div className="min-h-screen bg-[var(--color-bg)] text-[var(--color-text)]">
       <EANav />
       <main className="mx-auto max-w-5xl px-6 py-10">
         <div className="mb-8 flex flex-wrap items-end justify-between gap-4">
           <div>
-            <h1 className="text-2xl font-light text-white">Intelligence</h1>
-            <p className="mt-1 text-sm text-zinc-500">
+            <h1 className="text-2xl font-light text-[var(--color-bg)]">Intelligence</h1>
+            <p className="mt-1 text-sm text-[var(--color-text)]">
               {lastUpdated ? `Last updated ${lastUpdated}` : "Loading…"}
             </p>
           </div>
@@ -152,20 +152,20 @@ export default function EAInsightsPage() {
             type="button"
             onClick={() => void handleGenerateSummary()}
             disabled={generating}
-            className="rounded-lg bg-white px-4 py-2 text-sm font-medium text-zinc-900 transition hover:bg-zinc-200 disabled:opacity-50"
+            className="rounded-lg bg-[var(--color-bg)] px-4 py-2 text-sm font-medium text-[var(--color-text)] transition hover:bg-[var(--color-bg)] disabled:opacity-50"
           >
             {generating ? "Generating…" : "Generate weekly summary"}
           </button>
         </div>
 
         {error && (
-          <p className="mb-6 rounded-lg border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-300">
+          <p className="mb-6 rounded-lg border border-[var(--color-accent)] bg-[var(--color-accent)] px-4 py-3 text-sm text-[var(--color-accent)]">
             {error}
           </p>
         )}
 
         {loading ? (
-          <p className="text-sm text-zinc-500">Loading intelligence…</p>
+          <p className="text-sm text-[var(--color-text)]">Loading intelligence…</p>
         ) : (
           <>
             <div className="mb-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -177,33 +177,33 @@ export default function EAInsightsPage() {
               ].map((card) => (
                 <div
                   key={card.label}
-                  className="rounded-xl border border-zinc-800 bg-zinc-900/50 p-5"
+                  className="rounded-xl border border-[var(--color-text)] bg-[var(--color-bg)]/50 p-5"
                 >
-                  <p className="text-2xl font-light text-white">{card.value}</p>
-                  <p className="mt-1 text-xs text-zinc-500">{card.label}</p>
+                  <p className="text-2xl font-light text-[var(--color-bg)]">{card.value}</p>
+                  <p className="mt-1 text-xs text-[var(--color-text)]">{card.label}</p>
                 </div>
               ))}
             </div>
 
-            <section className="mb-8 rounded-xl border border-zinc-800 bg-zinc-900/50 p-6">
+            <section className="mb-8 rounded-xl border border-[var(--color-text)] bg-[var(--color-bg)]/50 p-6">
               <div className="mb-3 flex items-center justify-between">
-                <h2 className="text-sm font-medium text-zinc-300">Weekly narrative</h2>
+                <h2 className="text-sm font-medium text-[var(--color-text)]">Weekly narrative</h2>
                 <span
                   className={`text-xs ${sentimentColor(stats?.avgSentiment ?? null)}`}
                 >
                   Sentiment: {sentimentLabel(stats?.avgSentiment ?? null)}
                 </span>
               </div>
-              <p className="text-sm leading-relaxed text-zinc-300">
+              <p className="text-sm leading-relaxed text-[var(--color-text)]">
                 {summary?.narrative ??
                   "Process meetings to generate your first intelligence summary."}
               </p>
               {summary?.topLearnings && summary.topLearnings.length > 0 && (
                 <div className="mt-4">
-                  <p className="mb-2 text-xs font-medium uppercase tracking-wide text-zinc-500">
+                  <p className="mb-2 text-xs font-medium uppercase tracking-wide text-[var(--color-text)]">
                     Top learnings
                   </p>
-                  <ul className="space-y-1 text-sm text-zinc-400">
+                  <ul className="space-y-1 text-sm text-[var(--color-text)]">
                     {summary.topLearnings.map((learning) => (
                       <li key={learning}>• {learning}</li>
                     ))}
@@ -213,7 +213,7 @@ export default function EAInsightsPage() {
             </section>
 
             <section className="mb-8">
-              <h2 className="mb-3 text-sm font-medium text-zinc-300">By category</h2>
+              <h2 className="mb-3 text-sm font-medium text-[var(--color-text)]">By category</h2>
               <div className="mb-4 flex flex-wrap gap-1">
                 {CATEGORIES.map((cat) => (
                   <button
@@ -222,8 +222,8 @@ export default function EAInsightsPage() {
                     onClick={() => setActiveTab(cat)}
                     className={`rounded-md px-3 py-1.5 text-xs capitalize transition ${
                       activeTab === cat
-                        ? "bg-zinc-800 text-white"
-                        : "text-zinc-500 hover:text-zinc-300"
+                        ? "bg-[var(--color-bg)] text-[var(--color-bg)]"
+                        : "text-[var(--color-text)] hover:text-[var(--color-text)]"
                     }`}
                   >
                     {cat}
@@ -232,17 +232,17 @@ export default function EAInsightsPage() {
               </div>
               <div className="space-y-2">
                 {categoryItems.length === 0 ? (
-                  <p className="text-sm text-zinc-500">
+                  <p className="text-sm text-[var(--color-text)]">
                     No {activeTab} insights yet.
                   </p>
                 ) : (
                   categoryItems.map((item) => (
                     <div
                       key={item.id}
-                      className="rounded-lg border border-zinc-800 bg-zinc-900/30 px-4 py-3"
+                      className="rounded-lg border border-[var(--color-text)] bg-[var(--color-bg)]/30 px-4 py-3"
                     >
-                      <p className="text-sm text-zinc-200">{item.insight}</p>
-                      <p className="mt-1 text-xs text-zinc-500">
+                      <p className="text-sm text-[var(--color-text)]">{item.insight}</p>
+                      <p className="mt-1 text-xs text-[var(--color-text)]">
                         Importance {item.importance}
                         {item.clientName ? ` · ${item.clientName}` : ""}
                       </p>
@@ -254,11 +254,11 @@ export default function EAInsightsPage() {
 
             <div className="grid gap-8 lg:grid-cols-2">
               <section>
-                <h2 className="mb-3 text-sm font-medium text-zinc-300">
+                <h2 className="mb-3 text-sm font-medium text-[var(--color-text)]">
                   Client profiles
                 </h2>
                 {clients.length === 0 ? (
-                  <p className="text-sm text-zinc-500">No clients profiled yet.</p>
+                  <p className="text-sm text-[var(--color-text)]">No clients profiled yet.</p>
                 ) : (
                   <div className="space-y-2">
                     {clients.map((client) => (
@@ -270,23 +270,23 @@ export default function EAInsightsPage() {
                             selectedClient?.id === client.id ? null : client,
                           )
                         }
-                        className="w-full rounded-lg border border-zinc-800 bg-zinc-900/30 px-4 py-3 text-left transition hover:border-zinc-700"
+                        className="w-full rounded-lg border border-[var(--color-text)] bg-[var(--color-bg)]/30 px-4 py-3 text-left transition hover:border-[var(--color-text)]"
                       >
                         <div className="flex items-center justify-between">
-                          <p className="text-sm font-medium text-white">
+                          <p className="text-sm font-medium text-[var(--color-bg)]">
                             {client.clientName}
                           </p>
-                          <span className="text-xs text-zinc-500">
+                          <span className="text-xs text-[var(--color-text)]">
                             {client.interactionCount} interactions
                           </span>
                         </div>
                         {client.company && (
-                          <p className="mt-0.5 text-xs text-zinc-500">
+                          <p className="mt-0.5 text-xs text-[var(--color-text)]">
                             {client.company}
                           </p>
                         )}
                         {selectedClient?.id === client.id && (
-                          <div className="mt-3 border-t border-zinc-800 pt-3 text-xs text-zinc-400">
+                          <div className="mt-3 border-t border-[var(--color-text)] pt-3 text-xs text-[var(--color-text)]">
                             {client.preferences.length > 0 && (
                               <p>Preferences: {client.preferences.join(", ")}</p>
                             )}
@@ -307,18 +307,18 @@ export default function EAInsightsPage() {
               </section>
 
               <section>
-                <h2 className="mb-3 text-sm font-medium text-zinc-300">Patterns</h2>
+                <h2 className="mb-3 text-sm font-medium text-[var(--color-text)]">Patterns</h2>
                 {!summary?.patterns?.length ? (
-                  <p className="text-sm text-zinc-500">No patterns detected yet.</p>
+                  <p className="text-sm text-[var(--color-text)]">No patterns detected yet.</p>
                 ) : (
                   <div className="space-y-2">
                     {summary.patterns.map((pattern) => (
                       <div
                         key={pattern.description}
-                        className="rounded-lg border border-zinc-800 bg-zinc-900/30 px-4 py-3"
+                        className="rounded-lg border border-[var(--color-text)] bg-[var(--color-bg)]/30 px-4 py-3"
                       >
-                        <p className="text-sm text-zinc-200">{pattern.description}</p>
-                        <p className="mt-1 text-xs text-zinc-500">
+                        <p className="text-sm text-[var(--color-text)]">{pattern.description}</p>
+                        <p className="mt-1 text-xs text-[var(--color-text)]">
                           Seen {pattern.evidenceCount} time
                           {pattern.evidenceCount === 1 ? "" : "s"}
                         </p>
@@ -327,11 +327,11 @@ export default function EAInsightsPage() {
                   </div>
                 )}
                 {summary?.suggestions && summary.suggestions.length > 0 && (
-                  <div className="mt-4 rounded-lg border border-zinc-800/80 bg-zinc-900/20 p-4">
-                    <p className="mb-2 text-xs font-medium uppercase tracking-wide text-zinc-500">
+                  <div className="mt-4 rounded-lg border border-[var(--color-text)]/80 bg-[var(--color-bg)]/20 p-4">
+                    <p className="mb-2 text-xs font-medium uppercase tracking-wide text-[var(--color-text)]">
                       Suggested actions
                     </p>
-                    <ul className="space-y-1 text-sm text-zinc-400">
+                    <ul className="space-y-1 text-sm text-[var(--color-text)]">
                       {summary.suggestions.map((s) => (
                         <li key={s}>• {s}</li>
                       ))}

@@ -156,19 +156,19 @@ export function KnowledgeAdminPanel() {
   };
 
   if (loading) {
-    return <p className="py-20 text-center text-sm text-zinc-500">Loading knowledge base…</p>;
+    return <p className="py-20 text-center text-sm text-[var(--color-text)]">Loading knowledge base…</p>;
   }
 
   return (
     <div className="mx-auto grid max-w-7xl gap-6 px-4 py-8 lg:grid-cols-[320px_1fr]">
       <aside className="space-y-6">
         <div className="flex items-center justify-between gap-2">
-          <h2 className="text-sm font-medium text-zinc-300">Knowledge files</h2>
+          <h2 className="text-sm font-medium text-[var(--color-text)]">Knowledge files</h2>
           <button
             type="button"
             disabled={busy === "all"}
             onClick={() => runUpdate()}
-            className="rounded-md bg-white px-3 py-1.5 text-xs font-medium text-black disabled:opacity-50"
+            className="rounded-md bg-[var(--color-bg)] px-3 py-1.5 text-xs font-medium text-[var(--color-text)] disabled:opacity-50"
           >
             {busy === "all" ? "Updating…" : "Update all"}
           </button>
@@ -176,7 +176,7 @@ export function KnowledgeAdminPanel() {
 
         {(["ux_rules", "design_framework", "ia"] as const).map((cat) => (
           <div key={cat}>
-            <p className="mb-2 text-xs uppercase tracking-wider text-zinc-500">
+            <p className="mb-2 text-xs uppercase tracking-wider text-[var(--color-text)]">
               {cat === "ux_rules"
                 ? "UX Rules"
                 : cat === "design_framework"
@@ -196,12 +196,12 @@ export function KnowledgeAdminPanel() {
                     onClick={() => loadEntry(entry.file_name)}
                     className={`w-full rounded-lg px-3 py-2 text-left text-sm transition ${
                       selected === entry.file_name
-                        ? "bg-zinc-800 text-white"
-                        : "text-zinc-400 hover:bg-zinc-900 hover:text-zinc-200"
+                        ? "bg-[var(--color-bg)] text-[var(--color-bg)]"
+                        : "text-[var(--color-text)] hover:bg-[var(--color-bg)] hover:text-[var(--color-text)]"
                     }`}
                   >
                     <span className="block font-medium">{entry.title}</span>
-                    <span className="text-xs text-zinc-500">
+                    <span className="text-xs text-[var(--color-text)]">
                       v{entry.version} · {formatDate(entry.last_updated_at)}
                     </span>
                   </button>
@@ -212,49 +212,49 @@ export function KnowledgeAdminPanel() {
         ))}
 
         <div>
-          <h3 className="mb-2 text-xs uppercase tracking-wider text-zinc-500">Update history</h3>
-          <ul className="max-h-64 space-y-2 overflow-y-auto text-xs text-zinc-400">
+          <h3 className="mb-2 text-xs uppercase tracking-wider text-[var(--color-text)]">Update history</h3>
+          <ul className="max-h-64 space-y-2 overflow-y-auto text-xs text-[var(--color-text)]">
             {updates.map((u) => (
-              <li key={u.id} className="rounded border border-zinc-800 p-2">
-                <p className="text-zinc-300">{u.file_name}</p>
+              <li key={u.id} className="rounded border border-[var(--color-text)] p-2">
+                <p className="text-[var(--color-text)]">{u.file_name}</p>
                 <p>
                   v{u.previous_version ?? "?"} → v{u.new_version} · {u.update_source}
                 </p>
-                <p className="text-zinc-500">{formatDate(u.updated_at)}</p>
+                <p className="text-[var(--color-text)]">{formatDate(u.updated_at)}</p>
               </li>
             ))}
           </ul>
         </div>
       </aside>
 
-      <section className="min-h-[70vh] rounded-xl border border-zinc-800 bg-zinc-950 p-4">
+      <section className="min-h-[70vh] rounded-xl border border-[var(--color-text)] bg-[var(--color-bg)] p-4">
         {!selected ? (
-          <p className="py-20 text-center text-sm text-zinc-500">
+          <p className="py-20 text-center text-sm text-[var(--color-text)]">
             Select a file to view content, compare versions, or edit.
           </p>
         ) : (
           <>
-            <div className="mb-4 flex flex-wrap items-center gap-2 border-b border-zinc-800 pb-4">
-              <h2 className="text-lg font-medium text-white">{selected}</h2>
+            <div className="mb-4 flex flex-wrap items-center gap-2 border-b border-[var(--color-text)] pb-4">
+              <h2 className="text-lg font-medium text-[var(--color-bg)]">{selected}</h2>
               <button
                 type="button"
                 disabled={!!busy}
                 onClick={() => runUpdate(selected)}
-                className="rounded-md border border-zinc-700 px-3 py-1.5 text-xs text-zinc-200 disabled:opacity-50"
+                className="rounded-md border border-[var(--color-text)] px-3 py-1.5 text-xs text-[var(--color-text)] disabled:opacity-50"
               >
                 {busy === selected ? "Researching…" : "Update now"}
               </button>
               <button
                 type="button"
                 onClick={() => setEditMode((v) => !v)}
-                className="rounded-md border border-zinc-700 px-3 py-1.5 text-xs text-zinc-200"
+                className="rounded-md border border-[var(--color-text)] px-3 py-1.5 text-xs text-[var(--color-text)]"
               >
                 {editMode ? "Preview" : "Manual edit"}
               </button>
               <button
                 type="button"
                 onClick={() => setShowDiff((v) => !v)}
-                className="rounded-md border border-zinc-700 px-3 py-1.5 text-xs text-zinc-200"
+                className="rounded-md border border-[var(--color-text)] px-3 py-1.5 text-xs text-[var(--color-text)]"
               >
                 {showDiff ? "Hide diff" : "Compare versions"}
               </button>
@@ -263,7 +263,7 @@ export function KnowledgeAdminPanel() {
                   type="button"
                   disabled={busy === "save"}
                   onClick={saveManual}
-                  className="rounded-md bg-emerald-600 px-3 py-1.5 text-xs text-white disabled:opacity-50"
+                  className="rounded-md bg-[var(--color-accent)] px-3 py-1.5 text-xs text-[var(--color-bg)] disabled:opacity-50"
                 >
                   {busy === "save" ? "Saving…" : "Save"}
                 </button>
@@ -271,23 +271,23 @@ export function KnowledgeAdminPanel() {
             </div>
 
             {message && (
-              <p className="mb-3 rounded-md border border-zinc-700 bg-zinc-900 px-3 py-2 text-sm text-zinc-300">
+              <p className="mb-3 rounded-md border border-[var(--color-text)] bg-[var(--color-bg)] px-3 py-2 text-sm text-[var(--color-text)]">
                 {message}
               </p>
             )}
 
             {showDiff ? (
-              <pre className="max-h-[65vh] overflow-auto whitespace-pre-wrap rounded-lg bg-black p-4 text-xs leading-relaxed text-zinc-300">
+              <pre className="max-h-[65vh] overflow-auto whitespace-pre-wrap rounded-lg bg-[var(--color-text)] p-4 text-xs leading-relaxed text-[var(--color-text)]">
                 {simpleDiff(previousContent, content).join("\n")}
               </pre>
             ) : editMode ? (
               <textarea
                 value={content}
                 onChange={(e) => setContent(e.target.value)}
-                className="h-[65vh] w-full resize-none rounded-lg border border-zinc-800 bg-black p-4 font-mono text-xs leading-relaxed text-zinc-200 outline-none focus:border-zinc-600"
+                className="h-[65vh] w-full resize-none rounded-lg border border-[var(--color-text)] bg-[var(--color-text)] p-4 font-mono text-xs leading-relaxed text-[var(--color-text)] outline-none focus:border-[var(--color-text)]"
               />
             ) : (
-              <article className="prose prose-invert max-w-none prose-headings:text-zinc-100 prose-p:text-zinc-300 prose-li:text-zinc-300 prose-a:text-sky-400 max-h-[65vh] overflow-auto whitespace-pre-wrap text-sm leading-relaxed text-zinc-300">
+              <article className="prose prose-invert max-w-none prose-headings:text-[var(--color-text)] prose-p:text-[var(--color-text)] prose-li:text-[var(--color-text)] prose-a:text-[var(--color-accent)] max-h-[65vh] overflow-auto whitespace-pre-wrap text-sm leading-relaxed text-[var(--color-text)]">
                 {content}
               </article>
             )}

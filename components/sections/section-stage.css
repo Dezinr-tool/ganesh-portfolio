@@ -1,0 +1,24 @@
+/* Section rhythm — sections 3+ (hero & about untouched) */
+
+.section-stage {
+  --section-stage-pt: max(7.5rem, 120px);
+  --section-stage-pb: max(7.5rem, 120px);
+  position: relative;
+  padding-top: var(--section-stage-pt);
+  padding-bottom: var(--section-stage-pb);
+}
+
+.section-stage__inner {
+  position: relative;
+  width: 100%;
+}
+
+.section-stage__reveal {
+  will-change: transform, opacity;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .section-stage__reveal {
+    will-change: auto;
+  }
+}

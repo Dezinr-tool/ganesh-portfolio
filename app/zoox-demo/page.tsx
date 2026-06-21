@@ -8,7 +8,7 @@ export default function ZooxDemoPage() {
         style={{
           minHeight: "50vh",
           padding: "4rem 2.4rem",
-          background: "#d3e4df",
+          background: "var(--color-bg)",
         }}
       >
         <p style={{ maxWidth: "45rem", fontSize: "1.6rem", lineHeight: 1.4 }}>

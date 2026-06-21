@@ -193,7 +193,7 @@ export const MoodboardComposer = forwardRef<
               type="button"
               disabled={disabled}
               onClick={onSkip}
-              className="text-xs text-[#888] transition hover:text-[#555]"
+              className="text-xs text-[var(--color-text)] transition hover:text-[var(--color-text)]"
             >
               Skip
             </button>
@@ -204,13 +204,13 @@ export const MoodboardComposer = forwardRef<
   }
 
   const shellClass =
-    "flex items-center gap-1 rounded-full border border-[#3a3a38] bg-[#ececea] px-2 py-1 shadow-sm";
+    "flex items-center gap-1 rounded-full border border-[var(--color-text)] bg-[var(--color-bg)] px-2 py-1 shadow-sm";
 
   const inputClass =
-    "max-h-[120px] min-h-[22px] flex-1 resize-none bg-transparent py-1.5 text-[15px] leading-5 text-zinc-900 outline-none placeholder:text-zinc-400";
+    "max-h-[120px] min-h-[22px] flex-1 resize-none bg-transparent py-1.5 text-[15px] leading-5 text-[var(--color-text)] outline-none placeholder:text-[var(--color-text)]";
 
   const attachBtnClass =
-    "flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-zinc-500 transition hover:bg-black/5 hover:text-zinc-700";
+    "flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-[var(--color-text)] transition hover:bg-[var(--color-text)]/5 hover:text-[var(--color-text)]";
 
   return (
     <div className="w-full">
@@ -261,7 +261,7 @@ export const MoodboardComposer = forwardRef<
           <button
             type="button"
             onClick={onSubmit}
-            className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-zinc-800 text-white transition hover:bg-zinc-700"
+            className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[var(--color-bg)] text-[var(--color-bg)] transition hover:bg-[var(--color-bg)]"
             aria-label="Send"
           >
             <SendArrowIcon />
@@ -276,7 +276,7 @@ export const MoodboardComposer = forwardRef<
             type="button"
             disabled={disabled}
             onClick={onSkip}
-            className="text-xs text-zinc-600 transition hover:text-zinc-400"
+            className="text-xs text-[var(--color-text)] transition hover:text-[var(--color-text)]"
           >
             Skip
           </button>
@@ -317,7 +317,7 @@ function ModelPicker({
             </option>
           ))}
         </select>
-        <span className="pointer-events-none absolute right-0 text-[10px] text-[#aaa]">
+        <span className="pointer-events-none absolute right-0 text-[10px] text-[var(--color-text)]">
           ∨
         </span>
       </div>
@@ -329,17 +329,17 @@ function ModelPicker({
       <select
         value={modelId}
         onChange={(e) => onModelChange(e.target.value as MoodboardModelId)}
-        className="cursor-pointer appearance-none bg-transparent pr-3.5 text-[11px] text-[#555] capitalize outline-none hover:text-[#777]"
+        className="cursor-pointer appearance-none bg-transparent pr-3.5 text-[11px] text-[var(--color-text)] capitalize outline-none hover:text-[var(--color-text)]"
         aria-label="AI model"
       >
         {MOODBOARD_MODELS.map((m) => (
-          <option key={m.id} value={m.id} className="bg-[#111] text-white">
+          <option key={m.id} value={m.id} className="bg-[var(--color-text)] text-[var(--color-bg)]">
             {shortModelLabel(m.id, hero)}
             {m.recommended ? (hero ? " · Default" : " · default") : ""}
           </option>
         ))}
       </select>
-      <span className="pointer-events-none absolute right-0 text-[9px] text-[#444]">
+      <span className="pointer-events-none absolute right-0 text-[9px] text-[var(--color-text)]">
         ∨
       </span>
       <span className="sr-only">

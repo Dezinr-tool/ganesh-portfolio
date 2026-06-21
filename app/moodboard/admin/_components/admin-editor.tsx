@@ -78,7 +78,7 @@ export function AdminEditor() {
   const preview = questions.find((q) => q.id === previewId);
 
   if (loading) {
-    return <p className="mt-8 text-sm text-zinc-500">Loading questions…</p>;
+    return <p className="mt-8 text-sm text-[var(--color-text)]">Loading questions…</p>;
   }
 
   return (
@@ -87,7 +87,7 @@ export function AdminEditor() {
         <button
           type="button"
           onClick={addQuestion}
-          className="rounded-md bg-zinc-100 px-4 py-2 text-sm font-medium text-zinc-900"
+          className="rounded-md bg-[var(--color-bg)] px-4 py-2 text-sm font-medium text-[var(--color-text)]"
         >
           Add question
         </button>
@@ -95,38 +95,38 @@ export function AdminEditor() {
         {questions.map((q, index) => (
           <div
             key={q.id}
-            className="rounded-xl border border-zinc-800 bg-zinc-900/40 p-4"
+            className="rounded-xl border border-[var(--color-text)] bg-[var(--color-bg)]/40 p-4"
           >
             <div className="mb-3 flex items-center justify-between gap-2">
-              <span className="text-xs text-zinc-500">
+              <span className="text-xs text-[var(--color-text)]">
                 #{index + 1} · {q.key} · {q.category}
               </span>
               <div className="flex gap-1">
                 <button
                   type="button"
                   onClick={() => moveQuestion(index, -1)}
-                  className="rounded px-2 py-1 text-xs text-zinc-500 hover:bg-zinc-800"
+                  className="rounded px-2 py-1 text-xs text-[var(--color-text)] hover:bg-[var(--color-bg)]"
                 >
                   ↑
                 </button>
                 <button
                   type="button"
                   onClick={() => moveQuestion(index, 1)}
-                  className="rounded px-2 py-1 text-xs text-zinc-500 hover:bg-zinc-800"
+                  className="rounded px-2 py-1 text-xs text-[var(--color-text)] hover:bg-[var(--color-bg)]"
                 >
                   ↓
                 </button>
                 <button
                   type="button"
                   onClick={() => setPreviewId(q.id)}
-                  className="rounded px-2 py-1 text-xs text-zinc-400 hover:bg-zinc-800"
+                  className="rounded px-2 py-1 text-xs text-[var(--color-text)] hover:bg-[var(--color-bg)]"
                 >
                   Preview
                 </button>
                 <button
                   type="button"
                   onClick={() => deleteQuestion(q.id)}
-                  className="rounded px-2 py-1 text-xs text-red-400 hover:bg-zinc-800"
+                  className="rounded px-2 py-1 text-xs text-[var(--color-accent)] hover:bg-[var(--color-bg)]"
                 >
                   Delete
                 </button>
@@ -141,7 +141,7 @@ export function AdminEditor() {
                   saveQuestion(q.id, { question_text: e.target.value });
                 }
               }}
-              className="mb-2 w-full rounded-md border border-zinc-800 bg-zinc-950 px-3 py-2 text-sm outline-none focus:border-zinc-600"
+              className="mb-2 w-full rounded-md border border-[var(--color-text)] bg-[var(--color-bg)] px-3 py-2 text-sm outline-none focus:border-[var(--color-text)]"
             />
 
             <div className="flex flex-wrap gap-2 text-xs">
@@ -152,7 +152,7 @@ export function AdminEditor() {
                     question_type: e.target.value as MoodboardQuestion["question_type"],
                   })
                 }
-                className="rounded border border-zinc-800 bg-zinc-950 px-2 py-1"
+                className="rounded border border-[var(--color-text)] bg-[var(--color-bg)] px-2 py-1"
               >
                 {["open", "chips", "upload", "url", "skip", "multi_section_select"].map((t) => (
                   <option key={t} value={t}>
@@ -161,7 +161,7 @@ export function AdminEditor() {
                 ))}
               </select>
 
-              <label className="flex items-center gap-1.5 text-zinc-400">
+              <label className="flex items-center gap-1.5 text-[var(--color-text)]">
                 <input
                   type="checkbox"
                   checked={q.is_active}
@@ -171,7 +171,7 @@ export function AdminEditor() {
               </label>
 
               {saving === q.id ? (
-                <span className="text-zinc-600">Saving…</span>
+                <span className="text-[var(--color-text)]">Saving…</span>
               ) : null}
             </div>
 
@@ -184,7 +184,7 @@ export function AdminEditor() {
                   const opts = e.target.value.split("\n").map((s) => s.trim()).filter(Boolean);
                   saveQuestion(q.id, { chips_options: opts });
                 }}
-                className="mt-2 w-full rounded-md border border-zinc-800 bg-zinc-950 px-3 py-2 text-xs outline-none"
+                className="mt-2 w-full rounded-md border border-[var(--color-text)] bg-[var(--color-bg)] px-3 py-2 text-xs outline-none"
               />
             ) : null}
 
@@ -201,7 +201,7 @@ export function AdminEditor() {
                     /* invalid JSON */
                   }
                 }}
-                className="mt-2 w-full rounded-md border border-zinc-800 bg-zinc-950 px-3 py-2 font-mono text-xs outline-none"
+                className="mt-2 w-full rounded-md border border-[var(--color-text)] bg-[var(--color-bg)] px-3 py-2 font-mono text-xs outline-none"
               />
             ) : null}
           </div>
@@ -209,9 +209,9 @@ export function AdminEditor() {
       </div>
 
       <div className="lg:sticky lg:top-8 lg:self-start">
-        <h2 className="mb-4 text-sm font-medium text-zinc-400">Chat preview</h2>
+        <h2 className="mb-4 text-sm font-medium text-[var(--color-text)]">Chat preview</h2>
         {preview ? (
-          <div className="rounded-xl border border-zinc-800 bg-[#0d0d0d] p-4">
+          <div className="rounded-xl border border-[var(--color-text)] bg-[var(--color-text)] p-4">
             <ChatBubble role="assistant">
               <p className="mb-3">{preview.question_text}</p>
               <QuestionInput
@@ -222,7 +222,7 @@ export function AdminEditor() {
             </ChatBubble>
           </div>
         ) : (
-          <p className="text-sm text-zinc-600">Select Preview on a question.</p>
+          <p className="text-sm text-[var(--color-text)]">Select Preview on a question.</p>
         )}
       </div>
     </div>

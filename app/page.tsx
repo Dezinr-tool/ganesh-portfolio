@@ -1,24 +1,26 @@
-import { Hero } from "@/components/sections/Hero";
-import { HeroNameLayer } from "@/components/sections/HeroNameLayer";
-import { HeroScrollTransition } from "@/components/sections/HeroScrollTransition";
-import { Journey } from "@/components/sections/Journey";
-import { Tools } from "@/components/sections/Tools";
+import { AboutText } from "@/components/sections/AboutText";
 import { FeaturedWork } from "@/components/sections/FeaturedWork";
+import { Footer } from "@/components/sections/Footer";
+import { Hero } from "@/components/sections/Hero";
+import { Testimonials } from "@/components/sections/Testimonials";
+import { Tools } from "@/components/sections/Tools";
+import { ValueScrollSection } from "@/components/sections/ValueScrollSection";
+import "@/components/sections/value-scroll.css";
 
 export default function Home() {
   return (
     <main
       id="main-content"
-      className="relative isolate overflow-x-clip bg-[#0a0a0a] text-[#f0f0f0]"
+      className="relative isolate overflow-x-clip bg-[var(--color-bg)] text-[var(--color-text)]"
       tabIndex={-1}
     >
-      <HeroNameLayer />
-      <HeroScrollTransition>
-        <Hero />
-      </HeroScrollTransition>
+      <Hero />
+      <AboutText />
+      <ValueScrollSection />
       <FeaturedWork />
       <Tools />
-      <Journey />
+      <Testimonials />
+      <Footer />
     </main>
   );
 }

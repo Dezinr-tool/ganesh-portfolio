@@ -13,12 +13,12 @@ export function EAToolShell({
   children: React.ReactNode;
 }) {
   return (
-    <div className="min-h-screen bg-black text-zinc-100">
+    <div className="min-h-screen bg-[var(--color-text)] text-[var(--color-text)]">
       <EANav />
       <main className="mx-auto max-w-5xl px-6 py-10">
         <div className="mb-8">
-          <h1 className="text-2xl font-light text-white">{title}</h1>
-          <p className="mt-1 text-sm text-zinc-500">{subtitle}</p>
+          <h1 className="text-2xl font-light text-[var(--color-bg)]">{title}</h1>
+          <p className="mt-1 text-sm text-[var(--color-text)]">{subtitle}</p>
         </div>
         {children}
       </main>

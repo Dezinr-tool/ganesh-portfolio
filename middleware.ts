@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import {
   DASHBOARD_AUTH_COOKIE,
+  isDashboardAuthExempt,
+  isDashboardProtectedPath,
   verifyDashboardAuthCookie,
 } from "./app/dashboard/_lib/auth";
 import {
@@ -68,19 +70,15 @@ export async function middleware(request: NextRequest) {
     }
   }
 
-  const requiresAuth =
-    pathname.startsWith("/dashboard") ||
-    pathname.startsWith("/api/invoices") ||
-    pathname.startsWith("/api/agreements") ||
-    pathname.startsWith("/api/settings") ||
-    pathname.startsWith("/api/dashboard");
-
   if (pathname.startsWith("/dashboard/login")) {
     if (isAuthed) {
       return NextResponse.redirect(new URL("/dashboard", request.url));
     }
     return NextResponse.next();
   }
+
+  const requiresAuth =
+    isDashboardProtectedPath(pathname) && !isDashboardAuthExempt(pathname);
 
   if (requiresAuth && !isAuthed) {
     if (pathname.startsWith("/api/")) {
@@ -97,8 +95,6 @@ export async function middleware(request: NextRequest) {
       const dest =
         from &&
         (from.startsWith("/moodboard/admin") ||
-          from.startsWith("/tools") ||
-          from.startsWith("/knowledge-admin") ||
           from.startsWith("/moodboard/sessions"))
           ? from
           : "/moodboard/admin";
@@ -113,11 +109,7 @@ export async function middleware(request: NextRequest) {
 
   const requiresMbAdmin =
     pathname.startsWith("/moodboard/admin") ||
-    pathname.startsWith("/api/moodboard/admin") ||
-    pathname === "/tools" ||
-    pathname.startsWith("/knowledge-admin") ||
-    pathname.startsWith("/api/knowledge") ||
-    pathname.startsWith("/moodboard/sessions");
+    pathname.startsWith("/api/moodboard/admin");
 
   if (requiresMbAdmin && !isMbAdminAuthed) {
     if (pathname.startsWith("/api/")) {
@@ -135,13 +127,25 @@ export const config = {
     "/api/ea/:path*",
     "/moodboard/admin",
     "/moodboard/admin/:path*",
-    "/moodboard/sessions",
-    "/moodboard/sessions/:path*",
-    "/api/moodboard/admin/:path*",
+    "/moodboard",
+    "/moodboard/:path*",
+    "/api/moodboard/:path*",
     "/tools",
+    "/tools/:path*",
+    "/design-audit",
+    "/design-audit/:path*",
+    "/ia/:path*",
+    "/wireframe/:path*",
     "/knowledge-admin",
     "/knowledge-admin/:path*",
+    "/zoox-demo",
+    "/zoox-demo/:path*",
+    "/max/:path*",
     "/api/knowledge/:path*",
+    "/api/design-audit/:path*",
+    "/api/ia/:path*",
+    "/api/wireframe/:path*",
+    "/api/pre-generation/:path*",
     "/dashboard/:path*",
     "/api/invoices/:path*",
     "/api/agreements/:path*",

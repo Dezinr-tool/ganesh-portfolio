@@ -11,10 +11,10 @@ export function Button({
   variant?: "default" | "outline" | "ghost" | "secondary";
 }) {
   const variants = {
-    default: "bg-neutral-900 text-white hover:bg-neutral-800",
-    outline: "border border-neutral-300 bg-white hover:bg-neutral-50",
-    ghost: "hover:bg-neutral-100",
-    secondary: "bg-neutral-100 text-neutral-900 hover:bg-neutral-200",
+    default: "bg-[var(--color-bg)] text-[var(--color-bg)] hover:bg-[var(--color-bg)]",
+    outline: "border border-[var(--color-text)] bg-[var(--color-bg)] hover:bg-[var(--color-bg)]",
+    ghost: "hover:bg-[var(--color-bg)]",
+    secondary: "bg-[var(--color-bg)] text-[var(--color-text)] hover:bg-[var(--color-bg)]",
   };
   return (
     <button
@@ -34,7 +34,7 @@ export function Input({ className, ...props }: InputHTMLAttributes<HTMLInputElem
   return (
     <input
       className={cn(
-        "flex h-10 w-full rounded-md border border-neutral-300 bg-white px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-neutral-400",
+        "flex h-10 w-full rounded-md border border-[var(--color-text)] bg-[var(--color-bg)] px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-[var(--color-text)]",
         className,
       )}
       {...props}
@@ -43,7 +43,7 @@ export function Input({ className, ...props }: InputHTMLAttributes<HTMLInputElem
 }
 
 export function Label({ children, className }: { children: ReactNode; className?: string }) {
-  return <label className={cn("text-sm font-medium text-neutral-700", className)}>{children}</label>;
+  return <label className={cn("text-sm font-medium text-[var(--color-text)]", className)}>{children}</label>;
 }
 
 export function Textarea({
@@ -53,7 +53,7 @@ export function Textarea({
   return (
     <textarea
       className={cn(
-        "flex min-h-[80px] w-full rounded-md border border-neutral-300 bg-white px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-neutral-400",
+        "flex min-h-[80px] w-full rounded-md border border-[var(--color-text)] bg-[var(--color-bg)] px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-[var(--color-text)]",
         className,
       )}
       {...props}
@@ -69,7 +69,7 @@ export function Card({
   className?: string;
 }) {
   return (
-    <div className={cn("rounded-lg border border-neutral-200 bg-white shadow-sm", className)}>
+    <div className={cn("rounded-lg border border-[var(--color-text)] bg-[var(--color-bg)] shadow-sm", className)}>
       {children}
     </div>
   );
@@ -97,9 +97,9 @@ export function Badge({
   className?: string;
 }) {
   const variants = {
-    default: "bg-neutral-900 text-white",
-    secondary: "bg-neutral-100 text-neutral-800",
-    outline: "border border-neutral-300 text-neutral-700",
+    default: "bg-[var(--color-bg)] text-[var(--color-bg)]",
+    secondary: "bg-[var(--color-bg)] text-[var(--color-text)]",
+    outline: "border border-[var(--color-text)] text-[var(--color-text)]",
   };
   return (
     <span
@@ -115,7 +115,7 @@ export function Badge({
 }
 
 export function Separator({ className }: { className?: string }) {
-  return <hr className={cn("border-neutral-200", className)} />;
+  return <hr className={cn("border-[var(--color-text)]", className)} />;
 }
 
 export function Avatar({
@@ -128,7 +128,7 @@ export function Avatar({
   return (
     <div
       className={cn(
-        "flex h-10 w-10 items-center justify-center rounded-full bg-neutral-200 text-sm font-medium text-neutral-600",
+        "flex h-10 w-10 items-center justify-center rounded-full bg-[var(--color-bg)] text-sm font-medium text-[var(--color-text)]",
         className,
       )}
     >
@@ -146,14 +146,14 @@ export function Tabs({
 }) {
   return (
     <div className={className}>
-      <div className="flex gap-1 border-b border-neutral-200">
+      <div className="flex gap-1 border-b border-[var(--color-text)]">
         {tabs.map((tab, i) => (
           <button
             key={tab.label}
             type="button"
             className={cn(
               "px-4 py-2 text-sm font-medium",
-              i === 0 ? "border-b-2 border-neutral-900 text-neutral-900" : "text-neutral-500",
+              i === 0 ? "border-b-2 border-[var(--color-text)] text-[var(--color-text)]" : "text-[var(--color-text)]",
             )}
           >
             {tab.label}
@@ -189,8 +189,8 @@ export function Alert({
       className={cn(
         "rounded-md border px-4 py-3 text-sm",
         variant === "destructive"
-          ? "border-red-200 bg-red-50 text-red-800"
-          : "border-neutral-200 bg-neutral-50 text-neutral-800",
+          ? "border-[var(--color-accent)] bg-[var(--color-accent)] text-[var(--color-accent)]"
+          : "border-[var(--color-text)] bg-[var(--color-bg)] text-[var(--color-text)]",
         className,
       )}
     >
@@ -200,16 +200,16 @@ export function Alert({
 }
 
 export function Skeleton({ className }: { className?: string }) {
-  return <div className={cn("animate-pulse rounded-md bg-neutral-200", className)} />;
+  return <div className={cn("animate-pulse rounded-md bg-[var(--color-bg)]", className)} />;
 }
 
 export function Breadcrumb({ items, className }: { items: string[]; className?: string }) {
   return (
-    <nav className={cn("flex items-center gap-2 text-sm text-neutral-500", className)}>
+    <nav className={cn("flex items-center gap-2 text-sm text-[var(--color-text)]", className)}>
       {items.map((item, i) => (
         <span key={`${item}-${i}`} className="flex items-center gap-2">
           {i > 0 ? <span>/</span> : null}
-          <span className={i === items.length - 1 ? "text-neutral-900" : ""}>{item}</span>
+          <span className={i === items.length - 1 ? "text-[var(--color-text)]" : ""}>{item}</span>
         </span>
       ))}
     </nav>
@@ -228,7 +228,7 @@ export function Select({
   return (
     <select
       className={cn(
-        "flex h-10 w-full rounded-md border border-neutral-300 bg-white px-3 text-sm",
+        "flex h-10 w-full rounded-md border border-[var(--color-text)] bg-[var(--color-bg)] px-3 text-sm",
         className,
       )}
       defaultValue=""
@@ -255,12 +255,12 @@ export function Table({
   className?: string;
 }) {
   return (
-    <div className={cn("overflow-x-auto rounded-md border border-neutral-200", className)}>
+    <div className={cn("overflow-x-auto rounded-md border border-[var(--color-text)]", className)}>
       <table className="w-full text-sm">
-        <thead className="bg-neutral-50">
+        <thead className="bg-[var(--color-bg)]">
           <tr>
             {headers.map((h) => (
-              <th key={h} className="px-4 py-2 text-left font-medium text-neutral-600">
+              <th key={h} className="px-4 py-2 text-left font-medium text-[var(--color-text)]">
                 {h}
               </th>
             ))}
@@ -268,9 +268,9 @@ export function Table({
         </thead>
         <tbody>
           {rows.map((row, i) => (
-            <tr key={i} className="border-t border-neutral-100">
+            <tr key={i} className="border-t border-[var(--color-text)]">
               {row.map((cell, j) => (
-                <td key={j} className="px-4 py-2 text-neutral-800">
+                <td key={j} className="px-4 py-2 text-[var(--color-text)]">
                   {cell}
                 </td>
               ))}
@@ -284,8 +284,8 @@ export function Table({
 
 export function Progress({ value = 60, className }: { value?: number; className?: string }) {
   return (
-    <div className={cn("h-2 w-full overflow-hidden rounded-full bg-neutral-200", className)}>
-      <div className="h-full rounded-full bg-neutral-900" style={{ width: `${value}%` }} />
+    <div className={cn("h-2 w-full overflow-hidden rounded-full bg-[var(--color-bg)]", className)}>
+      <div className="h-full rounded-full bg-[var(--color-bg)]" style={{ width: `${value}%` }} />
     </div>
   );
 }
@@ -293,7 +293,7 @@ export function Progress({ value = 60, className }: { value?: number; className?
 export function Checkbox({ label, className }: { label: string; className?: string }) {
   return (
     <label className={cn("flex items-center gap-2 text-sm", className)}>
-      <input type="checkbox" className="rounded border-neutral-300" />
+      <input type="checkbox" className="rounded border-[var(--color-text)]" />
       {label}
     </label>
   );
@@ -303,8 +303,8 @@ export function Switch({ label, className }: { label: string; className?: string
   return (
     <label className={cn("flex items-center justify-between gap-4 text-sm", className)}>
       {label}
-      <span className="relative inline-flex h-6 w-11 rounded-full bg-neutral-300">
-        <span className="m-0.5 h-5 w-5 rounded-full bg-white shadow" />
+      <span className="relative inline-flex h-6 w-11 rounded-full bg-[var(--color-bg)]">
+        <span className="m-0.5 h-5 w-5 rounded-full bg-[var(--color-bg)] shadow" />
       </span>
     </label>
   );
@@ -318,11 +318,11 @@ export function Accordion({
   className?: string;
 }) {
   return (
-    <div className={cn("divide-y divide-neutral-200 rounded-md border border-neutral-200", className)}>
+    <div className={cn("divide-y divide-[var(--color-text)] rounded-md border border-[var(--color-text)]", className)}>
       {items.map((item) => (
         <details key={item.title} className="group p-4">
           <summary className="cursor-pointer font-medium">{item.title}</summary>
-          <div className="mt-2 text-sm text-neutral-600">{item.content}</div>
+          <div className="mt-2 text-sm text-[var(--color-text)]">{item.content}</div>
         </details>
       ))}
     </div>
@@ -337,14 +337,14 @@ export function NavigationMenu({
   className?: string;
 }) {
   return (
-    <nav className={cn("flex gap-4 border-b border-neutral-200 pb-2", className)}>
+    <nav className={cn("flex gap-4 border-b border-[var(--color-text)] pb-2", className)}>
       {items.map((item) => (
         <a
           key={item.label}
           href="#"
           className={cn(
             "text-sm font-medium",
-            item.active ? "text-neutral-900" : "text-neutral-500 hover:text-neutral-700",
+            item.active ? "text-[var(--color-text)]" : "text-[var(--color-text)] hover:text-[var(--color-text)]",
           )}
         >
           {item.label}
@@ -370,12 +370,12 @@ export function DropdownMenu({
   return (
     <div className={cn("relative inline-block", className)}>
       <Button variant="outline">{trigger}</Button>
-      <div className="mt-1 min-w-[140px] rounded-md border border-neutral-200 bg-white py-1 shadow-lg">
+      <div className="mt-1 min-w-[140px] rounded-md border border-[var(--color-text)] bg-[var(--color-bg)] py-1 shadow-lg">
         {items.map((item) => (
           <button
             key={item}
             type="button"
-            className="block w-full px-3 py-1.5 text-left text-sm hover:bg-neutral-50"
+            className="block w-full px-3 py-1.5 text-left text-sm hover:bg-[var(--color-bg)]"
           >
             {item}
           </button>
@@ -394,7 +394,7 @@ export function Pagination({ pages, className }: { pages: number; className?: st
           type="button"
           className={cn(
             "h-8 w-8 rounded-md text-sm",
-            i === 0 ? "bg-neutral-900 text-white" : "hover:bg-neutral-100",
+            i === 0 ? "bg-[var(--color-bg)] text-[var(--color-bg)]" : "hover:bg-[var(--color-bg)]",
           )}
         >
           {i + 1}
@@ -414,7 +414,7 @@ export function Dialog({
   className?: string;
 }) {
   return (
-    <div className={cn("rounded-lg border border-neutral-200 bg-white p-6 shadow-xl", className)}>
+    <div className={cn("rounded-lg border border-[var(--color-text)] bg-[var(--color-bg)] p-6 shadow-xl", className)}>
       <h2 className="text-lg font-semibold">{title}</h2>
       <div className="mt-4">{children}</div>
     </div>
@@ -431,7 +431,7 @@ export function Sheet({
   className?: string;
 }) {
   return (
-    <aside className={cn("w-80 border-l border-neutral-200 bg-white p-6", className)}>
+    <aside className={cn("w-80 border-l border-[var(--color-text)] bg-[var(--color-bg)] p-6", className)}>
       <h2 className="font-semibold">{title}</h2>
       <div className="mt-4">{children}</div>
     </aside>
@@ -448,7 +448,7 @@ export function Tooltip({
   return (
     <span className="group relative inline-block">
       {children}
-      <span className="pointer-events-none absolute -top-8 left-1/2 hidden -translate-x-1/2 rounded bg-neutral-900 px-2 py-1 text-xs text-white group-hover:block">
+      <span className="pointer-events-none absolute -top-8 left-1/2 hidden -translate-x-1/2 rounded bg-[var(--color-bg)] px-2 py-1 text-xs text-[var(--color-bg)] group-hover:block">
         {tip}
       </span>
     </span>
@@ -465,7 +465,7 @@ export function Popover({
   return (
     <div className="inline-flex flex-col gap-2">
       <Button variant="outline">{trigger}</Button>
-      <div className="rounded-md border border-neutral-200 bg-white p-3 shadow-md">{content}</div>
+      <div className="rounded-md border border-[var(--color-text)] bg-[var(--color-bg)] p-3 shadow-md">{content}</div>
     </div>
   );
 }
@@ -493,18 +493,18 @@ export function RadioGroup({
 
 export function Slider({ className }: { className?: string }) {
   return (
-    <input type="range" className={cn("w-full accent-neutral-900", className)} defaultValue={50} />
+    <input type="range" className={cn("w-full accent-[var(--color-text)]", className)} defaultValue={50} />
   );
 }
 
 export function Calendar({ className }: { className?: string }) {
   return (
-    <div className={cn("grid grid-cols-7 gap-1 rounded-md border border-neutral-200 p-3 text-center text-xs", className)}>
+    <div className={cn("grid grid-cols-7 gap-1 rounded-md border border-[var(--color-text)] p-3 text-center text-xs", className)}>
       {["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"].map((d) => (
-        <div key={d} className="font-medium text-neutral-500">{d}</div>
+        <div key={d} className="font-medium text-[var(--color-text)]">{d}</div>
       ))}
       {Array.from({ length: 28 }, (_, i) => (
-        <button key={i} type="button" className="rounded p-1 hover:bg-neutral-100">
+        <button key={i} type="button" className="rounded p-1 hover:bg-[var(--color-bg)]">
           {i + 1}
         </button>
       ))}
@@ -522,9 +522,9 @@ export function AlertDialog({
   className?: string;
 }) {
   return (
-    <div className={cn("rounded-lg border border-neutral-200 bg-white p-6 shadow-lg", className)}>
+    <div className={cn("rounded-lg border border-[var(--color-text)] bg-[var(--color-bg)] p-6 shadow-lg", className)}>
       <h3 className="font-semibold">{title}</h3>
-      <p className="mt-2 text-sm text-neutral-600">{description}</p>
+      <p className="mt-2 text-sm text-[var(--color-text)]">{description}</p>
       <div className="mt-4 flex justify-end gap-2">
         <Button variant="outline">Cancel</Button>
         <Button>Continue</Button>
@@ -543,7 +543,7 @@ export function Drawer({
   className?: string;
 }) {
   return (
-    <div className={cn("fixed bottom-0 left-0 right-0 rounded-t-xl border border-neutral-200 bg-white p-6 shadow-2xl", className)}>
+    <div className={cn("fixed bottom-0 left-0 right-0 rounded-t-xl border border-[var(--color-text)] bg-[var(--color-bg)] p-6 shadow-2xl", className)}>
       <h2 className="font-semibold">{title}</h2>
       <div className="mt-4">{children}</div>
     </div>
@@ -560,11 +560,11 @@ export function Command({
   className?: string;
 }) {
   return (
-    <div className={cn("rounded-md border border-neutral-200 bg-white", className)}>
+    <div className={cn("rounded-md border border-[var(--color-text)] bg-[var(--color-bg)]", className)}>
       <Input placeholder={placeholder} className="border-0 border-b rounded-none" />
       <div className="max-h-48 overflow-auto p-2">
         {items.map((item) => (
-          <button key={item} type="button" className="block w-full rounded px-2 py-1.5 text-left text-sm hover:bg-neutral-50">
+          <button key={item} type="button" className="block w-full rounded px-2 py-1.5 text-left text-sm hover:bg-[var(--color-bg)]">
             {item}
           </button>
         ))}
@@ -585,9 +585,9 @@ export function Combobox({
   return (
     <div className={cn("relative", className)}>
       <Input placeholder={placeholder} />
-      <div className="absolute z-10 mt-1 w-full rounded-md border border-neutral-200 bg-white shadow-lg">
+      <div className="absolute z-10 mt-1 w-full rounded-md border border-[var(--color-text)] bg-[var(--color-bg)] shadow-lg">
         {options.map((o) => (
-          <div key={o} className="px-3 py-2 text-sm hover:bg-neutral-50">{o}</div>
+          <div key={o} className="px-3 py-2 text-sm hover:bg-[var(--color-bg)]">{o}</div>
         ))}
       </div>
     </div>
@@ -596,9 +596,9 @@ export function Combobox({
 
 export function ContextMenu({ items, className }: { items: string[]; className?: string }) {
   return (
-    <div className={cn("rounded-md border border-neutral-200 bg-white py-1 shadow-lg", className)}>
+    <div className={cn("rounded-md border border-[var(--color-text)] bg-[var(--color-bg)] py-1 shadow-lg", className)}>
       {items.map((item) => (
-        <button key={item} type="button" className="block w-full px-3 py-1.5 text-left text-sm hover:bg-neutral-50">
+        <button key={item} type="button" className="block w-full px-3 py-1.5 text-left text-sm hover:bg-[var(--color-bg)]">
           {item}
         </button>
       ))}
@@ -608,9 +608,9 @@ export function ContextMenu({ items, className }: { items: string[]; className?:
 
 export function Menubar({ items, className }: { items: string[]; className?: string }) {
   return (
-    <div className={cn("flex gap-1 rounded-md border border-neutral-200 bg-neutral-50 p-1", className)}>
+    <div className={cn("flex gap-1 rounded-md border border-[var(--color-text)] bg-[var(--color-bg)] p-1", className)}>
       {items.map((item) => (
-        <button key={item} type="button" className="rounded px-3 py-1 text-sm hover:bg-white">
+        <button key={item} type="button" className="rounded px-3 py-1 text-sm hover:bg-[var(--color-bg)]">
           {item}
         </button>
       ))}
@@ -627,8 +627,8 @@ export function HoverCard({
 }) {
   return (
     <div className="group relative inline-block">
-      <span className="cursor-pointer text-sm font-medium text-neutral-900 underline">{trigger}</span>
-      <div className="absolute left-0 top-full z-10 mt-2 hidden w-64 rounded-md border border-neutral-200 bg-white p-3 shadow-lg group-hover:block">
+      <span className="cursor-pointer text-sm font-medium text-[var(--color-text)] underline">{trigger}</span>
+      <div className="absolute left-0 top-full z-10 mt-2 hidden w-64 rounded-md border border-[var(--color-text)] bg-[var(--color-bg)] p-3 shadow-lg group-hover:block">
         {content}
       </div>
     </div>
@@ -645,7 +645,7 @@ export function Collapsible({
   className?: string;
 }) {
   return (
-    <details className={cn("rounded-md border border-neutral-200 p-4", className)}>
+    <details className={cn("rounded-md border border-[var(--color-text)] p-4", className)}>
       <summary className="cursor-pointer font-medium">{title}</summary>
       <div className="mt-2">{children}</div>
     </details>
@@ -676,7 +676,7 @@ export function Spinner({ className }: { className?: string }) {
   return (
     <div
       className={cn(
-        "h-5 w-5 animate-spin rounded-full border-2 border-neutral-300 border-t-neutral-900",
+        "h-5 w-5 animate-spin rounded-full border-2 border-[var(--color-text)] border-t-[var(--color-accent)]",
         className,
       )}
     />
@@ -685,7 +685,7 @@ export function Spinner({ className }: { className?: string }) {
 
 export function Toast({ message, className }: { message: string; className?: string }) {
   return (
-    <div className={cn("rounded-md bg-neutral-900 px-4 py-3 text-sm text-white shadow-lg", className)}>
+    <div className={cn("rounded-md bg-[var(--color-bg)] px-4 py-3 text-sm text-[var(--color-bg)] shadow-lg", className)}>
       {message}
     </div>
   );

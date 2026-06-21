@@ -18,12 +18,12 @@ type Meeting = {
 
 function StatusBadge({ status }: { status: string }) {
   const styles: Record<string, string> = {
-    pending: "bg-zinc-800 text-zinc-400",
-    joining: "bg-blue-500/10 text-blue-400",
-    recording: "bg-red-500/10 text-red-400 animate-pulse",
-    processing: "bg-amber-500/10 text-amber-400",
-    done: "bg-emerald-500/10 text-emerald-400",
-    failed: "bg-red-500/10 text-red-400",
+    pending: "bg-[var(--color-bg)] text-[var(--color-text)]",
+    joining: "bg-[var(--color-accent)] text-[var(--color-accent)]",
+    recording: "bg-[var(--color-accent)] text-[var(--color-accent)] animate-pulse",
+    processing: "bg-[var(--color-accent)] text-[var(--color-accent)]",
+    done: "bg-[var(--color-accent)] text-[var(--color-accent)]",
+    failed: "bg-[var(--color-accent)] text-[var(--color-accent)]",
   };
 
   return (
@@ -124,21 +124,21 @@ export default function EAMeetingsPage() {
   );
 
   return (
-    <div className="min-h-screen bg-black text-zinc-100">
+    <div className="min-h-screen bg-[var(--color-text)] text-[var(--color-text)]">
       <EANav />
 
       <main className="mx-auto max-w-3xl px-6 py-10">
         <div className="mb-8 flex items-start justify-between gap-4">
           <div>
-            <h1 className="text-2xl font-light text-white">Meetings</h1>
-            <p className="mt-1 text-sm text-zinc-500">
+            <h1 className="text-2xl font-light text-[var(--color-bg)]">Meetings</h1>
+            <p className="mt-1 text-sm text-[var(--color-text)]">
               {eaName} detects meetings from your calendar and processes transcripts
             </p>
           </div>
           <button
             type="button"
             onClick={() => setShowForm((v) => !v)}
-            className="rounded-lg bg-white px-4 py-2 text-sm font-medium text-black hover:bg-zinc-200"
+            className="rounded-lg bg-[var(--color-bg)] px-4 py-2 text-sm font-medium text-[var(--color-text)] hover:bg-[var(--color-bg)]"
           >
             Add meeting
           </button>
@@ -147,45 +147,45 @@ export default function EAMeetingsPage() {
         {showForm ? (
           <form
             onSubmit={handleCreate}
-            className="mb-8 rounded-xl border border-zinc-800 bg-zinc-950 p-5 space-y-4"
+            className="mb-8 rounded-xl border border-[var(--color-text)] bg-[var(--color-bg)] p-5 space-y-4"
           >
             <input
               type="text"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               placeholder="Meeting title"
-              className="w-full rounded-lg border border-zinc-800 bg-black px-4 py-2.5 text-sm text-white outline-none focus:border-zinc-600"
+              className="w-full rounded-lg border border-[var(--color-text)] bg-[var(--color-text)] px-4 py-2.5 text-sm text-[var(--color-bg)] outline-none focus:border-[var(--color-text)]"
             />
             <input
               type="url"
               value={meetingUrl}
               onChange={(e) => setMeetingUrl(e.target.value)}
               placeholder="https://meet.google.com/..."
-              className="w-full rounded-lg border border-zinc-800 bg-black px-4 py-2.5 text-sm text-white outline-none focus:border-zinc-600"
+              className="w-full rounded-lg border border-[var(--color-text)] bg-[var(--color-text)] px-4 py-2.5 text-sm text-[var(--color-bg)] outline-none focus:border-[var(--color-text)]"
             />
             <input
               type="datetime-local"
               value={scheduledAt}
               onChange={(e) => setScheduledAt(e.target.value)}
-              className="w-full rounded-lg border border-zinc-800 bg-black px-4 py-2.5 text-sm text-white outline-none focus:border-zinc-600"
+              className="w-full rounded-lg border border-[var(--color-text)] bg-[var(--color-text)] px-4 py-2.5 text-sm text-[var(--color-bg)] outline-none focus:border-[var(--color-text)]"
             />
             <button
               type="submit"
               disabled={creating}
-              className="rounded-lg bg-white px-4 py-2 text-sm font-medium text-black disabled:opacity-50"
+              className="rounded-lg bg-[var(--color-bg)] px-4 py-2 text-sm font-medium text-[var(--color-text)] disabled:opacity-50"
             >
               {creating ? "Saving…" : "Save meeting"}
             </button>
           </form>
         ) : null}
 
-        {error ? <p className="mb-4 text-sm text-red-400">{error}</p> : null}
+        {error ? <p className="mb-4 text-sm text-[var(--color-accent)]">{error}</p> : null}
 
         {loading ? (
-          <p className="text-sm text-zinc-500">Loading meetings…</p>
+          <p className="text-sm text-[var(--color-text)]">Loading meetings…</p>
         ) : meetings.length === 0 ? (
-          <div className="rounded-xl border border-zinc-800 bg-zinc-950 p-8 text-center">
-            <p className="text-sm text-zinc-400">
+          <div className="rounded-xl border border-[var(--color-text)] bg-[var(--color-bg)] p-8 text-center">
+            <p className="text-sm text-[var(--color-text)]">
               No meetings yet. Virtual EA will detect them from your calendar.
             </p>
           </div>
@@ -193,7 +193,7 @@ export default function EAMeetingsPage() {
           <div className="space-y-8">
             {upcoming.length > 0 ? (
               <section>
-                <h2 className="mb-3 text-xs font-medium uppercase tracking-wider text-zinc-500">
+                <h2 className="mb-3 text-xs font-medium uppercase tracking-wider text-[var(--color-text)]">
                   Upcoming
                 </h2>
                 <ul className="space-y-3">
@@ -206,7 +206,7 @@ export default function EAMeetingsPage() {
 
             {past.length > 0 ? (
               <section>
-                <h2 className="mb-3 text-xs font-medium uppercase tracking-wider text-zinc-500">
+                <h2 className="mb-3 text-xs font-medium uppercase tracking-wider text-[var(--color-text)]">
                   Past
                 </h2>
                 <ul className="space-y-3">
@@ -238,14 +238,14 @@ function MeetingRow({ meeting }: { meeting: Meeting }) {
   const icon = platformIcon(meeting.meetingPlatform);
 
   return (
-    <li className="rounded-xl border border-zinc-800 bg-zinc-950 p-4">
+    <li className="rounded-xl border border-[var(--color-text)] bg-[var(--color-bg)] p-4">
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
-          <p className="font-medium text-white">
+          <p className="font-medium text-[var(--color-bg)]">
             {icon ? <span className="mr-1.5">{icon}</span> : null}
             {meeting.title ?? "Untitled meeting"}
           </p>
-          <p className="mt-1 text-xs text-zinc-500">
+          <p className="mt-1 text-xs text-[var(--color-text)]">
             {formatWhen(meeting.scheduledAt)}
             {platform ? ` · ${platform}` : ""}
           </p>
@@ -256,14 +256,14 @@ function MeetingRow({ meeting }: { meeting: Meeting }) {
         {meeting.status === "done" ? (
           <Link
             href={`/ea/meetings/${meeting.id}`}
-            className="text-sm text-emerald-400 hover:text-emerald-300"
+            className="text-sm text-[var(--color-accent)] hover:text-[var(--color-accent)]"
           >
             View summary →
           </Link>
         ) : (
           <Link
             href={`/ea/meetings/${meeting.id}`}
-            className="text-sm text-zinc-400 hover:text-zinc-300"
+            className="text-sm text-[var(--color-text)] hover:text-[var(--color-text)]"
           >
             Open →
           </Link>

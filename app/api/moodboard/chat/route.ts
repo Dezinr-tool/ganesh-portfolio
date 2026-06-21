@@ -162,7 +162,7 @@ export async function POST(request: NextRequest) {
     });
     answers = enriched.answers;
     extras = enriched.extras;
-    let researched = enriched.researched;
+    const researched = enriched.researched;
     const enrichmentContinuation = enriched.continuation;
 
     const runReply = async (onDelta?: (text: string) => void): Promise<string> => {

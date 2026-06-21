@@ -848,7 +848,7 @@ export function MoodboardEngine() {
 
   if (presentationMode) {
     return (
-      <div className="relative flex min-h-screen flex-col bg-white">
+      <div className="relative flex min-h-screen flex-col bg-[var(--color-bg)]">
         <MoodboardSessionsSidebar activeSessionId={sessionId} theme="light" />
         <MoodboardNav theme="light" />
         <div className="moodboard-output-enter flex-1">
@@ -871,7 +871,7 @@ export function MoodboardEngine() {
   return (
     <div
       className={`relative flex min-h-screen flex-col ${
-        conversationStarted ? "moodboard-chat-shell" : "bg-white"
+        conversationStarted ? "moodboard-chat-shell" : "bg-[var(--color-bg)]"
       }`}
     >
       <MoodboardSessionsSidebar activeSessionId={sessionId} theme="light" />
@@ -879,14 +879,14 @@ export function MoodboardEngine() {
 
       {sessionSyncing ? (
         <div
-          className="border-b border-[#f0f0f0] bg-[#fafafa] px-4 py-1.5 text-center text-xs text-[#888]"
+          className="border-b border-[var(--color-bg)] bg-[var(--color-bg)] px-4 py-1.5 text-center text-xs text-[var(--color-text)]"
           role="status"
         >
           Syncing session…
         </div>
       ) : null}
 
-      <div className="flex min-h-0 flex-1 flex-col bg-white">
+      <div className="flex min-h-0 flex-1 flex-col bg-[var(--color-bg)]">
           {!conversationStarted ? (
             <MoodboardLanding
               value={composerText}
@@ -915,9 +915,9 @@ export function MoodboardEngine() {
                   <div ref={messagesEndRef} className="h-4 shrink-0" />
                 </div>
 
-                <div className="sticky bottom-0 z-10 shrink-0 bg-gradient-to-t from-[#fafafa] via-[#fafafa] to-transparent pb-2 pt-4">
+                <div className="sticky bottom-0 z-10 shrink-0 bg-gradient-to-t from-[var(--color-bg)] via-[var(--color-bg)] to-transparent pb-2 pt-4">
                   {showPreConfirm && preConfirmation ? (
-                    <div className="moodboard-card-enter mb-4 rounded-2xl border border-[#e8e8e8] bg-white p-4 shadow-sm">
+                    <div className="moodboard-card-enter mb-4 rounded-2xl border border-[var(--color-bg)] bg-[var(--color-bg)] p-4 shadow-sm">
                       <PreConfirmationPanel
                         preConfirmation={preConfirmation}
                         onConfirm={handlePreConfirm}
@@ -929,7 +929,7 @@ export function MoodboardEngine() {
                   ) : null}
 
                   {showElementPicker ? (
-                    <p className="mb-2 text-center text-xs font-medium text-[#888]">
+                    <p className="mb-2 text-center text-xs font-medium text-[var(--color-text)]">
                       Step 2 — Select moodboard elements, then Generate 3 directions
                     </p>
                   ) : null}

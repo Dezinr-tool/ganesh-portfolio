@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import {
   SignatureCanvas,
   type SignatureCanvasRef,
-} from "@/components/agreements/signature-canvas";
+} from "@/components/dashboard/agreements/signature-canvas";
 
 type SignatureMode = "upload" | "draw";
 
@@ -91,14 +91,14 @@ export function SignatureSettingsForm() {
   }
 
   if (loading) {
-    return <p className="text-sm text-neutral-400">Loading…</p>;
+    return <p className="text-sm text-[var(--color-text)]">Loading…</p>;
   }
 
   return (
     <div className="space-y-6">
-      <section className="rounded-lg border border-neutral-800 bg-neutral-900 p-6">
-        <h2 className="text-sm font-medium text-white">Default signature</h2>
-        <p className="mt-1 text-sm text-neutral-400">
+      <section className="rounded-lg border border-[var(--color-text)] bg-[var(--color-bg)] p-6">
+        <h2 className="text-sm font-medium text-[var(--color-bg)]">Default signature</h2>
+        <p className="mt-1 text-sm text-[var(--color-text)]">
           Upload an image or draw your signature. This will be used when signing
           agreements.
         </p>
@@ -109,8 +109,8 @@ export function SignatureSettingsForm() {
             onClick={() => setMode("upload")}
             className={`rounded-md px-3 py-1.5 text-sm ${
               mode === "upload"
-                ? "bg-white text-neutral-950"
-                : "border border-neutral-700 text-neutral-300 hover:text-white"
+                ? "bg-[var(--color-bg)] text-[var(--color-text)]"
+                : "border border-[var(--color-text)] text-[var(--color-text)] hover:text-[var(--color-bg)]"
             }`}
           >
             Upload image
@@ -120,8 +120,8 @@ export function SignatureSettingsForm() {
             onClick={() => setMode("draw")}
             className={`rounded-md px-3 py-1.5 text-sm ${
               mode === "draw"
-                ? "bg-white text-neutral-950"
-                : "border border-neutral-700 text-neutral-300 hover:text-white"
+                ? "bg-[var(--color-bg)] text-[var(--color-text)]"
+                : "border border-[var(--color-text)] text-[var(--color-text)] hover:text-[var(--color-bg)]"
             }`}
           >
             Draw on canvas
@@ -135,12 +135,12 @@ export function SignatureSettingsForm() {
               type="file"
               accept="image/png,image/jpeg,image/jpg"
               onChange={handleFileChange}
-              className="block text-sm text-neutral-400 file:mr-4 file:rounded-md file:border-0 file:bg-neutral-800 file:px-4 file:py-2 file:text-sm file:text-white hover:file:bg-neutral-700"
+              className="block text-sm text-[var(--color-text)] file:mr-4 file:rounded-md file:border-0 file:bg-[var(--color-bg)] file:px-4 file:py-2 file:text-sm file:text-[var(--color-bg)] hover:file:bg-[var(--color-bg)]"
             />
           </div>
         ) : (
           <div className="mt-4 space-y-3">
-            <div className="overflow-x-auto rounded border border-neutral-700 bg-white p-2">
+            <div className="overflow-x-auto rounded border border-[var(--color-text)] bg-[var(--color-bg)] p-2">
               <SignatureCanvas
                 ref={canvasRef}
                 width={500}
@@ -152,7 +152,7 @@ export function SignatureSettingsForm() {
               type="button"
               onClick={handleUseDrawing}
               disabled={!hasDrawn}
-              className="rounded-md border border-neutral-600 px-4 py-2 text-sm text-white hover:bg-neutral-800 disabled:opacity-40"
+              className="rounded-md border border-[var(--color-text)] px-4 py-2 text-sm text-[var(--color-bg)] hover:bg-[var(--color-bg)] disabled:opacity-40"
             >
               Use this drawing
             </button>
@@ -160,9 +160,9 @@ export function SignatureSettingsForm() {
         )}
       </section>
 
-      <section className="rounded-lg border border-neutral-800 bg-neutral-900 p-6">
-        <h2 className="text-sm font-medium text-white">Preview</h2>
-        <div className="mt-4 flex min-h-[120px] items-center justify-center rounded border border-neutral-700 bg-white p-4">
+      <section className="rounded-lg border border-[var(--color-text)] bg-[var(--color-bg)] p-6">
+        <h2 className="text-sm font-medium text-[var(--color-bg)]">Preview</h2>
+        <div className="mt-4 flex min-h-[120px] items-center justify-center rounded border border-[var(--color-text)] bg-[var(--color-bg)] p-4">
           {preview ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img
@@ -171,26 +171,26 @@ export function SignatureSettingsForm() {
               className="max-h-24 object-contain"
             />
           ) : (
-            <p className="text-sm text-neutral-500">No signature yet</p>
+            <p className="text-sm text-[var(--color-text)]">No signature yet</p>
           )}
         </div>
       </section>
 
       {error ? (
-        <p className="text-sm text-red-400" role="alert">
+        <p className="text-sm text-[var(--color-accent)]" role="alert">
           {error}
         </p>
       ) : null}
 
       {success ? (
-        <p className="text-sm text-emerald-400">Default signature saved.</p>
+        <p className="text-sm text-[var(--color-accent)]">Default signature saved.</p>
       ) : null}
 
       <button
         type="button"
         onClick={handleSave}
         disabled={!preview || saving}
-        className="rounded-md bg-white px-4 py-2 text-sm font-medium text-neutral-950 disabled:opacity-50"
+        className="rounded-md bg-[var(--color-bg)] px-4 py-2 text-sm font-medium text-[var(--color-text)] disabled:opacity-50"
       >
         {saving ? "Saving…" : "Save Default Signature"}
       </button>

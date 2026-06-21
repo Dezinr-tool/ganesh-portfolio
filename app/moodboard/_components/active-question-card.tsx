@@ -6,8 +6,8 @@ import { MULTI_SELECT_KEYS } from "@/lib/moodboard/question-seed";
 import { SectionSelector } from "./section-selector";
 
 const CHIP =
-  "rounded-full border border-white/10 bg-white/[0.04] px-3 py-1.5 text-xs text-zinc-300 transition hover:border-white/20 hover:bg-white/[0.08] hover:text-white disabled:opacity-40";
-const CHIP_ACTIVE = "border-white/25 bg-white/10 text-white";
+  "rounded-full border border-[var(--color-bg)]/10 bg-[var(--color-bg)]/[0.04] px-3 py-1.5 text-xs text-[var(--color-text)] transition hover:border-[var(--color-bg)]/20 hover:bg-[var(--color-bg)]/[0.08] hover:text-[var(--color-bg)] disabled:opacity-40";
+const CHIP_ACTIVE = "border-[var(--color-bg)]/25 bg-[var(--color-bg)]/10 text-[var(--color-bg)]";
 
 /** Legacy card for IA tool — moodboard uses QuestionOptionsCard instead. */
 export function ActiveQuestionCard({
@@ -50,8 +50,8 @@ export function ActiveQuestionCard({
 
   if (isSectionSelect) {
     return (
-      <div className="moodboard-card-enter mb-3 rounded-xl border border-white/10 bg-white/[0.05] p-4">
-        <p className="text-[15px] leading-relaxed text-white">{question.question_text}</p>
+      <div className="moodboard-card-enter mb-3 rounded-xl border border-[var(--color-bg)]/10 bg-[var(--color-bg)]/[0.05] p-4">
+        <p className="text-[15px] leading-relaxed text-[var(--color-bg)]">{question.question_text}</p>
         <div className="mt-4">
           <SectionSelector
             question={question}
@@ -65,8 +65,8 @@ export function ActiveQuestionCard({
   }
 
   return (
-    <div className="moodboard-card-enter mb-3 rounded-xl border border-white/10 bg-white/[0.05] p-4">
-      <p className="text-[15px] leading-relaxed text-white">{question.question_text}</p>
+    <div className="moodboard-card-enter mb-3 rounded-xl border border-[var(--color-bg)]/10 bg-[var(--color-bg)]/[0.05] p-4">
+      <p className="text-[15px] leading-relaxed text-[var(--color-bg)]">{question.question_text}</p>
 
       {isChips && chips.length > 0 ? (
         <div className="mt-4 flex flex-wrap gap-2">
@@ -86,7 +86,7 @@ export function ActiveQuestionCard({
               type="button"
               disabled={disabled || selected.length === 0}
               onClick={() => onMultiChipSubmit(selected)}
-              className="rounded-full bg-white px-3 py-1.5 text-xs font-medium text-black transition hover:bg-zinc-200 disabled:opacity-40"
+              className="rounded-full bg-[var(--color-bg)] px-3 py-1.5 text-xs font-medium text-[var(--color-text)] transition hover:bg-[var(--color-bg)] disabled:opacity-40"
             >
               Continue
             </button>
@@ -98,7 +98,7 @@ export function ActiveQuestionCard({
         <div className="mt-4 space-y-3">
           <div className="space-y-1">
             {pendingFiles.map((f) => (
-              <p key={f.name} className="text-xs text-zinc-400">
+              <p key={f.name} className="text-xs text-[var(--color-text)]">
                 {f.name}
               </p>
             ))}
@@ -108,7 +108,7 @@ export function ActiveQuestionCard({
               type="button"
               disabled={disabled}
               onClick={onUploadContinue}
-              className="rounded-full bg-white px-4 py-1.5 text-xs font-medium text-black transition hover:bg-zinc-200"
+              className="rounded-full bg-[var(--color-bg)] px-4 py-1.5 text-xs font-medium text-[var(--color-text)] transition hover:bg-[var(--color-bg)]"
             >
               Continue
             </button>
@@ -129,7 +129,7 @@ export function FloatingStatusCard({
   return (
     <div className="moodboard-card-enter mb-3">
       <p className="moodboard-assistant-message">{title}</p>
-      {subtitle ? <p className="mt-1 text-sm text-[#888]">{subtitle}</p> : null}
+      {subtitle ? <p className="mt-1 text-sm text-[var(--color-text)]">{subtitle}</p> : null}
     </div>
   );
 }

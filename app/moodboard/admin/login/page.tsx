@@ -43,10 +43,10 @@ function LoginForm() {
   return (
     <form
       onSubmit={handleSubmit}
-      className="w-full max-w-sm rounded-2xl border border-zinc-800 bg-zinc-950 p-6"
+      className="w-full max-w-sm rounded-2xl border border-[var(--color-text)] bg-[var(--color-bg)] p-6"
     >
-      <h1 className="text-center text-lg font-medium text-white">Admin Access</h1>
-      <p className="mt-2 text-center text-sm text-zinc-500">
+      <h1 className="text-center text-lg font-medium text-[var(--color-bg)]">Admin Access</h1>
+      <p className="mt-2 text-center text-sm text-[var(--color-text)]">
         Enter password to continue
       </p>
       <input
@@ -55,15 +55,15 @@ function LoginForm() {
         onChange={(e) => setPassword(e.target.value)}
         placeholder="Password"
         autoFocus
-        className="mt-6 w-full rounded-xl border border-zinc-800 bg-black px-4 py-3 text-sm text-white outline-none placeholder:text-zinc-600 focus:border-zinc-600"
+        className="mt-6 w-full rounded-xl border border-[var(--color-text)] bg-[var(--color-text)] px-4 py-3 text-sm text-[var(--color-bg)] outline-none placeholder:text-[var(--color-text)] focus:border-[var(--color-text)]"
       />
       {error ? (
-        <p className="mt-3 text-center text-sm text-red-400">{error}</p>
+        <p className="mt-3 text-center text-sm text-[var(--color-accent)]">{error}</p>
       ) : null}
       <button
         type="submit"
         disabled={busy || !password}
-        className="mt-4 w-full rounded-xl bg-zinc-100 py-3 text-sm font-medium text-zinc-900 transition hover:bg-white disabled:opacity-50"
+        className="mt-4 w-full rounded-xl bg-[var(--color-bg)] py-3 text-sm font-medium text-[var(--color-text)] transition hover:bg-[var(--color-bg)] disabled:opacity-50"
       >
         {busy ? "Checking…" : "Enter"}
       </button>
@@ -73,12 +73,12 @@ function LoginForm() {
 
 export default function MoodboardAdminLoginPage() {
   return (
-    <div className="min-h-screen bg-black text-zinc-100">
+    <div className="min-h-screen bg-[var(--color-text)] text-[var(--color-text)]">
       <MoodboardNav />
       <div className="flex min-h-[calc(100vh-65px)] items-center justify-center px-4">
         <Suspense
           fallback={
-            <div className="w-full max-w-sm rounded-2xl border border-zinc-800 bg-zinc-950 p-6 text-center text-sm text-zinc-500">
+            <div className="w-full max-w-sm rounded-2xl border border-[var(--color-text)] bg-[var(--color-bg)] p-6 text-center text-sm text-[var(--color-text)]">
               Loading…
             </div>
           }

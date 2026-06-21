@@ -1,5 +1,10 @@
 import { NextResponse } from "next/server";
 import {
+  type DesignTokensPatch,
+  getDesignTokens,
+  updateDesignTokens,
+} from "@/lib/design-tokens";
+import {
   type BillingSettingsPatch,
   getBillingSettings,
   getDefaultSignature,
@@ -9,11 +14,12 @@ import {
 
 export async function GET() {
   try {
-    const [signature, billing] = await Promise.all([
+    const [signature, billing, designTokens] = await Promise.all([
       getDefaultSignature(),
       getBillingSettings(),
+      getDesignTokens(),
     ]);
-    return NextResponse.json({ signature, ...billing });
+    return NextResponse.json({ signature, designTokens, ...billing });
   } catch {
     return NextResponse.json(
       { error: "Failed to load settings." },
@@ -24,7 +30,9 @@ export async function GET() {
 
 export async function PATCH(request: Request) {
   try {
-    const body = (await request.json()) as BillingSettingsPatch;
+    const body = (await request.json()) as BillingSettingsPatch & {
+      designTokens?: DesignTokensPatch;
+    };
 
     const hasBillingField =
       body.hourlyRate !== undefined ||
@@ -35,15 +43,26 @@ export async function PATCH(request: Request) {
       body.bankIfsc !== undefined ||
       body.panNumber !== undefined;
 
-    if (!hasBillingField) {
+    const hasDesignTokenField =
+      body.designTokens?.bg !== undefined ||
+      body.designTokens?.text !== undefined ||
+      body.designTokens?.accent !== undefined;
+
+    if (!hasBillingField && !hasDesignTokenField) {
       return NextResponse.json(
         { error: "No settings to update." },
         { status: 400 },
       );
     }
 
-    const billing = await updateBillingSettings(body);
-    return NextResponse.json(billing);
+    const [billing, designTokens] = await Promise.all([
+      hasBillingField ? updateBillingSettings(body) : getBillingSettings(),
+      hasDesignTokenField
+        ? updateDesignTokens(body.designTokens ?? {})
+        : getDesignTokens(),
+    ]);
+
+    return NextResponse.json({ ...billing, designTokens });
   } catch (error) {
     const message =
       error instanceof Error ? error.message : "Failed to save settings.";

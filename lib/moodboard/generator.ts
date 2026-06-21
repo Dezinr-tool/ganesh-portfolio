@@ -91,7 +91,7 @@ function normalizeDirections(raw: unknown[]): MoodboardDirection[] {
       : [];
 
     while (colors.length < 5) {
-      colors.push({ hex: "#1a1a1a", name: `Neutral ${colors.length + 1}` });
+      colors.push({ hex: "var(--color-text)", name: `Neutral ${colors.length + 1}` });
     }
 
     return {

@@ -47,47 +47,47 @@ export default function MaxLandingPage() {
     <MaxShell>
       <main>
         <section className="mx-auto max-w-3xl px-6 py-20 text-center">
-          <h1 className="text-4xl font-light text-white sm:text-5xl">
+          <h1 className="text-4xl font-light text-[var(--color-bg)] sm:text-5xl">
             Your AI Executive Assistant
           </h1>
-          <p className="mt-4 text-lg text-zinc-400">
+          <p className="mt-4 text-lg text-[var(--color-text)]">
             Virtual EA handles scheduling, follow-ups, and meeting notes — so you can
             focus on the work that matters.
           </p>
           <div className="mt-8 flex flex-wrap justify-center gap-3">
             <Link
               href="/ea/signup"
-              className="rounded-lg bg-white px-6 py-3 font-medium text-black hover:bg-zinc-200"
+              className="rounded-lg bg-[var(--color-bg)] px-6 py-3 font-medium text-[var(--color-text)] hover:bg-[var(--color-bg)]"
             >
               Start free trial
             </Link>
             <a
               href="#features"
-              className="rounded-lg border border-zinc-700 px-6 py-3 text-white hover:bg-zinc-900"
+              className="rounded-lg border border-[var(--color-text)] px-6 py-3 text-[var(--color-bg)] hover:bg-[var(--color-bg)]"
             >
               See how it works
             </a>
           </div>
         </section>
 
-        <section id="features" className="border-t border-zinc-800/80 py-16">
+        <section id="features" className="border-t border-[var(--color-text)]/80 py-16">
           <div className="mx-auto grid max-w-5xl gap-6 px-6 sm:grid-cols-2 lg:grid-cols-4">
             {FEATURES.map((f) => (
               <div
                 key={f.title}
-                className="rounded-xl border border-zinc-800 bg-zinc-950 p-6"
+                className="rounded-xl border border-[var(--color-text)] bg-[var(--color-bg)] p-6"
               >
                 <span className="text-2xl">{f.icon}</span>
-                <h3 className="mt-3 font-medium text-white">{f.title}</h3>
-                <p className="mt-2 text-sm text-zinc-500">{f.desc}</p>
+                <h3 className="mt-3 font-medium text-[var(--color-bg)]">{f.title}</h3>
+                <p className="mt-2 text-sm text-[var(--color-text)]">{f.desc}</p>
               </div>
             ))}
           </div>
         </section>
 
-        <section className="border-t border-zinc-800/80 py-16">
+        <section className="border-t border-[var(--color-text)]/80 py-16">
           <div className="mx-auto max-w-3xl px-6">
-            <h2 className="text-center text-2xl font-light text-white">
+            <h2 className="text-center text-2xl font-light text-[var(--color-bg)]">
               Instead of… Virtual EA does it
             </h2>
             <div className="mt-8 space-y-3 text-sm">
@@ -99,26 +99,26 @@ export default function MaxLandingPage() {
               ].map(([before, after]) => (
                 <div
                   key={before}
-                  className="flex flex-col gap-1 rounded-lg border border-zinc-800 bg-zinc-950 px-4 py-3 sm:flex-row sm:items-center sm:justify-between"
+                  className="flex flex-col gap-1 rounded-lg border border-[var(--color-text)] bg-[var(--color-bg)] px-4 py-3 sm:flex-row sm:items-center sm:justify-between"
                 >
-                  <span className="text-zinc-500 line-through">{before}</span>
-                  <span className="text-emerald-400">{after}</span>
+                  <span className="text-[var(--color-text)] line-through">{before}</span>
+                  <span className="text-[var(--color-accent)]">{after}</span>
                 </div>
               ))}
             </div>
           </div>
         </section>
 
-        <section className="border-t border-zinc-800/80 py-16">
+        <section className="border-t border-[var(--color-text)]/80 py-16">
           <div className="mx-auto grid max-w-5xl gap-6 px-6 sm:grid-cols-3">
             {PLANS.map((plan) => (
               <div
                 key={plan.name}
-                className="rounded-xl border border-zinc-800 bg-zinc-950 p-6"
+                className="rounded-xl border border-[var(--color-text)] bg-[var(--color-bg)] p-6"
               >
-                <h3 className="text-lg font-medium text-white">{plan.name}</h3>
-                <p className="mt-2 text-2xl font-light text-white">{plan.price}</p>
-                <ul className="mt-4 space-y-2 text-sm text-zinc-400">
+                <h3 className="text-lg font-medium text-[var(--color-bg)]">{plan.name}</h3>
+                <p className="mt-2 text-2xl font-light text-[var(--color-bg)]">{plan.price}</p>
+                <ul className="mt-4 space-y-2 text-sm text-[var(--color-text)]">
                   {plan.features.map((f) => (
                     <li key={f}>✓ {f}</li>
                   ))}
@@ -128,11 +128,11 @@ export default function MaxLandingPage() {
           </div>
         </section>
 
-        <section className="border-t border-zinc-800/80 py-20 text-center">
-          <h2 className="text-2xl font-light text-white">Ready to try Virtual EA?</h2>
+        <section className="border-t border-[var(--color-text)]/80 py-20 text-center">
+          <h2 className="text-2xl font-light text-[var(--color-bg)]">Ready to try Virtual EA?</h2>
           <Link
             href="/ea/signup"
-            className="mt-6 inline-block rounded-lg bg-white px-8 py-3 font-medium text-black hover:bg-zinc-200"
+            className="mt-6 inline-block rounded-lg bg-[var(--color-bg)] px-8 py-3 font-medium text-[var(--color-text)] hover:bg-[var(--color-bg)]"
           >
             Start free trial
           </Link>

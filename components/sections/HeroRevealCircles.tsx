@@ -64,7 +64,7 @@ export function HeroRevealCircles({ svgRef }: HeroRevealCirclesProps) {
               cx={cx}
               cy={cy}
               r={r}
-              stroke="rgba(255, 255, 255, 0.55)"
+              stroke="var(--color-text)"
               strokeWidth="1.25"
               strokeOpacity="0"
             />
@@ -73,7 +73,7 @@ export function HeroRevealCircles({ svgRef }: HeroRevealCirclesProps) {
               cx={dotX}
               cy={dotY}
               r={3}
-              fill="#f0f0f0"
+              fill="var(--color-text)"
               fillOpacity="0.95"
             />
           </g>

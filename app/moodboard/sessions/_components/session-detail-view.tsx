@@ -38,42 +38,42 @@ export function SessionDetailView({ summary }: { summary: SessionAnalyticsSummar
     session.selected_model ?? directions.find((d) => d.modelUsed)?.modelUsed ?? null;
 
   return (
-    <div className="min-h-screen bg-[#0d0d0d] text-zinc-100">
+    <div className="min-h-screen bg-[var(--color-text)] text-[var(--color-text)]">
       <MoodboardNav />
       <main className="mx-auto max-w-4xl px-4 py-8 sm:px-6">
         <Link
           href="/moodboard/sessions"
-          className="text-sm text-zinc-500 transition hover:text-zinc-300"
+          className="text-sm text-[var(--color-text)] transition hover:text-[var(--color-text)]"
         >
           ← All sessions
         </Link>
 
-        <header className="mt-6 rounded-xl border border-zinc-800 bg-zinc-950/40 p-5">
-          <h1 className="text-2xl font-light text-white">
+        <header className="mt-6 rounded-xl border border-[var(--color-text)] bg-[var(--color-bg)]/40 p-5">
+          <h1 className="text-2xl font-light text-[var(--color-bg)]">
             {session.brand_name || "Untitled brand"}
           </h1>
-          <p className="mt-1 font-mono text-xs text-zinc-500">{session.session_id}</p>
+          <p className="mt-1 font-mono text-xs text-[var(--color-text)]">{session.session_id}</p>
 
           <dl className="mt-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             <div>
-              <dt className="text-xs uppercase tracking-wide text-zinc-500">Started</dt>
-              <dd className="mt-1 text-sm text-zinc-200">{formatDate(session.created_at)}</dd>
+              <dt className="text-xs uppercase tracking-wide text-[var(--color-text)]">Started</dt>
+              <dd className="mt-1 text-sm text-[var(--color-text)]">{formatDate(session.created_at)}</dd>
             </div>
             <div>
-              <dt className="text-xs uppercase tracking-wide text-zinc-500">Last updated</dt>
-              <dd className="mt-1 text-sm text-zinc-200">{formatDate(session.updated_at)}</dd>
+              <dt className="text-xs uppercase tracking-wide text-[var(--color-text)]">Last updated</dt>
+              <dd className="mt-1 text-sm text-[var(--color-text)]">{formatDate(session.updated_at)}</dd>
             </div>
             <div>
-              <dt className="text-xs uppercase tracking-wide text-zinc-500">Time spent</dt>
-              <dd className="mt-1 text-sm text-zinc-200">{formatDuration(timeSpentMs)}</dd>
+              <dt className="text-xs uppercase tracking-wide text-[var(--color-text)]">Time spent</dt>
+              <dd className="mt-1 text-sm text-[var(--color-text)]">{formatDuration(timeSpentMs)}</dd>
             </div>
             <div>
-              <dt className="text-xs uppercase tracking-wide text-zinc-500">Model used</dt>
-              <dd className="mt-1 text-sm text-zinc-200">{formatModel(modelUsed)}</dd>
+              <dt className="text-xs uppercase tracking-wide text-[var(--color-text)]">Model used</dt>
+              <dd className="mt-1 text-sm text-[var(--color-text)]">{formatModel(modelUsed)}</dd>
             </div>
             <div>
-              <dt className="text-xs uppercase tracking-wide text-zinc-500">Generation</dt>
-              <dd className="mt-1 text-sm text-zinc-200">
+              <dt className="text-xs uppercase tracking-wide text-[var(--color-text)]">Generation</dt>
+              <dd className="mt-1 text-sm text-[var(--color-text)]">
                 {session.generation_status === "completed"
                   ? "Completed"
                   : session.generation_status ?? "Not started"}
@@ -83,15 +83,15 @@ export function SessionDetailView({ summary }: { summary: SessionAnalyticsSummar
               </dd>
             </div>
             <div>
-              <dt className="text-xs uppercase tracking-wide text-zinc-500">Session status</dt>
+              <dt className="text-xs uppercase tracking-wide text-[var(--color-text)]">Session status</dt>
               <dd className="mt-1">
                 <span
                   className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-medium ${
                     session.status === "complete"
-                      ? "bg-green-500/15 text-green-400"
+                      ? "bg-[var(--color-accent)] text-[var(--color-accent)]"
                       : session.status === "error"
-                        ? "bg-red-500/15 text-red-400"
-                        : "bg-zinc-800 text-zinc-300"
+                        ? "bg-[var(--color-accent)] text-[var(--color-accent)]"
+                        : "bg-[var(--color-bg)] text-[var(--color-text)]"
                   }`}
                 >
                   {formatStatus(session.status)}
@@ -100,22 +100,22 @@ export function SessionDetailView({ summary }: { summary: SessionAnalyticsSummar
             </div>
             {session.selected_direction ? (
               <div>
-                <dt className="text-xs uppercase tracking-wide text-zinc-500">
+                <dt className="text-xs uppercase tracking-wide text-[var(--color-text)]">
                   Selected direction
                 </dt>
-                <dd className="mt-1 text-sm text-green-400">{session.selected_direction}</dd>
+                <dd className="mt-1 text-sm text-[var(--color-accent)]">{session.selected_direction}</dd>
               </div>
             ) : null}
           </dl>
         </header>
 
         <section className="mt-10">
-          <h2 className="text-sm font-medium uppercase tracking-wide text-zinc-400">
+          <h2 className="text-sm font-medium uppercase tracking-wide text-[var(--color-text)]">
             Generated moodboard directions
           </h2>
 
           {directions.length === 0 ? (
-            <p className="mt-4 rounded-xl border border-zinc-800 bg-zinc-950/50 px-4 py-8 text-center text-sm text-zinc-500">
+            <p className="mt-4 rounded-xl border border-[var(--color-text)] bg-[var(--color-bg)]/50 px-4 py-8 text-center text-sm text-[var(--color-text)]">
               Moodboard not generated yet — session still in progress
             </p>
           ) : (
@@ -130,7 +130,7 @@ export function SessionDetailView({ summary }: { summary: SessionAnalyticsSummar
         <SessionAnswersSection session={session} />
 
         <section className="mt-10">
-          <h2 className="text-sm font-medium uppercase tracking-wide text-zinc-400">
+          <h2 className="text-sm font-medium uppercase tracking-wide text-[var(--color-text)]">
             Event journey
           </h2>
           <div className="mt-4">

@@ -91,7 +91,7 @@ async function main() {
       direction_index: 1,
       direction_name: "Clear and Confident",
       tagline: "Trust through clarity",
-      color_palette: [{ hex: "#1a1a1a", name: "Ink", role: "Primary" }],
+      color_palette: [{ hex: "var(--color-text)", name: "Ink", role: "Primary" }],
     });
     checks.push({ name: "moodboard_directions insert", pass: true });
 
@@ -128,7 +128,7 @@ async function main() {
       clientName: testClient,
       frameworkType: "color_system",
       title: "QA Color System",
-      content: { primary: "#1a1a1a" },
+      content: { primary: "var(--color-text)" },
       source: "manual",
       toolSessionId: toolSession.session_id,
     });

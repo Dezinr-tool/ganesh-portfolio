@@ -35,7 +35,7 @@ export type CreateInvoiceInput = Omit<
 };
 
 export const inputClassName =
-  "w-full rounded-md border border-neutral-700 bg-neutral-900 px-3 py-2 text-sm text-white outline-none focus:border-neutral-500";
+  "w-full rounded-md border border-[var(--color-text)] bg-[var(--color-bg)] px-3 py-2 text-sm text-[var(--color-bg)] outline-none focus:border-[var(--color-text)]";
 
 export function formatCurrency(amount: number): string {
   return new Intl.NumberFormat("en-IN", {

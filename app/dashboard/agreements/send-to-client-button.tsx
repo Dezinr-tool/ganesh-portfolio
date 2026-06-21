@@ -46,7 +46,7 @@ export function SendToClientButton({
 
   if (sent) {
     return (
-      <span className="rounded-md border border-blue-500/30 bg-blue-500/10 px-4 py-2 text-sm text-blue-400">
+      <span className="rounded-md border border-[var(--color-accent)] bg-[var(--color-accent)] px-4 py-2 text-sm text-[var(--color-accent)]">
         Sent to client
       </span>
     );
@@ -58,11 +58,11 @@ export function SendToClientButton({
         type="button"
         onClick={handleSend}
         disabled={disabled || submitting}
-        className="rounded-md border border-neutral-600 px-4 py-2 text-sm font-medium text-white hover:bg-neutral-800 disabled:opacity-40"
+        className="rounded-md border border-[var(--color-text)] px-4 py-2 text-sm font-medium text-[var(--color-bg)] hover:bg-[var(--color-bg)] disabled:opacity-40"
       >
         {submitting ? "Sending…" : "Send to Client"}
       </button>
-      {error ? <p className="mt-1 text-xs text-red-400">{error}</p> : null}
+      {error ? <p className="mt-1 text-xs text-[var(--color-accent)]">{error}</p> : null}
     </div>
   );
 }

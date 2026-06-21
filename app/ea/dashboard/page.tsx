@@ -63,17 +63,17 @@ function EventRow({
   onEdit: (event: CalendarEvent) => void;
 }) {
   return (
-    <li className="flex items-start gap-4 border-b border-zinc-800/60 pb-3 last:border-0 last:pb-0">
-      <span className="w-20 shrink-0 text-xs text-zinc-500">
+    <li className="flex items-start gap-4 border-b border-[var(--color-text)]/60 pb-3 last:border-0 last:pb-0">
+      <span className="w-20 shrink-0 text-xs text-[var(--color-text)]">
         {dateLabel ?? formatTime(event)}
       </span>
       <div className="min-w-0 flex-1">
-        <p className="text-sm text-white">{event.title}</p>
+        <p className="text-sm text-[var(--color-bg)]">{event.title}</p>
         {event.location ? (
-          <p className="mt-0.5 text-xs text-zinc-500">{event.location}</p>
+          <p className="mt-0.5 text-xs text-[var(--color-text)]">{event.location}</p>
         ) : null}
         {event.attendees?.length ? (
-          <p className="mt-0.5 text-xs text-zinc-600">
+          <p className="mt-0.5 text-xs text-[var(--color-text)]">
             {event.attendees.join(", ")}
           </p>
         ) : null}
@@ -82,7 +82,7 @@ function EventRow({
         <button
           type="button"
           onClick={() => onEdit(event)}
-          className="rounded-md border border-zinc-700 px-2.5 py-1 text-xs text-zinc-300 transition-colors hover:border-zinc-500 hover:bg-zinc-900"
+          className="rounded-md border border-[var(--color-text)] px-2.5 py-1 text-xs text-[var(--color-text)] transition-colors hover:border-[var(--color-text)] hover:bg-[var(--color-bg)]"
         >
           Edit
         </button>
@@ -188,17 +188,17 @@ function EditEventModal({
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 px-4">
-      <div className="w-full max-w-lg rounded-xl border border-zinc-800 bg-zinc-950 p-6 shadow-xl">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-[var(--color-text)]/70 px-4">
+      <div className="w-full max-w-lg rounded-xl border border-[var(--color-text)] bg-[var(--color-bg)] p-6 shadow-xl">
         <div className="mb-5 flex items-start justify-between gap-4">
           <div>
-            <h3 className="text-lg font-medium text-white">Edit meeting</h3>
-            <p className="mt-1 text-xs text-zinc-500">Times are in IST</p>
+            <h3 className="text-lg font-medium text-[var(--color-bg)]">Edit meeting</h3>
+            <p className="mt-1 text-xs text-[var(--color-text)]">Times are in IST</p>
           </div>
           <button
             type="button"
             onClick={onClose}
-            className="text-zinc-500 transition-colors hover:text-zinc-300"
+            className="text-[var(--color-text)] transition-colors hover:text-[var(--color-text)]"
             aria-label="Close"
           >
             ✕
@@ -207,38 +207,38 @@ function EditEventModal({
 
         <div className="space-y-4">
           <div>
-            <label className="mb-1.5 block text-xs text-zinc-400">Title</label>
+            <label className="mb-1.5 block text-xs text-[var(--color-text)]">Title</label>
             <input
               type="text"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              className="w-full rounded-lg border border-zinc-800 bg-black px-3 py-2 text-sm text-white outline-none focus:border-zinc-600"
+              className="w-full rounded-lg border border-[var(--color-text)] bg-[var(--color-text)] px-3 py-2 text-sm text-[var(--color-bg)] outline-none focus:border-[var(--color-text)]"
             />
           </div>
 
           <div className="grid gap-4 sm:grid-cols-2">
             <div>
-              <label className="mb-1.5 block text-xs text-zinc-400">Start</label>
+              <label className="mb-1.5 block text-xs text-[var(--color-text)]">Start</label>
               <input
                 type="datetime-local"
                 value={start}
                 onChange={(e) => setStart(e.target.value)}
-                className="w-full rounded-lg border border-zinc-800 bg-black px-3 py-2 text-sm text-white outline-none focus:border-zinc-600"
+                className="w-full rounded-lg border border-[var(--color-text)] bg-[var(--color-text)] px-3 py-2 text-sm text-[var(--color-bg)] outline-none focus:border-[var(--color-text)]"
               />
             </div>
             <div>
-              <label className="mb-1.5 block text-xs text-zinc-400">End</label>
+              <label className="mb-1.5 block text-xs text-[var(--color-text)]">End</label>
               <input
                 type="datetime-local"
                 value={end}
                 onChange={(e) => setEnd(e.target.value)}
-                className="w-full rounded-lg border border-zinc-800 bg-black px-3 py-2 text-sm text-white outline-none focus:border-zinc-600"
+                className="w-full rounded-lg border border-[var(--color-text)] bg-[var(--color-text)] px-3 py-2 text-sm text-[var(--color-bg)] outline-none focus:border-[var(--color-text)]"
               />
             </div>
           </div>
 
           <div>
-            <label className="mb-1.5 block text-xs text-zinc-400">
+            <label className="mb-1.5 block text-xs text-[var(--color-text)]">
               Guest emails
             </label>
             <input
@@ -246,51 +246,51 @@ function EditEventModal({
               value={guests}
               onChange={(e) => setGuests(e.target.value)}
               placeholder="hello@designbyganesh.com"
-              className="w-full rounded-lg border border-zinc-800 bg-black px-3 py-2 text-sm text-white outline-none focus:border-zinc-600"
+              className="w-full rounded-lg border border-[var(--color-text)] bg-[var(--color-text)] px-3 py-2 text-sm text-[var(--color-bg)] outline-none focus:border-[var(--color-text)]"
             />
           </div>
 
           <div>
-            <label className="mb-1.5 block text-xs text-zinc-400">
+            <label className="mb-1.5 block text-xs text-[var(--color-text)]">
               Location
             </label>
             <input
               type="text"
               value={location}
               onChange={(e) => setLocation(e.target.value)}
-              className="w-full rounded-lg border border-zinc-800 bg-black px-3 py-2 text-sm text-white outline-none focus:border-zinc-600"
+              className="w-full rounded-lg border border-[var(--color-text)] bg-[var(--color-text)] px-3 py-2 text-sm text-[var(--color-bg)] outline-none focus:border-[var(--color-text)]"
             />
           </div>
 
           <div>
-            <label className="mb-1.5 block text-xs text-zinc-400">
+            <label className="mb-1.5 block text-xs text-[var(--color-text)]">
               Description
             </label>
             <textarea
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               rows={3}
-              className="w-full resize-y rounded-lg border border-zinc-800 bg-black px-3 py-2 text-sm text-white outline-none focus:border-zinc-600"
+              className="w-full resize-y rounded-lg border border-[var(--color-text)] bg-[var(--color-text)] px-3 py-2 text-sm text-[var(--color-bg)] outline-none focus:border-[var(--color-text)]"
             />
           </div>
 
           {event.meetLink ? (
             <div>
-              <label className="mb-1.5 block text-xs text-zinc-400">
+              <label className="mb-1.5 block text-xs text-[var(--color-text)]">
                 Google Meet
               </label>
               <a
                 href={event.meetLink}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-sm text-emerald-400 underline underline-offset-2 hover:text-emerald-300"
+                className="text-sm text-[var(--color-accent)] underline underline-offset-2 hover:text-[var(--color-accent)]"
               >
                 {event.meetLink}
               </a>
             </div>
           ) : null}
 
-          {error ? <p className="text-sm text-red-400">{error}</p> : null}
+          {error ? <p className="text-sm text-[var(--color-accent)]">{error}</p> : null}
         </div>
 
         <div className="mt-6 flex flex-wrap items-center justify-between gap-3">
@@ -298,7 +298,7 @@ function EditEventModal({
             type="button"
             onClick={handleDelete}
             disabled={deleting || saving}
-            className="rounded-lg border border-red-900/60 px-4 py-2 text-sm text-red-400 transition-colors hover:border-red-700 hover:bg-red-950/30 disabled:opacity-50"
+            className="rounded-lg border border-[var(--color-accent)] px-4 py-2 text-sm text-[var(--color-accent)] transition-colors hover:border-[var(--color-accent)] hover:bg-[var(--color-accent)] disabled:opacity-50"
           >
             {deleting ? "Deleting…" : "Delete"}
           </button>
@@ -307,7 +307,7 @@ function EditEventModal({
               type="button"
               onClick={onClose}
               disabled={deleting || saving}
-              className="rounded-lg border border-zinc-700 px-4 py-2 text-sm text-zinc-300 transition-colors hover:bg-zinc-900 disabled:opacity-50"
+              className="rounded-lg border border-[var(--color-text)] px-4 py-2 text-sm text-[var(--color-text)] transition-colors hover:bg-[var(--color-bg)] disabled:opacity-50"
             >
               Cancel
             </button>
@@ -315,7 +315,7 @@ function EditEventModal({
               type="button"
               onClick={handleSave}
               disabled={deleting || saving}
-              className="rounded-lg bg-white px-4 py-2 text-sm font-medium text-black transition-colors hover:bg-zinc-200 disabled:opacity-50"
+              className="rounded-lg bg-[var(--color-bg)] px-4 py-2 text-sm font-medium text-[var(--color-text)] transition-colors hover:bg-[var(--color-bg)] disabled:opacity-50"
             >
               {saving ? "Saving…" : "Save changes"}
             </button>
@@ -449,20 +449,20 @@ function DashboardContent() {
   );
 
   return (
-    <div className="min-h-screen bg-black text-zinc-100">
+    <div className="min-h-screen bg-[var(--color-text)] text-[var(--color-text)]">
       <EANav />
 
       <main className="mx-auto max-w-5xl px-6 py-10">
         <div className="mb-10">
-          <h1 className="text-2xl font-light text-white">Dashboard</h1>
-          <p className="mt-1 text-sm text-zinc-500">
+          <h1 className="text-2xl font-light text-[var(--color-bg)]">Dashboard</h1>
+          <p className="mt-1 text-sm text-[var(--color-text)]">
             {eaName} — your executive assistant at a glance
           </p>
         </div>
 
         {displayStatusMessage ? (
           <p
-            className={`mb-6 text-sm ${displayStatusMessage.includes("Failed") || displayStatusMessage.includes("Could not") ? "text-red-400" : "text-emerald-400"}`}
+            className={`mb-6 text-sm ${displayStatusMessage.includes("Failed") || displayStatusMessage.includes("Could not") ? "text-[var(--color-accent)]" : "text-[var(--color-accent)]"}`}
           >
             {displayStatusMessage}
           </p>
@@ -472,7 +472,7 @@ function DashboardContent() {
           {stats.map((stat) => (
             <div
               key={stat.label}
-              className="rounded-xl border border-zinc-800 bg-zinc-950 p-6"
+              className="rounded-xl border border-[var(--color-text)] bg-[var(--color-bg)] p-6"
             >
               {"href" in stat && stat.href ? (
                 <button
@@ -480,13 +480,13 @@ function DashboardContent() {
                   onClick={() => router.push(stat.href!)}
                   className="block w-full text-left"
                 >
-                  <p className="text-3xl font-light text-white">{stat.value}</p>
-                  <p className="mt-2 text-sm text-zinc-500">{stat.label}</p>
+                  <p className="text-3xl font-light text-[var(--color-bg)]">{stat.value}</p>
+                  <p className="mt-2 text-sm text-[var(--color-text)]">{stat.label}</p>
                 </button>
               ) : (
                 <>
-                  <p className="text-3xl font-light text-white">{stat.value}</p>
-                  <p className="mt-2 text-sm text-zinc-500">{stat.label}</p>
+                  <p className="text-3xl font-light text-[var(--color-bg)]">{stat.value}</p>
+                  <p className="mt-2 text-sm text-[var(--color-text)]">{stat.label}</p>
                 </>
               )}
             </div>
@@ -494,14 +494,14 @@ function DashboardContent() {
         </div>
 
         {nextMeeting ? (
-          <div className="mt-6 rounded-xl border border-zinc-800 bg-zinc-950 p-6">
-            <p className="text-xs font-medium uppercase tracking-wider text-zinc-500">
+          <div className="mt-6 rounded-xl border border-[var(--color-text)] bg-[var(--color-bg)] p-6">
+            <p className="text-xs font-medium uppercase tracking-wider text-[var(--color-text)]">
               Next meeting
             </p>
-            <p className="mt-2 text-lg font-light text-white">
+            <p className="mt-2 text-lg font-light text-[var(--color-bg)]">
               {nextMeeting.title}
             </p>
-            <p className="mt-1 text-sm text-zinc-400">
+            <p className="mt-1 text-sm text-[var(--color-text)]">
               {nextMeeting.isAllDay
                 ? "All day"
                 : new Date(nextMeeting.start).toLocaleString("en-IN", {
@@ -519,7 +519,7 @@ function DashboardContent() {
 
         <section className="mt-10">
           <div className="mb-4 flex items-center justify-between">
-            <h2 className="text-sm font-medium text-white">
+            <h2 className="text-sm font-medium text-[var(--color-bg)]">
               Today&apos;s Schedule
             </h2>
             {!connected && !loading ? (
@@ -528,22 +528,22 @@ function DashboardContent() {
                 onClick={() => {
                   window.location.href = "/api/ea/calendar/auth";
                 }}
-                className="rounded-lg border border-zinc-700 px-4 py-2 text-sm text-white transition-colors hover:border-zinc-500 hover:bg-zinc-900"
+                className="rounded-lg border border-[var(--color-text)] px-4 py-2 text-sm text-[var(--color-bg)] transition-colors hover:border-[var(--color-text)] hover:bg-[var(--color-bg)]"
               >
                 Connect Google Calendar
               </button>
             ) : null}
           </div>
 
-          <div className="rounded-xl border border-zinc-800 bg-zinc-950 p-6">
+          <div className="rounded-xl border border-[var(--color-text)] bg-[var(--color-bg)] p-6">
             {loading ? (
-              <p className="text-sm text-zinc-500">Loading schedule…</p>
+              <p className="text-sm text-[var(--color-text)]">Loading schedule…</p>
             ) : !connected ? (
-              <p className="text-sm text-zinc-500">
+              <p className="text-sm text-[var(--color-text)]">
                 Connect Google Calendar to see your events here.
               </p>
             ) : todayEvents.length === 0 && upcomingEvents.length === 0 ? (
-              <p className="text-sm text-zinc-500">
+              <p className="text-sm text-[var(--color-text)]">
                 No events scheduled for today.
               </p>
             ) : (
@@ -559,14 +559,14 @@ function DashboardContent() {
                     ))}
                   </ul>
                 ) : (
-                  <p className="text-sm text-zinc-500">
+                  <p className="text-sm text-[var(--color-text)]">
                     No events scheduled for today.
                   </p>
                 )}
 
                 {upcomingEvents.length > 0 ? (
-                  <div className="mt-6 border-t border-zinc-800 pt-6">
-                    <h3 className="text-xs font-medium uppercase tracking-wider text-zinc-500">
+                  <div className="mt-6 border-t border-[var(--color-text)] pt-6">
+                    <h3 className="text-xs font-medium uppercase tracking-wider text-[var(--color-text)]">
                       Upcoming
                     </h3>
                     <ul className="mt-3 space-y-3">
@@ -597,14 +597,14 @@ function DashboardContent() {
           <button
             type="button"
             onClick={() => router.push("/ea/meetings")}
-            className="rounded-lg bg-white px-5 py-2.5 text-sm font-medium text-black transition-colors hover:bg-zinc-200"
+            className="rounded-lg bg-[var(--color-bg)] px-5 py-2.5 text-sm font-medium text-[var(--color-text)] transition-colors hover:bg-[var(--color-bg)]"
           >
             New Meeting
           </button>
           <button
             type="button"
             onClick={() => router.push("/ea/chat")}
-            className="rounded-lg border border-zinc-700 px-5 py-2.5 text-sm font-medium text-white transition-colors hover:border-zinc-500 hover:bg-zinc-900"
+            className="rounded-lg border border-[var(--color-text)] px-5 py-2.5 text-sm font-medium text-[var(--color-bg)] transition-colors hover:border-[var(--color-text)] hover:bg-[var(--color-bg)]"
           >
             Ask EA
           </button>
@@ -626,7 +626,7 @@ export default function EADashboardPage() {
   return (
     <Suspense
       fallback={
-        <div className="min-h-screen bg-black flex items-center justify-center text-zinc-500 text-sm">
+        <div className="min-h-screen bg-[var(--color-text)] flex items-center justify-center text-[var(--color-text)] text-sm">
           Loading…
         </div>
       }

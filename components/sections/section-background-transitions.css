@@ -1,0 +1,45 @@
+/* Scroll-driven section background blends */
+
+.scroll-bg-layer {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background: var(--color-bg);
+}
+
+.section-bg-bridge {
+  position: relative;
+  z-index: 16;
+  height: clamp(14rem, 42vh, 30rem);
+  margin-top: calc(-1 * clamp(7rem, 21vh, 15rem));
+  margin-bottom: calc(-1 * clamp(7rem, 21vh, 15rem));
+  pointer-events: none;
+  opacity: 0;
+}
+
+.section-bg-bridge--light-to-dark {
+  background: linear-gradient(
+    180deg,
+    var(--color-bg) 0%,
+    color-mix(in srgb, var(--color-bg) 58%, var(--color-text)) 42%,
+    color-mix(in srgb, var(--color-bg) 18%, var(--color-text)) 68%,
+    var(--color-text) 100%
+  );
+}
+
+.section-bg-bridge--dark-to-light {
+  background: linear-gradient(
+    180deg,
+    var(--color-text) 0%,
+    color-mix(in srgb, var(--color-text) 18%, var(--color-bg)) 32%,
+    color-mix(in srgb, var(--color-text) 58%, var(--color-bg)) 58%,
+    var(--color-bg) 100%
+  );
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .section-bg-bridge {
+    display: none;
+  }
+}

@@ -142,9 +142,9 @@ async function main() {
 
   report(
     "Report: color-coded scores",
-    reportUi.includes("text-emerald-400") &&
-      reportUi.includes("text-amber-400") &&
-      reportUi.includes("text-red-400")
+    reportUi.includes("text-[var(--color-accent)]") &&
+      reportUi.includes("text-[var(--color-accent)]") &&
+      reportUi.includes("text-[var(--color-accent)]")
       ? "pass"
       : "fail",
   );

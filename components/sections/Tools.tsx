@@ -14,6 +14,7 @@ import {
   type KeyboardEvent,
 } from "react";
 import "./tools-experience.css";
+import "./section-stage.css";
 
 export type MarqueeImage = {
   src: string;
@@ -24,7 +25,8 @@ export type ToolExperienceRow = {
   id: string;
   label: string;
   title: string;
-  tenure: string;
+  /** Human-readable tenure, e.g. "10+ yrs" */
+  tenureLabel: string;
   marqueeLabels: string[];
   marqueeImages: MarqueeImage[];
 };
@@ -34,7 +36,7 @@ export const TOOL_EXPERIENCE_ROWS: ToolExperienceRow[] = [
     id: "ui-ux",
     label: "UI / UX",
     title: "UI & UX Design",
-    tenure: "(10)-(Present)",
+    tenureLabel: "10+ yrs",
     marqueeLabels: ["FIGMA", "WIREFRAMES", "PROTOTYPES", "USABILITY"],
     marqueeImages: [
       {
@@ -51,7 +53,7 @@ export const TOOL_EXPERIENCE_ROWS: ToolExperienceRow[] = [
     id: "product-strategy",
     label: "Product",
     title: "Product Strategy",
-    tenure: "(8)-(Present)",
+    tenureLabel: "8+ yrs",
     marqueeLabels: ["DISCOVERY", "ROADMAP", "MVP", "METRICS"],
     marqueeImages: [
       {
@@ -68,7 +70,7 @@ export const TOOL_EXPERIENCE_ROWS: ToolExperienceRow[] = [
     id: "design-systems",
     label: "Systems",
     title: "Design Systems",
-    tenure: "(6)-(Present)",
+    tenureLabel: "6+ yrs",
     marqueeLabels: ["TOKENS", "COMPONENTS", "PATTERNS", "DOCUMENTATION"],
     marqueeImages: [
       {
@@ -85,7 +87,7 @@ export const TOOL_EXPERIENCE_ROWS: ToolExperienceRow[] = [
     id: "prototyping",
     label: "Build",
     title: "Prototyping",
-    tenure: "(7)-(Present)",
+    tenureLabel: "7+ yrs",
     marqueeLabels: ["MOTION", "FLOWS", "HANDOFF", "ITERATION"],
     marqueeImages: [
       {
@@ -102,7 +104,7 @@ export const TOOL_EXPERIENCE_ROWS: ToolExperienceRow[] = [
     id: "ai-tools",
     label: "AI",
     title: "AI & Modern Tools",
-    tenure: "(3)-(Present)",
+    tenureLabel: "3+ yrs",
     marqueeLabels: ["CURSOR", "CLAUDE", "FIGMA AI", "AUTOMATION"],
     marqueeImages: [
       {
@@ -378,7 +380,13 @@ function ExperienceRow({
         <div ref={contentRef} className="tools-experience__content">
           <p className="tools-experience__label">{row.label}</p>
           <h3 className="tools-experience__title">{row.title}</h3>
-          <p className="tools-experience__tenure">{row.tenure}</p>
+          <p className="tools-experience__tenure">
+            <span>{row.tenureLabel}</span>
+            <span className="tools-experience__tenure-sep" aria-hidden="true">
+              ·
+            </span>
+            <span>Present</span>
+          </p>
         </div>
       </button>
     </li>
@@ -387,8 +395,21 @@ function ExperienceRow({
 
 export function Tools() {
   const sectionRef = useRef<HTMLElement>(null);
+  const innerRef = useRef<HTMLDivElement>(null);
   const [activeRowId, setActiveRowId] = useState<string | null>(null);
   const reducedMotion = useReducedMotion() ?? false;
+
+  const handleActivate = (id: string) => {
+    setActiveRowId(id);
+  };
+
+  const handleDeactivate = () => {
+    setActiveRowId(null);
+  };
+
+  const handleToggle = (id: string) => {
+    setActiveRowId((current) => (current === id ? null : id));
+  };
 
   useGSAP(
     () => {
@@ -410,25 +431,14 @@ export function Tools() {
     { scope: sectionRef, dependencies: [reducedMotion] },
   );
 
-  const handleActivate = (id: string) => {
-    setActiveRowId(id);
-  };
-
-  const handleDeactivate = () => {
-    setActiveRowId(null);
-  };
-
-  const handleToggle = (id: string) => {
-    setActiveRowId((current) => (current === id ? null : id));
-  };
-
   return (
     <section
       ref={sectionRef}
       id="tools"
-      className="tools-experience"
+      className="tools-experience section-stage"
       aria-label="Experience and tools"
     >
+      <div ref={innerRef} className="section-stage__inner">
       <ol className="tools-experience__list">
         {TOOL_EXPERIENCE_ROWS.map((row) => (
           <ExperienceRow
@@ -442,6 +452,7 @@ export function Tools() {
           />
         ))}
       </ol>
+      </div>
     </section>
   );
 }

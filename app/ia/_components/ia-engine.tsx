@@ -554,15 +554,15 @@ export function IaEngine() {
 
   if (intakeComplete && output) {
     return (
-      <div className="min-h-screen bg-[#0d0d0d] text-zinc-100">
+      <div className="min-h-screen bg-[var(--color-text)] text-[var(--color-text)]">
         <IaNav />
 
-        <div className="mx-auto max-w-[680px] border-b border-white/10 px-4 pb-3 pt-4">
-          <p className="text-sm font-medium text-white">{productName}</p>
-          <p className="text-xs text-zinc-500">Information architecture</p>
+        <div className="mx-auto max-w-[680px] border-b border-[var(--color-bg)]/10 px-4 pb-3 pt-4">
+          <p className="text-sm font-medium text-[var(--color-bg)]">{productName}</p>
+          <p className="text-xs text-[var(--color-text)]">Information architecture</p>
         </div>
 
-        <div className="moodboard-output-enter bg-white text-neutral-900">
+        <div className="moodboard-output-enter bg-[var(--color-bg)] text-[var(--color-text)]">
           <IaOutputView
             output={output}
             sessionId={sessionId}
@@ -574,7 +574,7 @@ export function IaEngine() {
   }
 
   return (
-    <div className="flex min-h-screen flex-col bg-[#0d0d0d] text-zinc-100">
+    <div className="flex min-h-screen flex-col bg-[var(--color-text)] text-[var(--color-text)]">
       <IaNav />
 
       <div className="mx-auto flex w-full max-w-[680px] flex-1 flex-col px-4 pb-6 pt-4">
@@ -588,9 +588,9 @@ export function IaEngine() {
           <div ref={messagesEndRef} className="h-4 shrink-0" />
         </div>
 
-        <div className="sticky bottom-0 shrink-0 bg-gradient-to-t from-[#0d0d0d] via-[#0d0d0d] to-transparent pb-2 pt-4">
+        <div className="sticky bottom-0 shrink-0 bg-gradient-to-t from-[var(--color-text)] via-[var(--color-text)] to-transparent pb-2 pt-4">
           {showPreConfirm && preConfirmation ? (
-            <div className="moodboard-card-enter mb-3 rounded-xl border border-white/10 bg-white/[0.05] p-4">
+            <div className="moodboard-card-enter mb-3 rounded-xl border border-[var(--color-bg)]/10 bg-[var(--color-bg)]/[0.05] p-4">
               <PreConfirmationPanel
                 preConfirmation={preConfirmation}
                 onConfirm={handlePreConfirm}

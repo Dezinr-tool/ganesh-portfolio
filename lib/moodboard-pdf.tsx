@@ -12,7 +12,7 @@ const styles = StyleSheet.create({
     padding: 40,
     fontFamily: "Helvetica",
     fontSize: 11,
-    color: "#111",
+    color: "var(--color-text)",
   },
   title: {
     fontSize: 22,
@@ -23,7 +23,7 @@ const styles = StyleSheet.create({
     fontSize: 9,
     letterSpacing: 2,
     textTransform: "uppercase",
-    color: "#666",
+    color: "var(--color-text)",
     marginBottom: 16,
   },
   section: { marginBottom: 16 },
@@ -31,7 +31,7 @@ const styles = StyleSheet.create({
     fontSize: 10,
     textTransform: "uppercase",
     letterSpacing: 1,
-    color: "#666",
+    color: "var(--color-text)",
     marginBottom: 6,
   },
   body: { lineHeight: 1.5 },
@@ -40,10 +40,10 @@ const styles = StyleSheet.create({
     width: 48,
     height: 48,
     borderRadius: 4,
-    border: "1 solid #ddd",
+    border: "1 solid var(--color-text)",
   },
   chip: {
-    backgroundColor: "#f4f4f5",
+    backgroundColor: "var(--color-bg)",
     padding: "4 8",
     borderRadius: 4,
     marginRight: 4,
@@ -78,7 +78,7 @@ export function MoodboardPdf({
               <View key={color.hex}>
                 <View style={[styles.swatch, { backgroundColor: color.hex }]} />
                 <Text style={{ fontSize: 8, marginTop: 4 }}>{color.name}</Text>
-                <Text style={{ fontSize: 7, color: "#666" }}>{color.hex}</Text>
+                <Text style={{ fontSize: 7, color: "var(--color-text)" }}>{color.hex}</Text>
               </View>
             ))}
           </View>

@@ -1,5 +1,13 @@
-import { Inter } from "next/font/google";
+import { Inter, Mohave } from "next/font/google";
 import localFont from "next/font/local";
+
+/** GANESH watermark — pre-Luke hero */
+export const mohave = Mohave({
+  subsets: ["latin"],
+  weight: ["400", "700"],
+  variable: "--font-mohave",
+  display: "swap",
+});
 
 /** UI / body — same as lukebaffait.fr */
 export const inter = Inter({

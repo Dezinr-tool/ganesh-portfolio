@@ -39,7 +39,7 @@ void main() {
 }
 `;
 
-/** Pass 1: #0a0a0a + cover-fit background.png */
+/** Pass 1: white bg + cover-fit background.png */
 export const HERO_MESH_FRAG_COMPOSITE = `#version 300 es
 precision highp float;
 
@@ -69,7 +69,7 @@ vec4 sampleCover(vec2 uv) {
 }
 
 void main() {
-  vec4 bg = vec4(0.0392157, 0.0392157, 0.0392157, 1.0);
+  vec4 bg = vec4(1.0, 1.0, 1.0, 1.0);
   vec4 color = sampleCover(vTextureCoord);
   color.rgb = clamp(color.rgb, 0.0, 1.0);
   fragColor = color + bg * (1.0 - color.a);

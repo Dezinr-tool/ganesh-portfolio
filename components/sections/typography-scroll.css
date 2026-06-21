@@ -1,0 +1,14 @@
+.typography-scroll__word {
+  display: inline-block;
+  overflow: hidden;
+  margin-inline: 0.06em;
+}
+
+.typography-scroll__letter {
+  display: inline-block;
+  will-change: transform;
+}
+
+.typography-scroll__line + .typography-scroll__line {
+  margin-top: 0.02em;
+}
