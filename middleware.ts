@@ -26,6 +26,12 @@ function mbAdminLoginUrl(request: NextRequest, from?: string) {
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
+
+  // Sanity Studio handles its own auth — never gate /studio behind app middleware.
+  if (pathname.startsWith("/studio")) {
+    return NextResponse.next();
+  }
+
   const cookie = request.cookies.get(DASHBOARD_AUTH_COOKIE)?.value;
   const isAuthed = await verifyDashboardAuthCookie(cookie);
 

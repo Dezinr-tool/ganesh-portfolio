@@ -10,14 +10,16 @@ import { scheduleScrollTriggerRefresh } from "@/lib/scroll-refresh";
 import {
   getProjectsByCategory,
   type WorksCategory,
-  WORKS_PROJECTS,
+  type WorksProject,
 } from "./works/projects";
 import { WorksCanvas } from "./works/WorksCanvas";
 import { WorksCarouselArrows } from "./works/WorksCarouselArrows";
 import { WorksCategoryFilter } from "./works/WorksCategoryFilter";
 import "./featured-work.css";
 
-const TITLE_WORDS = ["recent", "works"];
+function sectionTitleWords(title: string) {
+  return title.trim().split(/\s+/).filter(Boolean);
+}
 
 function splitTitleLetters(titleEl: HTMLElement) {
   return [...titleEl.querySelectorAll<HTMLElement>(".works-gallery__letter")];
@@ -31,7 +33,16 @@ function staggerFromCenter(letters: HTMLElement[]) {
     .map(({ letter }) => letter);
 }
 
-export function FeaturedWork() {
+type FeaturedWorkProps = {
+  projects: WorksProject[];
+  sectionTitle?: string;
+};
+
+export function FeaturedWork({
+  projects,
+  sectionTitle = "recent works",
+}: FeaturedWorkProps) {
+  const titleWords = sectionTitleWords(sectionTitle);
   const sectionRef = useRef<HTMLElement>(null);
   const titleRef = useRef<HTMLHeadingElement>(null);
   const stageWrapRef = useRef<HTMLDivElement>(null);
@@ -47,8 +58,8 @@ export function FeaturedWork() {
   const isGalleryHoveredRef = useRef(false);
 
   const categoryProjects = useMemo(
-    () => getProjectsByCategory(activeCategory),
-    [activeCategory],
+    () => getProjectsByCategory(activeCategory, projects),
+    [activeCategory, projects],
   );
 
   const activeProject = categoryProjects[activeIndex] ?? categoryProjects[0]!;
@@ -183,9 +194,9 @@ export function FeaturedWork() {
         className="works-gallery works-gallery--reduced"
         aria-label="Projects"
       >
-        <h2 className="works-gallery__title">recent works</h2>
+        <h2 className="works-gallery__title">{sectionTitle}</h2>
         <div className="works-gallery__reduced-grid">
-          {WORKS_PROJECTS.map((project) => (
+          {projects.map((project) => (
             <Link
               key={project.id}
               href={project.href}
@@ -211,7 +222,7 @@ export function FeaturedWork() {
         aria-label="Projects"
       >
         <h2 ref={titleRef} className="works-gallery__title animation-title">
-          {TITLE_WORDS.map((word) => (
+          {titleWords.map((word) => (
             <span key={word} className="works-gallery__word">
               {word.split("").map((letter, index) => (
                 <span key={`${word}-${index}`} className="works-gallery__letter">

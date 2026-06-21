@@ -10,11 +10,13 @@ export const REVEAL_COPY_BLUR_TRAIL = 4;
 const REVEAL_MAX_BLUR = 10;
 
 type AboutRevealCopyProps = {
+  bodyText?: string;
   className?: string;
   paragraphRef?: RefObject<HTMLParagraphElement | null>;
 } & HTMLAttributes<HTMLParagraphElement>;
 
 export function AboutRevealCopy({
+  bodyText = ABOUT_TEXT,
   className = "",
   paragraphRef,
   ...rest
@@ -26,7 +28,7 @@ export function AboutRevealCopy({
       {...rest}
     >
       <span className="hero-reveal-copy__body" data-reveal-line>
-        {ABOUT_TEXT}
+        {bodyText}
       </span>
     </p>
   );

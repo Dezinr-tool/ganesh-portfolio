@@ -8,13 +8,10 @@ import { ScrollTrigger } from "gsap/ScrollTrigger";
 import Link from "next/link";
 import { useReducedMotion } from "framer-motion";
 import { useEffect, useRef, useState } from "react";
+import type { SanitySiteSettings, SanitySocialLinks } from "@/lib/sanity/types";
+import { phoneHref, splitEmailLines, splitLines } from "@/lib/sanity/mappers";
 import "./footer-dome.css";
 
-const WORK_EMAIL = "hello@designbyganesh.com";
-const WORK_EMAIL_LINE_1 = "hello@designby";
-const WORK_EMAIL_LINE_2 = "ganesh.com";
-const WORK_PHONE = "73044 92888";
-const WORK_PHONE_HREF = "tel:+917304492888";
 const FOOTER_BLACK = "#111111";
 
 /** Tier 1 — left column (reference: ABOUT ME / SERVICES / WORKS) */
@@ -25,21 +22,35 @@ const PRIMARY_NAV_LINKS = [
 ] as const;
 
 /** Tier 2 — full-width bracket row */
-const BRACKET_NAV_LINKS = [
-  { label: "[ DRIBBBLE ]", href: "https://dribbble.com/ganeshdas" },
-  { label: "[ BEHANCE ]", href: "https://behance.net/ganeshdas" },
-  { label: "[ LINKEDIN ]", href: "https://linkedin.com/in/ganeshdas" },
-] as const;
+function buildBracketNavLinks(socialLinks: SanitySocialLinks) {
+  return [
+    socialLinks.dribbble
+      ? { label: "[ DRIBBBLE ]", href: socialLinks.dribbble }
+      : null,
+    socialLinks.behance ? { label: "[ BEHANCE ]", href: socialLinks.behance } : null,
+    socialLinks.linkedin
+      ? { label: "[ LINKEDIN ]", href: socialLinks.linkedin }
+      : null,
+  ].filter(Boolean) as { label: string; href: string }[];
+}
 
-const ADDRESS_LINE_1 = "3101, Venus, Forest Enclave, Hiranandani";
-const ADDRESS_LINE_2 = "Fortunecity, Maharashtra 410207";
+export type FooterContent = {
+  siteSettings: SanitySiteSettings;
+  socialLinks: SanitySocialLinks;
+};
 
-/** Olha-style: content appears once the semicircle covers ~half the viewport. */
-const CONTENT_FADE_START = 0.42;
-const CONTENT_FADE_DUR = 0.58;
-/** Scroll distance for full circle expansion — longer = slower reveal. */
-const FOOTER_SCROLL_DISTANCE = "+=80vh";
-const FOOTER_CIRCLE_EASE = "power2.inOut";
+const ADDRESS_FALLBACK = [
+  "3101, Venus, Forest Enclave, Hiranandani",
+  "Fortunecity, Maharashtra 410207",
+];
+
+/** Content appears once the circle reaches ~50% expansion. */
+const CONTENT_FADE_START = 0.5;
+const CONTENT_FADE_DUR = 0.5;
+/** ScrollTrigger range — long distance + scrub lag for a slow, intentional reveal. */
+const FOOTER_SCROLL_START = "top 90%";
+const FOOTER_SCROLL_END = "bottom 20%";
+const FOOTER_SCRUB = 3;
 
 function FooterLocationClock() {
   const [time, setTime] = useState("");
@@ -75,7 +86,19 @@ function setCircleStageVisible(circle: HTMLElement | null, visible: boolean) {
   circle?.classList.toggle("is-visible", visible);
 }
 
-export function Footer() {
+export function Footer({ siteSettings, socialLinks }: FooterContent) {
+  const email = siteSettings.email ?? "";
+  const [emailLine1, emailLine2] = splitEmailLines(email);
+  const phone = siteSettings.phone ?? "";
+  const phoneLink = phoneHref(phone);
+  const addressLines = splitLines(siteSettings.location, ADDRESS_FALLBACK);
+  const siteName = siteSettings.siteName ?? "Ganesh Das";
+  const copyrightLines = splitLines(siteSettings.footerCopyright, [
+    "All Right Reserved. Ganesh Das.",
+    "Any Reproduction, Distribution, Or Use Of The",
+    "Materials Without Permission Is Prohibited.",
+  ]);
+  const bracketNavLinks = buildBracketNavLinks(socialLinks);
   const sectionRef = useRef<HTMLElement>(null);
   const runwayRef = useRef<HTMLDivElement>(null);
   const circleRef = useRef<HTMLDivElement>(null);
@@ -114,8 +137,8 @@ export function Footer() {
       ScrollTrigger.create({
         id: "footer-circle-stage",
         trigger: runway,
-        start: "top bottom",
-        end: FOOTER_SCROLL_DISTANCE,
+        start: FOOTER_SCROLL_START,
+        end: FOOTER_SCROLL_END,
         onEnter: () => setCircleStageVisible(circle, true),
         onEnterBack: () => setCircleStageVisible(circle, true),
         onLeaveBack: () => setCircleStageVisible(circle, false),
@@ -131,10 +154,10 @@ export function Footer() {
         scrollTrigger: {
           id: "footer-circle-reveal",
           trigger: runway,
-          start: "top bottom",
-          end: FOOTER_SCROLL_DISTANCE,
+          start: FOOTER_SCROLL_START,
+          end: FOOTER_SCROLL_END,
           pin,
-          scrub: true,
+          scrub: FOOTER_SCRUB,
           anticipatePin: 1,
           invalidateOnRefresh: true,
         },
@@ -146,7 +169,7 @@ export function Footer() {
         {
           clipPath: "circle(150% at 50% 100%)",
           duration: 1,
-          ease: FOOTER_CIRCLE_EASE,
+          ease: "none",
         },
         0,
       );
@@ -154,7 +177,7 @@ export function Footer() {
       tl.fromTo(
         content,
         { opacity: 0, y: 36 },
-        { opacity: 1, y: 0, duration: CONTENT_FADE_DUR, ease: "power2.out" },
+        { opacity: 1, y: 0, duration: CONTENT_FADE_DUR, ease: "none" },
         CONTENT_FADE_START,
       );
 
@@ -212,32 +235,35 @@ export function Footer() {
                 </nav>
 
                 <div className="footer-location footer-address footer-contact-row__address">
-                  <p className="footer-location__time">{ADDRESS_LINE_1}</p>
-                  <p className="footer-location__time">{ADDRESS_LINE_2}</p>
+                  {addressLines.map((line) => (
+                    <p key={line} className="footer-location__time">
+                      {line}
+                    </p>
+                  ))}
                 </div>
 
-                <a href={WORK_PHONE_HREF} className="footer-phone footer-contact-row__phone">
-                  {WORK_PHONE}
+                <a href={phoneLink} className="footer-phone footer-contact-row__phone">
+                  {phone}
                 </a>
 
                 <a
-                  href={`mailto:${WORK_EMAIL}`}
+                  href={`mailto:${email}`}
                   className="footer-email footer-contact-row__email-line-1"
-                  aria-label={`Email ${WORK_EMAIL}`}
+                  aria-label={`Email ${email}`}
                 >
-                  <span className="footer-email__line">{WORK_EMAIL_LINE_1}</span>
+                  <span className="footer-email__line">{emailLine1}</span>
                 </a>
 
                 <a
-                  href={`mailto:${WORK_EMAIL}`}
+                  href={`mailto:${email}`}
                   className="footer-email footer-contact-row__email-line-2"
                 >
-                  <span className="footer-email__line">{WORK_EMAIL_LINE_2}</span>
+                  <span className="footer-email__line">{emailLine2}</span>
                 </a>
               </div>
 
               <nav className="footer-nav" aria-label="Portfolio links">
-                {BRACKET_NAV_LINKS.map((link) => (
+                {bracketNavLinks.map((link) => (
                   <a
                     key={link.href}
                     href={link.href}
@@ -252,18 +278,20 @@ export function Footer() {
             </div>
 
             <div className="footer-bottom">
-              <h2 className="footer-name" aria-label="Ganesh Das">
-                GANESH DAS
+              <h2 className="footer-name" aria-label={siteName}>
+                {siteName.toUpperCase()}
               </h2>
 
               <div className="footer-meta">
                 <FooterLocationClock />
                 <p className="footer-copy">
-                  {new Date().getFullYear()} All Right Reserved. Ganesh Das.
-                  <br />
-                  Any Reproduction, Distribution, Or Use Of The
-                  <br />
-                  Materials Without Permission Is Prohibited.
+                  {new Date().getFullYear()} {copyrightLines[0]}
+                  {copyrightLines.slice(1).map((line) => (
+                    <span key={line}>
+                      <br />
+                      {line}
+                    </span>
+                  ))}
                 </p>
               </div>
             </div>

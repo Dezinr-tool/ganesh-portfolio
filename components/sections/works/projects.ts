@@ -182,6 +182,9 @@ export const WORKS_PROJECTS: WorksProject[] = [
   },
 ];
 
-export function getProjectsByCategory(category: WorksCategory): WorksProject[] {
-  return WORKS_PROJECTS.filter((project) => project.category === category);
+export function getProjectsByCategory(
+  category: WorksCategory,
+  projects: WorksProject[] = WORKS_PROJECTS,
+): WorksProject[] {
+  return projects.filter((project) => project.category === category);
 }

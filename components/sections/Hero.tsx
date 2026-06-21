@@ -12,9 +12,7 @@ import {
   useTransform,
 } from "framer-motion";
 import Image from "next/image";
-import { useRef } from "react";
-
-const HERO_HEADLINE_LINES = ["Design & Strategy", "Partner for Startups"] as const;
+import { useEffect, useRef, useState } from "react";
 
 const portraitImageProps = {
   src: "/ganesh.avif",
@@ -57,7 +55,17 @@ function GreenDot({ animated = false }: { animated?: boolean }) {
 
 const badgeLabelClass = "text-consultant-label leading-tight";
 
-export function Hero() {
+export type HeroContent = {
+  headlineLines: string[];
+  subtext: string;
+  badgeLines: string[];
+};
+
+type HeroProps = {
+  content: HeroContent;
+};
+
+export function Hero({ content }: HeroProps) {
   const sectionRef = useRef<HTMLElement>(null);
   const ganeshRef = useRef<HTMLSpanElement>(null);
   const photoRef = useRef<HTMLDivElement>(null);
@@ -68,11 +76,25 @@ export function Hero() {
 
   const reducedMotion = useReducedMotion();
   const { scrollY } = useScroll();
+  const [foldHeight, setFoldHeight] = useState(900);
+
+  useEffect(() => {
+    const syncFoldHeight = () => setFoldHeight(window.innerHeight);
+    syncFoldHeight();
+    window.addEventListener("resize", syncFoldHeight);
+    return () => window.removeEventListener("resize", syncFoldHeight);
+  }, []);
 
   const ganeshScaleRaw = useTransform(scrollY, [0, 400], [1, 1.15]);
   const ganeshOpacityRaw = useTransform(scrollY, [0, 400], [1, 0]);
   const photoYRaw = useTransform(scrollY, [0, 600], [0, -150]);
   const photoScaleRaw = useTransform(scrollY, [0, 600], [1, 1.06]);
+  /** Fade portrait out during the second fold (About section). */
+  const photoOpacityRaw = useTransform(
+    scrollY,
+    [foldHeight, foldHeight * 2],
+    [1, 0],
+  );
   const bottomYRaw = useTransform(scrollY, [0, 350], [0, -60]);
   const bottomOpacityRaw = useTransform(scrollY, [0, 350], [1, 0]);
 
@@ -91,6 +113,10 @@ export function Hero() {
   const photoY = useSpring(reducedMotion ? staticZero : photoYRaw, SCROLL_SPRING);
   const photoScale = useSpring(
     reducedMotion ? staticOne : photoScaleRaw,
+    SCROLL_SPRING,
+  );
+  const photoOpacity = useSpring(
+    reducedMotion ? staticOne : photoOpacityRaw,
     SCROLL_SPRING,
   );
   const bottomY = useSpring(
@@ -220,6 +246,7 @@ export function Hero() {
             style={{
               y: photoY,
               scale: photoScale,
+              opacity: photoOpacity,
               transformOrigin: "center bottom",
             }}
           >
@@ -233,14 +260,18 @@ export function Hero() {
               className="pointer-events-auto absolute top-[13%] left-[51%] z-[3] sm:top-[12%] sm:left-[54%] md:top-[11%] md:left-[57%] lg:top-[10%] lg:left-[61%]"
             >
               <div className="flex flex-col items-start gap-1">
-                <p className={badgeLabelClass}>
-                  <GreenDot animated />
-                  <span className="uppercase">Design Manager</span>
-                </p>
-                <p className={badgeLabelClass}>
-                  <span className="size-2 shrink-0" aria-hidden="true" />
-                  <span className="font-semibold uppercase">@BRUCIRA</span>
-                </p>
+                {content.badgeLines.map((line, index) => (
+                  <p key={`${line}-${index}`} className={badgeLabelClass}>
+                    {index === 0 ? (
+                      <GreenDot animated />
+                    ) : (
+                      <span className="size-2 shrink-0" aria-hidden="true" />
+                    )}
+                    <span className={index === 0 ? "uppercase" : "font-semibold uppercase"}>
+                      {line}
+                    </span>
+                  </p>
+                ))}
               </div>
             </header>
 
@@ -278,7 +309,7 @@ export function Hero() {
             data-hero-headline
             className="text-[clamp(2.25rem,4.5vw,3.75rem)] leading-[1.04] font-medium tracking-[-0.02em] text-foreground"
           >
-            {HERO_HEADLINE_LINES.map((line) => (
+            {content.headlineLines.map((line) => (
               <span key={line} className="block">
                 {line}
               </span>
@@ -295,9 +326,7 @@ export function Hero() {
             data-hero-reveal
             className="text-[15px] leading-[1.48] font-normal text-foreground lg:text-[16px] lg:leading-[1.5]"
           >
-            I help founders build products people love — from zero to launch and
-            beyond. D2C, B2B &amp; B2B2C specialist with 14+ years across funded
-            Indian startups.
+            {content.subtext}
           </p>
         </motion.div>
       </div>

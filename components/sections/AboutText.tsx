@@ -11,7 +11,12 @@ import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { useReducedMotion } from "framer-motion";
 import { useRef } from "react";
 
-export function AboutText() {
+type AboutTextProps = {
+  sectionLabel: string;
+  bodyText: string;
+};
+
+export function AboutText({ sectionLabel, bodyText }: AboutTextProps) {
   const sectionRef = useRef<HTMLElement>(null);
   const copyRef = useRef<HTMLParagraphElement>(null);
   const reducedMotion = useReducedMotion() ?? false;
@@ -57,9 +62,10 @@ export function AboutText() {
     >
       <div className="mx-auto flex w-full max-w-[min(94vw,56rem)] flex-col items-center px-8 text-center sm:px-12 lg:px-16">
         <p className="text-consultant-label mb-6 text-[var(--color-text)]">
-          <span className="uppercase">I don&apos;t just solve problems</span>
+          <span className="uppercase">{sectionLabel}</span>
         </p>
         <AboutRevealCopy
+          bodyText={bodyText}
           paragraphRef={copyRef}
           className="w-full !max-w-[min(94vw,56rem)]"
         />

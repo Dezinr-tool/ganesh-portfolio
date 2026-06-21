@@ -2,22 +2,24 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { CaseStudyView } from "@/components/work/CaseStudyView";
 import {
-  getAllCaseSlugs,
-  getCaseStudyBySlug,
-  getMoreWorks,
-} from "@/lib/work/case-studies";
+  fetchAllProjectSlugs,
+  fetchCaseStudyBySlug,
+  fetchMoreWorks,
+  fetchWorksProjects,
+} from "@/lib/sanity/fetch";
 
 type PageProps = {
   params: Promise<{ slug: string }>;
 };
 
 export async function generateStaticParams() {
-  return getAllCaseSlugs().map((slug) => ({ slug }));
+  const slugs = await fetchAllProjectSlugs();
+  return slugs.map((slug) => ({ slug }));
 }
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { slug } = await params;
-  const study = getCaseStudyBySlug(slug);
+  const study = await fetchCaseStudyBySlug(slug);
 
   if (!study) {
     return { title: "Project not found" };
@@ -39,13 +41,14 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
 export default async function WorkCaseStudyPage({ params }: PageProps) {
   const { slug } = await params;
-  const study = getCaseStudyBySlug(slug);
+  const study = await fetchCaseStudyBySlug(slug);
 
   if (!study) {
     notFound();
   }
 
-  const moreWorks = getMoreWorks(slug);
+  const projects = await fetchWorksProjects();
+  const moreWorks = await fetchMoreWorks(slug, projects);
 
   return <CaseStudyView study={study} moreWorks={moreWorks} />;
 }

@@ -11,10 +11,10 @@ import "./typography-scroll.css";
 
 const TESTIMONIALS_HEADING = "Trusted by the people I've built with";
 
-function TestimonialsHeading() {
+function TestimonialsHeading({ heading }: { heading: string }) {
   return (
     <>
-      {TESTIMONIALS_HEADING.split(" ").map((word) => (
+      {heading.split(" ").map((word) => (
         <span key={word} className="typography-scroll__word">
           {word.split("").map((letter, index) => (
             <span key={`${word}-${index}`} className="typography-scroll__letter">
@@ -33,6 +33,7 @@ export type Testimonial = {
   name: string;
   role: string;
   company: string;
+  initials?: string;
 };
 
 export const TESTIMONIALS: Testimonial[] = [
@@ -88,7 +89,7 @@ type TestimonialCardProps = {
 };
 
 function TestimonialCard({ item }: TestimonialCardProps) {
-  const initials = testimonialInitials(item.name);
+  const initials = item.initials?.trim() || testimonialInitials(item.name);
 
   return (
     <article className="testimonials-card" role="listitem">
@@ -197,7 +198,12 @@ function useTestimonialsMarquee(
   return { pause, resume };
 }
 
-export function Testimonials() {
+type TestimonialsProps = {
+  heading: string;
+  testimonials: Testimonial[];
+};
+
+export function Testimonials({ heading, testimonials }: TestimonialsProps) {
   const sectionRef = useRef<HTMLElement>(null);
   const innerRef = useRef<HTMLDivElement>(null);
   const headingRef = useRef<HTMLHeadingElement>(null);
@@ -211,7 +217,7 @@ export function Testimonials() {
     reducedMotion,
   );
 
-  const loopedItems = reducedMotion ? TESTIMONIALS : [...TESTIMONIALS, ...TESTIMONIALS];
+  const loopedItems = reducedMotion ? testimonials : [...testimonials, ...testimonials];
 
   useGSAP(
     () => {
@@ -251,7 +257,7 @@ export function Testimonials() {
         id="testimonials-heading"
         className="testimonials-section__heading"
       >
-        <TestimonialsHeading />
+        <TestimonialsHeading heading={heading} />
       </h2>
 
       <div
