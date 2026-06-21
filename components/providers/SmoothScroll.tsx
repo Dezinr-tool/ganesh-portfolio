@@ -15,9 +15,11 @@ export function SmoothScroll({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const reducedMotion = useReducedMotion() ?? false;
   const isEaRoute = pathname.startsWith("/ea");
+  const isDashboardRoute = pathname.startsWith("/dashboard");
+  const disableSmoothScroll = isEaRoute || isDashboardRoute;
 
   useEffect(() => {
-    if (reducedMotion || isEaRoute) {
+    if (reducedMotion || disableSmoothScroll) {
       setLenisInstance(null);
       return;
     }
@@ -80,7 +82,7 @@ export function SmoothScroll({ children }: { children: React.ReactNode }) {
       ScrollTrigger.scrollerProxy(window, {});
       ScrollTrigger.clearScrollMemory();
     };
-  }, [reducedMotion, isEaRoute]);
+  }, [reducedMotion, disableSmoothScroll]);
 
   return children;
 }

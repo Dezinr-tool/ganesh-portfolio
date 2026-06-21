@@ -1,7 +1,10 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { inputClassName } from "../_lib/invoices";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 
 type BillingFormState = {
   hourlyRate: string;
@@ -108,130 +111,94 @@ export function PaymentBillingSettingsForm() {
   }
 
   if (loading) {
-    return <p className="text-sm text-[var(--color-text)]">Loading…</p>;
+    return <p className="text-sm text-muted-foreground">Loading…</p>;
   }
 
   return (
     <div className="space-y-4">
-      <div>
-        <label htmlFor="hourlyRate" className="mb-1.5 block text-sm text-[var(--color-text)]">
-          Default hourly rate (₹)
-        </label>
-        <input
+      <div className="space-y-2">
+        <Label htmlFor="hourlyRate">Default hourly rate (₹)</Label>
+        <Input
           id="hourlyRate"
           type="number"
           min="0"
           step="0.01"
           value={form.hourlyRate}
           onChange={(e) => updateField("hourlyRate", e.target.value)}
-          className={inputClassName}
         />
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2">
-        <div className="sm:col-span-2">
-          <label htmlFor="upiId" className="mb-1.5 block text-sm text-[var(--color-text)]">
-            UPI ID
-          </label>
-          <input
+        <div className="space-y-2 sm:col-span-2">
+          <Label htmlFor="upiId">UPI ID</Label>
+          <Input
             id="upiId"
-            type="text"
             value={form.upiId}
             onChange={(e) => updateField("upiId", e.target.value)}
-            className={inputClassName}
           />
         </div>
 
-        <div className="sm:col-span-2">
-          <label
-            htmlFor="bankAccountHolder"
-            className="mb-1.5 block text-sm text-[var(--color-text)]"
-          >
-            Account holder
-          </label>
-          <input
+        <div className="space-y-2 sm:col-span-2">
+          <Label htmlFor="bankAccountHolder">Account holder</Label>
+          <Input
             id="bankAccountHolder"
-            type="text"
             value={form.bankAccountHolder}
             onChange={(e) => updateField("bankAccountHolder", e.target.value)}
-            className={inputClassName}
           />
         </div>
 
-        <div>
-          <label htmlFor="bankName" className="mb-1.5 block text-sm text-[var(--color-text)]">
-            Bank name
-          </label>
-          <input
+        <div className="space-y-2">
+          <Label htmlFor="bankName">Bank name</Label>
+          <Input
             id="bankName"
-            type="text"
             value={form.bankName}
             onChange={(e) => updateField("bankName", e.target.value)}
-            className={inputClassName}
           />
         </div>
 
-        <div>
-          <label htmlFor="bankIfsc" className="mb-1.5 block text-sm text-[var(--color-text)]">
-            IFSC code
-          </label>
-          <input
+        <div className="space-y-2">
+          <Label htmlFor="bankIfsc">IFSC code</Label>
+          <Input
             id="bankIfsc"
-            type="text"
             value={form.bankIfsc}
             onChange={(e) => updateField("bankIfsc", e.target.value)}
-            className={inputClassName}
           />
         </div>
 
-        <div>
-          <label
-            htmlFor="bankAccountNumber"
-            className="mb-1.5 block text-sm text-[var(--color-text)]"
-          >
-            Account number
-          </label>
-          <input
+        <div className="space-y-2">
+          <Label htmlFor="bankAccountNumber">Account number</Label>
+          <Input
             id="bankAccountNumber"
-            type="text"
             value={form.bankAccountNumber}
             onChange={(e) => updateField("bankAccountNumber", e.target.value)}
-            className={inputClassName}
           />
         </div>
 
-        <div>
-          <label htmlFor="panNumber" className="mb-1.5 block text-sm text-[var(--color-text)]">
-            PAN number
-          </label>
-          <input
+        <div className="space-y-2">
+          <Label htmlFor="panNumber">PAN number</Label>
+          <Input
             id="panNumber"
-            type="text"
             value={form.panNumber}
             onChange={(e) => updateField("panNumber", e.target.value)}
-            className={inputClassName}
           />
         </div>
       </div>
 
       {error ? (
-        <p className="text-sm text-[var(--color-accent)]" role="alert">
-          {error}
-        </p>
+        <Alert variant="destructive">
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
       ) : null}
 
       {success ? (
-        <p className="text-sm text-[var(--color-accent)]">Payment & billing settings saved.</p>
+        <Alert>
+          <AlertDescription>Payment & billing settings saved.</AlertDescription>
+        </Alert>
       ) : null}
 
-      <button
-        type="button"
-        onClick={handleSave}
-        disabled={saving}
-        className="rounded-md bg-[var(--color-bg)] px-4 py-2 text-sm font-medium text-[var(--color-text)] disabled:opacity-50"
-      >
+      <Button type="button" onClick={handleSave} disabled={saving}>
         {saving ? "Saving…" : "Save settings"}
-      </button>
+      </Button>
     </div>
   );
 }

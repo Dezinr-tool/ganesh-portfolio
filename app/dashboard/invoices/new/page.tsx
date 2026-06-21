@@ -1,26 +1,16 @@
-import Link from "next/link";
 import InvoiceForm from "./invoice-form";
+import { BackLink } from "../../_components/back-link";
+import { PageHeader } from "../../_components/page-header";
 
 export default function NewInvoicePage() {
   return (
-    <div>
-      <div className="mb-6">
-        <Link
-          href="/dashboard/invoices"
-          className="text-sm text-[var(--color-text)] hover:text-[var(--color-bg)]"
-        >
-          ← Back to invoices
-        </Link>
-      </div>
-
-      <h1 className="text-2xl font-semibold text-[var(--color-bg)]">New invoice</h1>
-      <p className="mt-2 text-sm text-[var(--color-text)]">
-        Create a new invoice for your client.
-      </p>
-
-      <div className="mt-8">
-        <InvoiceForm />
-      </div>
+    <div className="space-y-8">
+      <BackLink href="/dashboard/invoices" label="Back to invoices" />
+      <PageHeader
+        title="New invoice"
+        description="Create a new invoice for your client."
+      />
+      <InvoiceForm />
     </div>
   );
 }

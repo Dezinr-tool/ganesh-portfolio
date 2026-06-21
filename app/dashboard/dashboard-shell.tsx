@@ -2,39 +2,65 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { buttonVariants } from "@/components/ui/button";
+import { Separator } from "@/components/ui/separator";
+import { cn } from "@/lib/utils";
+
+const NAV_ITEMS = [
+  { href: "/dashboard", label: "Overview", exact: true },
+  { href: "/dashboard/invoices", label: "Invoices", exact: false },
+  { href: "/dashboard/agreements", label: "Agreements", exact: false },
+  { href: "/dashboard/settings", label: "Settings", exact: false },
+] as const;
+
+function isActive(pathname: string, href: string, exact: boolean) {
+  if (exact) return pathname === href;
+  return pathname === href || pathname.startsWith(`${href}/`);
+}
 
 export function DashboardShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const isLogin = pathname === "/dashboard/login";
 
   if (isLogin) {
-    return <>{children}</>;
+    return <div className="dashboard-app min-h-screen bg-background">{children}</div>;
   }
 
   return (
-    <div className="min-h-screen bg-[var(--color-bg)] text-[var(--color-text)]">
-      <header className="border-b border-[var(--color-text)]">
-        <div className="mx-auto flex max-w-5xl items-center justify-between px-6 py-4">
-          <Link href="/dashboard" className="text-sm font-semibold text-[var(--color-bg)]">
+    <div className="dashboard-app min-h-screen bg-background text-foreground">
+      <header className="border-b border-border bg-background">
+        <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-6 py-4">
+          <Link
+            href="/dashboard"
+            className="text-sm font-semibold tracking-tight text-foreground"
+          >
             Dashboard
           </Link>
-          <nav className="flex gap-4 text-sm text-[var(--color-text)]">
-            <Link href="/dashboard" className="hover:text-[var(--color-bg)]">
-              Overview
-            </Link>
-            <Link href="/dashboard/invoices" className="hover:text-[var(--color-bg)]">
-              Invoices
-            </Link>
-            <Link href="/dashboard/agreements" className="hover:text-[var(--color-bg)]">
-              Agreements
-            </Link>
-            <Link href="/dashboard/settings" className="hover:text-[var(--color-bg)]">
-              Settings
-            </Link>
+          <nav className="flex flex-wrap items-center gap-1">
+            {NAV_ITEMS.map((item) => {
+              const active = isActive(pathname, item.href, item.exact);
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className={cn(
+                    buttonVariants({
+                      variant: active ? "secondary" : "ghost",
+                      size: "sm",
+                    }),
+                  )}
+                >
+                  {item.label}
+                </Link>
+              );
+            })}
           </nav>
         </div>
       </header>
-      <main className="mx-auto max-w-5xl px-6 py-10">{children}</main>
+      <Separator />
+      <main id="main-content" className="mx-auto max-w-6xl px-6 py-10">
+        {children}
+      </main>
     </div>
   );
 }

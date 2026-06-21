@@ -1,7 +1,8 @@
-import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { getAgreementById } from "@/lib/agreements-store";
 import AgreementForm from "../../agreement-form";
+import { BackLink } from "../../../_components/back-link";
+import { PageHeader } from "../../../_components/page-header";
 
 export const dynamic = "force-dynamic";
 
@@ -26,22 +27,10 @@ export default async function EditAgreementPage({
   }
 
   return (
-    <div>
-      <div className="mb-6">
-        <Link
-          href={`/dashboard/agreements/${id}`}
-          className="text-sm text-[var(--color-text)] hover:text-[var(--color-bg)]"
-        >
-          ← Back to agreement
-        </Link>
-      </div>
-
-      <h1 className="text-2xl font-semibold text-[var(--color-bg)]">Edit agreement</h1>
-      <p className="mt-2 text-sm text-[var(--color-text)]">{agreement.title}</p>
-
-      <div className="mt-8">
-        <AgreementForm agreement={agreement} />
-      </div>
+    <div className="space-y-8">
+      <BackLink href={`/dashboard/agreements/${id}`} label="Back to agreement" />
+      <PageHeader title="Edit agreement" description={agreement.title} />
+      <AgreementForm agreement={agreement} />
     </div>
   );
 }

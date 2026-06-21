@@ -1,7 +1,10 @@
 "use client";
 
+import { Trash2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
 
 type DeleteAgreementButtonProps = {
   agreementId: string;
@@ -55,58 +58,35 @@ export function DeleteAgreementButton({
 
   const control =
     variant === "icon" ? (
-      <button
+      <Button
         type="button"
+        variant="ghost"
+        size="icon-sm"
         onClick={handleDelete}
         disabled={loading}
         aria-label={`Delete agreement ${title}`}
         title="Delete agreement"
-        className="rounded-md p-1.5 text-[var(--color-text)] hover:text-[var(--color-accent)] disabled:opacity-50"
       >
-        <svg
-          width="16"
-          height="16"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="1.5"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          aria-hidden
-        >
-          <path d="M3 6h18M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2m3 0v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6h14z" />
-          <path d="M10 11v6M14 11v6" />
-        </svg>
-      </button>
+        <Trash2 className="size-4" />
+      </Button>
     ) : (
-      <button
+      <Button
         type="button"
+        variant="destructive"
         onClick={handleDelete}
         disabled={loading}
-        className="text-sm text-[var(--color-text)] hover:text-[var(--color-accent)] disabled:opacity-50"
       >
         {loading ? "Deleting…" : "Delete"}
-      </button>
+      </Button>
     );
-
-  if (variant === "icon" && error) {
-    return (
-      <div className="flex flex-col items-end gap-1">
-        {control}
-        <span className="max-w-[120px] text-right text-xs text-[var(--color-accent)]">
-          {error}
-        </span>
-      </div>
-    );
-  }
 
   return (
     <div className="flex flex-col items-end gap-1">
       {control}
       {error ? (
-        <span className="text-xs text-[var(--color-accent)]" role="alert">
-          {error}
-        </span>
+        <Alert variant="destructive" className="max-w-xs py-2">
+          <AlertDescription className="text-xs">{error}</AlertDescription>
+        </Alert>
       ) : null}
     </div>
   );

@@ -2,6 +2,9 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 
 type SendToClientButtonProps = {
   agreementId: string;
@@ -45,24 +48,24 @@ export function SendToClientButton({
   }
 
   if (sent) {
-    return (
-      <span className="rounded-md border border-[var(--color-accent)] bg-[var(--color-accent)] px-4 py-2 text-sm text-[var(--color-accent)]">
-        Sent to client
-      </span>
-    );
+    return <Badge variant="secondary">Sent to client</Badge>;
   }
 
   return (
-    <div>
-      <button
+    <div className="flex flex-col items-end gap-1">
+      <Button
         type="button"
+        variant="outline"
         onClick={handleSend}
         disabled={disabled || submitting}
-        className="rounded-md border border-[var(--color-text)] px-4 py-2 text-sm font-medium text-[var(--color-bg)] hover:bg-[var(--color-bg)] disabled:opacity-40"
       >
         {submitting ? "Sending…" : "Send to Client"}
-      </button>
-      {error ? <p className="mt-1 text-xs text-[var(--color-accent)]">{error}</p> : null}
+      </Button>
+      {error ? (
+        <Alert variant="destructive" className="max-w-xs py-2">
+          <AlertDescription className="text-xs">{error}</AlertDescription>
+        </Alert>
+      ) : null}
     </div>
   );
 }

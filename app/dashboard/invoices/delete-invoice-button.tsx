@@ -1,7 +1,9 @@
 "use client";
 
+import { Trash2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { Button } from "@/components/ui/button";
 
 type DeleteInvoiceButtonProps = {
   invoiceId: string;
@@ -47,40 +49,28 @@ export function DeleteInvoiceButton({
 
   if (variant === "icon") {
     return (
-      <button
+      <Button
         type="button"
+        variant="ghost"
+        size="icon-sm"
         onClick={handleDelete}
         disabled={loading}
         aria-label={`Delete invoice ${invoiceNumber}`}
         title="Delete invoice"
-        className="rounded-md p-1.5 text-[var(--color-text)] hover:bg-[var(--color-accent)] hover:text-[var(--color-accent)] disabled:opacity-50"
       >
-        <svg
-          width="16"
-          height="16"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="1.5"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          aria-hidden
-        >
-          <path d="M3 6h18M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2m3 0v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6h14z" />
-          <path d="M10 11v6M14 11v6" />
-        </svg>
-      </button>
+        <Trash2 className="size-4" />
+      </Button>
     );
   }
 
   return (
-    <button
+    <Button
       type="button"
+      variant="destructive"
       onClick={handleDelete}
       disabled={loading}
-      className="rounded-md border border-[var(--color-accent)] bg-[var(--color-accent)] px-4 py-2 text-sm font-medium text-[var(--color-accent)] hover:border-[var(--color-accent)] disabled:opacity-50"
     >
       {loading ? "Deleting…" : "Delete"}
-    </button>
+    </Button>
   );
 }

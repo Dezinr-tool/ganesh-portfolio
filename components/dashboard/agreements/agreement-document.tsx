@@ -6,7 +6,7 @@ import {
   totalScopeHours,
 } from "@/app/dashboard/_lib/agreements";
 import { DesignTokensScope } from "@/components/design-tokens-scope";
-import type { DesignTokens } from "@/lib/design-tokens";
+import type { DesignTokens } from "@/lib/design-tokens-shared";
 import { EditableClientEmail } from "./editable-client-email";
 
 type AgreementDocumentProps = {

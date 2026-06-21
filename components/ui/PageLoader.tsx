@@ -1,6 +1,7 @@
 "use client";
 
 import gsap from "gsap";
+import { usePathname } from "next/navigation";
 import {
   useCallback,
   useEffect,
@@ -20,6 +21,10 @@ const HERO_TEXT = "DESIGN & STRATEGY FOR STARTUPS";
 const SUB_TEXT = "UX/UI DESIGN • PRODUCT THINKING • D2C & B2B";
 
 type LoaderPhase = "pending" | "active" | "hidden";
+
+function isDashboardRoute(pathname: string | null): boolean {
+  return pathname?.startsWith("/dashboard") ?? false;
+}
 
 function readSessionLoaded(): boolean {
   try {
@@ -126,6 +131,8 @@ function CylinderText({
 }
 
 export function PageLoader() {
+  const pathname = usePathname();
+  const skipLoader = isDashboardRoute(pathname);
   const [phase, setPhase] = useState<LoaderPhase>("pending");
 
   const rootRef = useRef<HTMLDivElement>(null);
@@ -146,6 +153,13 @@ export function PageLoader() {
   }, []);
 
   useLayoutEffect(() => {
+    if (skipLoader) {
+      document.documentElement.classList.remove("page-loader-active");
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- dashboard must never show portfolio loader
+      setPhase("hidden");
+      return;
+    }
+
     if (readSessionLoaded()) {
       document.documentElement.classList.remove("page-loader-active");
       // eslint-disable-next-line react-hooks/set-state-in-effect -- avoid loader flash before paint
@@ -162,7 +176,7 @@ export function PageLoader() {
 
     document.documentElement.classList.add("page-loader-active");
     setPhase("active");
-  }, []);
+  }, [skipLoader]);
 
   useEffect(() => {
     if (phase !== "active") return;

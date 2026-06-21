@@ -1,26 +1,16 @@
-import Link from "next/link";
 import AgreementForm from "../agreement-form";
+import { BackLink } from "../../_components/back-link";
+import { PageHeader } from "../../_components/page-header";
 
 export default function NewAgreementPage() {
   return (
-    <div>
-      <div className="mb-6">
-        <Link
-          href="/dashboard/agreements"
-          className="text-sm text-[var(--color-text)] hover:text-[var(--color-bg)]"
-        >
-          ← Back to agreements
-        </Link>
-      </div>
-
-      <h1 className="text-2xl font-semibold text-[var(--color-bg)]">New agreement</h1>
-      <p className="mt-2 text-sm text-[var(--color-text)]">
-        Create a new design services agreement for your client.
-      </p>
-
-      <div className="mt-8">
-        <AgreementForm />
-      </div>
+    <div className="space-y-8">
+      <BackLink href="/dashboard/agreements" label="Back to agreements" />
+      <PageHeader
+        title="New agreement"
+        description="Create a new client agreement."
+      />
+      <AgreementForm />
     </div>
   );
 }

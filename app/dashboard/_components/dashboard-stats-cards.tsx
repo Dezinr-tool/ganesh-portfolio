@@ -1,26 +1,38 @@
-import { formatCurrency } from "../_lib/invoices";
+import type { ReactNode } from "react";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import type { DashboardStats } from "@/lib/dashboard-stats";
-import { Sparkline } from "./sparkline";
+import {
+  FileText,
+  Handshake,
+  IndianRupee,
+  Timer,
+} from "lucide-react";
+import { formatCurrency } from "../_lib/invoices";
 
-type StatCardConfig = {
+type StatCardProps = {
   label: string;
   value: string;
-  data: number[];
-  color: string;
-  variant: "line" | "bar";
+  icon: ReactNode;
 };
 
-function StatCard({ label, value, data, color, variant }: StatCardConfig) {
+function StatCard({ label, value, icon }: StatCardProps) {
   return (
-    <div className="rounded-lg border border-[var(--color-text)] bg-[var(--color-bg)] p-5">
-      <p className="text-sm text-[var(--color-text)]">{label}</p>
-      <p className="mt-1 text-2xl font-semibold tracking-tight text-[var(--color-bg)]">
-        {value}
-      </p>
-      <div className="mt-4">
-        <Sparkline data={data} color={color} variant={variant} />
-      </div>
-    </div>
+    <Card>
+      <CardHeader className="flex flex-row items-center justify-between pb-2">
+        <CardTitle className="text-sm font-medium text-muted-foreground">
+          {label}
+        </CardTitle>
+        <div className="text-muted-foreground">{icon}</div>
+      </CardHeader>
+      <CardContent>
+        <p className="text-2xl font-semibold tracking-tight">{value}</p>
+      </CardContent>
+    </Card>
   );
 }
 
@@ -29,42 +41,28 @@ type DashboardStatsCardsProps = {
 };
 
 export function DashboardStatsCards({ stats }: DashboardStatsCardsProps) {
-  const cards: StatCardConfig[] = [
-    {
-      label: "Total Earned",
-      value: formatCurrency(stats.totalEarned),
-      data: stats.monthlyEarned,
-      color: "var(--color-accent)",
-      variant: "bar",
-    },
-    {
-      label: "Pending Amount",
-      value: formatCurrency(stats.pendingAmount),
-      data: stats.monthlyPending,
-      color: "var(--color-accent)",
-      variant: "bar",
-    },
-    {
-      label: "Total Invoices",
-      value: String(stats.totalInvoices),
-      data: stats.monthlyInvoices,
-      color: "var(--color-bg)",
-      variant: "line",
-    },
-    {
-      label: "Total Agreements",
-      value: String(stats.totalAgreements),
-      data: stats.monthlyAgreements,
-      color: "var(--color-accent)",
-      variant: "line",
-    },
-  ];
-
   return (
     <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-      {cards.map((card) => (
-        <StatCard key={card.label} {...card} />
-      ))}
+      <StatCard
+        label="Total Earned"
+        value={formatCurrency(stats.totalEarned)}
+        icon={<IndianRupee className="size-4" aria-hidden />}
+      />
+      <StatCard
+        label="Pending Amount"
+        value={formatCurrency(stats.pendingAmount)}
+        icon={<Timer className="size-4" aria-hidden />}
+      />
+      <StatCard
+        label="Total Invoices"
+        value={String(stats.totalInvoices)}
+        icon={<FileText className="size-4" aria-hidden />}
+      />
+      <StatCard
+        label="Total Agreements"
+        value={String(stats.totalAgreements)}
+        icon={<Handshake className="size-4" aria-hidden />}
+      />
     </div>
   );
 }

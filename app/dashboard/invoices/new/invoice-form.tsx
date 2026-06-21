@@ -3,11 +3,24 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Separator } from "@/components/ui/separator";
+import { Textarea } from "@/components/ui/textarea";
+import { buttonVariants } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 import {
   type InvoiceLineItem,
   calculateLineAmount,
   calculateTotals,
-  inputClassName,
   formatCurrency,
 } from "../../_lib/invoices";
 
@@ -164,152 +177,114 @@ export default function InvoiceForm() {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-8">
-      <section className="rounded-lg border border-[var(--color-text)] bg-[var(--color-bg)] p-6">
-        <h2 className="text-sm font-medium text-[var(--color-bg)]">Invoice details</h2>
-        <div className="mt-4 grid gap-4 sm:grid-cols-3">
-          <div>
-            <label className="mb-1.5 block text-sm text-[var(--color-text)]">
-              Invoice number
-            </label>
-            <input
+    <form onSubmit={handleSubmit} className="space-y-6">
+      <Card>
+        <CardHeader>
+          <CardTitle>Invoice details</CardTitle>
+        </CardHeader>
+        <CardContent className="grid gap-4 sm:grid-cols-3">
+          <div className="space-y-2">
+            <Label>Invoice number</Label>
+            <Input
               type="text"
               value={loadingNumber ? "Loading…" : invoiceNumber}
               readOnly
-              className={`${inputClassName} text-[var(--color-text)]`}
             />
           </div>
-          <div>
-            <label htmlFor="issueDate" className="mb-1.5 block text-sm text-[var(--color-text)]">
-              Issue date
-            </label>
-            <input
+          <div className="space-y-2">
+            <Label htmlFor="issueDate">Issue date</Label>
+            <Input
               id="issueDate"
               type="date"
               required
               value={issueDate}
               onChange={(e) => setIssueDate(e.target.value)}
-              className={inputClassName}
             />
           </div>
-          <div>
-            <label htmlFor="dueDate" className="mb-1.5 block text-sm text-[var(--color-text)]">
-              Due date
-            </label>
-            <input
+          <div className="space-y-2">
+            <Label htmlFor="dueDate">Due date</Label>
+            <Input
               id="dueDate"
               type="date"
               required
               value={dueDate}
               onChange={(e) => setDueDate(e.target.value)}
-              className={inputClassName}
             />
           </div>
-        </div>
-      </section>
+        </CardContent>
+      </Card>
 
-      <section className="rounded-lg border border-[var(--color-text)] bg-[var(--color-bg)] p-6">
-        <h2 className="text-sm font-medium text-[var(--color-bg)]">Client</h2>
-        <div className="mt-4 grid gap-4 sm:grid-cols-2">
-          <div>
-            <label htmlFor="clientName" className="mb-1.5 block text-sm text-[var(--color-text)]">
-              Client name
-            </label>
-            <input
+      <Card>
+        <CardHeader>
+          <CardTitle>Client</CardTitle>
+        </CardHeader>
+        <CardContent className="grid gap-4 sm:grid-cols-2">
+          <div className="space-y-2">
+            <Label htmlFor="clientName">Client name</Label>
+            <Input
               id="clientName"
-              type="text"
               required
               value={clientName}
               onChange={(e) => setClientName(e.target.value)}
-              className={inputClassName}
             />
           </div>
-          <div>
-            <label htmlFor="clientEmail" className="mb-1.5 block text-sm text-[var(--color-text)]">
-              Client email
-            </label>
-            <input
+          <div className="space-y-2">
+            <Label htmlFor="clientEmail">Client email</Label>
+            <Input
               id="clientEmail"
               type="email"
               required
               value={clientEmail}
               onChange={(e) => setClientEmail(e.target.value)}
-              className={inputClassName}
             />
           </div>
-          <div className="sm:col-span-2">
-            <label htmlFor="clientCompany" className="mb-1.5 block text-sm text-[var(--color-text)]">
-              Client company
-            </label>
-            <input
+          <div className="space-y-2 sm:col-span-2">
+            <Label htmlFor="clientCompany">Client company</Label>
+            <Input
               id="clientCompany"
-              type="text"
               value={clientCompany}
               onChange={(e) => setClientCompany(e.target.value)}
-              className={inputClassName}
             />
           </div>
-          <div className="sm:col-span-2">
-            <label htmlFor="clientAddress" className="mb-1.5 block text-sm text-[var(--color-text)]">
-              Client address
-            </label>
-            <textarea
+          <div className="space-y-2 sm:col-span-2">
+            <Label htmlFor="clientAddress">Client address</Label>
+            <Textarea
               id="clientAddress"
               rows={3}
               value={clientAddress}
               onChange={(e) => setClientAddress(e.target.value)}
-              className={`${inputClassName} resize-none`}
             />
           </div>
-        </div>
-      </section>
+        </CardContent>
+      </Card>
 
-      <section className="rounded-lg border border-[var(--color-text)] bg-[var(--color-bg)] p-6">
-        <div className="flex items-center justify-between">
-          <h2 className="text-sm font-medium text-[var(--color-bg)]">Line items</h2>
-          <button
-            type="button"
-            onClick={addLineItem}
-            className="text-sm text-[var(--color-text)] hover:text-[var(--color-bg)]"
-          >
-            + Add row
-          </button>
-        </div>
-
-        <div className="mt-4 space-y-3">
-          <div className="hidden grid-cols-12 gap-3 text-xs uppercase tracking-wide text-[var(--color-text)] sm:grid">
-            <div className="col-span-5">Description</div>
-            <div className="col-span-3">Effort (hrs)</div>
-            <div className="col-span-2">Rate</div>
-            <div className="col-span-1">Amount</div>
-            <div className="col-span-1" />
-          </div>
-
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between">
+          <CardTitle>Line items</CardTitle>
+          <Button type="button" variant="outline" size="sm" onClick={addLineItem}>
+            Add row
+          </Button>
+        </CardHeader>
+        <CardContent className="space-y-4">
           {resolvedLineItems.map((item) => (
             <div
               key={item.id}
-              className="grid gap-3 rounded-md border border-[var(--color-text)] bg-[var(--color-bg)] p-3 sm:grid-cols-12 sm:border-0 sm:bg-transparent sm:p-0"
+              className="grid gap-3 rounded-lg border border-border p-4 sm:grid-cols-12"
             >
-              <div className="sm:col-span-5">
-                <label className="mb-1 block text-xs text-[var(--color-text)] sm:hidden">
-                  Description
-                </label>
-                <input
-                  type="text"
+              <div className="space-y-2 sm:col-span-5">
+                <Label className="sm:sr-only">Description</Label>
+                <Input
                   required
                   placeholder="Design consultation"
                   value={item.description}
                   onChange={(e) =>
                     updateLineItem(item.id, "description", e.target.value)
                   }
-                  className={inputClassName}
                 />
               </div>
-              <div className="sm:col-span-3">
-                <label className="mb-1 block text-xs text-[var(--color-text)] sm:hidden">
-                  Effort (hrs)
-                </label>
-                <input
+              <div className="space-y-2 sm:col-span-2">
+                <Label className="sm:sr-only">Effort (hrs)</Label>
+                <Input
                   type="number"
                   min="0"
                   step="0.5"
@@ -323,72 +298,53 @@ export default function InvoiceForm() {
                       e.target.value === "" ? 0 : Number(e.target.value),
                     )
                   }
-                  className={inputClassName}
                 />
               </div>
-              <div className="sm:col-span-2">
-                <label className="mb-1 block text-xs text-[var(--color-text)] sm:hidden">
-                  Rate
-                </label>
-                <input
-                  type="text"
-                  readOnly
-                  value={formatCurrency(hourlyRate)}
-                  className={`${inputClassName} text-[var(--color-text)]`}
-                />
+              <div className="space-y-2 sm:col-span-2">
+                <Label className="sm:sr-only">Rate</Label>
+                <Input readOnly value={formatCurrency(hourlyRate)} />
               </div>
-              <div className="sm:col-span-1">
-                <label className="mb-1 block text-xs text-[var(--color-text)] sm:hidden">
-                  Amount
-                </label>
-                <input
-                  type="text"
-                  readOnly
-                  value={formatCurrency(item.amount)}
-                  className={`${inputClassName} text-[var(--color-text)]`}
-                />
+              <div className="space-y-2 sm:col-span-2">
+                <Label className="sm:sr-only">Amount</Label>
+                <Input readOnly value={formatCurrency(item.amount)} />
               </div>
               <div className="flex items-end sm:col-span-1">
-                <button
+                <Button
                   type="button"
+                  variant="ghost"
+                  size="sm"
                   onClick={() => removeLineItem(item.id)}
                   disabled={lineItems.length === 1}
-                  className="text-sm text-[var(--color-text)] hover:text-[var(--color-accent)] disabled:opacity-30"
                 >
                   Remove
-                </button>
+                </Button>
               </div>
             </div>
           ))}
-        </div>
-      </section>
+        </CardContent>
+      </Card>
 
-      <section className="rounded-lg border border-[var(--color-text)] bg-[var(--color-bg)] p-6">
-        <div className="grid gap-6 lg:grid-cols-2">
-          <div>
-            <label htmlFor="notes" className="mb-1.5 block text-sm text-[var(--color-text)]">
-              Notes (optional)
-            </label>
-            <textarea
+      <Card>
+        <CardContent className="grid gap-6 pt-6 lg:grid-cols-2">
+          <div className="space-y-2">
+            <Label htmlFor="notes">Notes (optional)</Label>
+            <Textarea
               id="notes"
               rows={4}
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
               placeholder="Payment terms, bank details, or additional notes…"
-              className={`${inputClassName} resize-y`}
             />
           </div>
 
           <div className="space-y-3 text-sm">
-            <div className="flex justify-between text-[var(--color-text)]">
-              <span>Subtotal</span>
-              <span className="text-[var(--color-bg)]">{formatCurrency(totals.subtotal)}</span>
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">Subtotal</span>
+              <span>{formatCurrency(totals.subtotal)}</span>
             </div>
             <div className="flex items-center justify-between gap-4">
-              <label htmlFor="taxPercent" className="text-[var(--color-text)]">
-                Tax %
-              </label>
-              <input
+              <Label htmlFor="taxPercent">Tax %</Label>
+              <Input
                 id="taxPercent"
                 type="number"
                 min="0"
@@ -396,42 +352,37 @@ export default function InvoiceForm() {
                 placeholder="0"
                 value={taxPercent}
                 onChange={(e) => setTaxPercent(e.target.value)}
-                className={`${inputClassName} max-w-[120px] text-right`}
+                className="max-w-[120px] text-right"
               />
             </div>
             {parsedTaxPercent !== null && parsedTaxPercent > 0 ? (
-              <div className="flex justify-between text-[var(--color-text)]">
-                <span>Tax amount</span>
-                <span className="text-[var(--color-bg)]">
-                  {formatCurrency(totals.taxAmount)}
-                </span>
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Tax amount</span>
+                <span>{formatCurrency(totals.taxAmount)}</span>
               </div>
             ) : null}
-            <div className="flex justify-between border-t border-[var(--color-text)] pt-3 text-base font-semibold text-[var(--color-bg)]">
+            <Separator />
+            <div className="flex justify-between text-base font-semibold">
               <span>Total</span>
               <span>{formatCurrency(totals.total)}</span>
             </div>
           </div>
-        </div>
-      </section>
+        </CardContent>
+      </Card>
 
       {error ? (
-        <p className="text-sm text-[var(--color-accent)]" role="alert">
-          {error}
-        </p>
+        <Alert variant="destructive">
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
       ) : null}
 
       <div className="flex items-center gap-3">
-        <button
-          type="submit"
-          disabled={submitting}
-          className="rounded-md bg-[var(--color-bg)] px-4 py-2 text-sm font-medium text-[var(--color-text)] disabled:opacity-50"
-        >
+        <Button type="submit" disabled={submitting}>
           {submitting ? "Saving…" : "Save invoice"}
-        </button>
+        </Button>
         <Link
           href="/dashboard/invoices"
-          className="text-sm text-[var(--color-text)] hover:text-[var(--color-bg)]"
+          className={cn(buttonVariants({ variant: "ghost" }))}
         >
           Cancel
         </Link>

@@ -1,11 +1,16 @@
 "use client";
 
 import { DesignTokensScope } from "@/components/design-tokens-scope";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import {
   DEFAULT_DESIGN_TOKENS,
+  designTokensCssText,
   isValidHexColor,
   type DesignTokens,
-} from "@/lib/design-tokens";
+} from "@/lib/design-tokens-shared";
 import { useEffect, useState } from "react";
 
 type TokenField = keyof DesignTokens;
@@ -35,23 +40,21 @@ const TOKEN_FIELDS: {
 function TokenPreview({ tokens }: { tokens: DesignTokens }) {
   return (
     <DesignTokensScope tokens={tokens}>
-      <div className="rounded-md border border-[var(--color-text)] bg-[var(--color-bg)] p-4">
-        <p className="text-sm font-medium text-[var(--color-text)]">
-          Preview heading
-        </p>
-        <p className="mt-2 text-sm text-[var(--color-text)]">
+      <div className="rounded-lg border border-border bg-background p-4">
+        <p className="text-sm font-medium">Preview heading</p>
+        <p className="mt-2 text-sm text-muted-foreground">
           Body text on your background color.
         </p>
         <div className="mt-4 flex flex-wrap gap-2">
-          <span className="inline-flex min-h-10 items-center rounded-none border border-[var(--color-text)] bg-[var(--color-text)] px-4 text-sm font-medium text-[var(--color-bg)]">
+          <Button type="button" size="sm">
             Solid CTA
-          </span>
-          <span className="inline-flex min-h-10 items-center rounded-none border border-[var(--color-text)] bg-transparent px-4 text-sm font-medium text-[var(--color-text)]">
+          </Button>
+          <Button type="button" variant="outline" size="sm">
             Outline CTA
-          </span>
-          <span className="inline-flex min-h-10 items-center px-2 text-sm font-medium text-[var(--color-accent)]">
+          </Button>
+          <Button type="button" variant="link" size="sm">
             Accent link
-          </span>
+          </Button>
         </div>
       </div>
     </DesignTokensScope>
@@ -112,7 +115,7 @@ export function BrandSettingsForm() {
         document.getElementById("design-tokens")?.remove();
         const style = document.createElement("style");
         style.id = "design-tokens";
-        style.textContent = `:root{--color-bg:${data.designTokens.bg};--color-text:${data.designTokens.text};--color-accent:${data.designTokens.accent};}`;
+        style.textContent = designTokensCssText(data.designTokens);
         document.head.appendChild(style);
       }
 
@@ -134,26 +137,19 @@ export function BrandSettingsForm() {
   }
 
   if (loading) {
-    return <p className="text-sm text-[var(--color-text)]">Loading…</p>;
+    return <p className="text-sm text-muted-foreground">Loading…</p>;
   }
 
   return (
     <div className="space-y-6">
       <div className="space-y-4">
         {TOKEN_FIELDS.map((field) => (
-          <div key={field.key}>
-            <label
-              htmlFor={`brand-${field.key}`}
-              className="block text-sm font-medium text-[var(--color-text)]"
-            >
-              {field.label}
-            </label>
-            <p className="mt-0.5 text-xs text-[var(--color-text)]">
-              {field.description}
-            </p>
-            <div className="mt-2 flex items-center gap-3">
+          <div key={field.key} className="space-y-2">
+            <Label htmlFor={`brand-${field.key}`}>{field.label}</Label>
+            <p className="text-xs text-muted-foreground">{field.description}</p>
+            <div className="flex items-center gap-3">
               <input
-                id={`brand-${field.key}`}
+                id={`brand-${field.key}-picker`}
                 type="color"
                 value={
                   isValidHexColor(tokens[field.key])
@@ -161,14 +157,14 @@ export function BrandSettingsForm() {
                     : DEFAULT_DESIGN_TOKENS[field.key]
                 }
                 onChange={(event) => updateToken(field.key, event.target.value)}
-                className="h-10 w-14 cursor-pointer rounded border border-[var(--color-text)] bg-[var(--color-bg)] p-1"
+                className="h-10 w-14 cursor-pointer rounded-lg border border-input bg-background p-1"
               />
-              <input
-                type="text"
+              <Input
+                id={`brand-${field.key}`}
                 value={tokens[field.key]}
                 onChange={(event) => updateToken(field.key, event.target.value)}
                 spellCheck={false}
-                className="min-h-10 flex-1 rounded border border-[var(--color-text)] bg-[var(--color-bg)] px-3 font-mono text-sm text-[var(--color-text)] outline-none focus:ring-2 focus:ring-[var(--color-text)]"
+                className="font-mono"
                 aria-label={`${field.label} hex value`}
               />
             </div>
@@ -177,41 +173,36 @@ export function BrandSettingsForm() {
       </div>
 
       <div>
-        <p className="mb-2 text-sm font-medium text-[var(--color-text)]">
-          Live preview
-        </p>
+        <p className="mb-2 text-sm font-medium">Live preview</p>
         <TokenPreview tokens={tokens} />
       </div>
 
       {error ? (
-        <p className="text-sm text-[var(--color-accent)]" role="alert">
-          {error}
-        </p>
+        <Alert variant="destructive">
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
       ) : null}
       {success ? (
-        <p className="text-sm text-[var(--color-accent)]">
-          Brand settings saved. Portfolio, invoices, and agreements will use
-          these colors.
-        </p>
+        <Alert>
+          <AlertDescription>
+            Brand settings saved. Portfolio, invoices, and agreements will use
+            these colors.
+          </AlertDescription>
+        </Alert>
       ) : null}
 
       <div className="flex flex-wrap gap-3">
-        <button
-          type="button"
-          onClick={handleSave}
-          disabled={saving}
-          className="min-h-10 rounded-none border border-[var(--color-text)] bg-[var(--color-text)] px-5 text-sm font-medium text-[var(--color-bg)] disabled:opacity-50"
-        >
+        <Button type="button" onClick={handleSave} disabled={saving}>
           {saving ? "Saving…" : "Save brand colors"}
-        </button>
-        <button
+        </Button>
+        <Button
           type="button"
+          variant="outline"
           onClick={handleReset}
           disabled={saving}
-          className="min-h-10 rounded-none border border-[var(--color-text)] bg-transparent px-5 text-sm font-medium text-[var(--color-text)] disabled:opacity-50"
         >
           Reset to defaults
-        </button>
+        </Button>
       </div>
     </div>
   );

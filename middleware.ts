@@ -152,6 +152,7 @@ export const config = {
     "/api/ia/:path*",
     "/api/wireframe/:path*",
     "/api/pre-generation/:path*",
+    "/dashboard",
     "/dashboard/:path*",
     "/api/invoices/:path*",
     "/api/agreements/:path*",

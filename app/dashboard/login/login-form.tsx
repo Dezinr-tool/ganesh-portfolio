@@ -2,6 +2,17 @@
 
 import { useActionState } from "react";
 import { useSearchParams } from "next/navigation";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { loginAction, type LoginState } from "./actions";
 
 const initialState: LoginState = {};
@@ -12,48 +23,39 @@ export default function DashboardLoginForm() {
   const [state, formAction, pending] = useActionState(loginAction, initialState);
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-[var(--color-bg)] px-4">
-      <div className="w-full max-w-sm rounded-lg border border-[var(--color-text)] bg-[var(--color-bg)] p-8">
-        <h1 className="text-xl font-semibold text-[var(--color-bg)]">Dashboard</h1>
-        <p className="mt-2 text-sm text-[var(--color-text)]">
-          Enter the password to continue.
-        </p>
+    <div className="flex min-h-screen items-center justify-center px-4">
+      <Card className="w-full max-w-sm">
+        <CardHeader>
+          <CardTitle>Dashboard</CardTitle>
+          <CardDescription>Enter the password to continue.</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <form action={formAction} className="space-y-4">
+            <input type="hidden" name="from" value={from} />
 
-        <form action={formAction} className="mt-6 space-y-4">
-          <input type="hidden" name="from" value={from} />
+            <div className="space-y-2">
+              <Label htmlFor="password">Password</Label>
+              <Input
+                id="password"
+                name="password"
+                type="password"
+                required
+                autoComplete="current-password"
+              />
+            </div>
 
-          <div>
-            <label
-              htmlFor="password"
-              className="mb-1.5 block text-sm text-[var(--color-text)]"
-            >
-              Password
-            </label>
-            <input
-              id="password"
-              name="password"
-              type="password"
-              required
-              autoComplete="current-password"
-              className="w-full rounded-md border border-[var(--color-text)] bg-[var(--color-bg)] px-3 py-2 text-sm text-[var(--color-bg)] outline-none focus:border-[var(--color-text)]"
-            />
-          </div>
+            {state.error ? (
+              <Alert variant="destructive">
+                <AlertDescription>{state.error}</AlertDescription>
+              </Alert>
+            ) : null}
 
-          {state.error ? (
-            <p className="text-sm text-[var(--color-accent)]" role="alert">
-              {state.error}
-            </p>
-          ) : null}
-
-          <button
-            type="submit"
-            disabled={pending}
-            className="w-full rounded-md bg-[var(--color-bg)] px-4 py-2 text-sm font-medium text-[var(--color-text)] disabled:opacity-50"
-          >
-            {pending ? "Signing in…" : "Sign in"}
-          </button>
-        </form>
-      </div>
+            <Button type="submit" className="w-full" disabled={pending}>
+              {pending ? "Signing in…" : "Sign in"}
+            </Button>
+          </form>
+        </CardContent>
+      </Card>
     </div>
   );
 }

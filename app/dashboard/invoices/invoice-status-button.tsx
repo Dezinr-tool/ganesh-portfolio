@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { Button } from "@/components/ui/button";
 import type { InvoiceStatus } from "@/app/dashboard/_lib/invoices";
 
 type InvoiceStatusButtonProps = {
@@ -40,17 +41,13 @@ export function InvoiceStatusButton({
   }
 
   return (
-    <button
+    <Button
       type="button"
+      variant={isPaid ? "outline" : "default"}
       onClick={handleToggle}
       disabled={loading}
-      className={
-        isPaid
-          ? "rounded-md border border-[var(--color-accent)] bg-[var(--color-accent)] px-4 py-2 text-sm font-medium text-[var(--color-accent)] hover:border-[var(--color-accent)] disabled:opacity-50"
-          : "rounded-md border border-[var(--color-accent)] bg-[var(--color-accent)] px-4 py-2 text-sm font-medium text-[var(--color-accent)] hover:border-[var(--color-accent)] disabled:opacity-50"
-      }
     >
       {loading ? "Updating…" : label}
-    </button>
+    </Button>
   );
 }

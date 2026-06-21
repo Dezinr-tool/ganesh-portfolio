@@ -3,13 +3,27 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Button, buttonVariants } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { cn } from "@/lib/utils";
 import {
   type Agreement,
   type DeliverableItem,
   type DeliverablePriority,
   type ScopeOfWorkItem,
-  inputClassName,
 } from "../_lib/agreements";
+
+const selectClassName =
+  "h-8 w-full min-w-0 rounded-lg border border-input bg-transparent px-2.5 py-1 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50";
 
 function createScopeItem(): ScopeOfWorkItem {
   return { id: crypto.randomUUID(), task: "", hours: 1 };
@@ -154,139 +168,127 @@ export default function AgreementForm({ agreement }: AgreementFormProps) {
     : "/dashboard/agreements";
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-8">
+    <form onSubmit={handleSubmit} className="space-y-6">
       {needsInvalidateWarning ? (
-        <div className="rounded-lg border border-[var(--color-accent)] bg-[var(--color-accent)] p-4">
-          <p className="text-sm text-[var(--color-accent)]">
-            This agreement has already been sent to the client. Editing will
-            invalidate the previous signing link.
-          </p>
-          <label className="mt-3 flex cursor-pointer items-start gap-2 text-sm text-[var(--color-accent)]">
-            <input
-              type="checkbox"
-              checked={confirmInvalidate}
-              onChange={(e) => setConfirmInvalidate(e.target.checked)}
-              className="mt-0.5"
-            />
-            I understand — reset signing and require re-sign & re-send
-          </label>
-        </div>
+        <Alert variant="destructive">
+          <AlertDescription>
+            <p>
+              This agreement has already been sent to the client. Editing will
+              invalidate the previous signing link.
+            </p>
+            <label className="mt-3 flex cursor-pointer items-start gap-2">
+              <input
+                type="checkbox"
+                checked={confirmInvalidate}
+                onChange={(e) => setConfirmInvalidate(e.target.checked)}
+                className="mt-0.5"
+              />
+              I understand — reset signing and require re-sign & re-send
+            </label>
+          </AlertDescription>
+        </Alert>
       ) : null}
 
-      <section className="rounded-lg border border-[var(--color-text)] bg-[var(--color-bg)] p-6">
-        <h2 className="text-sm font-medium text-[var(--color-bg)]">Agreement details</h2>
-        <div className="mt-4">
-          <label htmlFor="title" className="mb-1.5 block text-sm text-[var(--color-text)]">
-            Title
-          </label>
-          <input
+      <Card>
+        <CardHeader>
+          <CardTitle>Agreement details</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-2">
+          <Label htmlFor="title">Title</Label>
+          <Input
             id="title"
-            type="text"
             required
-            placeholder='Brand Identity — Ajoni Technologies'
+            placeholder="Brand Identity — Ajoni Technologies"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
-            className={inputClassName}
           />
-        </div>
-      </section>
+        </CardContent>
+      </Card>
 
-      <section className="rounded-lg border border-[var(--color-text)] bg-[var(--color-bg)] p-6">
-        <h2 className="text-sm font-medium text-[var(--color-bg)]">Client</h2>
-        <div className="mt-4 grid gap-4 sm:grid-cols-2">
-          <div>
-            <label htmlFor="clientName" className="mb-1.5 block text-sm text-[var(--color-text)]">
-              Client name
-            </label>
-            <input
+      <Card>
+        <CardHeader>
+          <CardTitle>Client</CardTitle>
+        </CardHeader>
+        <CardContent className="grid gap-4 sm:grid-cols-2">
+          <div className="space-y-2">
+            <Label htmlFor="clientName">Client name</Label>
+            <Input
               id="clientName"
-              type="text"
               required
               value={clientName}
               onChange={(e) => setClientName(e.target.value)}
-              className={inputClassName}
             />
           </div>
-          <div>
-            <label htmlFor="clientCompany" className="mb-1.5 block text-sm text-[var(--color-text)]">
-              Company
-            </label>
-            <input
+          <div className="space-y-2">
+            <Label htmlFor="clientCompany">Company</Label>
+            <Input
               id="clientCompany"
-              type="text"
               required
               value={clientCompany}
               onChange={(e) => setClientCompany(e.target.value)}
-              className={inputClassName}
             />
           </div>
-          <div>
-            <label htmlFor="clientEmail" className="mb-1.5 block text-sm text-[var(--color-text)]">
-              Email
-            </label>
-            <input
+          <div className="space-y-2">
+            <Label htmlFor="clientEmail">Email</Label>
+            <Input
               id="clientEmail"
               type="email"
               required
               value={clientEmail}
               onChange={(e) => setClientEmail(e.target.value)}
-              className={inputClassName}
             />
           </div>
-          <div>
-            <label htmlFor="clientRepresentative" className="mb-1.5 block text-sm text-[var(--color-text)]">
-              Representative name
-            </label>
-            <input
+          <div className="space-y-2">
+            <Label htmlFor="clientRepresentative">Representative name</Label>
+            <Input
               id="clientRepresentative"
-              type="text"
               required
               value={clientRepresentative}
               onChange={(e) => setClientRepresentative(e.target.value)}
-              className={inputClassName}
             />
           </div>
-        </div>
-      </section>
+        </CardContent>
+      </Card>
 
-      <section className="rounded-lg border border-[var(--color-text)] bg-[var(--color-bg)] p-6">
-        <label htmlFor="projectOverview" className="text-sm font-medium text-[var(--color-bg)]">
-          Project overview
-        </label>
-        <textarea
-          id="projectOverview"
-          rows={5}
-          required
-          value={projectOverview}
-          onChange={(e) => setProjectOverview(e.target.value)}
-          placeholder="Describe the project goals, context, and expected outcomes…"
-          className={`${inputClassName} mt-4 resize-y`}
-        />
-      </section>
+      <Card>
+        <CardHeader>
+          <CardTitle>Project overview</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <Textarea
+            id="projectOverview"
+            rows={5}
+            required
+            value={projectOverview}
+            onChange={(e) => setProjectOverview(e.target.value)}
+            placeholder="Describe the project goals, context, and expected outcomes…"
+          />
+        </CardContent>
+      </Card>
 
-      <section className="rounded-lg border border-[var(--color-text)] bg-[var(--color-bg)] p-6">
-        <div className="flex items-center justify-between">
-          <h2 className="text-sm font-medium text-[var(--color-bg)]">Scope of work</h2>
-          <button
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between">
+          <CardTitle>Scope of work</CardTitle>
+          <Button
             type="button"
+            variant="outline"
+            size="sm"
             onClick={() => setScopeOfWork((items) => [...items, createScopeItem()])}
-            className="text-sm text-[var(--color-text)] hover:text-[var(--color-bg)]"
           >
-            + Add row
-          </button>
-        </div>
-        <div className="mt-4 space-y-3">
+            Add row
+          </Button>
+        </CardHeader>
+        <CardContent className="space-y-3">
           {scopeOfWork.map((item) => (
             <div key={item.id} className="flex gap-3">
-              <input
-                type="text"
+              <Input
                 required
                 placeholder="Task name"
                 value={item.task}
                 onChange={(e) => updateScope(item.id, "task", e.target.value)}
-                className={`${inputClassName} flex-1`}
+                className="flex-1"
               />
-              <input
+              <Input
                 type="number"
                 min="0.5"
                 step="0.5"
@@ -295,10 +297,12 @@ export default function AgreementForm({ agreement }: AgreementFormProps) {
                 onChange={(e) =>
                   updateScope(item.id, "hours", Number(e.target.value))
                 }
-                className={`${inputClassName} w-24`}
+                className="w-24"
               />
-              <button
+              <Button
                 type="button"
+                variant="ghost"
+                size="sm"
                 onClick={() =>
                   setScopeOfWork((items) =>
                     items.length === 1
@@ -307,29 +311,29 @@ export default function AgreementForm({ agreement }: AgreementFormProps) {
                   )
                 }
                 disabled={scopeOfWork.length === 1}
-                className="text-sm text-[var(--color-text)] hover:text-[var(--color-accent)] disabled:opacity-30"
               >
                 Remove
-              </button>
+              </Button>
             </div>
           ))}
-        </div>
-      </section>
+        </CardContent>
+      </Card>
 
-      <section className="rounded-lg border border-[var(--color-text)] bg-[var(--color-bg)] p-6">
-        <div className="flex items-center justify-between">
-          <h2 className="text-sm font-medium text-[var(--color-bg)]">Deliverables</h2>
-          <button
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between">
+          <CardTitle>Deliverables</CardTitle>
+          <Button
             type="button"
+            variant="outline"
+            size="sm"
             onClick={() =>
               setDeliverables((items) => [...items, createDeliverable()])
             }
-            className="text-sm text-[var(--color-text)] hover:text-[var(--color-bg)]"
           >
-            + Add row
-          </button>
-        </div>
-        <div className="mt-4 space-y-3">
+            Add row
+          </Button>
+        </CardHeader>
+        <CardContent className="space-y-3">
           {deliverables.map((item) => (
             <div key={item.id} className="flex gap-3">
               <select
@@ -341,22 +345,23 @@ export default function AgreementForm({ agreement }: AgreementFormProps) {
                     e.target.value as DeliverablePriority,
                   )
                 }
-                className={`${inputClassName} w-24`}
+                className={cn(selectClassName, "w-24")}
               >
                 <option value="P0">P0</option>
                 <option value="P1">P1</option>
                 <option value="P2">P2</option>
               </select>
-              <input
-                type="text"
+              <Input
                 required
                 placeholder="Deliverable name"
                 value={item.item}
                 onChange={(e) => updateDeliverable(item.id, "item", e.target.value)}
-                className={`${inputClassName} flex-1`}
+                className="flex-1"
               />
-              <button
+              <Button
                 type="button"
+                variant="ghost"
+                size="sm"
                 onClick={() =>
                   setDeliverables((items) =>
                     items.length === 1
@@ -365,113 +370,98 @@ export default function AgreementForm({ agreement }: AgreementFormProps) {
                   )
                 }
                 disabled={deliverables.length === 1}
-                className="text-sm text-[var(--color-text)] hover:text-[var(--color-accent)] disabled:opacity-30"
               >
                 Remove
-              </button>
+              </Button>
             </div>
           ))}
-        </div>
-      </section>
+        </CardContent>
+      </Card>
 
-      <section className="rounded-lg border border-[var(--color-text)] bg-[var(--color-bg)] p-6">
-        <label htmlFor="timeline" className="text-sm font-medium text-[var(--color-bg)]">
-          Timeline
-        </label>
-        <textarea
-          id="timeline"
-          rows={3}
-          required
-          value={timeline}
-          onChange={(e) => setTimeline(e.target.value)}
-          placeholder="e.g. Week 1–2: Discovery, Week 3–4: Design…"
-          className={`${inputClassName} mt-4 resize-y`}
-        />
-      </section>
-
-      <section className="rounded-lg border border-[var(--color-text)] bg-[var(--color-bg)] p-6">
-        <h2 className="text-sm font-medium text-[var(--color-bg)]">Payment</h2>
-        <div className="mt-4 grid gap-4 sm:grid-cols-3">
-          <div>
-            <label htmlFor="hourlyRate" className="mb-1.5 block text-sm text-[var(--color-text)]">
-              Hourly rate (optional)
-            </label>
-            <input
-              id="hourlyRate"
-              type="number"
-              min="0"
-              step="0.01"
-              value={hourlyRate}
-              onChange={(e) => setHourlyRate(e.target.value)}
-              className={inputClassName}
-            />
-          </div>
-          <div>
-            <label htmlFor="fixedCost" className="mb-1.5 block text-sm text-[var(--color-text)]">
-              Fixed cost (optional)
-            </label>
-            <input
-              id="fixedCost"
-              type="number"
-              min="0"
-              step="0.01"
-              value={fixedCost}
-              onChange={(e) => setFixedCost(e.target.value)}
-              className={inputClassName}
-            />
-          </div>
-          <div>
-            <label htmlFor="advancePercent" className="mb-1.5 block text-sm text-[var(--color-text)]">
-              Advance %
-            </label>
-            <input
-              id="advancePercent"
-              type="number"
-              min="0"
-              max="100"
-              value={advancePercent}
-              onChange={(e) => setAdvancePercent(e.target.value)}
-              className={inputClassName}
-            />
-          </div>
-        </div>
-        <div className="mt-4">
-          <label htmlFor="paymentNotes" className="mb-1.5 block text-sm text-[var(--color-text)]">
-            Payment notes (optional)
-          </label>
-          <textarea
-            id="paymentNotes"
+      <Card>
+        <CardHeader>
+          <CardTitle>Timeline</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <Textarea
+            id="timeline"
             rows={3}
-            value={paymentNotes}
-            onChange={(e) => setPaymentNotes(e.target.value)}
-            placeholder="Bank details, payment schedule, etc."
-            className={`${inputClassName} resize-y`}
+            required
+            value={timeline}
+            onChange={(e) => setTimeline(e.target.value)}
+            placeholder="e.g. Week 1–2: Discovery, Week 3–4: Design…"
           />
-        </div>
-      </section>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Payment</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="grid gap-4 sm:grid-cols-3">
+            <div className="space-y-2">
+              <Label htmlFor="hourlyRate">Hourly rate (optional)</Label>
+              <Input
+                id="hourlyRate"
+                type="number"
+                min="0"
+                step="0.01"
+                value={hourlyRate}
+                onChange={(e) => setHourlyRate(e.target.value)}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="fixedCost">Fixed cost (optional)</Label>
+              <Input
+                id="fixedCost"
+                type="number"
+                min="0"
+                step="0.01"
+                value={fixedCost}
+                onChange={(e) => setFixedCost(e.target.value)}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="advancePercent">Advance %</Label>
+              <Input
+                id="advancePercent"
+                type="number"
+                min="0"
+                max="100"
+                value={advancePercent}
+                onChange={(e) => setAdvancePercent(e.target.value)}
+              />
+            </div>
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="paymentNotes">Payment notes (optional)</Label>
+            <Textarea
+              id="paymentNotes"
+              rows={3}
+              value={paymentNotes}
+              onChange={(e) => setPaymentNotes(e.target.value)}
+              placeholder="Bank details, payment schedule, etc."
+            />
+          </div>
+        </CardContent>
+      </Card>
 
       {error ? (
-        <p className="text-sm text-[var(--color-accent)]" role="alert">
-          {error}
-        </p>
+        <Alert variant="destructive">
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
       ) : null}
 
       <div className="flex items-center gap-3">
-        <button
-          type="submit"
-          disabled={submitting}
-          className="rounded-md bg-[var(--color-bg)] px-4 py-2 text-sm font-medium text-[var(--color-text)] disabled:opacity-50"
-        >
+        <Button type="submit" disabled={submitting}>
           {submitting
             ? "Saving…"
             : isEdit
               ? "Save changes"
               : "Create agreement"}
-        </button>
-        <Link
-          href={cancelHref}
-          className="text-sm text-[var(--color-text)] hover:text-[var(--color-bg)]"
-        >
+        </Button>
+        <Link href={cancelHref} className={cn(buttonVariants({ variant: "ghost" }))}>
           Cancel
         </Link>
       </div>

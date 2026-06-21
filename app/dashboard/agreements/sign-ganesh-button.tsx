@@ -1,11 +1,23 @@
 "use client";
 
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useRef, useState } from "react";
 import {
   SignatureCanvas,
   type SignatureCanvasRef,
 } from "@/components/dashboard/agreements/signature-canvas";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 type SignGaneshButtonProps = {
   agreementId: string;
@@ -39,11 +51,7 @@ export function SignGaneshButton({
   }
 
   if (alreadySigned) {
-    return (
-      <span className="rounded-md border border-[var(--color-accent)] bg-[var(--color-accent)] px-4 py-2 text-sm text-[var(--color-accent)]">
-        Signed by you
-      </span>
-    );
+    return <Badge variant="secondary">Signed by you</Badge>;
   }
 
   async function handleSign(signature: string) {
@@ -89,100 +97,80 @@ export function SignGaneshButton({
 
   return (
     <>
-      <button
-        type="button"
-        onClick={openModal}
-        className="rounded-md bg-[var(--color-bg)] px-4 py-2 text-sm font-medium text-[var(--color-text)]"
-      >
+      <Button type="button" onClick={openModal}>
         Sign as Ganesh Das
-      </button>
+      </Button>
 
-      {open ? (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-[var(--color-text)]/60 p-4">
-          <div className="w-full max-w-lg rounded-lg border border-[var(--color-text)] bg-[var(--color-bg)] p-6">
-            <h3 className="text-lg font-semibold text-[var(--color-bg)]">Sign agreement</h3>
+      <Dialog open={open} onOpenChange={setOpen}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Sign agreement</DialogTitle>
+            <DialogDescription>
+              {loadingDefault
+                ? "Loading signature…"
+                : defaultSignature
+                  ? "Using your saved default signature."
+                  : "No default signature set. Draw your signature below, or add one in Settings."}
+            </DialogDescription>
+          </DialogHeader>
 
-            {loadingDefault ? (
-              <p className="mt-4 text-sm text-[var(--color-text)]">Loading signature…</p>
-            ) : defaultSignature ? (
-              <>
-                <p className="mt-1 text-sm text-[var(--color-text)]">
-                  Using your saved default signature.
-                </p>
-                <div className="mt-4 rounded border border-[var(--color-text)] bg-[var(--color-bg)] p-3">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    src={defaultSignature}
-                    alt="Your default signature"
-                    className="mx-auto max-h-24 object-contain"
-                  />
-                </div>
-                {error ? (
-                  <p className="mt-2 text-sm text-[var(--color-accent)]">{error}</p>
-                ) : null}
-                <div className="mt-4 flex gap-3">
-                  <button
-                    type="button"
-                    onClick={handleConfirmDefault}
-                    disabled={submitting}
-                    className="rounded-md bg-[var(--color-bg)] px-4 py-2 text-sm font-medium text-[var(--color-text)] disabled:opacity-50"
-                  >
-                    {submitting ? "Signing…" : "Confirm & Sign"}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setOpen(false)}
-                    className="text-sm text-[var(--color-text)] hover:text-[var(--color-bg)]"
-                  >
-                    Cancel
-                  </button>
-                </div>
-              </>
+          {loadingDefault ? null : defaultSignature ? (
+            <div className="rounded-lg border border-border bg-muted/30 p-3">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={defaultSignature}
+                alt="Your default signature"
+                className="mx-auto max-h-24 object-contain"
+              />
+            </div>
+          ) : (
+            <div className="space-y-2">
+              <p className="text-sm text-muted-foreground">
+                <Link href="/dashboard/settings" className="underline">
+                  Add a default signature in Settings
+                </Link>
+              </p>
+              <div className="overflow-x-auto rounded-lg border border-border p-2">
+                <SignatureCanvas
+                  ref={canvasRef}
+                  width={500}
+                  height={200}
+                  onChange={setHasDrawnSignature}
+                />
+              </div>
+            </div>
+          )}
+
+          {error ? (
+            <Alert variant="destructive">
+              <AlertDescription>{error}</AlertDescription>
+            </Alert>
+          ) : null}
+
+          <DialogFooter>
+            <Button type="button" variant="outline" onClick={() => setOpen(false)}>
+              Cancel
+            </Button>
+            {defaultSignature ? (
+              <Button
+                type="button"
+                onClick={handleConfirmDefault}
+                disabled={submitting}
+              >
+                {submitting ? "Signing…" : "Confirm & Sign"}
+              </Button>
             ) : (
-              <>
-                <p className="mt-1 text-sm text-[var(--color-text)]">
-                  No default signature set. Draw your signature below, or{" "}
-                  <a
-                    href="/dashboard/settings"
-                    className="text-[var(--color-bg)] underline"
-                  >
-                    add one in Settings
-                  </a>
-                  .
-                </p>
-                <div className="mt-4 overflow-x-auto">
-                  <SignatureCanvas
-                    ref={canvasRef}
-                    width={500}
-                    height={200}
-                    onChange={setHasDrawnSignature}
-                  />
-                </div>
-                {error ? (
-                  <p className="mt-2 text-sm text-[var(--color-accent)]">{error}</p>
-                ) : null}
-                <div className="mt-4 flex gap-3">
-                  <button
-                    type="button"
-                    onClick={handleConfirmDrawn}
-                    disabled={submitting || !hasDrawnSignature}
-                    className="rounded-md bg-[var(--color-bg)] px-4 py-2 text-sm font-medium text-[var(--color-text)] disabled:opacity-50"
-                  >
-                    {submitting ? "Signing…" : "Confirm & Sign"}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setOpen(false)}
-                    className="text-sm text-[var(--color-text)] hover:text-[var(--color-bg)]"
-                  >
-                    Cancel
-                  </button>
-                </div>
-              </>
+              <Button
+                type="button"
+                onClick={handleConfirmDrawn}
+                disabled={submitting || !hasDrawnSignature}
+              >
+                {submitting ? "Signing…" : "Confirm & Sign"}
+              </Button>
             )}
-          </div>
-        </div>
-      ) : null}
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </>
   );
 }

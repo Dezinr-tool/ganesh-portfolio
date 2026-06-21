@@ -5,6 +5,17 @@ import {
   SignatureCanvas,
   type SignatureCanvasRef,
 } from "@/components/dashboard/agreements/signature-canvas";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { cn } from "@/lib/utils";
 
 type SignatureMode = "upload" | "draw";
 
@@ -91,109 +102,109 @@ export function SignatureSettingsForm() {
   }
 
   if (loading) {
-    return <p className="text-sm text-[var(--color-text)]">Loading…</p>;
+    return <p className="text-sm text-muted-foreground">Loading…</p>;
   }
 
   return (
     <div className="space-y-6">
-      <section className="rounded-lg border border-[var(--color-text)] bg-[var(--color-bg)] p-6">
-        <h2 className="text-sm font-medium text-[var(--color-bg)]">Default signature</h2>
-        <p className="mt-1 text-sm text-[var(--color-text)]">
-          Upload an image or draw your signature. This will be used when signing
-          agreements.
-        </p>
+      <Card>
+        <CardHeader>
+          <CardTitle>Default signature</CardTitle>
+          <CardDescription>
+            Upload an image or draw your signature. This will be used when
+            signing agreements.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="flex gap-2">
+            <Button
+              type="button"
+              variant={mode === "upload" ? "default" : "outline"}
+              size="sm"
+              onClick={() => setMode("upload")}
+            >
+              Upload image
+            </Button>
+            <Button
+              type="button"
+              variant={mode === "draw" ? "default" : "outline"}
+              size="sm"
+              onClick={() => setMode("draw")}
+            >
+              Draw on canvas
+            </Button>
+          </div>
 
-        <div className="mt-4 flex gap-2">
-          <button
-            type="button"
-            onClick={() => setMode("upload")}
-            className={`rounded-md px-3 py-1.5 text-sm ${
-              mode === "upload"
-                ? "bg-[var(--color-bg)] text-[var(--color-text)]"
-                : "border border-[var(--color-text)] text-[var(--color-text)] hover:text-[var(--color-bg)]"
-            }`}
-          >
-            Upload image
-          </button>
-          <button
-            type="button"
-            onClick={() => setMode("draw")}
-            className={`rounded-md px-3 py-1.5 text-sm ${
-              mode === "draw"
-                ? "bg-[var(--color-bg)] text-[var(--color-text)]"
-                : "border border-[var(--color-text)] text-[var(--color-text)] hover:text-[var(--color-bg)]"
-            }`}
-          >
-            Draw on canvas
-          </button>
-        </div>
-
-        {mode === "upload" ? (
-          <div className="mt-4">
-            <input
+          {mode === "upload" ? (
+            <Input
               ref={fileInputRef}
               type="file"
               accept="image/png,image/jpeg,image/jpg"
               onChange={handleFileChange}
-              className="block text-sm text-[var(--color-text)] file:mr-4 file:rounded-md file:border-0 file:bg-[var(--color-bg)] file:px-4 file:py-2 file:text-sm file:text-[var(--color-bg)] hover:file:bg-[var(--color-bg)]"
-            />
-          </div>
-        ) : (
-          <div className="mt-4 space-y-3">
-            <div className="overflow-x-auto rounded border border-[var(--color-text)] bg-[var(--color-bg)] p-2">
-              <SignatureCanvas
-                ref={canvasRef}
-                width={500}
-                height={200}
-                onChange={setHasDrawn}
-              />
-            </div>
-            <button
-              type="button"
-              onClick={handleUseDrawing}
-              disabled={!hasDrawn}
-              className="rounded-md border border-[var(--color-text)] px-4 py-2 text-sm text-[var(--color-bg)] hover:bg-[var(--color-bg)] disabled:opacity-40"
-            >
-              Use this drawing
-            </button>
-          </div>
-        )}
-      </section>
-
-      <section className="rounded-lg border border-[var(--color-text)] bg-[var(--color-bg)] p-6">
-        <h2 className="text-sm font-medium text-[var(--color-bg)]">Preview</h2>
-        <div className="mt-4 flex min-h-[120px] items-center justify-center rounded border border-[var(--color-text)] bg-[var(--color-bg)] p-4">
-          {preview ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
-              src={preview}
-              alt="Signature preview"
-              className="max-h-24 object-contain"
+              className="cursor-pointer file:mr-4 file:rounded-md file:border-0 file:bg-primary file:px-4 file:py-2 file:text-sm file:font-medium file:text-primary-foreground"
             />
           ) : (
-            <p className="text-sm text-[var(--color-text)]">No signature yet</p>
+            <div className="space-y-3">
+              <div className="overflow-x-auto rounded-lg border border-border p-2">
+                <SignatureCanvas
+                  ref={canvasRef}
+                  width={500}
+                  height={200}
+                  onChange={setHasDrawn}
+                />
+              </div>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={handleUseDrawing}
+                disabled={!hasDrawn}
+              >
+                Use this drawing
+              </Button>
+            </div>
           )}
-        </div>
-      </section>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Preview</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div
+            className={cn(
+              "flex min-h-[120px] items-center justify-center rounded-lg border border-border bg-muted/20 p-4",
+            )}
+          >
+            {preview ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={preview}
+                alt="Signature preview"
+                className="max-h-24 object-contain"
+              />
+            ) : (
+              <p className="text-sm text-muted-foreground">No signature yet</p>
+            )}
+          </div>
+        </CardContent>
+      </Card>
 
       {error ? (
-        <p className="text-sm text-[var(--color-accent)]" role="alert">
-          {error}
-        </p>
+        <Alert variant="destructive">
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
       ) : null}
 
       {success ? (
-        <p className="text-sm text-[var(--color-accent)]">Default signature saved.</p>
+        <Alert>
+          <AlertDescription>Default signature saved.</AlertDescription>
+        </Alert>
       ) : null}
 
-      <button
-        type="button"
-        onClick={handleSave}
-        disabled={!preview || saving}
-        className="rounded-md bg-[var(--color-bg)] px-4 py-2 text-sm font-medium text-[var(--color-text)] disabled:opacity-50"
-      >
-        {saving ? "Saving…" : "Save Default Signature"}
-      </button>
+      <Button type="button" onClick={handleSave} disabled={!preview || saving}>
+        {saving ? "Saving…" : "Save default signature"}
+      </Button>
     </div>
   );
 }

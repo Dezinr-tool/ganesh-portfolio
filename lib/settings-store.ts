@@ -1,3 +1,5 @@
+import "server-only";
+
 import { sql } from "@/lib/db";
 
 export const GANESH_DEFAULT_SIGNATURE_KEY = "ganesh_default_signature";

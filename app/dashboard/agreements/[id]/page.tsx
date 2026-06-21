@@ -1,8 +1,13 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { AgreementDocument } from "@/components/dashboard/agreements/agreement-document";
+import { Badge } from "@/components/ui/badge";
+import { buttonVariants } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { cn } from "@/lib/utils";
 import { getAgreementById } from "@/lib/agreements-store";
 import { getDesignTokens } from "@/lib/design-tokens";
+import { BackLink } from "../../_components/back-link";
 import { statusLabel } from "../../_lib/agreements";
 import type { AgreementStatus } from "../../_lib/agreements";
 import { DeleteAgreementButton } from "../delete-agreement-button";
@@ -12,20 +17,14 @@ import { SignGaneshButton } from "../sign-ganesh-button";
 export const dynamic = "force-dynamic";
 
 function StatusBadge({ status }: { status: AgreementStatus }) {
-  const styles: Record<AgreementStatus, string> = {
-    draft: "bg-[var(--color-bg)]/10 text-[var(--color-text)] ring-[var(--color-text)]",
-    awaiting_client: "bg-[var(--color-accent)] text-[var(--color-accent)] ring-[var(--color-accent)]",
-    sent: "bg-[var(--color-accent)] text-[var(--color-accent)] ring-[var(--color-accent)]",
-    signed: "bg-[var(--color-accent)] text-[var(--color-accent)] ring-[var(--color-accent)]",
-  };
+  const variant =
+    status === "draft"
+      ? "outline"
+      : status === "signed"
+        ? "default"
+        : "secondary";
 
-  return (
-    <span
-      className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-medium ring-1 ring-inset ${styles[status]}`}
-    >
-      {statusLabel(status)}
-    </span>
-  );
+  return <Badge variant={variant}>{statusLabel(status)}</Badge>;
 }
 
 const EDITABLE_STATUSES: AgreementStatus[] = ["draft", "awaiting_client"];
@@ -49,25 +48,20 @@ export default async function AgreementDetailPage({
   const isSigned = agreement.status === "signed";
 
   return (
-    <div>
-      <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
-        <Link
-          href="/dashboard/agreements"
-          className="text-sm text-[var(--color-text)] hover:text-[var(--color-bg)]"
-        >
-          ← Back to agreements
-        </Link>
-        <div className="flex flex-wrap items-center gap-3">
+    <div className="space-y-6">
+      <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+        <BackLink href="/dashboard/agreements" label="Back to agreements" />
+        <div className="flex flex-wrap items-center justify-end gap-2">
           <StatusBadge status={agreement.status} />
           {canEdit ? (
             <Link
               href={`/dashboard/agreements/${agreement.id}/edit`}
-              className="rounded-md border border-[var(--color-text)] px-4 py-2 text-sm font-medium text-[var(--color-bg)] hover:bg-[var(--color-bg)]"
+              className={cn(buttonVariants({ variant: "outline" }))}
             >
               Edit
             </Link>
           ) : isSigned ? (
-            <span className="text-sm text-[var(--color-text)]">
+            <span className="text-sm text-muted-foreground">
               Agreement is fully signed
             </span>
           ) : null}
@@ -90,13 +84,15 @@ export default async function AgreementDetailPage({
         </div>
       </div>
 
-      <div className="rounded-lg border border-[var(--color-text)] bg-[var(--color-bg)]/50 p-6">
-        <AgreementDocument
-          agreement={agreement}
-          allowEmailEdit={!isSigned}
-          designTokens={designTokens}
-        />
-      </div>
+      <Card>
+        <CardContent className="pt-6">
+          <AgreementDocument
+            agreement={agreement}
+            allowEmailEdit={!isSigned}
+            designTokens={designTokens}
+          />
+        </CardContent>
+      </Card>
     </div>
   );
 }

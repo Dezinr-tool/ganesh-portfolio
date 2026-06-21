@@ -1,6 +1,8 @@
 "use client";
 
 import { useState } from "react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
 import type { Invoice } from "@/app/dashboard/_lib/invoices";
 
 type DownloadPdfButtonProps = {
@@ -16,50 +18,41 @@ export function DownloadPdfButton({ invoice }: DownloadPdfButtonProps) {
     setError(null);
 
     try {
-      const response = await fetch(`/api/invoices/${invoice.id}/pdf`, {
-        credentials: "include",
-        cache: "no-store",
-      });
+      const response = await fetch(`/api/invoices/${invoice.id}/pdf`);
 
       if (!response.ok) {
-        const data = (await response.json().catch(() => null)) as {
-          error?: string;
-        } | null;
-        throw new Error(data?.error ?? `PDF failed (${response.status})`);
+        setError("Failed to generate PDF.");
+        return;
       }
 
       const blob = await response.blob();
-      if (blob.size === 0) {
-        throw new Error("PDF file was empty.");
-      }
-
       const url = URL.createObjectURL(blob);
-      const link = document.createElement("a");
-      link.href = url;
-      link.download = `${invoice.invoiceNumber}.pdf`;
-      link.click();
+      const anchor = document.createElement("a");
+      anchor.href = url;
+      anchor.download = `${invoice.invoiceNumber}.pdf`;
+      anchor.click();
       URL.revokeObjectURL(url);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to generate PDF.");
+    } catch {
+      setError("Failed to download PDF.");
     } finally {
       setLoading(false);
     }
   }
 
   return (
-    <div className="flex flex-col items-end gap-2">
-      <button
+    <div className="flex flex-col items-end gap-1">
+      <Button
         type="button"
+        variant="outline"
         onClick={handleDownload}
         disabled={loading}
-        className="rounded-md border border-[var(--color-text)] bg-[var(--color-bg)] px-4 py-2 text-sm font-medium text-[var(--color-bg)] hover:border-[var(--color-text)] disabled:opacity-50"
       >
         {loading ? "Generating…" : "Download PDF"}
-      </button>
+      </Button>
       {error ? (
-        <p className="max-w-xs text-right text-xs text-[var(--color-accent)]" role="alert">
-          {error}
-        </p>
+        <Alert variant="destructive" className="max-w-xs py-2">
+          <AlertDescription className="text-xs">{error}</AlertDescription>
+        </Alert>
       ) : null}
     </div>
   );

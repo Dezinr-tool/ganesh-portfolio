@@ -33,6 +33,11 @@ yarn-error.log*
 # env files (can opt-in for committing if needed)
 .env*
 *token*
+!lib/design-tokens.ts
+!lib/design-tokens-shared.ts
+!components/design-tokens-scope.tsx
+!components/design-system/
+!components/design-system/**
 *secret*
 
 # google calendar oauth tokens

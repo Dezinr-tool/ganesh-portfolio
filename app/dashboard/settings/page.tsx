@@ -1,41 +1,64 @@
 import { BrandSettingsForm } from "./brand-settings-form";
 import { PaymentBillingSettingsForm } from "./payment-billing-settings-form";
 import { SignatureSettingsForm } from "./signature-settings-form";
+import { PageHeader } from "../_components/page-header";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Separator } from "@/components/ui/separator";
 
 export default function SettingsPage() {
   return (
-    <div>
-      <h1 className="text-2xl font-semibold text-[var(--color-bg)]">Settings</h1>
-      <p className="mt-2 text-sm text-[var(--color-text)]">
-        Manage brand colors, payment details, invoicing rates, and your
-        agreement signature.
-      </p>
+    <div className="space-y-8">
+      <PageHeader
+        title="Settings"
+        description="Manage brand tokens, billing details, and your default signature."
+      />
 
-      <div className="mt-8 max-w-xl space-y-8">
-        <section className="rounded-lg border border-[var(--color-text)] bg-[var(--color-bg)] p-6">
-          <h2 className="text-sm font-medium text-[var(--color-bg)]">
-            Design System / Brand
-          </h2>
-          <p className="mt-1 text-sm text-[var(--color-text)]">
-            Three brand tokens used across the portfolio, invoice PDFs, and
-            agreement previews.
-          </p>
-          <div className="mt-4">
+      <div className="space-y-8">
+        <Card>
+          <CardHeader>
+            <CardTitle>Brand</CardTitle>
+            <CardDescription>
+              Colors used on invoices, agreements, and exported PDFs.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
             <BrandSettingsForm />
-          </div>
-        </section>
+          </CardContent>
+        </Card>
 
-        <section className="rounded-lg border border-[var(--color-text)] bg-[var(--color-bg)] p-6">
-          <h2 className="text-sm font-medium text-[var(--color-bg)]">Payment & Billing</h2>
-          <p className="mt-1 text-sm text-[var(--color-text)]">
-            Used on invoices and PDF payment details.
-          </p>
-          <div className="mt-4">
+        <Separator />
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Payment & Billing</CardTitle>
+            <CardDescription>
+              Default rates and payment details for new invoices.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
             <PaymentBillingSettingsForm />
-          </div>
-        </section>
+          </CardContent>
+        </Card>
 
-        <SignatureSettingsForm />
+        <Separator />
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Signature</CardTitle>
+            <CardDescription>
+              Default signature for signing agreements.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <SignatureSettingsForm />
+          </CardContent>
+        </Card>
       </div>
     </div>
   );
