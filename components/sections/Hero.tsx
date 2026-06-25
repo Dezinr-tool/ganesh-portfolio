@@ -215,7 +215,7 @@ export function Hero({ content }: HeroProps) {
     <section
       ref={sectionRef}
       id="hero"
-      className="sticky top-0 z-0 relative h-dvh min-h-svh w-full overflow-x-clip overflow-y-hidden bg-background text-foreground md:min-h-[700px]"
+      className="sticky top-0 z-0 relative h-dvh min-h-svh w-full overflow-x-clip overflow-y-hidden bg-[var(--color-bg)] text-[var(--color-text)] md:min-h-[700px]"
       aria-label="Introduction"
     >
       {/* GANESH watermark — behind portrait torso/chest */}
@@ -303,7 +303,7 @@ export function Hero({ content }: HeroProps) {
           <h1
             ref={headlineRef}
             data-hero-headline
-            className="text-[clamp(36px,8vw,64px)] leading-[1.04] font-medium tracking-[-0.02em] text-foreground md:text-[clamp(2.25rem,4.5vw,3.75rem)]"
+            className="text-[clamp(36px,8vw,64px)] leading-[1.04] font-medium tracking-[-0.02em] text-[var(--color-text)] md:text-[clamp(2.25rem,4.5vw,3.75rem)]"
           >
             {content.headlineLines.map((line) => (
               <span key={line} className="block">
@@ -320,7 +320,7 @@ export function Hero({ content }: HeroProps) {
           <p
             ref={subtextRef}
             data-hero-reveal
-            className="text-[max(16px,1rem)] leading-[1.48] font-normal text-foreground md:text-[15px] lg:text-[16px] lg:leading-[1.5]"
+            className="text-[max(16px,1rem)] leading-[1.48] font-normal text-[var(--color-text)] md:text-[15px] lg:text-[16px] lg:leading-[1.5]"
           >
             {content.subtext}
           </p>

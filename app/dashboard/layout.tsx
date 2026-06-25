@@ -1,4 +1,5 @@
 import { DashboardShell } from "./dashboard-shell";
+import "./dashboard.css";
 
 export const metadata = {
   title: "Dashboard — Ganesh Das",
