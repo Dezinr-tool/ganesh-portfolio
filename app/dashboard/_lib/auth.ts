@@ -13,6 +13,7 @@ export const DASHBOARD_PROTECTED_PREFIXES = [
   "/moodboard",
   "/api/invoices",
   "/api/agreements",
+  "/api/clients",
   "/api/settings",
   "/api/dashboard",
   "/api/design-audit",

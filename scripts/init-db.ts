@@ -56,6 +56,19 @@ const CREATE_SETTINGS_TABLE = `
   );
 `;
 
+const CREATE_CLIENTS_TABLE = `
+  CREATE TABLE IF NOT EXISTS clients (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(255) NOT NULL,
+    email VARCHAR(255),
+    phone VARCHAR(50),
+    company VARCHAR(255),
+    address TEXT,
+    gst_number VARCHAR(50),
+    created_at TIMESTAMP DEFAULT NOW()
+  );
+`;
+
 const ALTER_AGREEMENTS_ADD_SIGNATURES = `
   ALTER TABLE agreements ADD COLUMN IF NOT EXISTS ganesh_signature TEXT;
   ALTER TABLE agreements ADD COLUMN IF NOT EXISTS client_signature TEXT;
@@ -110,6 +123,10 @@ async function initDb() {
   console.log("Creating settings table if it doesn't exist…");
   await sql.query(CREATE_SETTINGS_TABLE);
   console.log("Done. settings table is ready.");
+
+  console.log("Creating clients table if it doesn't exist…");
+  await sql.query(CREATE_CLIENTS_TABLE);
+  console.log("Done. clients table is ready.");
 
   console.log("Seeding billing settings defaults if missing…");
   await ensureBillingDefaults();

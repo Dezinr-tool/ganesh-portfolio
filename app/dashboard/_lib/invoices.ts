@@ -32,6 +32,8 @@ export type CreateInvoiceInput = Omit<
   "id" | "invoiceNumber" | "createdAt" | "status"
 > & {
   status?: InvoiceStatus;
+  clientPhone?: string;
+  clientGstNumber?: string;
 };
 
 export const inputClassName =

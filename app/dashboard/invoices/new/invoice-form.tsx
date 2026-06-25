@@ -17,6 +17,8 @@ import { Separator } from "@/components/ui/separator";
 import { Textarea } from "@/components/ui/textarea";
 import { buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { ClientSelector } from "@/components/dashboard/ClientSelector";
+import type { ClientFormValues } from "@/app/dashboard/_lib/clients";
 import {
   type InvoiceLineItem,
   calculateLineAmount,
@@ -53,8 +55,10 @@ export default function InvoiceForm() {
   const [dueDate, setDueDate] = useState(dueDateISO);
   const [clientName, setClientName] = useState("");
   const [clientEmail, setClientEmail] = useState("");
+  const [clientPhone, setClientPhone] = useState("");
   const [clientCompany, setClientCompany] = useState("");
   const [clientAddress, setClientAddress] = useState("");
+  const [gstNumber, setGstNumber] = useState("");
   const [hourlyRate, setHourlyRate] = useState(0);
   const [lineItems, setLineItems] = useState<LineItemRow[]>([
     createEmptyLineItem(0),
@@ -136,6 +140,24 @@ export default function InvoiceForm() {
     );
   }
 
+  function handleClientChange(patch: Partial<ClientFormValues>) {
+    if (patch.clientName !== undefined) setClientName(patch.clientName);
+    if (patch.clientEmail !== undefined) setClientEmail(patch.clientEmail);
+    if (patch.clientPhone !== undefined) setClientPhone(patch.clientPhone);
+    if (patch.clientCompany !== undefined) setClientCompany(patch.clientCompany);
+    if (patch.clientAddress !== undefined) setClientAddress(patch.clientAddress);
+    if (patch.gstNumber !== undefined) setGstNumber(patch.gstNumber);
+  }
+
+  const clientFormValues: ClientFormValues = {
+    clientName,
+    clientEmail,
+    clientPhone,
+    clientCompany,
+    clientAddress,
+    gstNumber,
+  };
+
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setError(null);
@@ -150,8 +172,10 @@ export default function InvoiceForm() {
           dueDate,
           clientName,
           clientEmail,
+          clientPhone,
           clientCompany,
           clientAddress,
+          clientGstNumber: gstNumber,
           lineItems: resolvedLineItems,
           subtotal: totals.subtotal,
           taxPercent: parsedTaxPercent,
@@ -178,6 +202,15 @@ export default function InvoiceForm() {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
+      <Card>
+        <CardHeader>
+          <CardTitle>Saved client</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <ClientSelector values={clientFormValues} onChange={handleClientChange} />
+        </CardContent>
+      </Card>
+
       <Card>
         <CardHeader>
           <CardTitle>Invoice details</CardTitle>
@@ -238,6 +271,15 @@ export default function InvoiceForm() {
               onChange={(e) => setClientEmail(e.target.value)}
             />
           </div>
+          <div className="space-y-2">
+            <Label htmlFor="clientPhone">Phone</Label>
+            <Input
+              id="clientPhone"
+              type="tel"
+              value={clientPhone}
+              onChange={(e) => setClientPhone(e.target.value)}
+            />
+          </div>
           <div className="space-y-2 sm:col-span-2">
             <Label htmlFor="clientCompany">Client company</Label>
             <Input
@@ -253,6 +295,14 @@ export default function InvoiceForm() {
               rows={3}
               value={clientAddress}
               onChange={(e) => setClientAddress(e.target.value)}
+            />
+          </div>
+          <div className="space-y-2 sm:col-span-2">
+            <Label htmlFor="gstNumber">GST number</Label>
+            <Input
+              id="gstNumber"
+              value={gstNumber}
+              onChange={(e) => setGstNumber(e.target.value)}
             />
           </div>
         </CardContent>

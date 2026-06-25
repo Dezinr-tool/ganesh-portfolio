@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import type { CreateAgreementInput } from "@/app/dashboard/_lib/agreements";
+import { upsertClientFromForm } from "@/lib/clients-store";
 import { createAgreement, readAgreements } from "@/lib/agreements-store";
 
 export async function GET() {
@@ -66,6 +67,15 @@ export async function POST(request: Request) {
       advancePercent: body.advancePercent ?? 50,
       paymentNotes: body.paymentNotes?.trim() ?? "",
     });
+
+    await upsertClientFromForm({
+      name: body.clientName.trim(),
+      email: body.clientEmail.trim(),
+      phone: body.clientPhone,
+      company: body.clientCompany,
+      address: body.clientAddress,
+      gstNumber: body.clientGstNumber,
+    }).catch(() => null);
 
     return NextResponse.json(agreement, { status: 201 });
   } catch {

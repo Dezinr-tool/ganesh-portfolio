@@ -156,6 +156,7 @@ export const config = {
     "/dashboard/:path*",
     "/api/invoices/:path*",
     "/api/agreements/:path*",
+    "/api/clients/:path*",
     "/api/settings",
     "/api/dashboard/:path*",
   ],

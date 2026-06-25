@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import type { CreateAgreementInput } from "@/app/dashboard/_lib/agreements";
+import { upsertClientFromForm } from "@/lib/clients-store";
 import {
   deleteAgreement,
   getAgreementById,
@@ -174,6 +175,15 @@ export async function PATCH(
           { status: 500 },
         );
       }
+
+      await upsertClientFromForm({
+        name: body.clientName!.trim(),
+        email: body.clientEmail!.trim(),
+        phone: body.clientPhone,
+        company: body.clientCompany,
+        address: body.clientAddress,
+        gstNumber: body.clientGstNumber,
+      }).catch(() => null);
 
       return NextResponse.json(agreement);
     }

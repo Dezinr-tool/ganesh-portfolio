@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import type { CreateInvoiceInput } from "@/app/dashboard/_lib/invoices";
+import { upsertClientFromForm } from "@/lib/clients-store";
 import {
   createInvoice,
   getNextInvoiceNumber,
@@ -67,6 +68,15 @@ export async function POST(request: Request) {
       notes: body.notes?.trim() ?? "",
       status: body.status ?? "Unpaid",
     });
+
+    await upsertClientFromForm({
+      name: body.clientName.trim(),
+      email: body.clientEmail.trim(),
+      phone: body.clientPhone,
+      company: body.clientCompany,
+      address: body.clientAddress,
+      gstNumber: body.clientGstNumber,
+    }).catch(() => null);
 
     return NextResponse.json(invoice, { status: 201 });
   } catch {

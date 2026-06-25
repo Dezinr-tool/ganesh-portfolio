@@ -15,6 +15,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
+import { ClientSelector } from "@/components/dashboard/ClientSelector";
+import type { ClientFormValues } from "@/app/dashboard/_lib/clients";
 import {
   type Agreement,
   type DeliverableItem,
@@ -49,6 +51,9 @@ export default function AgreementForm({ agreement }: AgreementFormProps) {
     agreement?.clientCompany ?? "",
   );
   const [clientEmail, setClientEmail] = useState(agreement?.clientEmail ?? "");
+  const [clientPhone, setClientPhone] = useState("");
+  const [clientAddress, setClientAddress] = useState("");
+  const [gstNumber, setGstNumber] = useState("");
   const [clientRepresentative, setClientRepresentative] = useState(
     agreement?.clientRepresentative ?? "",
   );
@@ -106,6 +111,24 @@ export default function AgreementForm({ agreement }: AgreementFormProps) {
     );
   }
 
+  function handleClientChange(patch: Partial<ClientFormValues>) {
+    if (patch.clientName !== undefined) setClientName(patch.clientName);
+    if (patch.clientEmail !== undefined) setClientEmail(patch.clientEmail);
+    if (patch.clientPhone !== undefined) setClientPhone(patch.clientPhone);
+    if (patch.clientCompany !== undefined) setClientCompany(patch.clientCompany);
+    if (patch.clientAddress !== undefined) setClientAddress(patch.clientAddress);
+    if (patch.gstNumber !== undefined) setGstNumber(patch.gstNumber);
+  }
+
+  const clientFormValues: ClientFormValues = {
+    clientName,
+    clientEmail,
+    clientPhone,
+    clientCompany,
+    clientAddress,
+    gstNumber,
+  };
+
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setError(null);
@@ -124,6 +147,9 @@ export default function AgreementForm({ agreement }: AgreementFormProps) {
       clientName,
       clientCompany,
       clientEmail,
+      clientPhone,
+      clientAddress,
+      clientGstNumber: gstNumber,
       clientRepresentative,
       projectOverview,
       scopeOfWork,
@@ -169,6 +195,15 @@ export default function AgreementForm({ agreement }: AgreementFormProps) {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
+      <Card>
+        <CardHeader>
+          <CardTitle>Saved client</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <ClientSelector values={clientFormValues} onChange={handleClientChange} />
+        </CardContent>
+      </Card>
+
       {needsInvalidateWarning ? (
         <Alert variant="destructive">
           <AlertDescription>
@@ -239,6 +274,32 @@ export default function AgreementForm({ agreement }: AgreementFormProps) {
             />
           </div>
           <div className="space-y-2">
+            <Label htmlFor="clientPhone">Phone</Label>
+            <Input
+              id="clientPhone"
+              type="tel"
+              value={clientPhone}
+              onChange={(e) => setClientPhone(e.target.value)}
+            />
+          </div>
+          <div className="space-y-2 sm:col-span-2">
+            <Label htmlFor="clientAddress">Address</Label>
+            <Textarea
+              id="clientAddress"
+              rows={3}
+              value={clientAddress}
+              onChange={(e) => setClientAddress(e.target.value)}
+            />
+          </div>
+          <div className="space-y-2 sm:col-span-2">
+            <Label htmlFor="gstNumber">GST number</Label>
+            <Input
+              id="gstNumber"
+              value={gstNumber}
+              onChange={(e) => setGstNumber(e.target.value)}
+            />
+          </div>
+          <div className="space-y-2 sm:col-span-2">
             <Label htmlFor="clientRepresentative">Representative name</Label>
             <Input
               id="clientRepresentative"
