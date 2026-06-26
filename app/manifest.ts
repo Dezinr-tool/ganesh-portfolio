@@ -7,7 +7,7 @@ export default function manifest(): MetadataRoute.Manifest {
     short_name: "Ganesh Das",
     description:
       "Design & Strategy Partner for Startups. Portfolio, dashboard, and tools by Ganesh Das.",
-    start_url: "/",
+    start_url: "/dashboard",
     scope: "/",
     display: "standalone",
     background_color: "#111111",

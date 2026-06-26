@@ -48,6 +48,11 @@ export const metadata: Metadata = {
     images: ["/ganesh-profile.jpg"],
   },
   robots: { index: true, follow: true },
+  appleWebApp: {
+    capable: true,
+    title: "Ganesh",
+    statusBarStyle: "default",
+  },
 };
 
 export const viewport = {

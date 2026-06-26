@@ -82,6 +82,8 @@ export function ClientSelector({
   const [selectedId, setSelectedId] = useState<number | null>(null);
   const [savingNew, setSavingNew] = useState(false);
   const [actionError, setActionError] = useState<string | null>(null);
+  const [deletingId, setDeletingId] = useState<number | null>(null);
+  const [confirmDeleteId, setConfirmDeleteId] = useState<number | null>(null);
   const [dropdownPosition, setDropdownPosition] =
     useState<DropdownPosition | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -233,6 +235,29 @@ export function ClientSelector({
     openDropdown();
   }
 
+  async function handleDeleteClient(id: number) {
+    setDeletingId(id);
+    setActionError(null);
+    try {
+      const res = await fetch(`/api/clients/${id}`, { method: "DELETE" });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        setActionError(data.error ?? "Failed to delete client.");
+        return;
+      }
+      setClients((current) => current.filter((c) => c.id !== id));
+      if (selectedId === id) {
+        setSelectedId(null);
+        onSelectionChange?.(null);
+      }
+      setConfirmDeleteId(null);
+    } catch {
+      setActionError("Failed to delete client.");
+    } finally {
+      setDeletingId(null);
+    }
+  }
+
   async function handleSaveAsNew() {
     if (!values.clientName.trim()) {
       setActionError("Enter a client name before saving.");
@@ -337,14 +362,14 @@ export function ClientSelector({
                 </li>
               ) : (
                 filteredClients.map((client) => (
-                  <li key={client.id}>
+                  <li key={client.id} className="flex items-stretch">
                     <button
                       type="button"
                       onMouseDown={(event) => {
                         event.preventDefault();
                         handleSelect(client);
                       }}
-                      className="w-full px-3 py-2 text-left text-sm hover:opacity-80"
+                      className="flex-1 px-3 py-2 text-left text-sm hover:opacity-80"
                       style={{
                         backgroundColor:
                           selectedId === client.id ? "#111111" : "#FFFFFF",
@@ -359,6 +384,43 @@ export function ClientSelector({
                         </span>
                       ) : null}
                     </button>
+
+                    {/* Delete controls */}
+                    {confirmDeleteId === client.id ? (
+                      <div className="flex shrink-0 items-center gap-1 border-l px-2" style={{ borderColor: "#e5e5e5" }}>
+                        <button
+                          type="button"
+                          onMouseDown={(e) => e.preventDefault()}
+                          onClick={() => handleDeleteClient(client.id)}
+                          disabled={deletingId === client.id}
+                          className="rounded px-1.5 py-0.5 text-xs font-medium disabled:opacity-50"
+                          style={{ background: "#FF1E00", color: "#fff" }}
+                        >
+                          {deletingId === client.id ? "…" : "Delete"}
+                        </button>
+                        <button
+                          type="button"
+                          onMouseDown={(e) => e.preventDefault()}
+                          onClick={() => setConfirmDeleteId(null)}
+                          className="rounded px-1.5 py-0.5 text-xs"
+                          style={{ color: "#111111" }}
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                    ) : (
+                      <button
+                        type="button"
+                        onMouseDown={(e) => e.preventDefault()}
+                        onClick={() => setConfirmDeleteId(client.id)}
+                        className="shrink-0 border-l px-2.5 text-sm opacity-30 hover:opacity-80"
+                        style={{ borderColor: "#e5e5e5", color: "#111111" }}
+                        aria-label={`Delete ${client.name}`}
+                        title="Delete client"
+                      >
+                        ×
+                      </button>
+                    )}
                   </li>
                 ))
               )}
