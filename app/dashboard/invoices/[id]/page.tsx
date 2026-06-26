@@ -23,6 +23,7 @@ import { formatCurrency, formatDate } from "../../_lib/invoices";
 import { DeleteInvoiceButton } from "../delete-invoice-button";
 import { InvoiceStatusButton } from "../invoice-status-button";
 import { DownloadPdfButton } from "./download-pdf-button";
+import { RazorpayCheckout } from "@/components/dashboard/RazorpayCheckout";
 
 export const dynamic = "force-dynamic";
 
@@ -160,6 +161,22 @@ export default async function InvoiceDetailPage({
                   Notes
                 </p>
                 <p className="whitespace-pre-wrap text-sm">{invoice.notes}</p>
+              </div>
+            </>
+          ) : null}
+
+          {invoice.status === "Unpaid" ? (
+            <>
+              <Separator />
+              <div className="flex items-center justify-between gap-4">
+                <p className="text-sm text-muted-foreground">
+                  Collect payment directly via Razorpay
+                </p>
+                <RazorpayCheckout
+                  invoiceId={invoice.id}
+                  invoiceNumber={invoice.invoiceNumber}
+                  amount={invoice.total}
+                />
               </div>
             </>
           ) : null}
