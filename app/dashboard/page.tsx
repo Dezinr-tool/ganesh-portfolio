@@ -1,5 +1,6 @@
 import { getDashboardStats } from "@/lib/dashboard-stats";
 import { DashboardStatsCards } from "./_components/dashboard-stats-cards";
+import { FYEarnings } from "./_components/fy-earnings";
 import { PageHeader } from "./_components/page-header";
 
 export const dynamic = "force-dynamic";
@@ -13,6 +14,7 @@ export default async function DashboardPage() {
         title="Overview"
         description="Track earnings, invoices, and agreements at a glance."
       />
+      <FYEarnings current={stats.currentFY} previous={stats.previousFY} />
       <DashboardStatsCards stats={stats} />
     </div>
   );

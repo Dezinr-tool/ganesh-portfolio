@@ -13,7 +13,7 @@ type PageHeaderProps = {
 
 export function PageHeader({ title, description, action }: PageHeaderProps) {
   return (
-    <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+    <div className="flex items-start justify-between gap-4">
       <div className="space-y-1">
         <h1 className="text-2xl font-semibold tracking-tight text-foreground">
           {title}
@@ -25,7 +25,7 @@ export function PageHeader({ title, description, action }: PageHeaderProps) {
       {action ? (
         <Link
           href={action.href}
-          className={cn(buttonVariants(), "shrink-0")}
+          className={cn(buttonVariants({ size: "sm" }), "shrink-0")}
         >
           {action.label}
         </Link>

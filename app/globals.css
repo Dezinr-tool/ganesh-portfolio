@@ -1,6 +1,7 @@
 /* DESIGN SYSTEM — ONLY THESE 3 COLORS ARE ALLOWED: --color-bg, --color-text, --color-accent */
 /* Values are injected at runtime from lib/design-tokens.ts via <DesignTokensStyle /> */
 @import "tailwindcss";
+@import "./dashboard/dashboard.css";
 
 :root {
   /* Design tokens — fallbacks; overridden at runtime by DesignTokensStyle */

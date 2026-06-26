@@ -1,6 +1,16 @@
 import { readAgreements } from "@/lib/agreements-store";
 import { readInvoices } from "@/lib/invoices-store";
 
+export type FYSummary = {
+  label: string; // e.g. "FY 2025–26"
+  startYear: number;
+  earned: number;
+  pending: number;
+  invoiceCount: number;
+  /** 12 values Apr→Mar, earned only */
+  monthlyEarned: number[];
+};
+
 export type DashboardStats = {
   totalEarned: number;
   pendingAmount: number;
@@ -10,6 +20,8 @@ export type DashboardStats = {
   monthlyPending: number[];
   monthlyInvoices: number[];
   monthlyAgreements: number[];
+  currentFY: FYSummary;
+  previousFY: FYSummary;
 };
 
 function monthKey(date: Date | string): string {
@@ -20,12 +32,10 @@ function monthKey(date: Date | string): string {
 export function getLast6MonthKeys(): string[] {
   const keys: string[] = [];
   const now = new Date();
-
   for (let i = 5; i >= 0; i--) {
     const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
     keys.push(monthKey(d));
   }
-
   return keys;
 }
 
@@ -33,11 +43,55 @@ function roundMoney(value: number): number {
   return Math.round(value * 100) / 100;
 }
 
+/** Indian FY: Apr 1 → Mar 31. Returns the April-start year for a given date. */
+function fyStartYear(date: Date): number {
+  return date.getMonth() >= 3 ? date.getFullYear() : date.getFullYear() - 1;
+}
+
+/** Build a FYSummary for a given April-start year. */
+function buildFY(
+  startYear: number,
+  invoices: Awaited<ReturnType<typeof readInvoices>>,
+): FYSummary {
+  // 12 months: Apr(index 0) … Mar(index 11)
+  const monthlyEarned = Array<number>(12).fill(0);
+  let earned = 0;
+  let pending = 0;
+  let invoiceCount = 0;
+
+  for (const inv of invoices) {
+    const d = new Date(inv.issueDate || inv.createdAt);
+    if (fyStartYear(d) !== startYear) continue;
+    invoiceCount++;
+    // month index relative to April: Apr=0 … Mar=11
+    const idx = (d.getMonth() - 3 + 12) % 12;
+    if (inv.status === "Paid") {
+      earned += inv.total;
+      monthlyEarned[idx] += inv.total;
+    } else {
+      pending += inv.total;
+    }
+  }
+
+  const endYear = startYear + 1;
+  return {
+    label: `FY ${startYear}–${String(endYear).slice(2)}`,
+    startYear,
+    earned: roundMoney(earned),
+    pending: roundMoney(pending),
+    invoiceCount,
+    monthlyEarned: monthlyEarned.map(roundMoney),
+  };
+}
+
 export async function getDashboardStats(): Promise<DashboardStats> {
   const [invoices, agreements] = await Promise.all([
     readInvoices(),
     readAgreements(),
   ]);
+
+  const now = new Date();
+  const currentFYStart = fyStartYear(now);
 
   const months = getLast6MonthKeys();
   const monthlyEarned = months.map(() => 0);
@@ -48,9 +102,7 @@ export async function getDashboardStats(): Promise<DashboardStats> {
   for (const invoice of invoices) {
     const index = months.indexOf(monthKey(invoice.createdAt));
     if (index === -1) continue;
-
     monthlyInvoices[index]++;
-
     if (invoice.status === "Paid") {
       monthlyEarned[index] += invoice.total;
     } else {
@@ -66,14 +118,10 @@ export async function getDashboardStats(): Promise<DashboardStats> {
 
   return {
     totalEarned: roundMoney(
-      invoices
-        .filter((invoice) => invoice.status === "Paid")
-        .reduce((sum, invoice) => sum + invoice.total, 0),
+      invoices.filter((i) => i.status === "Paid").reduce((s, i) => s + i.total, 0),
     ),
     pendingAmount: roundMoney(
-      invoices
-        .filter((invoice) => invoice.status === "Unpaid")
-        .reduce((sum, invoice) => sum + invoice.total, 0),
+      invoices.filter((i) => i.status === "Unpaid").reduce((s, i) => s + i.total, 0),
     ),
     totalInvoices: invoices.length,
     totalAgreements: agreements.length,
@@ -81,5 +129,7 @@ export async function getDashboardStats(): Promise<DashboardStats> {
     monthlyPending: monthlyPending.map(roundMoney),
     monthlyInvoices,
     monthlyAgreements,
+    currentFY: buildFY(currentFYStart, invoices),
+    previousFY: buildFY(currentFYStart - 1, invoices),
   };
 }

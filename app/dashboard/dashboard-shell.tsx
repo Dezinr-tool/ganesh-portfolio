@@ -2,16 +2,16 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useEffect, useState } from "react";
+import { Handshake, FileText, LayoutGrid, SlidersHorizontal } from "lucide-react";
 import { buttonVariants } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
 
 const NAV_ITEMS = [
-  { href: "/dashboard", label: "Overview", exact: true },
-  { href: "/dashboard/invoices", label: "Invoices", exact: false },
-  { href: "/dashboard/agreements", label: "Agreements", exact: false },
-  { href: "/dashboard/settings", label: "Settings", exact: false },
+  { href: "/dashboard", label: "Overview", icon: LayoutGrid, exact: true },
+  { href: "/dashboard/invoices", label: "Invoices", icon: FileText, exact: false },
+  { href: "/dashboard/agreements", label: "Agreements", icon: Handshake, exact: false },
+  { href: "/dashboard/settings", label: "Settings", icon: SlidersHorizontal, exact: false },
 ] as const;
 
 function isActive(pathname: string, href: string, exact: boolean) {
@@ -22,12 +22,6 @@ function isActive(pathname: string, href: string, exact: boolean) {
 export function DashboardShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const isLogin = pathname === "/dashboard/login";
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-
-  // Close mobile menu on route change
-  useEffect(() => {
-    setMobileMenuOpen(false);
-  }, [pathname]);
 
   if (isLogin) {
     return <div className="dashboard-app min-h-dvh bg-background">{children}</div>;
@@ -35,6 +29,7 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="dashboard-app min-h-dvh bg-background text-foreground">
+      {/* Header — desktop nav only */}
       <header className="sticky top-0 z-40 border-b border-border bg-background">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3 sm:px-6 sm:py-4">
           <Link
@@ -44,7 +39,7 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
             Dashboard
           </Link>
 
-          {/* Desktop nav */}
+          {/* Desktop nav — hidden on mobile */}
           <nav className="hidden items-center gap-1 sm:flex">
             {NAV_ITEMS.map((item) => {
               const active = isActive(pathname, item.href, item.exact);
@@ -61,58 +56,43 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
               );
             })}
           </nav>
-
-          {/* Mobile hamburger */}
-          <button
-            type="button"
-            onClick={() => setMobileMenuOpen((o) => !o)}
-            className="flex h-9 w-9 items-center justify-center rounded-md text-foreground sm:hidden"
-            aria-label={mobileMenuOpen ? "Close menu" : "Open menu"}
-            aria-expanded={mobileMenuOpen}
-          >
-            {mobileMenuOpen ? (
-              <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden>
-                <line x1="2" y1="2" x2="16" y2="16" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-                <line x1="16" y1="2" x2="2" y2="16" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-              </svg>
-            ) : (
-              <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden>
-                <line x1="2" y1="4" x2="16" y2="4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-                <line x1="2" y1="9" x2="16" y2="9" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-                <line x1="2" y1="14" x2="16" y2="14" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-              </svg>
-            )}
-          </button>
         </div>
-
-        {/* Mobile dropdown menu */}
-        {mobileMenuOpen ? (
-          <nav className="border-t border-border sm:hidden">
-            {NAV_ITEMS.map((item) => {
-              const active = isActive(pathname, item.href, item.exact);
-              return (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  className={cn(
-                    "flex items-center px-4 py-3.5 text-sm font-medium border-b border-border last:border-0",
-                    active
-                      ? "bg-secondary text-secondary-foreground"
-                      : "text-foreground",
-                  )}
-                >
-                  {item.label}
-                </Link>
-              );
-            })}
-          </nav>
-        ) : null}
       </header>
 
       <Separator className="hidden sm:block" />
-      <main id="main-content" className="mx-auto max-w-6xl px-4 py-6 sm:px-6 sm:py-10">
+
+      {/* Main content — extra bottom padding on mobile to clear the tab bar */}
+      <main id="main-content" className="mx-auto max-w-6xl px-4 py-6 pb-24 sm:px-6 sm:py-10 sm:pb-10">
         {children}
       </main>
+
+      {/* Mobile bottom tab bar — hidden on desktop */}
+      <nav
+        className="fixed bottom-0 left-0 right-0 z-50 flex border-t border-border bg-background sm:hidden"
+        aria-label="Main navigation"
+      >
+        {NAV_ITEMS.map((item) => {
+          const active = isActive(pathname, item.href, item.exact);
+          const Icon = item.icon;
+          return (
+            <Link
+              key={item.href}
+              href={item.href}
+              className={cn(
+                "flex flex-1 flex-col items-center gap-1 py-2.5 text-[10px] font-medium transition-colors",
+                active ? "text-foreground" : "text-muted-foreground",
+              )}
+              aria-current={active ? "page" : undefined}
+            >
+              <Icon
+                className={cn("size-5", active ? "stroke-[2]" : "stroke-[1.5]")}
+                aria-hidden
+              />
+              <span>{item.label}</span>
+            </Link>
+          );
+        })}
+      </nav>
     </div>
   );
 }
