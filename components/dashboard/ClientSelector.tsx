@@ -32,13 +32,15 @@ function normalizeSavedClient(raw: unknown): SavedClient | null {
   if (!raw || typeof raw !== "object") return null;
 
   const record = raw as Record<string, unknown>;
-  if (typeof record.id !== "number") return null;
+  const id =
+    typeof record.id === "number" ? record.id : Number(record.id);
+  if (!Number.isFinite(id)) return null;
 
   const name = String(record.name ?? record.client_name ?? "").trim();
   if (!name) return null;
 
   return {
-    id: record.id,
+    id,
     name,
     email: asNullableString(record.email ?? record.client_email),
     phone: asNullableString(record.phone ?? record.client_phone),
@@ -75,7 +77,7 @@ export function ClientSelector({ values, onChange }: ClientSelectorProps) {
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    fetch("/api/clients")
+    fetch("/api/clients", { cache: "no-store" })
       .then(async (res) => {
         if (res.status === 401) {
           setActionError("Session expired. Please log in again.");
@@ -102,7 +104,6 @@ export function ClientSelector({ values, onChange }: ClientSelectorProps) {
 
   useLayoutEffect(() => {
     if (!open) {
-      setDropdownPosition(null);
       return;
     }
 
@@ -127,6 +128,38 @@ export function ClientSelector({ values, onChange }: ClientSelectorProps) {
       window.removeEventListener("scroll", updatePosition, true);
     };
   }, [open]);
+
+  function openDropdown() {
+    const trigger = triggerRef.current;
+    if (trigger) {
+      const rect = trigger.getBoundingClientRect();
+      setDropdownPosition({
+        top: rect.bottom + 4,
+        left: rect.left,
+        width: rect.width,
+      });
+    }
+    setOpen(true);
+  }
+
+  function closeDropdown() {
+    setOpen(false);
+    setQuery("");
+  }
+
+  function handleTriggerMouseDown(
+    event: React.MouseEvent<HTMLButtonElement>,
+  ) {
+    event.preventDefault();
+    event.stopPropagation();
+
+    if (open) {
+      closeDropdown();
+      return;
+    }
+
+    openDropdown();
+  }
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -163,8 +196,7 @@ export function ClientSelector({ values, onChange }: ClientSelectorProps) {
   function handleSelect(client: SavedClient) {
     setSelectedId(client.id);
     onChange(clientToFormValues(client));
-    setOpen(false);
-    setQuery("");
+    closeDropdown();
     setActionError(null);
   }
 
@@ -209,14 +241,22 @@ export function ClientSelector({ values, onChange }: ClientSelectorProps) {
       );
       setSelectedId(savedClient.id);
       onChange(clientToFormValues(savedClient));
-      setOpen(false);
-      setQuery("");
+      closeDropdown();
     } catch {
       setActionError("Failed to save client.");
     } finally {
       setSavingNew(false);
     }
   }
+
+  const triggerLabel = useMemo(() => {
+    if (loading) return "Loading clients…";
+    if (selectedLabel) return selectedLabel;
+    if (clients.length === 0) {
+      return "No saved clients yet — enter details below";
+    }
+    return `Choose from ${clients.length} saved client${clients.length === 1 ? "" : "s"}…`;
+  }, [clients.length, loading, selectedLabel]);
 
   const dropdown =
     open && dropdownPosition
@@ -232,6 +272,7 @@ export function ClientSelector({ values, onChange }: ClientSelectorProps) {
               borderColor: "#111111",
             }}
             role="listbox"
+            onMouseDown={(event) => event.stopPropagation()}
           >
             <div
               className="flex items-center gap-2 border-b px-3 py-2"
@@ -322,7 +363,7 @@ export function ClientSelector({ values, onChange }: ClientSelectorProps) {
       <button
         ref={triggerRef}
         type="button"
-        onClick={() => setOpen((current) => !current)}
+        onMouseDown={handleTriggerMouseDown}
         className="flex min-h-10 w-full items-center justify-between gap-2 border px-3 py-2 text-left text-sm"
         style={{
           backgroundColor: "#FFFFFF",
@@ -333,9 +374,7 @@ export function ClientSelector({ values, onChange }: ClientSelectorProps) {
         aria-haspopup="listbox"
       >
         <span className={selectedLabel ? "" : "opacity-60"}>
-          {loading
-            ? "Loading clients…"
-            : selectedLabel ?? "Choose a saved client or enter details below"}
+          {triggerLabel}
         </span>
         <ChevronDown className="size-4 shrink-0" aria-hidden />
       </button>
