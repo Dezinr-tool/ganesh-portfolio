@@ -3,10 +3,12 @@
 import { smoothScrollTo } from "@/lib/lenis-scroll";
 import { useMotionValueEvent, useReducedMotion, useScroll } from "framer-motion";
 import { useCallback, useState } from "react";
+import { usePathname } from "next/navigation";
 
 const SHOW_AFTER_PX = 720;
 
 export function BackToTop() {
+  const pathname = usePathname();
   const reducedMotion = useReducedMotion();
   const { scrollY } = useScroll();
   const [visible, setVisible] = useState(false);
@@ -22,7 +24,7 @@ export function BackToTop() {
     });
   }, [reducedMotion]);
 
-  if (!visible) return null;
+  if (!visible || pathname.startsWith("/dashboard")) return null;
 
   return (
     <div className="back-to-top-wrap">
