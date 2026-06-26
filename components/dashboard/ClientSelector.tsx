@@ -32,8 +32,16 @@ export function ClientSelector({ values, onChange }: ClientSelectorProps) {
 
   useEffect(() => {
     fetch("/api/clients")
-      .then((res) => res.json())
-      .then((data) => {
+      .then(async (res) => {
+        if (res.status === 401) {
+          setActionError("Session expired. Please log in again.");
+          return;
+        }
+        if (!res.ok) {
+          setActionError("Could not load saved clients.");
+          return;
+        }
+        const data = await res.json();
         if (Array.isArray(data.clients)) {
           setClients(data.clients);
         }
