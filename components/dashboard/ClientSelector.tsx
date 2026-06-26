@@ -14,6 +14,9 @@ import type { ClientFormValues, SavedClient } from "@/app/dashboard/_lib/clients
 type ClientSelectorProps = {
   values: ClientFormValues;
   onChange: (patch: Partial<ClientFormValues>) => void;
+  /** Collapse to a confirmation line after picking a saved client (agreements form). */
+  collapseAfterSelect?: boolean;
+  onSelectionChange?: (client: SavedClient | null) => void;
 };
 
 type DropdownPosition = {
@@ -47,6 +50,9 @@ function normalizeSavedClient(raw: unknown): SavedClient | null {
     company: asNullableString(record.company ?? record.client_company),
     address: asNullableString(record.address ?? record.client_address),
     gstNumber: asNullableString(record.gstNumber ?? record.gst_number),
+    representativeName: asNullableString(
+      record.representativeName ?? record.representative_name,
+    ),
     createdAt: String(record.createdAt ?? record.created_at ?? ""),
   };
 }
@@ -59,10 +65,16 @@ function clientToFormValues(client: SavedClient): Partial<ClientFormValues> {
     clientCompany: client.company ?? "",
     clientAddress: client.address ?? "",
     gstNumber: client.gstNumber ?? "",
+    representativeName: client.representativeName ?? "",
   };
 }
 
-export function ClientSelector({ values, onChange }: ClientSelectorProps) {
+export function ClientSelector({
+  values,
+  onChange,
+  collapseAfterSelect = false,
+  onSelectionChange,
+}: ClientSelectorProps) {
   const [clients, setClients] = useState<SavedClient[]>([]);
   const [loading, setLoading] = useState(true);
   const [open, setOpen] = useState(false);
@@ -102,16 +114,20 @@ export function ClientSelector({ values, onChange }: ClientSelectorProps) {
       .finally(() => setLoading(false));
   }, []);
 
+  function getDropdownAnchor() {
+    return triggerRef.current ?? containerRef.current;
+  }
+
   useLayoutEffect(() => {
     if (!open) {
       return;
     }
 
     function updatePosition() {
-      const trigger = triggerRef.current;
-      if (!trigger) return;
+      const anchor = getDropdownAnchor();
+      if (!anchor) return;
 
-      const rect = trigger.getBoundingClientRect();
+      const rect = anchor.getBoundingClientRect();
       setDropdownPosition({
         top: rect.bottom + 4,
         left: rect.left,
@@ -130,9 +146,9 @@ export function ClientSelector({ values, onChange }: ClientSelectorProps) {
   }, [open]);
 
   function openDropdown() {
-    const trigger = triggerRef.current;
-    if (trigger) {
-      const rect = trigger.getBoundingClientRect();
+    const anchor = getDropdownAnchor();
+    if (anchor) {
+      const rect = anchor.getBoundingClientRect();
       setDropdownPosition({
         top: rect.bottom + 4,
         left: rect.left,
@@ -184,20 +200,37 @@ export function ClientSelector({ values, onChange }: ClientSelectorProps) {
     });
   }, [clients, query]);
 
-  const selectedLabel = useMemo(() => {
+  const selectedClient = useMemo(() => {
     if (selectedId === null) return null;
-    const client = clients.find((item) => item.id === selectedId);
-    if (!client) return null;
-    return client.company
-      ? `${client.name} — ${client.company}`
-      : client.name;
+    return clients.find((item) => item.id === selectedId) ?? null;
   }, [clients, selectedId]);
+
+  const selectedLabel = useMemo(() => {
+    if (!selectedClient) return null;
+    return selectedClient.company
+      ? `${selectedClient.name} — ${selectedClient.company}`
+      : selectedClient.name;
+  }, [selectedClient]);
+
+  const confirmationLine = useMemo(() => {
+    if (!selectedClient) return null;
+    return selectedClient.company
+      ? `${selectedClient.name} · ${selectedClient.company}`
+      : selectedClient.name;
+  }, [selectedClient]);
 
   function handleSelect(client: SavedClient) {
     setSelectedId(client.id);
     onChange(clientToFormValues(client));
+    onSelectionChange?.(client);
     closeDropdown();
     setActionError(null);
+  }
+
+  function handleChangeSelection() {
+    setSelectedId(null);
+    onSelectionChange?.(null);
+    openDropdown();
   }
 
   async function handleSaveAsNew() {
@@ -220,6 +253,7 @@ export function ClientSelector({ values, onChange }: ClientSelectorProps) {
           company: values.clientCompany.trim() || null,
           address: values.clientAddress.trim() || null,
           gstNumber: values.gstNumber.trim() || null,
+          representativeName: values.representativeName.trim() || null,
         }),
       });
 
@@ -241,6 +275,7 @@ export function ClientSelector({ values, onChange }: ClientSelectorProps) {
       );
       setSelectedId(savedClient.id);
       onChange(clientToFormValues(savedClient));
+      onSelectionChange?.(savedClient);
       closeDropdown();
     } catch {
       setActionError("Failed to save client.");
@@ -263,7 +298,7 @@ export function ClientSelector({ values, onChange }: ClientSelectorProps) {
       ? createPortal(
           <div
             ref={dropdownRef}
-            className="fixed z-[100] border shadow-sm"
+            className="fixed z-[9999] border shadow-md"
             style={{
               top: dropdownPosition.top,
               left: dropdownPosition.left,
@@ -284,6 +319,7 @@ export function ClientSelector({ values, onChange }: ClientSelectorProps) {
                 type="search"
                 value={query}
                 onChange={(event) => setQuery(event.target.value)}
+                onMouseDown={(event) => event.stopPropagation()}
                 placeholder="Search by name or company"
                 className="w-full bg-transparent text-sm outline-none"
                 style={{ color: "#111111" }}
@@ -291,7 +327,7 @@ export function ClientSelector({ values, onChange }: ClientSelectorProps) {
               />
             </div>
 
-            <ul className="max-h-56 overflow-y-auto py-1">
+            <ul className="max-h-56 min-h-[2.5rem] overflow-y-auto py-1">
               {filteredClients.length === 0 ? (
                 <li
                   className="px-3 py-2 text-sm opacity-60"
@@ -346,38 +382,60 @@ export function ClientSelector({ values, onChange }: ClientSelectorProps) {
         )
       : null;
 
+  const showCollapsedSelection =
+    collapseAfterSelect && selectedClient !== null && !open;
+
   return (
     <div
       ref={containerRef}
       className="relative space-y-2"
       style={{ color: "#111111" }}
     >
-      <label
-        htmlFor="client-selector-search"
-        className="block text-sm font-medium"
-        style={{ color: "#111111" }}
-      >
-        Select Client
-      </label>
+      {!showCollapsedSelection ? (
+        <label
+          htmlFor="client-selector-search"
+          className="block text-sm font-medium"
+          style={{ color: "#111111" }}
+        >
+          Select Client
+        </label>
+      ) : null}
 
-      <button
-        ref={triggerRef}
-        type="button"
-        onMouseDown={handleTriggerMouseDown}
-        className="flex min-h-10 w-full items-center justify-between gap-2 border px-3 py-2 text-left text-sm"
-        style={{
-          backgroundColor: "#FFFFFF",
-          borderColor: "#111111",
-          color: "#111111",
-        }}
-        aria-expanded={open}
-        aria-haspopup="listbox"
-      >
-        <span className={selectedLabel ? "" : "opacity-60"}>
-          {triggerLabel}
-        </span>
-        <ChevronDown className="size-4 shrink-0" aria-hidden />
-      </button>
+      {showCollapsedSelection ? (
+        <div
+          className="flex items-center justify-between gap-3 text-sm"
+          style={{ color: "#111111" }}
+        >
+          <span>✓ {confirmationLine}</span>
+          <button
+            type="button"
+            onClick={handleChangeSelection}
+            className="shrink-0 underline underline-offset-2"
+            style={{ color: "#111111" }}
+          >
+            Change
+          </button>
+        </div>
+      ) : (
+        <button
+          ref={triggerRef}
+          type="button"
+          onMouseDown={handleTriggerMouseDown}
+          className="flex min-h-10 w-full items-center justify-between gap-2 border px-3 py-2 text-left text-sm"
+          style={{
+            backgroundColor: "#FFFFFF",
+            borderColor: "#111111",
+            color: "#111111",
+          }}
+          aria-expanded={open}
+          aria-haspopup="listbox"
+        >
+          <span className={selectedLabel ? "" : "opacity-60"}>
+            {triggerLabel}
+          </span>
+          <ChevronDown className="size-4 shrink-0" aria-hidden />
+        </button>
+      )}
 
       {dropdown}
 

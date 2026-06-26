@@ -2,7 +2,6 @@ import { notFound, redirect } from "next/navigation";
 import { getAgreementById } from "@/lib/agreements-store";
 import AgreementForm from "../../agreement-form";
 import { BackLink } from "../../../_components/back-link";
-import { PageHeader } from "../../../_components/page-header";
 
 export const dynamic = "force-dynamic";
 
@@ -27,9 +26,8 @@ export default async function EditAgreementPage({
   }
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6">
       <BackLink href={`/dashboard/agreements/${id}`} label="Back to agreement" />
-      <PageHeader title="Edit agreement" description={agreement.title} />
       <AgreementForm agreement={agreement} />
     </div>
   );

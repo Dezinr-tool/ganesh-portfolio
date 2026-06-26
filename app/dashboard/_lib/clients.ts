@@ -6,6 +6,7 @@ export type SavedClient = {
   company: string | null;
   address: string | null;
   gstNumber: string | null;
+  representativeName: string | null;
   createdAt: string;
 };
 
@@ -16,6 +17,7 @@ export type ClientFormValues = {
   clientCompany: string;
   clientAddress: string;
   gstNumber: string;
+  representativeName: string;
 };
 
 export type UpsertClientInput = {
@@ -25,6 +27,7 @@ export type UpsertClientInput = {
   company?: string | null;
   address?: string | null;
   gstNumber?: string | null;
+  representativeName?: string | null;
 };
 
 export type CreateClientInput = UpsertClientInput;
@@ -38,4 +41,5 @@ export const emptyClientFormValues: ClientFormValues = {
   clientCompany: "",
   clientAddress: "",
   gstNumber: "",
+  representativeName: "",
 };

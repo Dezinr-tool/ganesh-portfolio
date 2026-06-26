@@ -156,6 +156,7 @@ export default function InvoiceForm() {
     clientCompany,
     clientAddress,
     gstNumber,
+    representativeName: "",
   };
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {

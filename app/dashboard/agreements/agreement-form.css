@@ -1,0 +1,346 @@
+.agreement-form-root {
+  background-color: #f9f7f4;
+  margin: 0 -1.5rem;
+  padding: 2rem 1.5rem 3rem;
+}
+
+.agreement-form-inner {
+  max-width: 48rem;
+  margin: 0 auto;
+}
+
+.agreement-doc-header {
+  margin-bottom: 2rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 1px solid #e5e0d8;
+}
+
+.agreement-doc-title {
+  font-size: 1.75rem;
+  line-height: 1.2;
+  letter-spacing: 0.04em;
+  color: #111111;
+  margin: 0 0 1rem;
+}
+
+.agreement-doc-subtitle {
+  font-size: 0.9375rem;
+  line-height: 1.6;
+  color: #333333;
+  margin: 0 0 0.5rem;
+}
+
+.agreement-doc-date {
+  font-size: 0.8125rem;
+  color: #666666;
+  margin: 0;
+}
+
+.agreement-doc-section {
+  background: #ffffff;
+  border: 1px solid #e5e0d8;
+  border-left: 3px solid #ff1e00;
+  box-shadow: 0 1px 4px rgba(17, 17, 17, 0.06);
+  padding: 1.25rem 1.5rem;
+  margin-bottom: 1.25rem;
+}
+
+.agreement-doc-heading {
+  font-size: 0.6875rem;
+  font-weight: 400;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: #111111;
+  margin: 0 0 1rem;
+}
+
+.agreement-doc-helper {
+  font-size: 0.8125rem;
+  line-height: 1.5;
+  color: #666666;
+  margin: -0.5rem 0 1rem;
+}
+
+.agreement-doc-section-header .agreement-doc-helper {
+  margin: 0.375rem 0 0;
+}
+
+.agreement-doc-label {
+  display: block;
+  font-size: 0.75rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #555555;
+  margin-bottom: 0.375rem;
+}
+
+.agreement-doc-input,
+.agreement-doc-textarea,
+.agreement-doc-select {
+  width: 100%;
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid #111111;
+  border-radius: 0;
+  padding: 0.375rem 0;
+  font-size: 0.9375rem;
+  color: #111111;
+  outline: none;
+  transition: border-color 0.15s ease;
+}
+
+.agreement-doc-input:focus,
+.agreement-doc-textarea:focus,
+.agreement-doc-select:focus {
+  border-bottom-color: #ff1e00;
+}
+
+.agreement-doc-textarea {
+  resize: vertical;
+  min-height: 4.5rem;
+  line-height: 1.5;
+}
+
+.agreement-doc-select {
+  cursor: pointer;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23111111' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0 center;
+  padding-right: 1.25rem;
+}
+
+.agreement-doc-field {
+  margin-bottom: 1rem;
+}
+
+.agreement-doc-field:last-child {
+  margin-bottom: 0;
+}
+
+.agreement-doc-grid {
+  display: grid;
+  gap: 1rem;
+}
+
+@media (min-width: 640px) {
+  .agreement-doc-grid-2 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .agreement-doc-grid-3 {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+.agreement-doc-clause {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  padding: 0.75rem 0;
+  border-bottom: 1px solid #f0ece6;
+}
+
+.agreement-doc-clause:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.agreement-doc-clause-text {
+  flex: 1;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  color: #222222;
+}
+
+.agreement-doc-toggle {
+  margin-top: 0.125rem;
+  width: 1rem;
+  height: 1rem;
+  accent-color: #111111;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.agreement-doc-row {
+  display: flex;
+  gap: 0.75rem;
+  align-items: flex-start;
+  margin-bottom: 0.75rem;
+}
+
+.agreement-doc-row:last-child {
+  margin-bottom: 0;
+}
+
+.agreement-doc-row .agreement-doc-input {
+  flex: 1;
+}
+
+.agreement-doc-remove {
+  flex-shrink: 0;
+  background: none;
+  border: none;
+  font-size: 0.75rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #666666;
+  cursor: pointer;
+  padding: 0.5rem 0;
+}
+
+.agreement-doc-remove:hover {
+  color: #ff1e00;
+}
+
+.agreement-doc-remove:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.agreement-doc-add {
+  background: none;
+  border: none;
+  font-size: 0.75rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #111111;
+  cursor: pointer;
+  padding: 0;
+  margin-top: 0.75rem;
+}
+
+.agreement-doc-add:hover {
+  color: #ff1e00;
+}
+
+.agreement-doc-section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.agreement-doc-section-header .agreement-doc-heading {
+  margin-bottom: 0;
+}
+
+.agreement-form-submit {
+  display: block;
+  width: 100%;
+  margin-top: 0.5rem;
+  padding: 1rem 1.5rem;
+  background: #111111;
+  color: #ffffff;
+  border: none;
+  border-radius: 0;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+
+.agreement-form-submit:hover:not(:disabled) {
+  background: #333333;
+}
+
+.agreement-form-submit:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.agreement-form-cancel {
+  display: inline-block;
+  margin-top: 1rem;
+  font-size: 0.8125rem;
+  color: #666666;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.agreement-form-cancel:hover {
+  color: #111111;
+}
+
+.agreement-form-error {
+  background: #fff5f5;
+  border: 1px solid #ff1e00;
+  border-left: 3px solid #ff1e00;
+  padding: 0.875rem 1rem;
+  font-size: 0.875rem;
+  color: #111111;
+  margin-bottom: 1.25rem;
+}
+
+.agreement-form-warning {
+  background: #fff8f0;
+  border: 1px solid #e5c080;
+  border-left: 3px solid #e5a020;
+  padding: 0.875rem 1rem;
+  font-size: 0.875rem;
+  color: #111111;
+  margin-bottom: 1.25rem;
+}
+
+.agreement-form-warning label {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+  cursor: pointer;
+}
+
+.agreement-doc-hours {
+  width: 5rem;
+  flex-shrink: 0;
+}
+
+.agreement-doc-priority {
+  width: 5rem;
+  flex-shrink: 0;
+}
+
+.agreement-doc-span-2 {
+  grid-column: 1 / -1;
+}
+
+.agreement-client-summary {
+  font-size: 0.9375rem;
+  line-height: 1.6;
+  color: #111111;
+}
+
+.agreement-client-summary p {
+  margin: 0 0 0.25rem;
+}
+
+.agreement-client-summary p:last-of-type {
+  margin-bottom: 0.75rem;
+}
+
+.agreement-doc-edit-link {
+  background: none;
+  border: none;
+  padding: 0;
+  font-size: 0.8125rem;
+  color: #111111;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+
+.agreement-doc-edit-link:hover {
+  color: #ff1e00;
+}
+
+.agreement-form-root .client-selector-trigger {
+  border: none;
+  border-bottom: 1px solid #111111;
+  border-radius: 0;
+  background: transparent;
+  padding-left: 0;
+  padding-right: 0;
+}

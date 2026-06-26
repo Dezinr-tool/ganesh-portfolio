@@ -32,6 +32,7 @@ export async function POST(request: Request) {
       company: body.company,
       address: body.address,
       gstNumber: body.gstNumber,
+      representativeName: body.representativeName,
     });
 
     return NextResponse.json(client, { status: 201 });

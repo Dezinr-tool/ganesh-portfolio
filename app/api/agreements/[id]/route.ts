@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import type { CreateAgreementInput } from "@/app/dashboard/_lib/agreements";
+import { buildAgreementInput } from "@/app/dashboard/_lib/agreements";
 import { upsertClientFromForm } from "@/lib/clients-store";
 import {
   deleteAgreement,
@@ -50,9 +51,7 @@ function validateAgreementFields(body: CreateAgreementInput): string | null {
     return "Missing required agreement fields.";
   }
 
-  const validScope = body.scopeOfWork.every(
-    (item) => item.task?.trim() && item.hours > 0,
-  );
+  const validScope = body.scopeOfWork.every((item) => item.task?.trim());
   const validDeliverables = body.deliverables.every(
     (item) => item.item?.trim() && ["P0", "P1", "P2"].includes(item.priority),
   );
@@ -148,26 +147,9 @@ export async function PATCH(
       }
 
       const resetSigning = existing.status === "awaiting_client";
+      const input = buildAgreementInput(body as CreateAgreementInput);
 
-      const agreement = await updateAgreement(
-        id,
-        {
-          title: body.title!.trim(),
-          clientName: body.clientName!.trim(),
-          clientCompany: body.clientCompany!.trim(),
-          clientEmail: body.clientEmail!.trim(),
-          clientRepresentative: body.clientRepresentative!.trim(),
-          projectOverview: body.projectOverview!.trim(),
-          scopeOfWork: body.scopeOfWork!,
-          deliverables: body.deliverables!,
-          timeline: body.timeline!.trim(),
-          hourlyRate: body.hourlyRate ?? null,
-          fixedCost: body.fixedCost ?? null,
-          advancePercent: body.advancePercent ?? 50,
-          paymentNotes: body.paymentNotes?.trim() ?? "",
-        },
-        resetSigning,
-      );
+      const agreement = await updateAgreement(id, input, resetSigning);
 
       if (!agreement) {
         return NextResponse.json(
@@ -177,12 +159,13 @@ export async function PATCH(
       }
 
       await upsertClientFromForm({
-        name: body.clientName!.trim(),
-        email: body.clientEmail!.trim(),
-        phone: body.clientPhone,
-        company: body.clientCompany,
-        address: body.clientAddress,
-        gstNumber: body.clientGstNumber,
+        name: input.clientName,
+        email: input.clientEmail,
+        phone: input.clientPhone,
+        company: input.clientCompany,
+        address: input.clientAddress,
+        gstNumber: input.clientGstNumber,
+        representativeName: input.clientRepresentative,
       }).catch(() => null);
 
       return NextResponse.json(agreement);

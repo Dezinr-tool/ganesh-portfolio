@@ -1,8 +1,20 @@
 import type { Agreement } from "@/app/dashboard/_lib/agreements";
 import {
+  CONFIDENTIALITY_TEXT,
+  DEEMED_ACCEPTANCE_TEXT,
   formatCurrency,
   formatDate,
   formatDateTime,
+  IP_TRANSFER_TEXT,
+  killFeeClauseText,
+  latePaymentClauseText,
+  LIMITATION_OF_LIABILITY_TEXT,
+  outOfScopeClauseText,
+  paymentStructureLabel,
+  PORTFOLIO_RIGHTS_TEXT,
+  reviewWindowClauseText,
+  scopeHasHours,
+  terminationNoticeClauseText,
   totalScopeHours,
 } from "@/app/dashboard/_lib/agreements";
 import { DesignTokensScope } from "@/components/design-tokens-scope";
@@ -23,6 +35,8 @@ export function AgreementDocument({
   designTokens,
 }: AgreementDocumentProps) {
   const totalHours = totalScopeHours(agreement.scopeOfWork);
+  const showScopeHours = scopeHasHours(agreement.scopeOfWork);
+  const currency = agreement.currency;
 
   return (
     <DesignTokensScope tokens={designTokens}>
@@ -34,7 +48,7 @@ export function AgreementDocument({
         </h1>
         <p className="mt-2 text-sm text-[var(--color-text)]">{agreement.title}</p>
         <p className="mt-1 text-xs text-[var(--color-text)]">
-          Created {formatDate(agreement.createdAt)}
+          {formatDate(agreement.agreementDate)}
         </p>
       </div>
 
@@ -69,6 +83,19 @@ export function AgreementDocument({
             ) : (
               <p className="text-sm text-[var(--color-text)]">{agreement.clientEmail}</p>
             )}
+            {agreement.clientPhone ? (
+              <p className="text-sm text-[var(--color-text)]">{agreement.clientPhone}</p>
+            ) : null}
+            {agreement.clientAddress ? (
+              <p className="mt-1 whitespace-pre-wrap text-sm text-[var(--color-text)]">
+                {agreement.clientAddress}
+              </p>
+            ) : null}
+            {agreement.clientGstNumber ? (
+              <p className="text-sm text-[var(--color-text)]">
+                GST: {agreement.clientGstNumber}
+              </p>
+            ) : null}
             <p className="mt-1 text-sm text-[var(--color-text)]">
               Representative: {agreement.clientRepresentative}
             </p>
@@ -95,28 +122,38 @@ export function AgreementDocument({
         <h2 className="text-sm font-bold uppercase tracking-wide">
           Scope of Work
         </h2>
-        <table className="mt-4 w-full border-collapse text-sm">
-          <thead>
-            <tr className="border-b-2 border-[var(--color-text)]">
-              <th className="py-2 pr-4 text-left font-semibold">Task</th>
-              <th className="py-2 text-right font-semibold">Hours</th>
-            </tr>
-          </thead>
-          <tbody>
-            {agreement.scopeOfWork.map((item) => (
-              <tr key={item.id} className="border-b border-[var(--color-text)]">
-                <td className="py-2.5 pr-4">{item.task}</td>
-                <td className="py-2.5 text-right">{item.hours}</td>
+        {showScopeHours ? (
+          <table className="mt-4 w-full border-collapse text-sm">
+            <thead>
+              <tr className="border-b-2 border-[var(--color-text)]">
+                <th className="py-2 pr-4 text-left font-semibold">Task</th>
+                <th className="py-2 text-right font-semibold">
+                  Est. Hours (optional)
+                </th>
               </tr>
+            </thead>
+            <tbody>
+              {agreement.scopeOfWork.map((item) => (
+                <tr key={item.id} className="border-b border-[var(--color-text)]">
+                  <td className="py-2.5 pr-4">{item.task}</td>
+                  <td className="py-2.5 text-right">{item.hours}</td>
+                </tr>
+              ))}
+            </tbody>
+            <tfoot>
+              <tr className="border-t-2 border-[var(--color-text)] font-semibold">
+                <td className="py-2.5 pr-4">Total</td>
+                <td className="py-2.5 text-right">{totalHours}</td>
+              </tr>
+            </tfoot>
+          </table>
+        ) : (
+          <ul className="mt-4 list-disc space-y-1.5 pl-5 text-sm">
+            {agreement.scopeOfWork.map((item) => (
+              <li key={item.id}>{item.task}</li>
             ))}
-          </tbody>
-          <tfoot>
-            <tr className="border-t-2 border-[var(--color-text)] font-semibold">
-              <td className="py-2.5 pr-4">Total</td>
-              <td className="py-2.5 text-right">{totalHours}</td>
-            </tr>
-          </tfoot>
-        </table>
+          </ul>
+        )}
       </section>
 
       <hr className="my-8 border-[var(--color-text)]" />
@@ -146,6 +183,19 @@ export function AgreementDocument({
 
       <hr className="my-8 border-[var(--color-text)]" />
 
+      {/* Approval & Acceptance */}
+      <section>
+        <h2 className="text-sm font-bold uppercase tracking-wide">
+          Approval & Acceptance
+        </h2>
+        <ul className="mt-3 list-disc space-y-2 pl-5 text-sm leading-relaxed text-[var(--color-text)]">
+          <li>{reviewWindowClauseText(agreement.reviewWindowDays)}</li>
+          {agreement.deemedAcceptance ? <li>{DEEMED_ACCEPTANCE_TEXT}</li> : null}
+        </ul>
+      </section>
+
+      <hr className="my-8 border-[var(--color-text)]" />
+
       {/* Timeline */}
       <section>
         <h2 className="text-sm font-bold uppercase tracking-wide">Timeline</h2>
@@ -162,22 +212,65 @@ export function AgreementDocument({
           Payment Terms
         </h2>
         <div className="mt-4 space-y-2 text-sm">
+          <p className="text-[var(--color-text)]">
+            All amounts in this agreement are in {currency}.
+          </p>
+          <p>
+            <span className="font-semibold">Payment Structure:</span>{" "}
+            {paymentStructureLabel(agreement.paymentStructure)}
+          </p>
+          {agreement.paymentStructure === "custom" &&
+          agreement.customPaymentTerms ? (
+            <p className="whitespace-pre-wrap text-[var(--color-text)]">
+              {agreement.customPaymentTerms}
+            </p>
+          ) : null}
           {agreement.hourlyRate !== null ? (
             <p>
               <span className="font-semibold">Hourly Rate:</span>{" "}
-              {formatCurrency(agreement.hourlyRate)}/hr
+              {formatCurrency(agreement.hourlyRate, currency)}/hr
             </p>
           ) : null}
           {agreement.fixedCost !== null ? (
             <p>
               <span className="font-semibold">Fixed Cost:</span>{" "}
-              {formatCurrency(agreement.fixedCost)}
+              {formatCurrency(agreement.fixedCost, currency)}
             </p>
           ) : null}
-          <p>
-            <span className="font-semibold">Advance Payment:</span>{" "}
-            {agreement.advancePercent}% due before work begins
-          </p>
+          {agreement.paymentStructure === "milestone" &&
+          agreement.milestones.length > 0 ? (
+            <table className="mt-4 w-full border-collapse text-sm">
+              <thead>
+                <tr className="border-b-2 border-[var(--color-text)]">
+                  <th className="py-2 pr-4 text-left font-semibold">Milestone</th>
+                  <th className="py-2 pr-4 text-right font-semibold">Amount</th>
+                  <th className="py-2 text-left font-semibold">Due On</th>
+                </tr>
+              </thead>
+              <tbody>
+                {agreement.milestones.map((item) => (
+                  <tr
+                    key={item.id}
+                    className="border-b border-[var(--color-text)]"
+                  >
+                    <td className="py-2.5 pr-4">{item.name}</td>
+                    <td className="py-2.5 pr-4 text-right">
+                      {formatCurrency(item.amount, currency)}
+                    </td>
+                    <td className="py-2.5">{item.dueOn}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          ) : null}
+          {agreement.latePaymentClause ? (
+            <p className="text-[var(--color-text)]">
+              {latePaymentClauseText(
+                agreement.latePaymentDays,
+                agreement.latePaymentInterest,
+              )}
+            </p>
+          ) : null}
           {agreement.paymentNotes ? (
             <p className="mt-3 whitespace-pre-wrap text-[var(--color-text)]">
               {agreement.paymentNotes}
@@ -188,26 +281,50 @@ export function AgreementDocument({
 
       <hr className="my-8 border-[var(--color-text)]" />
 
-      {/* Terms */}
+      {/* Revision Policy */}
       <section>
         <h2 className="text-sm font-bold uppercase tracking-wide">
-          Terms & Conditions
+          Revision Policy
+        </h2>
+        <div className="mt-4 space-y-2 text-sm">
+          <p>
+            <span className="font-semibold">Revisions included:</span>{" "}
+            {agreement.revisionsIncluded}
+          </p>
+          {agreement.revisionScopeNote ? (
+            <p className="whitespace-pre-wrap text-[var(--color-text)]">
+              {agreement.revisionScopeNote}
+            </p>
+          ) : null}
+        </div>
+      </section>
+
+      <hr className="my-8 border-[var(--color-text)]" />
+
+      {/* Legal Clauses */}
+      <section>
+        <h2 className="text-sm font-bold uppercase tracking-wide">
+          Legal Clauses
         </h2>
         <ul className="mt-3 list-disc space-y-2 pl-5 text-sm leading-relaxed text-[var(--color-text)]">
+          {agreement.ipTransfer ? <li>{IP_TRANSFER_TEXT}</li> : null}
+          {agreement.confidentiality ? <li>{CONFIDENTIALITY_TEXT}</li> : null}
+          {agreement.killFee ? (
+            <li>{killFeeClauseText(agreement.killFeePercent)}</li>
+          ) : null}
+          {agreement.portfolioRights ? <li>{PORTFOLIO_RIGHTS_TEXT}</li> : null}
+          {agreement.outOfScopeClause ? (
+            <li>
+              {outOfScopeClauseText(agreement.outOfScopeRate, currency)}
+            </li>
+          ) : null}
+          {agreement.limitationOfLiability ? (
+            <li>{LIMITATION_OF_LIABILITY_TEXT}</li>
+          ) : null}
+          <li>{terminationNoticeClauseText(agreement.terminationNoticeDays)}</li>
           <li>
-            All deliverables remain the property of the client upon full
-            payment.
-          </li>
-          <li>
-            Revisions beyond the agreed scope will be billed at the hourly
-            rate.
-          </li>
-          <li>
-            Either party may terminate this agreement with 7 days written notice.
-          </li>
-          <li>
-            Confidential information shared during the project shall not be
-            disclosed to third parties.
+            This agreement shall be governed by the laws of{" "}
+            {agreement.governingLaw}.
           </li>
         </ul>
       </section>

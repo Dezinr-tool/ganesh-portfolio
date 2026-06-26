@@ -99,6 +99,41 @@ const CREATE_EA_CONVERSATIONS_INDEX = `
   ON ea_conversations (session_id, created_at DESC);
 `;
 
+const ALTER_AGREEMENTS_FREELANCER_FIELDS = `
+  ALTER TABLE agreements ADD COLUMN IF NOT EXISTS payment_structure TEXT NOT NULL DEFAULT '50_50';
+  ALTER TABLE agreements ADD COLUMN IF NOT EXISTS custom_payment_terms TEXT;
+  ALTER TABLE agreements ADD COLUMN IF NOT EXISTS late_payment_clause BOOLEAN NOT NULL DEFAULT TRUE;
+  ALTER TABLE agreements ADD COLUMN IF NOT EXISTS revisions_included INTEGER NOT NULL DEFAULT 2;
+  ALTER TABLE agreements ADD COLUMN IF NOT EXISTS revision_scope_note TEXT;
+  ALTER TABLE agreements ADD COLUMN IF NOT EXISTS ip_transfer BOOLEAN NOT NULL DEFAULT TRUE;
+  ALTER TABLE agreements ADD COLUMN IF NOT EXISTS confidentiality BOOLEAN NOT NULL DEFAULT TRUE;
+  ALTER TABLE agreements ADD COLUMN IF NOT EXISTS kill_fee BOOLEAN NOT NULL DEFAULT TRUE;
+  ALTER TABLE agreements ADD COLUMN IF NOT EXISTS governing_law TEXT NOT NULL DEFAULT 'Mumbai, Maharashtra, India';
+`;
+
+const ALTER_AGREEMENTS_AUDIT_FIXES = `
+  ALTER TABLE agreements ADD COLUMN IF NOT EXISTS client_phone VARCHAR(50);
+  ALTER TABLE agreements ADD COLUMN IF NOT EXISTS client_address TEXT;
+  ALTER TABLE agreements ADD COLUMN IF NOT EXISTS client_gst_number VARCHAR(50);
+  ALTER TABLE agreements ADD COLUMN IF NOT EXISTS agreement_date DATE;
+  ALTER TABLE agreements ADD COLUMN IF NOT EXISTS milestones JSONB;
+  ALTER TABLE clients ADD COLUMN IF NOT EXISTS representative_name VARCHAR(255);
+`;
+
+const ALTER_AGREEMENTS_PHASE3_LEGAL = `
+  ALTER TABLE agreements ADD COLUMN IF NOT EXISTS kill_fee_percent INTEGER NOT NULL DEFAULT 50;
+  ALTER TABLE agreements ADD COLUMN IF NOT EXISTS late_payment_days INTEGER NOT NULL DEFAULT 7;
+  ALTER TABLE agreements ADD COLUMN IF NOT EXISTS late_payment_interest NUMERIC(5,2) NOT NULL DEFAULT 2;
+  ALTER TABLE agreements ADD COLUMN IF NOT EXISTS portfolio_rights BOOLEAN NOT NULL DEFAULT TRUE;
+  ALTER TABLE agreements ADD COLUMN IF NOT EXISTS out_of_scope_clause BOOLEAN NOT NULL DEFAULT TRUE;
+  ALTER TABLE agreements ADD COLUMN IF NOT EXISTS out_of_scope_rate INTEGER;
+  ALTER TABLE agreements ADD COLUMN IF NOT EXISTS review_window_days INTEGER NOT NULL DEFAULT 5;
+  ALTER TABLE agreements ADD COLUMN IF NOT EXISTS deemed_acceptance BOOLEAN NOT NULL DEFAULT TRUE;
+  ALTER TABLE agreements ADD COLUMN IF NOT EXISTS limitation_of_liability BOOLEAN NOT NULL DEFAULT TRUE;
+  ALTER TABLE agreements ADD COLUMN IF NOT EXISTS termination_notice_days INTEGER NOT NULL DEFAULT 7;
+  ALTER TABLE agreements ADD COLUMN IF NOT EXISTS currency VARCHAR(3) NOT NULL DEFAULT 'INR';
+`;
+
 const ALTER_INVOICES_ADD_CLIENT_ADDRESS = `
   ALTER TABLE invoices ADD COLUMN IF NOT EXISTS client_address TEXT NOT NULL DEFAULT '';
 `;
@@ -139,6 +174,18 @@ async function initDb() {
   console.log("Adding signature columns to agreements if missing…");
   await sql.query(ALTER_AGREEMENTS_ADD_SIGNATURES);
   console.log("Done. agreements signature columns are ready.");
+
+  console.log("Adding freelancer agreement fields if missing…");
+  await sql.query(ALTER_AGREEMENTS_FREELANCER_FIELDS);
+  console.log("Done. agreements freelancer fields are ready.");
+
+  console.log("Adding agreement audit fix columns if missing…");
+  await sql.query(ALTER_AGREEMENTS_AUDIT_FIXES);
+  console.log("Done. agreement audit fix columns are ready.");
+
+  console.log("Adding phase 3 legal columns if missing…");
+  await sql.query(ALTER_AGREEMENTS_PHASE3_LEGAL);
+  console.log("Done. phase 3 legal columns are ready.");
 
   console.log("Creating ea_calendar_tokens table if it doesn't exist…");
   await sql.query(CREATE_EA_CALENDAR_TOKENS_TABLE);

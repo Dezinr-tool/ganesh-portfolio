@@ -16,6 +16,7 @@ type ClientRow = {
   company: string | null;
   address: string | null;
   gst_number: string | null;
+  representative_name: string | null;
   created_at: Date | string;
 };
 
@@ -33,6 +34,7 @@ function rowToClient(row: ClientRow): SavedClient {
     company: row.company,
     address: row.address,
     gstNumber: row.gst_number,
+    representativeName: row.representative_name,
     createdAt:
       row.created_at instanceof Date
         ? row.created_at.toISOString()
@@ -42,7 +44,7 @@ function rowToClient(row: ClientRow): SavedClient {
 
 export async function readClients(): Promise<SavedClient[]> {
   const { rows } = await sql<ClientRow>`
-    SELECT id, name, email, phone, company, address, gst_number, created_at
+    SELECT id, name, email, phone, company, address, gst_number, representative_name, created_at
     FROM clients
     ORDER BY name ASC
   `;
@@ -51,7 +53,7 @@ export async function readClients(): Promise<SavedClient[]> {
 
 export async function getClientById(id: number): Promise<SavedClient | null> {
   const { rows } = await sql<ClientRow>`
-    SELECT id, name, email, phone, company, address, gst_number, created_at
+    SELECT id, name, email, phone, company, address, gst_number, representative_name, created_at
     FROM clients
     WHERE id = ${id}
     LIMIT 1
@@ -67,7 +69,7 @@ export async function getClientByEmail(
   if (!normalized) return null;
 
   const { rows } = await sql<ClientRow>`
-    SELECT id, name, email, phone, company, address, gst_number, created_at
+    SELECT id, name, email, phone, company, address, gst_number, representative_name, created_at
     FROM clients
     WHERE LOWER(TRIM(email)) = ${normalized}
     LIMIT 1
@@ -89,11 +91,12 @@ export async function createClient(
   const company = normalizeOptional(input.company);
   const address = normalizeOptional(input.address);
   const gstNumber = normalizeOptional(input.gstNumber);
+  const representativeName = normalizeOptional(input.representativeName);
 
   const { rows } = await sql<ClientRow>`
-    INSERT INTO clients (name, email, phone, company, address, gst_number)
-    VALUES (${name}, ${email}, ${phone}, ${company}, ${address}, ${gstNumber})
-    RETURNING id, name, email, phone, company, address, gst_number, created_at
+    INSERT INTO clients (name, email, phone, company, address, gst_number, representative_name)
+    VALUES (${name}, ${email}, ${phone}, ${company}, ${address}, ${gstNumber}, ${representativeName})
+    RETURNING id, name, email, phone, company, address, gst_number, representative_name, created_at
   `;
 
   return rowToClient(rows[0]);
@@ -132,6 +135,10 @@ export async function updateClient(
     input.gstNumber !== undefined
       ? normalizeOptional(input.gstNumber)
       : existing.gstNumber;
+  const representativeName =
+    input.representativeName !== undefined
+      ? normalizeOptional(input.representativeName)
+      : existing.representativeName;
 
   const { rows } = await sql<ClientRow>`
     UPDATE clients
@@ -140,9 +147,10 @@ export async function updateClient(
         phone = ${phone},
         company = ${company},
         address = ${address},
-        gst_number = ${gstNumber}
+        gst_number = ${gstNumber},
+        representative_name = ${representativeName}
     WHERE id = ${id}
-    RETURNING id, name, email, phone, company, address, gst_number, created_at
+    RETURNING id, name, email, phone, company, address, gst_number, representative_name, created_at
   `;
 
   return rowToClient(rows[0]);
@@ -167,6 +175,7 @@ export async function upsertClientFromForm(
     company: normalizeOptional(input.company),
     address: normalizeOptional(input.address),
     gstNumber: normalizeOptional(input.gstNumber),
+    representativeName: normalizeOptional(input.representativeName),
   };
 
   if (payload.email) {
