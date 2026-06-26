@@ -1,9 +1,22 @@
 "use client";
 
 import Link from "next/link";
-import { Special_Elite } from "next/font/google";
 import { useRouter } from "next/navigation";
 import { useMemo, useRef, useState } from "react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Separator } from "@/components/ui/separator";
+import { Textarea } from "@/components/ui/textarea";
+import { buttonVariants } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 import { ClientSelector } from "@/components/dashboard/ClientSelector";
 import type { ClientFormValues, SavedClient } from "@/app/dashboard/_lib/clients";
 import {
@@ -27,12 +40,9 @@ import {
   type PaymentStructure,
   type ScopeOfWorkItem,
 } from "../_lib/agreements";
-import "./agreement-form.css";
 
-const specialElite = Special_Elite({
-  weight: "400",
-  subsets: ["latin"],
-});
+const selectClassName =
+  "h-8 w-full rounded-lg border border-input bg-transparent px-2.5 py-1 text-sm outline-none transition-colors focus:border-ring focus:ring-3 focus:ring-ring/50 disabled:cursor-not-allowed disabled:opacity-50";
 
 function createScopeItem(): ScopeOfWorkItem {
   return { id: crypto.randomUUID(), task: "", hours: null };
@@ -50,78 +60,9 @@ function todayIsoDate(): string {
   return new Date().toISOString().slice(0, 10);
 }
 
-function formatAgreementDateDisplay(isoDate: string): string {
-  return new Intl.DateTimeFormat("en-IN", {
-    day: "numeric",
-    month: "long",
-    year: "numeric",
-  }).format(new Date(`${isoDate}T12:00:00`));
-}
-
 type AgreementFormProps = {
   agreement?: Agreement;
 };
-
-function DocSection({
-  title,
-  helperText,
-  children,
-  action,
-}: {
-  title: string;
-  helperText?: string;
-  children: React.ReactNode;
-  action?: React.ReactNode;
-}) {
-  return (
-    <section className="agreement-doc-section">
-      {action ? (
-        <div className="agreement-doc-section-header">
-          <div>
-            <h2 className={`agreement-doc-heading ${specialElite.className}`}>
-              {title}
-            </h2>
-            {helperText ? (
-              <p className="agreement-doc-helper">{helperText}</p>
-            ) : null}
-          </div>
-          {action}
-        </div>
-      ) : (
-        <>
-          <h2 className={`agreement-doc-heading ${specialElite.className}`}>
-            {title}
-          </h2>
-          {helperText ? (
-            <p className="agreement-doc-helper">{helperText}</p>
-          ) : null}
-        </>
-      )}
-      {children}
-    </section>
-  );
-}
-
-function DocField({
-  label,
-  htmlFor,
-  children,
-  className,
-}: {
-  label: string;
-  htmlFor?: string;
-  children: React.ReactNode;
-  className?: string;
-}) {
-  return (
-    <div className={`agreement-doc-field ${className ?? ""}`}>
-      <label className="agreement-doc-label" htmlFor={htmlFor}>
-        {label}
-      </label>
-      {children}
-    </div>
-  );
-}
 
 export default function AgreementForm({ agreement }: AgreementFormProps) {
   const isEdit = Boolean(agreement);
@@ -132,14 +73,10 @@ export default function AgreementForm({ agreement }: AgreementFormProps) {
   const [title, setTitle] = useState(agreement?.title ?? "");
   const titleRef = useRef(agreement?.title ?? "");
   const [clientName, setClientName] = useState(agreement?.clientName ?? "");
-  const [clientCompany, setClientCompany] = useState(
-    agreement?.clientCompany ?? "",
-  );
+  const [clientCompany, setClientCompany] = useState(agreement?.clientCompany ?? "");
   const [clientEmail, setClientEmail] = useState(agreement?.clientEmail ?? "");
   const [clientPhone, setClientPhone] = useState(agreement?.clientPhone ?? "");
-  const [clientAddress, setClientAddress] = useState(
-    agreement?.clientAddress ?? "",
-  );
+  const [clientAddress, setClientAddress] = useState(agreement?.clientAddress ?? "");
   const [gstNumber, setGstNumber] = useState(agreement?.clientGstNumber ?? "");
   const [clientRepresentative, setClientRepresentative] = useState(
     agreement?.clientRepresentative ?? "",
@@ -147,18 +84,12 @@ export default function AgreementForm({ agreement }: AgreementFormProps) {
   const [agreementDate, setAgreementDate] = useState(
     agreement?.agreementDate ?? todayIsoDate(),
   );
-  const [projectOverview, setProjectOverview] = useState(
-    agreement?.projectOverview ?? "",
-  );
+  const [projectOverview, setProjectOverview] = useState(agreement?.projectOverview ?? "");
   const [scopeOfWork, setScopeOfWork] = useState<ScopeOfWorkItem[]>(
-    agreement?.scopeOfWork.length
-      ? agreement.scopeOfWork
-      : [createScopeItem()],
+    agreement?.scopeOfWork.length ? agreement.scopeOfWork : [createScopeItem()],
   );
   const [deliverables, setDeliverables] = useState<DeliverableItem[]>(
-    agreement?.deliverables.length
-      ? agreement.deliverables
-      : [createDeliverable()],
+    agreement?.deliverables.length ? agreement.deliverables : [createDeliverable()],
   );
   const [timeline, setTimeline] = useState(agreement?.timeline ?? "");
   const [hourlyRate, setHourlyRate] = useState(
@@ -167,16 +98,12 @@ export default function AgreementForm({ agreement }: AgreementFormProps) {
   const [fixedCost, setFixedCost] = useState(
     agreement?.fixedCost != null ? String(agreement.fixedCost) : "",
   );
-  const [paymentNotes, setPaymentNotes] = useState(
-    agreement?.paymentNotes ?? "",
-  );
+  const [paymentNotes, setPaymentNotes] = useState(agreement?.paymentNotes ?? "");
   const [paymentStructure, setPaymentStructure] = useState<PaymentStructure>(
     agreement?.paymentStructure ?? "50_50",
   );
   const [milestones, setMilestones] = useState<MilestoneItem[]>(
-    agreement?.milestones?.length
-      ? agreement.milestones
-      : [createMilestone()],
+    agreement?.milestones?.length ? agreement.milestones : [createMilestone()],
   );
   const [customPaymentTerms, setCustomPaymentTerms] = useState(
     agreement?.customPaymentTerms ?? "",
@@ -204,9 +131,7 @@ export default function AgreementForm({ agreement }: AgreementFormProps) {
     agreement?.confidentiality ?? true,
   );
   const [killFee, setKillFee] = useState(agreement?.killFee ?? true);
-  const [killFeePercent, setKillFeePercent] = useState(
-    agreement?.killFeePercent ?? 50,
-  );
+  const [killFeePercent, setKillFeePercent] = useState(agreement?.killFeePercent ?? 50);
   const [portfolioRights, setPortfolioRights] = useState(
     agreement?.portfolioRights ?? true,
   );
@@ -237,45 +162,21 @@ export default function AgreementForm({ agreement }: AgreementFormProps) {
   const [savedClientSelected, setSavedClientSelected] = useState(false);
   const [clientDetailsEditing, setClientDetailsEditing] = useState(false);
 
-  const agreementDateDisplay = useMemo(
-    () => formatAgreementDateDisplay(agreementDate),
-    [agreementDate],
-  );
-  const clientDisplayName = clientName.trim() || "[Client Name]";
-
-  function updateScope(
-    id: string,
-    field: keyof ScopeOfWorkItem,
-    value: string | number | null,
-  ) {
+  function updateScope(id: string, field: keyof ScopeOfWorkItem, value: string | number | null) {
     setScopeOfWork((items) =>
-      items.map((item) =>
-        item.id === id ? { ...item, [field]: value } : item,
-      ),
+      items.map((item) => (item.id === id ? { ...item, [field]: value } : item)),
     );
   }
 
-  function updateDeliverable(
-    id: string,
-    field: keyof DeliverableItem,
-    value: string,
-  ) {
+  function updateDeliverable(id: string, field: keyof DeliverableItem, value: string) {
     setDeliverables((items) =>
-      items.map((item) =>
-        item.id === id ? { ...item, [field]: value } : item,
-      ),
+      items.map((item) => (item.id === id ? { ...item, [field]: value } : item)),
     );
   }
 
-  function updateMilestone(
-    id: string,
-    field: keyof MilestoneItem,
-    value: string | number,
-  ) {
+  function updateMilestone(id: string, field: keyof MilestoneItem, value: string | number) {
     setMilestones((items) =>
-      items.map((item) =>
-        item.id === id ? { ...item, [field]: value } : item,
-      ),
+      items.map((item) => (item.id === id ? { ...item, [field]: value } : item)),
     );
   }
 
@@ -285,9 +186,7 @@ export default function AgreementForm({ agreement }: AgreementFormProps) {
       setClientDetailsEditing(false);
       const domTitle =
         typeof document !== "undefined"
-          ? (
-              document.getElementById("title") as HTMLInputElement | null
-            )?.value.trim()
+          ? (document.getElementById("title") as HTMLInputElement | null)?.value.trim()
           : "";
       const currentTitle = titleRef.current.trim() || domTitle || "";
       if (!currentTitle) {
@@ -307,9 +206,7 @@ export default function AgreementForm({ agreement }: AgreementFormProps) {
     if (patch.clientCompany !== undefined) setClientCompany(patch.clientCompany);
     if (patch.clientAddress !== undefined) setClientAddress(patch.clientAddress);
     if (patch.gstNumber !== undefined) setGstNumber(patch.gstNumber);
-    if (patch.representativeName !== undefined) {
-      setClientRepresentative(patch.representativeName);
-    }
+    if (patch.representativeName !== undefined) setClientRepresentative(patch.representativeName);
   }
 
   const clientFormValues: ClientFormValues = {
@@ -381,9 +278,7 @@ export default function AgreementForm({ agreement }: AgreementFormProps) {
         {
           method: isEdit ? "PATCH" : "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(
-            isEdit ? { action: "update", ...payload } : payload,
-          ),
+          body: JSON.stringify(isEdit ? { action: "update", ...payload } : payload),
         },
       );
 
@@ -408,342 +303,385 @@ export default function AgreementForm({ agreement }: AgreementFormProps) {
     : "/dashboard/agreements";
 
   return (
-    <div className="agreement-form-root">
-      <form onSubmit={handleSubmit} className="agreement-form-inner">
-        <header className="agreement-doc-header">
-          <h1 className={`agreement-doc-title ${specialElite.className}`}>
-            DESIGN SERVICES AGREEMENT
-          </h1>
-          <p className={`agreement-doc-subtitle ${specialElite.className}`}>
-            This agreement is entered into between Ganesh Das (Designer) and{" "}
-            {clientDisplayName} (Client)
-          </p>
-          <p className="agreement-doc-date">Date: {agreementDateDisplay}</p>
-        </header>
-
-        <DocSection title="Saved Client">
+    <form onSubmit={handleSubmit} className="space-y-6">
+      {/* Saved client */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Saved client</CardTitle>
+        </CardHeader>
+        <CardContent>
           <ClientSelector
             values={clientFormValues}
             onChange={handleClientChange}
             collapseAfterSelect
             onSelectionChange={handleClientSelectionChange}
           />
-        </DocSection>
+        </CardContent>
+      </Card>
 
-        {needsInvalidateWarning ? (
-          <div className="agreement-form-warning">
+      {needsInvalidateWarning ? (
+        <Alert variant="destructive">
+          <AlertDescription className="space-y-3">
             <p>
               This agreement has already been sent to the client. Editing will
               invalidate the previous signing link.
             </p>
-            <label>
+            <label className="flex cursor-pointer items-start gap-2">
               <input
                 type="checkbox"
+                className="mt-0.5"
                 checked={confirmInvalidate}
                 onChange={(e) => setConfirmInvalidate(e.target.checked)}
               />
-              I understand — reset signing and require re-sign & re-send
+              <span>I understand — reset signing and require re-sign &amp; re-send</span>
             </label>
-          </div>
-        ) : null}
+          </AlertDescription>
+        </Alert>
+      ) : null}
 
-        <DocSection title="Agreement Details">
-          <DocField label="Title" htmlFor="title">
-            <input
+      {/* Agreement details */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Agreement details</CardTitle>
+        </CardHeader>
+        <CardContent className="grid gap-4 sm:grid-cols-2">
+          <div className="space-y-2 sm:col-span-2">
+            <Label htmlFor="title">Title</Label>
+            <Input
               id="title"
               required
-              placeholder={
-                savedClientSelected
-                  ? undefined
-                  : "Client Name — Design Project"
-              }
+              placeholder="Client Name — Design Project"
               value={title}
               onChange={(e) => {
                 titleRef.current = e.target.value;
                 setTitle(e.target.value);
               }}
-              className="agreement-doc-input"
             />
-          </DocField>
-          <DocField label="Agreement Date" htmlFor="agreementDate">
-            <input
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="agreementDate">Agreement date</Label>
+            <Input
               id="agreementDate"
               type="date"
               required
               value={agreementDate}
               onChange={(e) => setAgreementDate(e.target.value)}
-              className="agreement-doc-input"
             />
-          </DocField>
-        </DocSection>
+          </div>
+        </CardContent>
+      </Card>
 
-        <DocSection title="Client">
+      {/* Client */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Client</CardTitle>
+        </CardHeader>
+        <CardContent>
           {savedClientSelected && !clientDetailsEditing ? (
-            <div className="agreement-client-summary">
-              <p>{clientName}</p>
-              <p>{clientCompany}</p>
-              <p>{clientEmail}</p>
-              {clientPhone.trim() ? <p>{clientPhone}</p> : null}
-              {clientRepresentative.trim() ? (
-                <p>Representative: {clientRepresentative}</p>
+            <div className="space-y-1 text-sm">
+              <p className="font-medium">{clientName}</p>
+              {clientCompany ? <p className="text-muted-foreground">{clientCompany}</p> : null}
+              <p className="text-muted-foreground">{clientEmail}</p>
+              {clientPhone ? <p className="text-muted-foreground">{clientPhone}</p> : null}
+              {clientRepresentative ? (
+                <p className="text-muted-foreground">Rep: {clientRepresentative}</p>
               ) : null}
-              <button
+              <Button
                 type="button"
-                className="agreement-doc-edit-link"
+                variant="link"
+                size="sm"
+                className="mt-2 h-auto p-0"
                 onClick={() => setClientDetailsEditing(true)}
               >
                 Edit details
-              </button>
+              </Button>
             </div>
           ) : (
-            <div className="agreement-doc-grid agreement-doc-grid-2">
+            <div className="grid gap-4 sm:grid-cols-2">
               {!savedClientSelected ? (
-                <DocField label="Client name" htmlFor="clientName">
-                  <input
+                <div className="space-y-2">
+                  <Label htmlFor="clientName">Client name</Label>
+                  <Input
                     id="clientName"
                     required
                     value={clientName}
                     onChange={(e) => setClientName(e.target.value)}
-                    className="agreement-doc-input"
                   />
-                </DocField>
+                </div>
               ) : null}
-              <DocField label="Company" htmlFor="clientCompany">
-                <input
+              <div className="space-y-2">
+                <Label htmlFor="clientCompany">Company</Label>
+                <Input
                   id="clientCompany"
                   required
                   value={clientCompany}
                   onChange={(e) => setClientCompany(e.target.value)}
-                  className="agreement-doc-input"
                 />
-              </DocField>
-              <DocField label="Email" htmlFor="clientEmail">
-                <input
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="clientEmail">Email</Label>
+                <Input
                   id="clientEmail"
                   type="email"
                   required
                   value={clientEmail}
                   onChange={(e) => setClientEmail(e.target.value)}
-                  className="agreement-doc-input"
                 />
-              </DocField>
-              <DocField label="Phone" htmlFor="clientPhone">
-                <input
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="clientPhone">Phone</Label>
+                <Input
                   id="clientPhone"
                   type="tel"
                   value={clientPhone}
                   onChange={(e) => setClientPhone(e.target.value)}
-                  className="agreement-doc-input"
                 />
-              </DocField>
-              <DocField
-                label="Address"
-                htmlFor="clientAddress"
-                className="agreement-doc-span-2"
-              >
-                <textarea
+              </div>
+              <div className="space-y-2 sm:col-span-2">
+                <Label htmlFor="clientAddress">Address</Label>
+                <Textarea
                   id="clientAddress"
                   rows={3}
                   value={clientAddress}
                   onChange={(e) => setClientAddress(e.target.value)}
-                  className="agreement-doc-textarea"
                 />
-              </DocField>
-              <DocField label="GST number" htmlFor="gstNumber">
-                <input
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="gstNumber">GST number</Label>
+                <Input
                   id="gstNumber"
                   value={gstNumber}
                   onChange={(e) => setGstNumber(e.target.value)}
-                  className="agreement-doc-input"
                 />
-              </DocField>
-              <DocField label="Representative name" htmlFor="clientRepresentative">
-                <input
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="clientRepresentative">Representative name</Label>
+                <Input
                   id="clientRepresentative"
                   required
                   value={clientRepresentative}
                   onChange={(e) => setClientRepresentative(e.target.value)}
-                  className="agreement-doc-input"
                 />
-              </DocField>
+              </div>
             </div>
           )}
-        </DocSection>
+        </CardContent>
+      </Card>
 
-        <DocSection title="Project Overview">
-          <textarea
+      {/* Project overview */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Project overview</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <Textarea
             id="projectOverview"
             rows={5}
             required
             value={projectOverview}
             onChange={(e) => setProjectOverview(e.target.value)}
             placeholder="Describe the project goals, context, and expected outcomes…"
-            className="agreement-doc-textarea"
           />
-        </DocSection>
+        </CardContent>
+      </Card>
 
-        <DocSection
-          title="Scope of Work (What we will do)"
-          helperText="List the high-level work areas and effort. e.g. Brand Strategy, Logo Design, Website UI"
-          action={
-            <button
-              type="button"
-              className="agreement-doc-add"
-              onClick={() => setScopeOfWork((items) => [...items, createScopeItem()])}
-            >
-              + Add row
-            </button>
-          }
-        >
+      {/* Scope of work */}
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between">
+          <div>
+            <CardTitle>Scope of work</CardTitle>
+            <p className="mt-1 text-sm text-muted-foreground">
+              List high-level work areas. e.g. Brand Strategy, Logo Design
+            </p>
+          </div>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={() => setScopeOfWork((items) => [...items, createScopeItem()])}
+          >
+            Add row
+          </Button>
+        </CardHeader>
+        <CardContent className="space-y-3">
           {scopeOfWork.map((item) => (
-            <div key={item.id} className="agreement-doc-row">
-              <input
-                required
-                placeholder="Task name"
-                value={item.task}
-                onChange={(e) => updateScope(item.id, "task", e.target.value)}
-                className="agreement-doc-input"
-              />
-              <input
-                type="number"
-                min="0.5"
-                step="0.5"
-                placeholder="—"
-                value={item.hours ?? ""}
-                onChange={(e) =>
-                  updateScope(
-                    item.id,
-                    "hours",
-                    e.target.value === "" ? null : Number(e.target.value),
-                  )
-                }
-                className="agreement-doc-input agreement-doc-hours"
-                aria-label="Est. Hours (optional)"
-              />
-              <button
-                type="button"
-                className="agreement-doc-remove"
-                onClick={() =>
-                  setScopeOfWork((items) =>
-                    items.length === 1
-                      ? items
-                      : items.filter((i) => i.id !== item.id),
-                  )
-                }
-                disabled={scopeOfWork.length === 1}
-              >
-                Remove
-              </button>
+            <div key={item.id} className="grid gap-3 rounded-lg border border-border p-3 sm:grid-cols-12">
+              <div className="space-y-2 sm:col-span-8">
+                <Label className="sm:sr-only">Task</Label>
+                <Input
+                  required
+                  placeholder="Task name"
+                  value={item.task}
+                  onChange={(e) => updateScope(item.id, "task", e.target.value)}
+                />
+              </div>
+              <div className="space-y-2 sm:col-span-2">
+                <Label className="sm:sr-only">Est. hours (optional)</Label>
+                <Input
+                  type="number"
+                  min="0.5"
+                  step="0.5"
+                  placeholder="hrs"
+                  value={item.hours ?? ""}
+                  onChange={(e) =>
+                    updateScope(
+                      item.id,
+                      "hours",
+                      e.target.value === "" ? null : Number(e.target.value),
+                    )
+                  }
+                  aria-label="Est. Hours (optional)"
+                />
+              </div>
+              <div className="flex items-end sm:col-span-2">
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={() =>
+                    setScopeOfWork((items) =>
+                      items.length === 1 ? items : items.filter((i) => i.id !== item.id),
+                    )
+                  }
+                  disabled={scopeOfWork.length === 1}
+                >
+                  Remove
+                </Button>
+              </div>
             </div>
           ))}
-        </DocSection>
+        </CardContent>
+      </Card>
 
-        <DocSection
-          title="Deliverables (What you will receive)"
-          helperText="List the specific files/outputs the client receives. e.g. Logo files (AI, PNG, PDF), Brand Guidelines PDF"
-          action={
-            <button
-              type="button"
-              className="agreement-doc-add"
-              onClick={() =>
-                setDeliverables((items) => [...items, createDeliverable()])
-              }
-            >
-              + Add row
-            </button>
-          }
-        >
+      {/* Deliverables */}
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between">
+          <div>
+            <CardTitle>Deliverables</CardTitle>
+            <p className="mt-1 text-sm text-muted-foreground">
+              List specific outputs the client receives. e.g. Logo files, Brand Guidelines PDF
+            </p>
+          </div>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={() => setDeliverables((items) => [...items, createDeliverable()])}
+          >
+            Add row
+          </Button>
+        </CardHeader>
+        <CardContent className="space-y-3">
           {deliverables.map((item) => (
-            <div key={item.id} className="agreement-doc-row">
-              <select
-                value={item.priority}
-                onChange={(e) =>
-                  updateDeliverable(
-                    item.id,
-                    "priority",
-                    e.target.value as DeliverablePriority,
-                  )
-                }
-                className="agreement-doc-select agreement-doc-priority"
-                aria-label="Priority"
-              >
-                <option value="P0">P0</option>
-                <option value="P1">P1</option>
-                <option value="P2">P2</option>
-              </select>
-              <input
-                required
-                placeholder="Deliverable name"
-                value={item.item}
-                onChange={(e) => updateDeliverable(item.id, "item", e.target.value)}
-                className="agreement-doc-input"
-              />
-              <button
-                type="button"
-                className="agreement-doc-remove"
-                onClick={() =>
-                  setDeliverables((items) =>
-                    items.length === 1
-                      ? items
-                      : items.filter((i) => i.id !== item.id),
-                  )
-                }
-                disabled={deliverables.length === 1}
-              >
-                Remove
-              </button>
+            <div key={item.id} className="grid gap-3 rounded-lg border border-border p-3 sm:grid-cols-12">
+              <div className="space-y-2 sm:col-span-2">
+                <Label className="sm:sr-only">Priority</Label>
+                <select
+                  value={item.priority}
+                  onChange={(e) =>
+                    updateDeliverable(item.id, "priority", e.target.value as DeliverablePriority)
+                  }
+                  className={selectClassName}
+                  aria-label="Priority"
+                >
+                  <option value="P0">P0</option>
+                  <option value="P1">P1</option>
+                  <option value="P2">P2</option>
+                </select>
+              </div>
+              <div className="space-y-2 sm:col-span-8">
+                <Label className="sm:sr-only">Deliverable</Label>
+                <Input
+                  required
+                  placeholder="Deliverable name"
+                  value={item.item}
+                  onChange={(e) => updateDeliverable(item.id, "item", e.target.value)}
+                />
+              </div>
+              <div className="flex items-end sm:col-span-2">
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={() =>
+                    setDeliverables((items) =>
+                      items.length === 1 ? items : items.filter((i) => i.id !== item.id),
+                    )
+                  }
+                  disabled={deliverables.length === 1}
+                >
+                  Remove
+                </Button>
+              </div>
             </div>
           ))}
-        </DocSection>
+        </CardContent>
+      </Card>
 
-        <DocSection
-          title="Approval & Acceptance"
-          helperText="Number of days client has to review and give feedback on each deliverable"
-        >
-          <DocField label="Review window (days)" htmlFor="reviewWindowDays">
-            <input
+      {/* Approval & Acceptance */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Approval &amp; acceptance</CardTitle>
+          <p className="text-sm text-muted-foreground">
+            Days the client has to review and give feedback on each deliverable
+          </p>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="space-y-2 max-w-[200px]">
+            <Label htmlFor="reviewWindowDays">Review window (days)</Label>
+            <Input
               id="reviewWindowDays"
               type="number"
               min="1"
               step="1"
               value={reviewWindowDays}
               onChange={(e) => setReviewWindowDays(Number(e.target.value))}
-              className="agreement-doc-input"
             />
-          </DocField>
-          <label className="agreement-doc-clause">
+          </div>
+          <label className="flex cursor-pointer items-start gap-3">
             <input
               type="checkbox"
+              className="mt-0.5"
               checked={deemedAcceptance}
               onChange={(e) => setDeemedAcceptance(e.target.checked)}
-              className="agreement-doc-toggle"
             />
-            <span className={`agreement-doc-clause-text ${specialElite.className}`}>
-              If no feedback is received within the review window, deliverables
-              are deemed accepted
+            <span className="text-sm">
+              If no feedback is received within the review window, deliverables are deemed accepted
             </span>
           </label>
-        </DocSection>
+        </CardContent>
+      </Card>
 
-        <DocSection title="Timeline">
-          <textarea
+      {/* Timeline */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Timeline</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <Textarea
             id="timeline"
             rows={3}
             required
             value={timeline}
             onChange={(e) => setTimeline(e.target.value)}
             placeholder="e.g. Week 1–2: Discovery, Week 3–4: Design…"
-            className="agreement-doc-textarea"
           />
-        </DocSection>
+        </CardContent>
+      </Card>
 
-        <DocSection title="Payment">
-          <DocField label="Currency" htmlFor="currency">
+      {/* Payment */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Payment</CardTitle>
+        </CardHeader>
+        <CardContent className="grid gap-4 sm:grid-cols-2">
+          <div className="space-y-2">
+            <Label htmlFor="currency">Currency</Label>
             <select
               id="currency"
               value={currency}
               onChange={(e) => setCurrency(e.target.value as AgreementCurrency)}
-              className="agreement-doc-select"
+              className={selectClassName}
             >
               {CURRENCY_OPTIONS.map((option) => (
                 <option key={option.value} value={option.value}>
@@ -751,52 +689,55 @@ export default function AgreementForm({ agreement }: AgreementFormProps) {
                 </option>
               ))}
             </select>
-          </DocField>
-          <div className="agreement-doc-grid agreement-doc-grid-2">
-            <DocField label="Hourly rate (optional)" htmlFor="hourlyRate">
-              <input
-                id="hourlyRate"
-                type="number"
-                min="0"
-                step="0.01"
-                value={hourlyRate}
-                onChange={(e) => setHourlyRate(e.target.value)}
-                className="agreement-doc-input"
-              />
-            </DocField>
-            <DocField label="Fixed cost (optional)" htmlFor="fixedCost">
-              <input
-                id="fixedCost"
-                type="number"
-                min="0"
-                step="0.01"
-                value={fixedCost}
-                onChange={(e) => setFixedCost(e.target.value)}
-                className="agreement-doc-input"
-              />
-            </DocField>
           </div>
-          <DocField label="Payment notes (optional)" htmlFor="paymentNotes">
-            <textarea
+          <div className="space-y-2">
+            <Label htmlFor="hourlyRate">Hourly rate (optional)</Label>
+            <Input
+              id="hourlyRate"
+              type="number"
+              min="0"
+              step="0.01"
+              value={hourlyRate}
+              onChange={(e) => setHourlyRate(e.target.value)}
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="fixedCost">Fixed cost (optional)</Label>
+            <Input
+              id="fixedCost"
+              type="number"
+              min="0"
+              step="0.01"
+              value={fixedCost}
+              onChange={(e) => setFixedCost(e.target.value)}
+            />
+          </div>
+          <div className="space-y-2 sm:col-span-2">
+            <Label htmlFor="paymentNotes">Payment notes (optional)</Label>
+            <Textarea
               id="paymentNotes"
               rows={3}
               value={paymentNotes}
               onChange={(e) => setPaymentNotes(e.target.value)}
               placeholder="Bank details, payment schedule, etc."
-              className="agreement-doc-textarea"
             />
-          </DocField>
-        </DocSection>
+          </div>
+        </CardContent>
+      </Card>
 
-        <DocSection title="Payment Terms">
-          <DocField label="Payment structure" htmlFor="paymentStructure">
+      {/* Payment terms */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Payment terms</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="paymentStructure">Payment structure</Label>
             <select
               id="paymentStructure"
               value={paymentStructure}
-              onChange={(e) =>
-                setPaymentStructure(e.target.value as PaymentStructure)
-              }
-              className="agreement-doc-select"
+              onChange={(e) => setPaymentStructure(e.target.value as PaymentStructure)}
+              className={selectClassName}
             >
               {PAYMENT_STRUCTURE_OPTIONS.map((option) => (
                 <option key={option.value} value={option.value}>
@@ -804,192 +745,214 @@ export default function AgreementForm({ agreement }: AgreementFormProps) {
                 </option>
               ))}
             </select>
-          </DocField>
+          </div>
+
           {paymentStructure === "milestone" ? (
-            <div className="agreement-doc-milestones">
-              <div className="agreement-doc-section-header">
-                <p className="agreement-doc-label">Milestones</p>
-                <button
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <p className="text-sm font-medium">Milestones</p>
+                <Button
                   type="button"
-                  className="agreement-doc-add"
-                  onClick={() =>
-                    setMilestones((items) => [...items, createMilestone()])
-                  }
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setMilestones((items) => [...items, createMilestone()])}
                 >
-                  + Add row
-                </button>
+                  Add row
+                </Button>
               </div>
               {milestones.map((item) => (
-                <div key={item.id} className="agreement-doc-row">
-                  <input
-                    required
-                    placeholder="Milestone name"
-                    value={item.name}
-                    onChange={(e) =>
-                      updateMilestone(item.id, "name", e.target.value)
-                    }
-                    className="agreement-doc-input"
-                  />
-                  <input
-                    type="number"
-                    min="0"
-                    step="0.01"
-                    required
-                    placeholder={`Amount (${currency})`}
-                    value={item.amount || ""}
-                    onChange={(e) =>
-                      updateMilestone(item.id, "amount", Number(e.target.value))
-                    }
-                    className="agreement-doc-input agreement-doc-hours"
-                    aria-label="Amount"
-                  />
-                  <input
-                    required
-                    placeholder='Due on (e.g. "On delivery of wireframes")'
-                    value={item.dueOn}
-                    onChange={(e) =>
-                      updateMilestone(item.id, "dueOn", e.target.value)
-                    }
-                    className="agreement-doc-input"
-                  />
-                  <button
-                    type="button"
-                    className="agreement-doc-remove"
-                    onClick={() =>
-                      setMilestones((items) =>
-                        items.length === 1
-                          ? items
-                          : items.filter((i) => i.id !== item.id),
-                      )
-                    }
-                    disabled={milestones.length === 1}
-                  >
-                    Remove
-                  </button>
+                <div
+                  key={item.id}
+                  className="grid gap-3 rounded-lg border border-border p-3 sm:grid-cols-12"
+                >
+                  <div className="space-y-2 sm:col-span-4">
+                    <Label className="sm:sr-only">Milestone name</Label>
+                    <Input
+                      required
+                      placeholder="Milestone name"
+                      value={item.name}
+                      onChange={(e) => updateMilestone(item.id, "name", e.target.value)}
+                    />
+                  </div>
+                  <div className="space-y-2 sm:col-span-3">
+                    <Label className="sm:sr-only">Amount ({currency})</Label>
+                    <Input
+                      type="number"
+                      min="0"
+                      step="0.01"
+                      required
+                      placeholder={`Amount (${currency})`}
+                      value={item.amount || ""}
+                      onChange={(e) =>
+                        updateMilestone(item.id, "amount", Number(e.target.value))
+                      }
+                    />
+                  </div>
+                  <div className="space-y-2 sm:col-span-3">
+                    <Label className="sm:sr-only">Due on</Label>
+                    <Input
+                      required
+                      placeholder='Due on (e.g. "On delivery")'
+                      value={item.dueOn}
+                      onChange={(e) => updateMilestone(item.id, "dueOn", e.target.value)}
+                    />
+                  </div>
+                  <div className="flex items-end sm:col-span-2">
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={() =>
+                        setMilestones((items) =>
+                          items.length === 1
+                            ? items
+                            : items.filter((i) => i.id !== item.id),
+                        )
+                      }
+                      disabled={milestones.length === 1}
+                    >
+                      Remove
+                    </Button>
+                  </div>
                 </div>
               ))}
             </div>
           ) : null}
+
           {paymentStructure === "custom" ? (
-            <DocField label="Custom payment terms" htmlFor="customPaymentTerms">
-              <textarea
+            <div className="space-y-2">
+              <Label htmlFor="customPaymentTerms">Custom payment terms</Label>
+              <Textarea
                 id="customPaymentTerms"
                 rows={3}
                 value={customPaymentTerms}
                 onChange={(e) => setCustomPaymentTerms(e.target.value)}
-                className="agreement-doc-textarea"
               />
-            </DocField>
+            </div>
           ) : null}
-          <label className="agreement-doc-clause">
+
+          <Separator />
+
+          <label className="flex cursor-pointer items-start gap-3">
             <input
-              id="latePaymentClause"
               type="checkbox"
+              className="mt-0.5"
               checked={latePaymentClause}
               onChange={(e) => setLatePaymentClause(e.target.checked)}
-              className="agreement-doc-toggle"
             />
-            <span className={`agreement-doc-clause-text ${specialElite.className}`}>
-              Late payment clause
-            </span>
+            <span className="text-sm font-medium">Late payment clause</span>
           </label>
+
           {latePaymentClause ? (
-            <div className="agreement-doc-grid agreement-doc-grid-2">
-              <DocField label="Grace period (days)" htmlFor="latePaymentDays">
-                <input
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div className="space-y-2">
+                <Label htmlFor="latePaymentDays">Grace period (days)</Label>
+                <Input
                   id="latePaymentDays"
                   type="number"
                   min="1"
                   step="1"
                   value={latePaymentDays}
                   onChange={(e) => setLatePaymentDays(Number(e.target.value))}
-                  className="agreement-doc-input"
                 />
-              </DocField>
-              <DocField label="Monthly interest %" htmlFor="latePaymentInterest">
-                <input
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="latePaymentInterest">Monthly interest %</Label>
+                <Input
                   id="latePaymentInterest"
                   type="number"
                   min="0"
                   step="0.01"
                   value={latePaymentInterest}
-                  onChange={(e) =>
-                    setLatePaymentInterest(Number(e.target.value))
-                  }
-                  className="agreement-doc-input"
+                  onChange={(e) => setLatePaymentInterest(Number(e.target.value))}
                 />
-              </DocField>
+              </div>
+              <p className="text-sm text-muted-foreground sm:col-span-2">
+                {latePaymentClauseText(latePaymentDays, latePaymentInterest)}
+              </p>
             </div>
           ) : null}
-          {latePaymentClause ? (
-            <p className="agreement-doc-helper">
-              {latePaymentClauseText(latePaymentDays, latePaymentInterest)}
-            </p>
-          ) : null}
-        </DocSection>
+        </CardContent>
+      </Card>
 
-        <DocSection title="Revision Policy">
-          <DocField label="Revisions included" htmlFor="revisionsIncluded">
-            <input
+      {/* Revision policy */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Revision policy</CardTitle>
+        </CardHeader>
+        <CardContent className="grid gap-4 sm:grid-cols-2">
+          <div className="space-y-2">
+            <Label htmlFor="revisionsIncluded">Revisions included</Label>
+            <Input
               id="revisionsIncluded"
               type="number"
               min="0"
               step="1"
               value={revisionsIncluded}
               onChange={(e) => setRevisionsIncluded(Number(e.target.value))}
-              className="agreement-doc-input"
             />
-          </DocField>
-          <DocField label="Revision scope note" htmlFor="revisionScopeNote">
-            <textarea
+          </div>
+          <div className="space-y-2 sm:col-span-2">
+            <Label htmlFor="revisionScopeNote">Revision scope note</Label>
+            <Textarea
               id="revisionScopeNote"
               rows={3}
               value={revisionScopeNote}
               onChange={(e) => setRevisionScopeNote(e.target.value)}
               placeholder={DEFAULT_REVISION_SCOPE_NOTE}
-              className="agreement-doc-textarea"
             />
-          </DocField>
-        </DocSection>
+          </div>
+        </CardContent>
+      </Card>
 
-        <DocSection title="Legal Clauses">
-          <label className="agreement-doc-clause">
+      {/* Legal clauses */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Legal clauses</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {/* IP Transfer */}
+          <label className="flex cursor-pointer items-start gap-3">
             <input
               type="checkbox"
+              className="mt-0.5"
               checked={ipTransfer}
               onChange={(e) => setIpTransfer(e.target.checked)}
-              className="agreement-doc-toggle"
             />
-            <span className={`agreement-doc-clause-text ${specialElite.className}`}>
-              {IP_TRANSFER_TEXT}
-            </span>
+            <span className="text-sm">{IP_TRANSFER_TEXT}</span>
           </label>
-          <label className="agreement-doc-clause">
+
+          <Separator />
+
+          {/* Confidentiality */}
+          <label className="flex cursor-pointer items-start gap-3">
             <input
               type="checkbox"
+              className="mt-0.5"
               checked={confidentiality}
               onChange={(e) => setConfidentiality(e.target.checked)}
-              className="agreement-doc-toggle"
             />
-            <span className={`agreement-doc-clause-text ${specialElite.className}`}>
-              {CONFIDENTIALITY_TEXT}
-            </span>
+            <span className="text-sm">{CONFIDENTIALITY_TEXT}</span>
           </label>
-          <label className="agreement-doc-clause">
+
+          <Separator />
+
+          {/* Kill fee */}
+          <label className="flex cursor-pointer items-start gap-3">
             <input
-              id="killFee"
               type="checkbox"
+              className="mt-0.5"
               checked={killFee}
               onChange={(e) => setKillFee(e.target.checked)}
-              className="agreement-doc-toggle"
             />
-            <span className={`agreement-doc-clause-text ${specialElite.className}`}>
+            <span className="text-sm font-medium">
               Kill fee applies if project is cancelled after kickoff
             </span>
           </label>
           {killFee ? (
-            <DocField label="Kill fee %" htmlFor="killFeePercent">
-              <input
+            <div className="space-y-2 max-w-[200px]">
+              <Label htmlFor="killFeePercent">Kill fee %</Label>
+              <Input
                 id="killFeePercent"
                 type="number"
                 min="0"
@@ -997,34 +960,37 @@ export default function AgreementForm({ agreement }: AgreementFormProps) {
                 step="1"
                 value={killFeePercent}
                 onChange={(e) => setKillFeePercent(Number(e.target.value))}
-                className="agreement-doc-input"
               />
-            </DocField>
+              <p className="text-sm text-muted-foreground">
+                {killFeeClauseText(killFeePercent)}
+              </p>
+            </div>
           ) : null}
-          {killFee ? (
-            <p className="agreement-doc-helper">
-              {killFeeClauseText(killFeePercent)}
-            </p>
-          ) : null}
-          <label className="agreement-doc-clause">
+
+          <Separator />
+
+          {/* Portfolio rights */}
+          <label className="flex cursor-pointer items-start gap-3">
             <input
               type="checkbox"
+              className="mt-0.5"
               checked={portfolioRights}
               onChange={(e) => setPortfolioRights(e.target.checked)}
-              className="agreement-doc-toggle"
             />
-            <span className={`agreement-doc-clause-text ${specialElite.className}`}>
-              {PORTFOLIO_RIGHTS_TEXT}
-            </span>
+            <span className="text-sm">{PORTFOLIO_RIGHTS_TEXT}</span>
           </label>
-          <label className="agreement-doc-clause">
+
+          <Separator />
+
+          {/* Out of scope */}
+          <label className="flex cursor-pointer items-start gap-3">
             <input
               type="checkbox"
+              className="mt-0.5"
               checked={outOfScopeClause}
               onChange={(e) => setOutOfScopeClause(e.target.checked)}
-              className="agreement-doc-toggle"
             />
-            <span className={`agreement-doc-clause-text ${specialElite.className}`}>
+            <span className="text-sm">
               {outOfScopeClauseText(
                 outOfScopeRate === "" ? null : Number(outOfScopeRate),
                 currency,
@@ -1032,67 +998,77 @@ export default function AgreementForm({ agreement }: AgreementFormProps) {
             </span>
           </label>
           {outOfScopeClause ? (
-            <DocField
-              label={`Out-of-scope hourly rate (${currency})`}
-              htmlFor="outOfScopeRate"
-            >
-              <input
+            <div className="space-y-2 max-w-[200px]">
+              <Label htmlFor="outOfScopeRate">
+                Out-of-scope hourly rate ({currency}, optional)
+              </Label>
+              <Input
                 id="outOfScopeRate"
                 type="number"
                 min="0"
                 step="1"
                 value={outOfScopeRate}
                 onChange={(e) => setOutOfScopeRate(e.target.value)}
-                className="agreement-doc-input"
               />
-            </DocField>
+            </div>
           ) : null}
-          <label className="agreement-doc-clause">
+
+          <Separator />
+
+          {/* Limitation of liability */}
+          <label className="flex cursor-pointer items-start gap-3">
             <input
               type="checkbox"
+              className="mt-0.5"
               checked={limitationOfLiability}
               onChange={(e) => setLimitationOfLiability(e.target.checked)}
-              className="agreement-doc-toggle"
             />
-            <span className={`agreement-doc-clause-text ${specialElite.className}`}>
-              {LIMITATION_OF_LIABILITY_TEXT}
-            </span>
+            <span className="text-sm">{LIMITATION_OF_LIABILITY_TEXT}</span>
           </label>
-          <DocField label="Termination notice (days)" htmlFor="terminationNoticeDays">
-            <input
+
+          <Separator />
+
+          {/* Termination notice */}
+          <div className="space-y-2 max-w-[200px]">
+            <Label htmlFor="terminationNoticeDays">Termination notice (days)</Label>
+            <Input
               id="terminationNoticeDays"
               type="number"
               min="1"
               step="1"
               value={terminationNoticeDays}
               onChange={(e) => setTerminationNoticeDays(Number(e.target.value))}
-              className="agreement-doc-input"
             />
-          </DocField>
-          <DocField label="Governing law" htmlFor="governingLaw">
-            <input
+          </div>
+
+          <Separator />
+
+          {/* Governing law */}
+          <div className="space-y-2">
+            <Label htmlFor="governingLaw">Governing law</Label>
+            <Input
               id="governingLaw"
               value={governingLaw}
               onChange={(e) => setGoverningLaw(e.target.value)}
-              className="agreement-doc-input"
             />
-          </DocField>
-        </DocSection>
+          </div>
+        </CardContent>
+      </Card>
 
-        {error ? <div className="agreement-form-error">{error}</div> : null}
+      {error ? (
+        <Alert variant="destructive">
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
+      ) : null}
 
-        <button type="submit" disabled={submitting} className="agreement-form-submit">
-          {submitting
-            ? "Saving…"
-            : isEdit
-              ? "Save changes"
-              : "Create agreement"}
-        </button>
-
-        <Link href={cancelHref} className="agreement-form-cancel">
+      <div className="flex items-center gap-3">
+        <Button type="submit" disabled={submitting}>
+          {submitting ? "Saving…" : isEdit ? "Save changes" : "Create agreement"}
+        </Button>
+        <Link href={cancelHref} className={cn(buttonVariants({ variant: "ghost" }))}>
           Cancel
         </Link>
-      </form>
-    </div>
+      </div>
+    </form>
   );
 }
