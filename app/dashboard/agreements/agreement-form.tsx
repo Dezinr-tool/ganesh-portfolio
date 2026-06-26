@@ -835,7 +835,7 @@ export default function AgreementForm({ agreement }: AgreementFormProps) {
                     min="0"
                     step="0.01"
                     required
-                    placeholder="Amount (INR)"
+                    placeholder={`Amount (${currency})`}
                     value={item.amount || ""}
                     onChange={(e) =>
                       updateMilestone(item.id, "amount", Number(e.target.value))
@@ -1033,7 +1033,7 @@ export default function AgreementForm({ agreement }: AgreementFormProps) {
           </label>
           {outOfScopeClause ? (
             <DocField
-              label="Out-of-scope hourly rate (₹)"
+              label={`Out-of-scope hourly rate (${currency})`}
               htmlFor="outOfScopeRate"
             >
               <input

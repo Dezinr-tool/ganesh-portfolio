@@ -30,7 +30,10 @@
     "qa:moodboard:e2e": "tsx scripts/qa-moodboard-e2e.ts",
     "qa:moodboard:intake": "tsx scripts/qa-moodboard-intake-only.ts",
     "qa:design-audit": "tsx scripts/qa-design-audit.ts",
-    "qa:p11-p12": "tsx scripts/qa-p11-p12-full.ts"
+    "qa:p11-p12": "tsx scripts/qa-p11-p12-full.ts",
+    "db:migrate-agreements-audit": "tsx scripts/migrate-agreements-audit-fixes.ts",
+    "db:migrate-agreements-phase3": "tsx scripts/migrate-agreements-phase3-legal.ts",
+    "db:migrate-agreements-freelancer": "tsx scripts/migrate-agreements-freelancer-fields.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.100.1",
