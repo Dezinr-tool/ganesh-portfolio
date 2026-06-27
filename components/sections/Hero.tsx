@@ -18,10 +18,7 @@ const portraitImageProps = {
   src: "/ganesh.avif",
   fill: true as const,
   sizes: "100vw",
-  style: {
-    objectFit: "contain" as const,
-    objectPosition: "bottom center" as const,
-  },
+  className: "hero-portrait-img",
 };
 
 const blurSteps = [
@@ -89,7 +86,6 @@ export function Hero({ content }: HeroProps) {
   const ganeshOpacityRaw = useTransform(scrollY, [0, 400], [1, 0]);
   const photoYRaw = useTransform(scrollY, [0, 600], [0, -150]);
   const photoScaleRaw = useTransform(scrollY, [0, 600], [1, 1.06]);
-  /** Fade portrait out during the second fold (About section). */
   const photoOpacityRaw = useTransform(
     scrollY,
     [foldHeight, foldHeight * 2],
@@ -135,7 +131,7 @@ export function Hero({ content }: HeroProps) {
       const badge = badgeRef.current;
       const subtext = subtextRef.current;
 
-      if (!ganesh || !photo) return;
+      if (!photo) return;
 
       const reduced = window.matchMedia(
         "(prefers-reduced-motion: reduce)",
@@ -148,7 +144,7 @@ export function Hero({ content }: HeroProps) {
         return;
       }
 
-      gsap.set(ganesh, { opacity: 0, scale: 0.97 });
+      if (ganesh) gsap.set(ganesh, { opacity: 0, scale: 0.97 });
       gsap.set(photo, {
         opacity: 0,
         scale: 1.08,
@@ -163,12 +159,16 @@ export function Hero({ content }: HeroProps) {
 
       const tl = gsap.timeline({ defaults: { ease: "power3.out" } });
 
-      tl.to(ganesh, {
-        opacity: 0.1,
-        scale: 1,
-        duration: 0.85,
-        ease: "power2.out",
-      }).to(
+      if (ganesh) {
+        tl.to(ganesh, {
+          opacity: 0.1,
+          scale: 1,
+          duration: 0.85,
+          ease: "power2.out",
+        });
+      }
+
+      tl.to(
         photo,
         {
           opacity: 1,
@@ -177,7 +177,7 @@ export function Hero({ content }: HeroProps) {
           duration: 1.2,
           ease: "power3.out",
         },
-        0.45,
+        ganesh ? 0.45 : 0,
       );
 
       if (badge) {
@@ -218,19 +218,19 @@ export function Hero({ content }: HeroProps) {
       className="sticky top-0 z-0 relative h-dvh min-h-svh w-full overflow-x-clip overflow-y-hidden bg-[var(--color-bg)] text-[var(--color-text)] md:min-h-[700px]"
       aria-label="Introduction"
     >
-      {/* GANESH watermark — behind portrait torso/chest */}
+      {/* GANESH watermark — hidden on mobile where it renders poorly, visible sm+ */}
       <div
-        className="pointer-events-none absolute inset-0 z-0 flex items-center justify-center overflow-hidden select-none"
+        className="pointer-events-none absolute inset-0 z-0 hidden sm:flex items-center justify-center overflow-hidden select-none"
         aria-hidden="true"
       >
         <div className="w-full will-change-transform">
           <motion.div style={{ scale: ganeshScale, opacity: ganeshOpacity }}>
-          <span
-            ref={ganeshRef}
-            className={`${mohave.className} hero-ganesh-watermark block w-full whitespace-nowrap text-center font-bold leading-[0.82] text-[var(--color-text)] will-change-transform`}
-          >
-            GANESH
-          </span>
+            <span
+              ref={ganeshRef}
+              className={`${mohave.className} hero-ganesh-watermark block w-full whitespace-nowrap text-center font-bold leading-[0.82] text-[var(--color-text)] will-change-transform`}
+            >
+              GANESH
+            </span>
           </motion.div>
         </div>
       </div>
@@ -250,12 +250,12 @@ export function Hero({ content }: HeroProps) {
             ref={photoRef}
             className="relative h-[min(82vh,640px)] min-h-[70vh] w-full overflow-visible will-change-transform md:h-[min(94vh,1080px)] md:min-h-[86vh]"
           >
-            {/* Badges beside head — positioned relative to portrait frame */}
+            {/* Badges — top-right corner on mobile, beside head on sm+ */}
             <header
               ref={badgeRef}
-              className="pointer-events-auto absolute top-[12%] left-[46%] z-[3] max-w-[48vw] sm:top-[12%] sm:left-[54%] sm:max-w-none md:top-[11%] md:left-[57%] lg:top-[10%] lg:left-[61%]"
+              className="pointer-events-auto absolute top-5 right-4 z-[3] text-right sm:top-[12%] sm:right-auto sm:left-[54%] sm:text-left sm:max-w-none md:top-[11%] md:left-[57%] lg:top-[10%] lg:left-[61%]"
             >
-              <div className="flex flex-col items-start gap-1">
+              <div className="flex flex-col items-end gap-1 sm:items-start sm:text-left">
                 {content.badgeLines.map((line, index) => (
                   <p key={`${line}-${index}`} className={badgeLabelClass}>
                     {index === 0 ? (
@@ -294,10 +294,10 @@ export function Hero({ content }: HeroProps) {
         </div>
       </div>
 
-      {/* Headline — bottom left, visible on load */}
+      {/* Headline — bottom left. pr-16 on mobile prevents N-button overlap */}
       <div
         ref={bottomRef}
-        className="pointer-events-none absolute bottom-0 left-0 z-[2] max-w-[min(100%,42rem)] px-5 pb-8 sm:px-10 sm:pb-12 lg:px-14 lg:pb-14"
+        className="pointer-events-none absolute bottom-0 left-0 z-[2] max-w-[min(100%,42rem)] px-5 pb-8 pr-16 sm:pr-0 sm:px-10 sm:pb-12 lg:px-14 lg:pb-14"
       >
         <motion.div style={{ y: bottomY, opacity: bottomOpacity }}>
           <h1
@@ -314,8 +314,8 @@ export function Hero({ content }: HeroProps) {
         </motion.div>
       </div>
 
-      {/* Subtext — bottom right, separate from headline */}
-      <div className="pointer-events-none absolute right-0 bottom-0 z-[2] max-w-[min(100%,22rem)] px-5 pb-8 text-right sm:max-w-[24rem] sm:px-10 sm:pb-12 lg:max-w-[26rem] lg:px-14 lg:pb-14">
+      {/* Subtext — bottom right, hidden on mobile to avoid headline collision */}
+      <div className="pointer-events-none absolute right-0 bottom-0 z-[2] hidden max-w-[min(100%,22rem)] px-5 pb-8 text-right sm:block sm:max-w-[24rem] sm:px-10 sm:pb-12 lg:max-w-[26rem] lg:px-14 lg:pb-14">
         <motion.div style={{ y: bottomY, opacity: bottomOpacity }}>
           <p
             ref={subtextRef}

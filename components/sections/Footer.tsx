@@ -151,6 +151,10 @@ export function Footer({ siteSettings, socialLinks }: FooterContent) {
       });
       gsap.set(content, { opacity: 0, y: 36 });
 
+      const isMobile = window.matchMedia("(max-width: 56.25rem)").matches;
+      const contentFadeStart = isMobile ? 0 : CONTENT_FADE_START;
+      const scrub = isMobile ? 0.8 : FOOTER_SCRUB;
+
       const tl = gsap.timeline({
         scrollTrigger: {
           id: "footer-circle-reveal",
@@ -158,7 +162,7 @@ export function Footer({ siteSettings, socialLinks }: FooterContent) {
           start: FOOTER_SCROLL_START,
           end: FOOTER_SCROLL_END,
           pin,
-          scrub: FOOTER_SCRUB,
+          scrub,
           anticipatePin: 1,
           invalidateOnRefresh: true,
         },
@@ -179,7 +183,7 @@ export function Footer({ siteSettings, socialLinks }: FooterContent) {
         content,
         { opacity: 0, y: 36 },
         { opacity: 1, y: 0, duration: CONTENT_FADE_DUR, ease: "none" },
-        CONTENT_FADE_START,
+        contentFadeStart,
       );
 
       if (scrollProgress) {
@@ -187,7 +191,7 @@ export function Footer({ siteSettings, socialLinks }: FooterContent) {
           scrollProgress,
           { opacity: 1 },
           { opacity: 0, duration: 0.08, ease: "none" },
-          CONTENT_FADE_START,
+          contentFadeStart,
         );
       }
 

@@ -10,7 +10,7 @@
   --color-accent: #ff1e00;
 
   /* Typography */
-  --text-body-lg: clamp(1.35rem, 2.65vw, 2.65rem);
+  --text-body-lg: clamp(1.5rem, 3.2vw, 3.2rem);
   --text-body: 1rem;
   --text-label: 0.8125rem;
   --text-heading-section: clamp(2rem, 5vw, 2.5rem);
@@ -300,6 +300,20 @@ body {
 .hero-photo-parallax {
   transform-origin: center bottom;
   backface-visibility: hidden;
+}
+
+/* Portrait image — responsive object-fit/position */
+.hero-portrait-img {
+  object-fit: contain;
+  object-position: bottom center;
+}
+
+@media (max-width: 39.9375rem) {
+  /* Cover fills the frame, center top keeps head visible without letterboxing gap */
+  .hero-portrait-img {
+    object-fit: cover;
+    object-position: center top;
+  }
 }
 
 .hero-edge-fade {
@@ -756,7 +770,7 @@ body {
 }
 
 .hero-reveal-copy.text-body-lg {
-  max-width: min(96vw, 52rem);
+  max-width: min(96vw, 72rem);
   overflow-wrap: normal;
   word-break: normal;
 }

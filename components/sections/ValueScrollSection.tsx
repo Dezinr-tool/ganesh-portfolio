@@ -15,13 +15,6 @@ import {
   VALUE_SCROLL_TEXT,
   type ValueScrollCard,
 } from "@/lib/value-scroll/constants";
-import {
-  buildCharPhysics,
-  clearCharPhysics,
-  launchCharExplosion,
-  restoreCharPhysics,
-  type CharPhysicsRuntime,
-} from "@/lib/value-scroll/physics";
 import "./value-scroll.css";
 import "./typography-scroll.css";
 
@@ -39,7 +32,7 @@ function SplitLine({
       {[...text].map((char, index) => (
         <span key={`${char}-${index}`} className="value-scroll__char" aria-hidden="true">
           <span className="value-scroll__char-inner">
-            {char === " " ? "\u00a0" : char}
+            {char === " " ? " " : char}
           </span>
         </span>
       ))}
@@ -47,19 +40,11 @@ function SplitLine({
   );
 }
 
-function ValueCard({
-  card,
-  titleWidth,
-}: {
-  card: ValueScrollCard;
-  titleWidth: string;
-}) {
+function ValueCard({ card }: { card: ValueScrollCard }) {
   return (
     <div className="value-scroll__circle">
       <div className={`value-scroll__media value-scroll__media--${card.tone}`}>
-        <p className="value-scroll__card-title" style={{ width: titleWidth }}>
-          {card.title}
-        </p>
+        <p className="value-scroll__card-title">{card.title}</p>
         <span className="value-scroll__card-index" aria-hidden="true">
           {card.index}
         </span>
@@ -69,7 +54,36 @@ function ValueCard({
   );
 }
 
-const CARD_TITLE_WIDTHS = ["77.2%", "80%", "70.4%", "62%"];
+/** Scatter a batch of char-inner elements outward using GSAP (no physics library). */
+function scatterChars(charEls: HTMLElement[]) {
+  charEls.forEach((char) => {
+    const angle = Math.random() * Math.PI * 2;
+    const dist = 70 + Math.random() * 220;
+    gsap.to(char, {
+      x: Math.cos(angle) * dist,
+      y: Math.sin(angle) * dist - 90,
+      rotation: (Math.random() - 0.5) * 320,
+      autoAlpha: 0,
+      duration: 0.65,
+      ease: "power3.in",
+      overwrite: true,
+    });
+  });
+}
+
+/** Restore scattered chars to their original positions. */
+function restoreChars(charEls: HTMLElement[]) {
+  gsap.to(charEls, {
+    x: 0,
+    y: 0,
+    rotation: 0,
+    autoAlpha: 1,
+    stagger: { each: 0.006, from: "random" },
+    ease: "expo.out",
+    duration: 0.45,
+    overwrite: true,
+  });
+}
 
 export function ValueScrollSection() {
   const rootRef = useRef<HTMLDivElement>(null);
@@ -94,17 +108,9 @@ export function ValueScrollSection() {
       const circles = circlesRef.current;
 
       if (
-        !root ||
-        !textSection ||
-        !textPin ||
-        !textContainer ||
-        !cardsSection ||
-        !cardsPin ||
-        !cardsContainer ||
-        !circles
-      ) {
-        return;
-      }
+        !root || !textSection || !textPin || !textContainer ||
+        !cardsSection || !cardsPin || !cardsContainer || !circles
+      ) return;
 
       registerGsapPlugins();
 
@@ -115,9 +121,6 @@ export function ValueScrollSection() {
       const headline = textContainer.querySelector<HTMLElement>(headlineSelector);
       if (!headline) return;
 
-      const paragraphs = gsap.utils.toArray<HTMLElement>(
-        headline.querySelectorAll(".value-scroll__paragraph"),
-      );
       const chars = gsap.utils.toArray<HTMLElement>(
         headline.querySelectorAll(".value-scroll__char-inner"),
       );
@@ -127,19 +130,9 @@ export function ValueScrollSection() {
       const cardEls = gsap.utils.toArray<HTMLElement>(
         circles.querySelectorAll(".value-scroll__circle"),
       );
+      const CARD_COUNT = cardEls.length;
 
-      cardEls.forEach((card) => {
-        const media = card.querySelector<HTMLElement>(".value-scroll__media");
-        if (media) gsap.set(media, { clearProps: "transform" });
-      });
-
-      if (reducedMotion) {
-        gsap.set(chars, { autoAlpha: 1 });
-        gsap.set(cardEls, { autoAlpha: 1, scale: 1, rotation: 0 });
-        circles.style.transform = "";
-        return;
-      }
-
+      // ── Mobile: simple fade-in, no scroll-pin ──
       if (isMobile) {
         gsap.set(chars, { autoAlpha: 0 });
         gsap.to(chars, {
@@ -157,171 +150,139 @@ export function ValueScrollSection() {
         return;
       }
 
-      paragraphs.forEach((paragraph) => {
-        paragraph.style.height = `${paragraph.clientHeight}px`;
-      });
+      // ── Desktop ──
 
+      // Fix paragraph heights so pin doesn't collapse them
+      const paragraphs = gsap.utils.toArray<HTMLElement>(
+        headline.querySelectorAll(".value-scroll__paragraph"),
+      );
+      paragraphs.forEach((p) => { p.style.height = `${p.clientHeight}px`; });
+
+      // Chars start visible; reveal via scroll as headline enters viewport
       gsap.set(chars, { autoAlpha: 1 });
 
       let headlineRevealCleanup: (() => void) | undefined;
-
       if (charWrappers.length) {
         headlineRevealCleanup = bindTypographyScrollReveal(
           headline,
           ".value-scroll__char",
-          {
-            id: "value-scroll-headline-letters",
-            start: "top 85%",
-            end: "top 25%",
-            scrub: 1,
-            stagger: 0.04,
-          },
+          { id: "value-scroll-headline-letters", start: "top 85%", end: "top 25%", scrub: 1, stagger: 0.04 },
         );
       }
 
+      // ── Text pin: holds while cards rise ──
+      // Text stays pinned for the FULL interaction — cards rise on top of it.
+      // Ends only when the cards pin scroll space is exhausted.
       const textPinTrigger = ScrollTrigger.create({
         id: "value-scroll-text-pin",
         trigger: textPin,
         start: "top top",
-        endTrigger: cardsSection,
-        end: "top top",
+        endTrigger: cardsPin,
+        end: "bottom top",
         pin: textContainer,
         anticipatePin: 1,
       });
 
-      const rotationStep = VALUE_SCROLL_LAYOUT.cardRotationStep;
-      let activeCardIndex = -1;
-      const firstCard = cardEls[0];
+      // ── Prepare chars: divide into per-card scatter batches ──
+      // Shuffle so each batch has a mix of chars from across the headline
+      const shuffled = [...chars].sort(() => Math.random() - 0.5);
+      const batchSize = Math.ceil(shuffled.length / CARD_COUNT);
+      const charBatches: HTMLElement[][] = Array.from({ length: CARD_COUNT }, (_, i) =>
+        shuffled.slice(i * batchSize, (i + 1) * batchSize)
+      );
 
-      const setActiveCard = (nextIndex: number) => {
-        if (nextIndex === activeCardIndex) return;
+      // ── Prepare cards: all hidden below viewport ──
+      const riseOffset = window.innerHeight * 1.15;
+      cardEls.forEach((card) => {
+        gsap.set(card, { y: riseOffset, rotation: 0, x: 0, scale: 1 });
+      });
 
-        if (nextIndex > activeCardIndex) {
-          const card = cardEls[nextIndex];
-          if (card) {
-            card.classList.add("is-on");
-            gsap.set(card, { rotation: nextIndex * rotationStep });
-            if (nextIndex > 0) {
-              gsap.fromTo(
-                card,
-                { scale: 0.94 },
-                { scale: 1, ease: "elastic.out(0.6, 0.3)", duration: 0.5 },
-              );
-            }
-          }
-        } else if (nextIndex < activeCardIndex) {
-          cardEls[activeCardIndex]?.classList.remove("is-on");
+      const { cardFanRotations, cardFanX } = VALUE_SCROLL_LAYOUT;
+      const scatterFired = new Array(CARD_COUNT).fill(false);
+      let prevCardIndex = -1;
+
+      // ── Per-card scatter triggers (fire once per card; not scrubbed) ──
+      // trigger = cardsPin; start offset per-card quarter
+      charBatches.forEach((batch, i) => {
+        ScrollTrigger.create({
+          id: `value-scroll-scatter-${i}`,
+          trigger: cardsPin,
+          // Each card occupies 25% of the 400vh cardsPin.
+          // Scatter fires at the 10% mark of each card's stage.
+          start: `top+=${i * 25 + 2}% top`,
+          once: true,
+          onEnter: () => scatterChars(batch),
+        });
+      });
+
+      // ── Cards scrub timeline: drive y position ──
+      // Each card rises during its 25% stage (0-15%) then the stage continues
+      const cardsTl = gsap.timeline({ paused: true });
+
+      cardEls.forEach((card, i) => {
+        const stageStart = i / CARD_COUNT;         // 0, 0.25, 0.5, 0.75
+        const riseEnd   = stageStart + 0.15;       // rise complete at 40% of stage
+        const stageEnd  = (i + 1) / CARD_COUNT;
+
+        // Card appears and rises
+        cardsTl
+          .set(card, { autoAlpha: 1 }, stageStart)
+          .fromTo(card,
+            { y: riseOffset, scale: 0.92 },
+            { y: 0, scale: 1, ease: "power2.out" },
+            stageStart,
+          )
+          // Hold card at center for rest of stage
+          .to(card, { y: 0, ease: "none" }, riseEnd);
+
+        // Fan previously settled cards while current card rises
+        for (let j = 0; j < i; j++) {
+          const fanR = cardFanRotations[j] ?? 0;
+          const fanX = cardFanX[j] ?? 0;
+          cardsTl.to(cardEls[j]!, {
+            rotation: fanR,
+            x: fanX,
+            scale: 1 - (i - j) * 0.03,
+            ease: "power2.out",
+          }, stageStart);
         }
+      });
 
-        gsap.to(circles, {
-          rotation: -nextIndex * rotationStep + (rotationStep / 2) * nextIndex,
-          ease: "elastic.out(0.6, 0.3)",
-          duration: 0.5,
-        });
-
-        activeCardIndex = nextIndex;
-      };
-
-      let firstCardRiseTween: gsap.core.Tween | null = null;
-
-      if (firstCard) {
-        const riseOffset = window.innerHeight * 0.55;
-        gsap.set(firstCard, { y: riseOffset });
-
-        firstCardRiseTween = gsap.to(firstCard, {
-          y: 0,
-          ease: "none",
-          scrollTrigger: {
-            id: "value-scroll-first-card-rise",
-            trigger: cardsPin,
-            start: "top bottom",
-            end: "top top",
-            scrub: true,
-            onEnter: () => firstCard.classList.add("is-on"),
-            onLeaveBack: () => {
-              firstCard.classList.remove("is-on");
-              gsap.set(firstCard, { y: riseOffset });
-            },
-          },
-        });
-      }
-
-      const cardIndexFromProgress = (progress: number) =>
-        Math.min(cardEls.length - 1, Math.floor(progress * cardEls.length));
-
+      // ── Cards pin + scrub ──
       const cardsPinTrigger = ScrollTrigger.create({
         id: "value-scroll-cards-pin",
         trigger: cardsPin,
         start: "top top",
         end: "bottom bottom",
         pin: cardsContainer,
-        scrub: true,
+        animation: cardsTl,
+        scrub: 0.7,
         anticipatePin: 1,
-        onEnter: (self) => setActiveCard(cardIndexFromProgress(self.progress)),
-        onUpdate: (self) => setActiveCard(cardIndexFromProgress(self.progress)),
         onLeaveBack: () => {
-          activeCardIndex = -1;
-          cardEls.forEach((card) => card.classList.remove("is-on"));
-          gsap.set(circles, { rotation: 0 });
-          if (firstCard) {
-            gsap.set(firstCard, { y: window.innerHeight * 0.55 });
-          }
+          prevCardIndex = -1;
+          scatterFired.fill(false);
+          cardEls.forEach((card) => {
+            card.classList.remove("is-on");
+            gsap.set(card, { autoAlpha: 0, y: riseOffset, rotation: 0, x: 0, scale: 1 });
+          });
+          restoreChars(chars);
         },
       });
 
-      let physicsRuntime: CharPhysicsRuntime | null = null;
-      let physicsActive = false;
-
-      const cardsHandoffTrigger = ScrollTrigger.create({
-        id: "value-scroll-text-handoff",
+      // Track "is-on" class for visibility
+      ScrollTrigger.create({
+        id: "value-scroll-cards-track",
         trigger: cardsPin,
         start: "top top",
-        onEnter: async () => {
-          if (physicsActive) return;
-          physicsActive = true;
-
-          gsap.set(textContainer, { pointerEvents: "none" });
-
-          const Matter = await import("matter-js");
-          const desktopHeadline = textContainer.querySelector<HTMLElement>(
-            ".value-scroll__headline--desktop",
-          );
-          if (!desktopHeadline) return;
-
-          physicsRuntime = buildCharPhysics(
-            Matter,
-            desktopHeadline,
-            ".value-scroll__char-inner",
-          );
-          launchCharExplosion(Matter, physicsRuntime, gsap);
-          gsap.ticker.add(physicsRuntime.tick);
-
-          gsap.to(textContainer, {
-            autoAlpha: 0,
-            duration: 0.35,
-            delay: 0.2,
-            ease: "power2.in",
-          });
-
-          if (firstCard) {
-            gsap.fromTo(
-              firstCard,
-              { scale: 0.94 },
-              { scale: 1, ease: "elastic.out(0.6, 0.3)", duration: 0.5 },
-            );
+        end: "bottom bottom",
+        onUpdate: (self) => {
+          const idx = Math.min(CARD_COUNT - 1, Math.floor(self.progress * CARD_COUNT));
+          if (idx !== prevCardIndex) {
+            for (let i = prevCardIndex + 1; i <= idx; i++) {
+              cardEls[i]?.classList.add("is-on");
+            }
+            prevCardIndex = idx;
           }
-        },
-        onLeaveBack: async () => {
-          if (!physicsActive || !physicsRuntime) return;
-          physicsActive = false;
-          gsap.ticker.remove(physicsRuntime.tick);
-
-          gsap.set(textContainer, { pointerEvents: "auto", autoAlpha: 1 });
-
-          const Matter = await import("matter-js");
-          restoreCharPhysics(Matter, physicsRuntime, gsap);
-          clearCharPhysics(Matter, physicsRuntime);
-          physicsRuntime = null;
         },
       });
 
@@ -331,15 +292,11 @@ export function ValueScrollSection() {
         headlineRevealCleanup?.();
         textPinTrigger.kill();
         cardsPinTrigger.kill();
-        cardsHandoffTrigger.kill();
-        firstCardRiseTween?.scrollTrigger?.kill();
-        firstCardRiseTween?.kill();
-        if (physicsRuntime) {
-          gsap.ticker.remove(physicsRuntime.tick);
-          import("matter-js").then((Matter) => {
-            clearCharPhysics(Matter, physicsRuntime);
-          });
+        ScrollTrigger.getById("value-scroll-cards-track")?.kill();
+        for (let i = 0; i < CARD_COUNT; i++) {
+          ScrollTrigger.getById(`value-scroll-scatter-${i}`)?.kill();
         }
+        cardsTl.kill();
       };
     },
     { scope: rootRef, dependencies: [reducedMotion] },
@@ -354,9 +311,7 @@ export function ValueScrollSection() {
         className="value-scroll__text"
         aria-labelledby="value-scroll-heading"
       >
-        <h2 id="value-scroll-heading" className="sr-only">
-          {srText}
-        </h2>
+        <h2 id="value-scroll-heading" className="sr-only">{srText}</h2>
         <div ref={textPinRef} className="value-scroll__text-pin">
           <div ref={textContainerRef} className="value-scroll__text-container">
             <div className="value-scroll__headline value-scroll__headline--desktop">
@@ -380,7 +335,6 @@ export function ValueScrollSection() {
       <section
         ref={cardsSectionRef}
         className="value-scroll__cards"
-        style={{ marginTop: VALUE_SCROLL_LAYOUT.cardsMarginTop }}
         aria-label="Capabilities"
       >
         <div ref={cardsPinRef} className="value-scroll__cards-pin">
@@ -389,12 +343,8 @@ export function ValueScrollSection() {
             className="value-scroll__cards-container overflow-hidden"
           >
             <div ref={circlesRef} className="value-scroll__circles">
-              {VALUE_SCROLL_CARDS.map((card, index) => (
-                <ValueCard
-                  key={card.id}
-                  card={card}
-                  titleWidth={CARD_TITLE_WIDTHS[index] ?? "100%"}
-                />
+              {VALUE_SCROLL_CARDS.map((card) => (
+                <ValueCard key={card.id} card={card} />
               ))}
             </div>
           </div>
