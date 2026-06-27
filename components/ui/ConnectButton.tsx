@@ -1,5 +1,6 @@
 "use client";
 
+import { Calendar, Mail, MessageCircle, Phone, X } from "lucide-react";
 import "./connect-button.css";
 import { useEffect, useRef, useState } from "react";
 
@@ -13,7 +14,8 @@ const CONTACT = {
 type Option = {
   id: string;
   label: string;
-  icon: string;
+  sublabel: string;
+  icon: React.ReactNode;
   href: string;
 };
 
@@ -21,25 +23,29 @@ const OPTIONS: Option[] = [
   {
     id: "email",
     label: "Send an email",
-    icon: "✉",
+    sublabel: CONTACT.email,
+    icon: <Mail size={20} strokeWidth={1.5} />,
     href: `mailto:${CONTACT.email}`,
   },
   {
     id: "call",
     label: "Call me",
-    icon: "✆",
+    sublabel: "73044 92888",
+    icon: <Phone size={20} strokeWidth={1.5} />,
     href: `tel:+917304492888`,
   },
   {
     id: "whatsapp",
     label: "WhatsApp",
-    icon: "⊕",
+    sublabel: "Chat on WhatsApp",
+    icon: <MessageCircle size={20} strokeWidth={1.5} />,
     href: `https://wa.me/917304492888?text=${encodeURIComponent(CONTACT.whatsappMsg)}`,
   },
   {
     id: "calendly",
     label: "Schedule a meeting",
-    icon: "◷",
+    sublabel: "Pick a time on Calendly",
+    icon: <Calendar size={20} strokeWidth={1.5} />,
     href: CONTACT.calendly,
   },
 ];
@@ -76,7 +82,7 @@ export function ConnectButton() {
       aria-label="Connect with Ganesh"
     >
       <div className={`connect-btn__panel${open ? " is-open" : ""}`}>
-        {OPTIONS.map((opt) => (
+        {OPTIONS.map((opt, i) => (
           <a
             key={opt.id}
             href={opt.href}
@@ -85,11 +91,11 @@ export function ConnectButton() {
             className="connect-btn__option"
             onClick={() => setOpen(false)}
           >
-            <span className="connect-btn__option-icon" aria-hidden="true">
-              {opt.icon}
+            <span className="connect-btn__option-icon">{opt.icon}</span>
+            <span className="connect-btn__option-text">
+              <span className="connect-btn__option-label">{opt.label}</span>
+              <span className="connect-btn__option-sublabel">{opt.sublabel}</span>
             </span>
-            <span className="connect-btn__option-label">{opt.label}</span>
-            <span className="connect-btn__option-arrow" aria-hidden="true">↗</span>
           </a>
         ))}
       </div>
@@ -101,10 +107,11 @@ export function ConnectButton() {
         aria-haspopup="true"
       >
         <span className="connect-btn__dot" aria-hidden="true" />
-        <span className="connect-btn__label">CONNECT WITH ME</span>
-        <span className="connect-btn__chevron" aria-hidden="true">
-          {open ? "✕" : "↑"}
-        </span>
+        {open ? (
+          <X size={14} strokeWidth={2} className="connect-btn__close-icon" aria-hidden="true" />
+        ) : (
+          <span className="connect-btn__label">CONNECT WITH ME</span>
+        )}
       </button>
     </div>
   );

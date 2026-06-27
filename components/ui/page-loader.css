@@ -2,6 +2,17 @@ html.page-loader-active {
   overflow: hidden;
 }
 
+/* Mask all page content before React hydrates the loader component.
+   The loader itself is position:fixed z-index:100000 so it paints on top.
+   Without this, the hero flashes for ~1s before the loader mounts. */
+html.page-loader-active body > * {
+  visibility: hidden;
+}
+
+html.page-loader-active [data-page-loader] {
+  visibility: visible;
+}
+
 .page-loader {
   --hero-radius: clamp(90px, 13.1vw, 156px);
   --sub-radius: clamp(69px, 9vw, 123px);
