@@ -1,11 +1,11 @@
-/* MWG-style scroll headline + fanned cards — light theme (#FFFFFF / #111111) */
+/* MWG-style scroll headline + fanned cards — dark theme matching madewithgsap.com */
 
 .value-scroll {
   position: relative;
   z-index: 12;
   isolation: isolate;
-  color: #111111;
-  background: #ffffff;
+  color: #ffffff;
+  background: #111111;
 }
 
 /* ── Headline ── */
@@ -26,7 +26,7 @@
   place-items: center;
   height: 100vh;
   overflow: hidden;
-  background: #ffffff;
+  background: #111111;
 }
 
 .value-scroll__headline {
@@ -51,7 +51,7 @@
   font-weight: 500;
   line-height: 0.95;
   letter-spacing: -0.02em;
-  color: #111111;
+  color: #ffffff;
 }
 
 .value-scroll__char {
@@ -127,19 +127,20 @@
   text-align: center;
 }
 
-.value-scroll__media--mint   { background: #71cfa3; }
-.value-scroll__media--yellow { background: #c9fe6e; }
-.value-scroll__media--sky    { background: #bcefff; }
-.value-scroll__media--grey   { background: #f3f3f3; }
+.value-scroll__media--mint   { background: #4ade80; }
+.value-scroll__media--yellow { background: #a3e635; }
+.value-scroll__media--sky    { background: #7dd3fc; }
+.value-scroll__media--grey   { background: #e2e8f0; }
 
 .value-scroll__card-title {
   margin: 0 auto;
   padding: 0 8%;
   font-family: var(--font-display);
   font-size: clamp(1.75rem, 4vw, 2.35rem);
-  font-weight: 600;
+  font-weight: 700;
   line-height: 0.95;
   letter-spacing: -0.03em;
+  text-transform: uppercase;
   color: #111111;
 }
 
@@ -153,6 +154,7 @@
   line-height: 1;
   opacity: 0.2;
   pointer-events: none;
+  color: #111111;
 }
 
 .value-scroll__card-body {
@@ -193,7 +195,7 @@
   }
 
   .value-scroll__paragraph--accent {
-    color: rgb(17 17 17 / 0.45);
+    color: rgb(255 255 255 / 0.45);
   }
 
   .value-scroll__cards {
