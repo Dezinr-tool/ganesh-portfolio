@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { Menu } from "lucide-react";
+import { MenuIcon, type MenuIconHandle } from "./MenuIcon";
 import "./site-nav.css";
 
 const NAV_LINKS = [
@@ -50,12 +50,13 @@ const EMAIL = "hello@designbyganesh.com";
 export function SiteNav() {
   const [open, setOpen] = useState(false);
   const panelRef = useRef<HTMLDivElement>(null);
+  const menuIconRef = useRef<MenuIconHandle>(null);
 
   // Close on Escape
   useEffect(() => {
     if (!open) return;
     const handler = (e: KeyboardEvent) => {
-      if (e.key === "Escape") setOpen(false);
+      if (e.key === "Escape") { setOpen(false); menuIconRef.current?.stopAnimation(); }
     };
     document.addEventListener("keydown", handler);
     return () => document.removeEventListener("keydown", handler);
@@ -68,7 +69,7 @@ export function SiteNav() {
   }, [open]);
 
   const handleNavClick = (href: string) => {
-    setOpen(false);
+    setOpen(false); menuIconRef.current?.stopAnimation();
     // Smooth scroll after panel closes
     setTimeout(() => {
       const id = href.replace("#", "");
@@ -81,18 +82,18 @@ export function SiteNav() {
       {/* Trigger pill */}
       <button
         className={`site-nav__trigger${open ? " is-open" : ""}`}
-        onClick={() => setOpen(true)}
+        onClick={() => { setOpen(true); menuIconRef.current?.startAnimation(); }}
         aria-label="Open navigation"
         aria-expanded={open}
       >
-        <Menu className="site-nav__trigger-icon" size={14} strokeWidth={1.5} aria-hidden="true" />
+        <MenuIcon ref={menuIconRef} className="site-nav__trigger-icon" size={14} aria-hidden="true" />
         <span className="site-nav__trigger-label">menu</span>
       </button>
 
       {/* Backdrop */}
       <div
         className={`site-nav__backdrop${open ? " is-open" : ""}`}
-        onClick={() => setOpen(false)}
+        onClick={() => { setOpen(false); menuIconRef.current?.stopAnimation(); }}
         aria-hidden="true"
       />
 
@@ -108,7 +109,7 @@ export function SiteNav() {
           {/* Close */}
           <button
             className="site-nav__close"
-            onClick={() => setOpen(false)}
+            onClick={() => { setOpen(false); menuIconRef.current?.stopAnimation(); }}
             aria-label="Close navigation"
           >
             <span>close</span>
