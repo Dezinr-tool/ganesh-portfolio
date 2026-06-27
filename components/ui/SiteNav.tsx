@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { Menu } from "lucide-react";
 import "./site-nav.css";
 
 const NAV_LINKS = [
@@ -84,7 +85,7 @@ export function SiteNav() {
         aria-label="Open navigation"
         aria-expanded={open}
       >
-        <span className="site-nav__trigger-dot" aria-hidden="true" />
+        <Menu className="site-nav__trigger-icon" size={14} strokeWidth={1.5} aria-hidden="true" />
         <span className="site-nav__trigger-label">menu</span>
       </button>
 

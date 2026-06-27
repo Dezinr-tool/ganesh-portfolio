@@ -12,7 +12,7 @@
   gap: 8px;
   padding: 10px 16px;
   background: transparent;
-  border: 1px solid #ffffff;
+  border: 1px solid rgba(255, 255, 255, 0.45);
   border-radius: 999px;
   cursor: pointer;
   transition: opacity 0.2s ease;
@@ -28,18 +28,15 @@
   pointer-events: none;
 }
 
-.site-nav__trigger-dot {
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  background: #ffffff;
+.site-nav__trigger-icon {
   flex-shrink: 0;
-  animation: nav-pulse 2.4s ease-in-out infinite;
+  color: #ffffff;
+  animation: nav-spin 8s linear infinite;
 }
 
-@keyframes nav-pulse {
-  0%, 100% { opacity: 1; }
-  50%       { opacity: 0.3; }
+@keyframes nav-spin {
+  0%   { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
 }
 
 .site-nav__trigger-label {
