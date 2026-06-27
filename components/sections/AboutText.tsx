@@ -39,11 +39,12 @@ export function AboutText({ sectionLabel, bodyText }: AboutTextProps) {
         id: "about-copy-highlight",
         trigger: section,
         start: "top top",
-        end: "+=120%",
+        end: "+=200%",
         pin: true,
         scrub: 0.5,
         anticipatePin: 1,
         onUpdate: (self) => applyRevealCopyHighlight(chars, self.progress),
+        onLeave: () => applyRevealCopyHighlight(chars, 1),
       });
 
       return () => {
@@ -57,7 +58,7 @@ export function AboutText({ sectionLabel, bodyText }: AboutTextProps) {
     <section
       ref={sectionRef}
       id="about"
-      className="relative isolate z-10 flex h-svh min-h-svh w-full items-center justify-center bg-[var(--color-bg)] text-[var(--color-text)]"
+      className="relative isolate z-20 flex h-svh min-h-svh w-full items-center justify-center bg-[var(--color-bg)] text-[var(--color-text)]"
       aria-label="About me"
     >
       <div className="mx-auto flex w-full max-w-[min(96vw,76rem)] flex-col items-center px-5 text-center sm:px-8 lg:px-12">
