@@ -58,13 +58,13 @@ function ValueCard({ card }: { card: ValueScrollCard }) {
 function scatterChars(charEls: HTMLElement[]) {
   charEls.forEach((char) => {
     const angle = Math.random() * Math.PI * 2;
-    const dist = 70 + Math.random() * 220;
+    const dist = 200 + Math.random() * 500;
     gsap.to(char, {
       x: Math.cos(angle) * dist,
-      y: Math.sin(angle) * dist - 90,
-      rotation: (Math.random() - 0.5) * 320,
+      y: Math.sin(angle) * dist - 120,
+      rotation: (Math.random() - 0.5) * 400,
       autoAlpha: 0,
-      duration: 0.65,
+      duration: 0.75,
       ease: "power3.in",
       overwrite: true,
     });

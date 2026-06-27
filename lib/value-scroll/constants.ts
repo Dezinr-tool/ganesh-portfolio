@@ -50,13 +50,13 @@ export const VALUE_SCROLL_CARDS: ValueScrollCard[] = [
 export const VALUE_SCROLL_LAYOUT = {
   // Text section: shorter pin so cards arrive sooner
   textMarginTop: "-35vh",
-  textPinHeight: "400vh",       // was 700vh — reduced for snappier feel
+  textPinHeight: "400vh",
   // Cards section: each card gets 100vh of scroll
-  cardsMarginTop: "-300vh",     // was -400vh
+  cardsMarginTop: "-300vh",
   cardsPinHeight: "400vh",      // 4 cards × 100vh each
   // Card visual
-  cardMaxWidth: 338,
-  // Fan rotation per card index (applied when next card arrives)
-  cardFanRotations: [-7, -2, 2, 7],   // degrees, outer to inner
-  cardFanX: [-18, -6, 6, 18],         // px horizontal offset
+  cardMaxWidth: 420,
+  // Fan rotation per card index — dramatic spread matching MWG reference
+  cardFanRotations: [-22, -9, 9, 22],
+  cardFanX: [-90, -32, 32, 90],        // px horizontal offset
 };

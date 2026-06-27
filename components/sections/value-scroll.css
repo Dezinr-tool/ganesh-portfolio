@@ -89,8 +89,7 @@
 /* Stack — all cards centered on top of each other */
 .value-scroll__circles {
   position: relative;
-  width: 338px;
-  max-width: 90vw;
+  width: min(420px, 85vw);
   /* height driven by aspect-ratio of media */
 }
 
@@ -136,10 +135,10 @@
   margin: 0 auto;
   padding: 0 8%;
   font-family: var(--font-display);
-  font-size: clamp(1.75rem, 4vw, 2.35rem);
+  font-size: clamp(2.1rem, 5.5vw, 3rem);
   font-weight: 700;
-  line-height: 0.95;
-  letter-spacing: -0.03em;
+  line-height: 0.9;
+  letter-spacing: -0.02em;
   text-transform: uppercase;
   color: #111111;
 }
@@ -160,9 +159,11 @@
 .value-scroll__card-body {
   margin: auto 0 0;
   padding: 0 8%;
-  font-size: 0.9375rem;
-  line-height: 1.45;
+  font-size: clamp(0.8rem, 1.6vw, 1rem);
+  line-height: 1.5;
   color: #111111;
+  font-style: italic;
+  opacity: 0.75;
 }
 
 /* ── Mobile ── */
