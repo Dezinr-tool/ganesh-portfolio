@@ -72,6 +72,7 @@ export default async function RootLayout({
     <html
       lang="en"
       className={`${inter.variable} ${breton.variable} ${machine.variable} h-full`}
+      suppressHydrationWarning
     >
       <head>
         <script
