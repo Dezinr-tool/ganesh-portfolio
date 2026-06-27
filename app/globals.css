@@ -769,6 +769,13 @@ body {
   pointer-events: none;
 }
 
+/* Fold 2 — pinned About must stack above fold 3 (ValueScroll) during reveal */
+.about-scroll-section {
+  position: relative;
+  z-index: 20;
+  background-color: var(--color-bg);
+}
+
 .hero-reveal-copy.text-body-lg {
   max-width: min(96vw, 72rem);
   overflow-wrap: normal;

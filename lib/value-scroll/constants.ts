@@ -49,7 +49,7 @@ export const VALUE_SCROLL_CARDS: ValueScrollCard[] = [
 
 /** Matches madewithgsap.com h-texts / h-cards layout */
 export const VALUE_SCROLL_LAYOUT = {
-  textMarginTop: "-35vh",
+  textMarginTop: "0",
   textPinHeight: "700vh",
   cardsMarginTop: "-400vh",
   cardsPinHeight: "400vh",

@@ -6,6 +6,7 @@ import {
   splitRevealCopy,
 } from "@/components/sections/AboutRevealCopy";
 import { useGSAP } from "@gsap/react";
+import gsap from "gsap";
 import { registerGsapPlugins } from "@/lib/gsap-scroll";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { useReducedMotion } from "framer-motion";
@@ -34,6 +35,11 @@ export function AboutText({ sectionLabel, bodyText }: AboutTextProps) {
       }
 
       const chars = splitRevealCopy(copyRoot);
+      const pinZIndex = 100;
+
+      const setPinned = (pinned: boolean) => {
+        gsap.set(section, { zIndex: pinned ? pinZIndex : 20 });
+      };
 
       ScrollTrigger.create({
         id: "about-copy-highlight",
@@ -44,7 +50,13 @@ export function AboutText({ sectionLabel, bodyText }: AboutTextProps) {
         scrub: 0.5,
         anticipatePin: 1,
         onUpdate: (self) => applyRevealCopyHighlight(chars, self.progress),
-        onLeave: () => applyRevealCopyHighlight(chars, 1),
+        onEnter: () => setPinned(true),
+        onEnterBack: () => setPinned(true),
+        onLeave: () => {
+          setPinned(false);
+          applyRevealCopyHighlight(chars, 1);
+        },
+        onLeaveBack: () => setPinned(false),
       });
 
       return () => {
@@ -58,7 +70,7 @@ export function AboutText({ sectionLabel, bodyText }: AboutTextProps) {
     <section
       ref={sectionRef}
       id="about"
-      className="relative isolate z-20 flex h-svh min-h-svh w-full items-center justify-center bg-[var(--color-bg)] text-[var(--color-text)]"
+      className="about-scroll-section relative isolate z-20 flex h-svh min-h-svh w-full items-center justify-center bg-[var(--color-bg)] text-[var(--color-text)]"
       aria-label="About me"
     >
       <div className="mx-auto flex w-full max-w-[min(96vw,76rem)] flex-col items-center px-5 text-center sm:px-8 lg:px-12">

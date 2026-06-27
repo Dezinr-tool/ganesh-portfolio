@@ -2,7 +2,7 @@
 
 .value-scroll {
   position: relative;
-  z-index: 12;
+  z-index: 1;
   isolation: isolate;
   color: #ffffff;
   background: #111111;
@@ -14,7 +14,8 @@
 .value-scroll__text {
   position: relative;
   z-index: 1;
-  margin-top: -35vh;
+  /* No negative margin — About (fold 2) pins above; -35vh caused fold 3 to overlap early */
+  margin-top: 0;
   text-align: center;
 }
 
