@@ -56,7 +56,8 @@ export const VALUE_SCROLL_LAYOUT = {
   cardsPinHeight: "400vh",      // 4 cards × 100vh each
   // Card visual
   cardMaxWidth: 420,
-  // Fan rotation per card index — dramatic spread matching MWG reference
-  cardFanRotations: [-22, -9, 9, 22],
-  cardFanX: [-90, -32, 32, 90],        // px horizontal offset
+  // Fan rotations — index 0 = deepest card (most tilted), index 3 = front card
+  // New card always arrives straight; previous cards pushed into fan positions
+  cardFanRotations: [-22, -13, -6, 0],
+  cardFanX: [-70, -40, -16, 0],        // px — all fan to the left
 };

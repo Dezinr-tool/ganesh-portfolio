@@ -6,6 +6,7 @@
   isolation: isolate;
   color: #ffffff;
   background: #111111;
+  overflow: clip; /* contain scattered letters inside section */
 }
 
 /* ── Headline ── */
@@ -25,7 +26,7 @@
   display: grid;
   place-items: center;
   height: 100vh;
-  overflow: hidden;
+  overflow: visible; /* allow scattered letters to fly outside bounds */
   background: #111111;
 }
 
@@ -56,7 +57,7 @@
 
 .value-scroll__char {
   display: inline-block;
-  overflow: hidden;
+  /* no overflow: hidden — letters must be able to fly outside their box */
 }
 
 .value-scroll__char-inner {
@@ -99,7 +100,7 @@
   left: 0;
   width: 100%;
   visibility: hidden;
-  transform-origin: 50% 100%; /* fan from bottom */
+  transform-origin: 50% 60%; /* fan pivot near bottom-center of card */
   will-change: transform;
 }
 

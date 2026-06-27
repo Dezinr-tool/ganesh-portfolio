@@ -54,58 +54,58 @@ function ValueCard({ card }: { card: ValueScrollCard }) {
   );
 }
 
-/** Scatter a batch of char-inner elements outward using GSAP (no physics library). */
+/** Scatter ALL chars at once — fires once when first card hits the headline. */
 function scatterChars(charEls: HTMLElement[]) {
   charEls.forEach((char) => {
     const angle = Math.random() * Math.PI * 2;
-    const dist = 200 + Math.random() * 500;
+    const dist  = 250 + Math.random() * 550;   // fly to screen edges
     gsap.to(char, {
       x: Math.cos(angle) * dist,
-      y: Math.sin(angle) * dist - 120,
-      rotation: (Math.random() - 0.5) * 400,
+      y: Math.sin(angle) * dist - 80,
+      rotation: (Math.random() - 0.5) * 420,
       autoAlpha: 0,
-      duration: 0.75,
+      duration: 0.8,
       ease: "power3.in",
       overwrite: true,
     });
   });
 }
 
-/** Restore scattered chars to their original positions. */
+/** Restore chars back to original positions (on scroll-back). */
 function restoreChars(charEls: HTMLElement[]) {
   gsap.to(charEls, {
     x: 0,
     y: 0,
     rotation: 0,
     autoAlpha: 1,
-    stagger: { each: 0.006, from: "random" },
+    stagger: { each: 0.007, from: "random" },
     ease: "expo.out",
-    duration: 0.45,
+    duration: 0.5,
     overwrite: true,
   });
 }
 
 export function ValueScrollSection() {
-  const rootRef = useRef<HTMLDivElement>(null);
-  const textSectionRef = useRef<HTMLElement>(null);
-  const textPinRef = useRef<HTMLDivElement>(null);
+  const rootRef          = useRef<HTMLDivElement>(null);
+  const textSectionRef   = useRef<HTMLElement>(null);
+  const textPinRef       = useRef<HTMLDivElement>(null);
   const textContainerRef = useRef<HTMLDivElement>(null);
-  const cardsSectionRef = useRef<HTMLElement>(null);
-  const cardsPinRef = useRef<HTMLDivElement>(null);
-  const cardsContainerRef = useRef<HTMLDivElement>(null);
-  const circlesRef = useRef<HTMLDivElement>(null);
-  const reducedMotion = useReducedMotion() ?? false;
+  const cardsSectionRef  = useRef<HTMLElement>(null);
+  const cardsPinRef      = useRef<HTMLDivElement>(null);
+  const cardsContainerRef= useRef<HTMLDivElement>(null);
+  const circlesRef       = useRef<HTMLDivElement>(null);
+  const reducedMotion    = useReducedMotion() ?? false;
 
   useGSAP(
     () => {
-      const root = rootRef.current;
-      const textSection = textSectionRef.current;
-      const textPin = textPinRef.current;
-      const textContainer = textContainerRef.current;
-      const cardsSection = cardsSectionRef.current;
-      const cardsPin = cardsPinRef.current;
+      const root           = rootRef.current;
+      const textSection    = textSectionRef.current;
+      const textPin        = textPinRef.current;
+      const textContainer  = textContainerRef.current;
+      const cardsSection   = cardsSectionRef.current;
+      const cardsPin       = cardsPinRef.current;
       const cardsContainer = cardsContainerRef.current;
-      const circles = circlesRef.current;
+      const circles        = circlesRef.current;
 
       if (
         !root || !textSection || !textPin || !textContainer ||
@@ -132,7 +132,7 @@ export function ValueScrollSection() {
       );
       const CARD_COUNT = cardEls.length;
 
-      // ── Mobile: simple fade-in, no scroll-pin ──
+      // ── Mobile: simple reveal, no scroll-pin ──
       if (isMobile) {
         gsap.set(chars, { autoAlpha: 0 });
         gsap.to(chars, {
@@ -158,9 +158,8 @@ export function ValueScrollSection() {
       );
       paragraphs.forEach((p) => { p.style.height = `${p.clientHeight}px`; });
 
-      // Chars start visible; reveal via scroll as headline enters viewport
+      // Letters start visible; scroll-reveal as headline enters viewport
       gsap.set(chars, { autoAlpha: 1 });
-
       let headlineRevealCleanup: (() => void) | undefined;
       if (charWrappers.length) {
         headlineRevealCleanup = bindTypographyScrollReveal(
@@ -170,9 +169,7 @@ export function ValueScrollSection() {
         );
       }
 
-      // ── Text pin: holds while cards rise ──
-      // Text stays pinned for the FULL interaction — cards rise on top of it.
-      // Ends only when the cards pin scroll space is exhausted.
+      // ── Text pin: stays visible while cards rise over it ──
       const textPinTrigger = ScrollTrigger.create({
         id: "value-scroll-text-pin",
         trigger: textPin,
@@ -183,72 +180,70 @@ export function ValueScrollSection() {
         anticipatePin: 1,
       });
 
-      // ── Prepare chars: divide into per-card scatter batches ──
-      // Shuffle so each batch has a mix of chars from across the headline
-      const shuffled = [...chars].sort(() => Math.random() - 0.5);
-      const batchSize = Math.ceil(shuffled.length / CARD_COUNT);
-      const charBatches: HTMLElement[][] = Array.from({ length: CARD_COUNT }, (_, i) =>
-        shuffled.slice(i * batchSize, (i + 1) * batchSize)
-      );
-
-      // ── Prepare cards: all hidden below viewport ──
-      const riseOffset = window.innerHeight * 1.15;
+      // ── All cards start hidden below viewport ──
+      const riseOffset = window.innerHeight * 1.2;
       cardEls.forEach((card) => {
-        gsap.set(card, { y: riseOffset, rotation: 0, x: 0, scale: 1 });
+        gsap.set(card, { autoAlpha: 0, y: riseOffset, rotation: 0, x: 0, scale: 1 });
       });
 
       const { cardFanRotations, cardFanX } = VALUE_SCROLL_LAYOUT;
-      const scatterFired = new Array(CARD_COUNT).fill(false);
-      let prevCardIndex = -1;
 
-      // ── Per-card scatter triggers (fire once per card; not scrubbed) ──
-      // trigger = cardsPin; start offset per-card quarter
-      charBatches.forEach((batch, i) => {
-        ScrollTrigger.create({
-          id: `value-scroll-scatter-${i}`,
-          trigger: cardsPin,
-          // Each card occupies 25% of the 400vh cardsPin.
-          // Scatter fires at the 10% mark of each card's stage.
-          start: `top+=${i * 25 + 2}% top`,
-          once: true,
-          onEnter: () => scatterChars(batch),
-        });
+      // ── Single scatter: ALL letters at once when card 1 hits the headline ──
+      // Fires at 8% into the cardsPin scroll space (card 1 is fully risen by then)
+      let scatterFired = false;
+      const scatterTrigger = ScrollTrigger.create({
+        id: "value-scroll-scatter",
+        trigger: cardsPin,
+        start: "top+=8% top",
+        once: true,
+        onEnter: () => {
+          scatterFired = true;
+          scatterChars(chars);
+        },
       });
 
-      // ── Cards scrub timeline: drive y position ──
-      // Each card rises during its 25% stage (0-15%) then the stage continues
+      // ── Cards scrub timeline ──
+      // Each card occupies 1/CARD_COUNT of the total scroll space.
+      // Card rises in the first 60% of its stage; remaining 40% is hold.
+      // As each new card rises, all previous cards fan into deck position.
       const cardsTl = gsap.timeline({ paused: true });
 
       cardEls.forEach((card, i) => {
-        const stageStart = i / CARD_COUNT;         // 0, 0.25, 0.5, 0.75
-        const riseEnd   = stageStart + 0.15;       // rise complete at 40% of stage
-        const stageEnd  = (i + 1) / CARD_COUNT;
+        const stageStart = i / CARD_COUNT;          // 0, 0.25, 0.5, 0.75
+        const riseEnd    = stageStart + 0.15;        // rise completes at 15% of stage
 
-        // Card appears and rises
+        // Show and rise card
         cardsTl
           .set(card, { autoAlpha: 1 }, stageStart)
-          .fromTo(card,
-            { y: riseOffset, scale: 0.92 },
-            { y: 0, scale: 1, ease: "power2.out" },
+          .fromTo(
+            card,
+            { y: riseOffset, scale: 0.9 },
+            { y: 0, scale: 1, ease: "power3.out" },
             stageStart,
           )
-          // Hold card at center for rest of stage
-          .to(card, { y: 0, ease: "none" }, riseEnd);
+          .to(card, { y: 0, ease: "none" }, riseEnd); // hold
 
-        // Fan previously settled cards while current card rises
+        // Fan all previous cards as this one arrives
         for (let j = 0; j < i; j++) {
-          const fanR = cardFanRotations[j] ?? 0;
-          const fanX = cardFanX[j] ?? 0;
-          cardsTl.to(cardEls[j]!, {
-            rotation: fanR,
-            x: fanX,
-            scale: 1 - (i - j) * 0.03,
-            ease: "power2.out",
-          }, stageStart);
+          // Each previous card fans more as depth increases
+          const fanDepth = i - j;   // 1 = directly behind front card
+          const fanR = cardFanRotations[CARD_COUNT - 1 - (i - j)] ?? cardFanRotations[0] ?? -20;
+          const fanX = cardFanX[CARD_COUNT - 1 - (i - j)] ?? cardFanX[0] ?? -60;
+          cardsTl.to(
+            cardEls[j]!,
+            {
+              rotation: fanR,
+              x: fanX,
+              scale: 1 - fanDepth * 0.04,
+              ease: "power2.out",
+            },
+            stageStart,
+          );
         }
       });
 
-      // ── Cards pin + scrub ──
+      // ── Cards pin with scrubbed timeline ──
+      let prevCardIndex = -1;
       const cardsPinTrigger = ScrollTrigger.create({
         id: "value-scroll-cards-pin",
         trigger: cardsPin,
@@ -256,11 +251,11 @@ export function ValueScrollSection() {
         end: "bottom bottom",
         pin: cardsContainer,
         animation: cardsTl,
-        scrub: 0.7,
+        scrub: 0.6,
         anticipatePin: 1,
         onLeaveBack: () => {
           prevCardIndex = -1;
-          scatterFired.fill(false);
+          scatterFired = false;
           cardEls.forEach((card) => {
             card.classList.remove("is-on");
             gsap.set(card, { autoAlpha: 0, y: riseOffset, rotation: 0, x: 0, scale: 1 });
@@ -269,7 +264,7 @@ export function ValueScrollSection() {
         },
       });
 
-      // Track "is-on" class for visibility
+      // Track active card for visibility class
       ScrollTrigger.create({
         id: "value-scroll-cards-track",
         trigger: cardsPin,
@@ -292,10 +287,8 @@ export function ValueScrollSection() {
         headlineRevealCleanup?.();
         textPinTrigger.kill();
         cardsPinTrigger.kill();
+        scatterTrigger.kill();
         ScrollTrigger.getById("value-scroll-cards-track")?.kill();
-        for (let i = 0; i < CARD_COUNT; i++) {
-          ScrollTrigger.getById(`value-scroll-scatter-${i}`)?.kill();
-        }
         cardsTl.kill();
       };
     },
@@ -305,7 +298,7 @@ export function ValueScrollSection() {
   const srText = [...VALUE_SCROLL_TEXT.desktop].join(" ");
 
   return (
-    <div ref={rootRef} className="value-scroll overflow-x-clip text-[#111111]">
+    <div ref={rootRef} className="value-scroll">
       <section
         ref={textSectionRef}
         className="value-scroll__text"
@@ -338,10 +331,7 @@ export function ValueScrollSection() {
         aria-label="Capabilities"
       >
         <div ref={cardsPinRef} className="value-scroll__cards-pin">
-          <div
-            ref={cardsContainerRef}
-            className="value-scroll__cards-container overflow-hidden"
-          >
+          <div ref={cardsContainerRef} className="value-scroll__cards-container">
             <div ref={circlesRef} className="value-scroll__circles">
               {VALUE_SCROLL_CARDS.map((card) => (
                 <ValueCard key={card.id} card={card} />
