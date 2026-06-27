@@ -176,7 +176,6 @@ export function PageLoader() {
 
     if (readSessionLoaded()) {
       document.documentElement.classList.remove("page-loader-active");
-      // eslint-disable-next-line react-hooks/set-state-in-effect -- avoid loader flash before paint
       setPhase("hidden");
       return;
     }

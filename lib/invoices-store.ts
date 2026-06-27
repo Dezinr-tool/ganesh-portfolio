@@ -68,26 +68,6 @@ function statusToDb(status: InvoiceStatus): string {
   return status.toLowerCase();
 }
 
-const RETURNING_COLS = `
-  id,
-  invoice_number,
-  client_name,
-  client_email,
-  client_company,
-  client_address,
-  issue_date,
-  due_date,
-  line_items,
-  subtotal,
-  tax_percent,
-  COALESCE(processing_fee_percent, ${DEFAULT_PROCESSING_FEE_PERCENT}) AS processing_fee_percent,
-  COALESCE(processing_fee_amount, 0) AS processing_fee_amount,
-  total,
-  notes,
-  status,
-  created_at
-`;
-
 function rowToInvoice(row: InvoiceRow): Invoice {
   const subtotal = parseNumber(row.subtotal);
   const taxPercent =
@@ -200,7 +180,7 @@ export async function createInvoice(input: CreateInvoiceInput): Promise<Invoice>
   const processingFeePercent =
     input.processingFeePercent ?? DEFAULT_PROCESSING_FEE_PERCENT;
 
-  const { subtotal, taxAmount, processingFeeAmount, total } = calculateTotals(
+  const { subtotal, processingFeeAmount, total } = calculateTotals(
     input.lineItems,
     input.taxPercent,
     processingFeePercent,

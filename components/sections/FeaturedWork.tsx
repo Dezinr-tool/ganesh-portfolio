@@ -2,11 +2,18 @@
 
 import { useGSAP } from "@gsap/react";
 import gsap from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { useReducedMotion } from "framer-motion";
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { registerGsapPlugins } from "@/lib/gsap-scroll";
+import {
+  formatOnScreenIndex,
+  hideOnScreen,
+  showOnScreen,
+} from "@/lib/on-screen-counter";
 import { scheduleScrollTriggerRefresh } from "@/lib/scroll-refresh";
+import { bindMwgCharReveal, lockParagraphHeights } from "@/lib/value-scroll/mwg-char-reveal";
 import {
   getProjectsByCategory,
   type WorksCategory,
@@ -21,17 +28,7 @@ function sectionTitleWords(title: string) {
   return title.trim().split(/\s+/).filter(Boolean);
 }
 
-function splitTitleLetters(titleEl: HTMLElement) {
-  return [...titleEl.querySelectorAll<HTMLElement>(".works-gallery__letter")];
-}
-
-function staggerFromCenter(letters: HTMLElement[]) {
-  const center = (letters.length - 1) / 2;
-  return letters
-    .map((letter, index) => ({ letter, index }))
-    .sort((a, b) => Math.abs(a.index - center) - Math.abs(b.index - center))
-    .map(({ letter }) => letter);
-}
+const WORKS_ON_SCREEN_OFFSET = 5;
 
 type FeaturedWorkProps = {
   projects: WorksProject[];
@@ -57,6 +54,7 @@ export function FeaturedWork({
   const [isMobileGallery, setIsMobileGallery] = useState(false);
   const isDraggingRef = useRef(false);
   const isGalleryHoveredRef = useRef(false);
+  const activeIndexRef = useRef(0);
 
   useEffect(() => {
     const mq = window.matchMedia("(max-width: 68.75rem)");
@@ -74,7 +72,11 @@ export function FeaturedWork({
   const activeProject = categoryProjects[activeIndex] ?? categoryProjects[0]!;
 
   const onActiveIndexChange = useCallback((index: number) => {
+    activeIndexRef.current = index;
     setActiveIndex(index);
+    if (document.body.classList.contains("on-screen-on")) {
+      showOnScreen(formatOnScreenIndex(index + WORKS_ON_SCREEN_OFFSET));
+    }
   }, []);
 
   const handleCategoryChange = useCallback((category: WorksCategory) => {
@@ -129,22 +131,51 @@ export function FeaturedWork({
 
       if (!section || !title) return;
 
-      const letters = splitTitleLetters(title);
-      const orderedLetters = staggerFromCenter(letters);
+      lockParagraphHeights([title]);
 
-      gsap.set(orderedLetters, { y: "-120%" });
+      const charRevealCleanup = bindMwgCharReveal(section, ".works-gallery__letter", {
+        id: "works-title-chars",
+        isMobile: window.matchMedia("(max-width: 68.75rem)").matches,
+        endExtraViewports: 2,
+      });
 
-      gsap.to(orderedLetters, {
-        y: "0%",
-        ease: "none",
-        stagger: 0.05,
-        scrollTrigger: {
-          id: "works-title-letters",
-          trigger: title,
-          start: "top 100%",
-          end: "bottom 30%",
-          scrub: 1,
+      let onScreenVisible = false;
+
+      ScrollTrigger.create({
+        id: "works-on-screen",
+        trigger: section,
+        start: "top 55%",
+        end: "bottom bottom",
+        onEnter: () => {
+          showOnScreen(
+            formatOnScreenIndex(activeIndexRef.current + WORKS_ON_SCREEN_OFFSET),
+          );
+          onScreenVisible = true;
         },
+        onEnterBack: () => {
+          showOnScreen(
+            formatOnScreenIndex(activeIndexRef.current + WORKS_ON_SCREEN_OFFSET),
+          );
+          onScreenVisible = true;
+        },
+        onLeave: () => {
+          if (onScreenVisible) hideOnScreen();
+          onScreenVisible = false;
+        },
+        onLeaveBack: () => {
+          if (onScreenVisible) hideOnScreen();
+          onScreenVisible = false;
+        },
+      });
+
+      ScrollTrigger.create({
+        id: "works-title-pin",
+        trigger: section,
+        start: "top top",
+        end: "+=200%",
+        pin: title,
+        pinSpacing: false,
+        anticipatePin: 1,
       });
 
       const fadeTargets = [link, swipePill].filter(Boolean) as HTMLElement[];
@@ -191,6 +222,10 @@ export function FeaturedWork({
 
       return () => {
         window.removeEventListener("mousemove", onMouseMove);
+        charRevealCleanup();
+        ScrollTrigger.getById("works-on-screen")?.kill();
+        ScrollTrigger.getById("works-title-pin")?.kill();
+        if (onScreenVisible) hideOnScreen();
       };
     },
     { scope: sectionRef, dependencies: [reducedMotion] },

@@ -1,4 +1,4 @@
-/* MWG-style scroll headline + fanned cards — dark theme matching madewithgsap.com */
+/* MWG-style h-texts + h-cards — madewithgsap.com */
 
 .value-scroll {
   position: relative;
@@ -6,10 +6,10 @@
   isolation: isolate;
   color: #ffffff;
   background: #111111;
-  overflow: clip; /* contain scattered letters inside section */
+  overflow: clip;
 }
 
-/* ── Headline ── */
+/* ── h-texts headline ── */
 
 .value-scroll__text {
   position: relative;
@@ -19,14 +19,14 @@
 }
 
 .value-scroll__text-pin {
-  height: 400vh;
+  height: 700vh;
 }
 
 .value-scroll__text-container {
   display: grid;
   place-items: center;
   height: 100vh;
-  overflow: visible; /* allow scattered letters to fly outside bounds */
+  overflow: hidden;
   background: #111111;
 }
 
@@ -57,7 +57,6 @@
 
 .value-scroll__char {
   display: inline-block;
-  /* no overflow: hidden — letters must be able to fly outside their box */
 }
 
 .value-scroll__char-inner {
@@ -65,14 +64,14 @@
   will-change: transform, opacity;
 }
 
-/* ── Cards ── */
+/* ── h-cards carousel (exact MWG geometry) ── */
 
 .value-scroll__cards {
   position: relative;
   z-index: 2;
+  margin-top: -400vh;
   text-align: center;
-  color: #111111;
-  margin-top: -300vh;
+  color: #0a0a0b;
 }
 
 .value-scroll__cards-pin {
@@ -80,27 +79,25 @@
 }
 
 .value-scroll__cards-container {
-  display: grid;
-  place-items: center;
   height: 100vh;
   overflow: hidden;
-  background: transparent; /* text container shows through while cards rise */
 }
 
-/* Stack — all cards centered on top of each other */
 .value-scroll__circles {
   position: relative;
-  width: min(420px, 85vw);
-  /* height driven by aspect-ratio of media */
+  width: 3675px;
+  aspect-ratio: 1;
+  margin: 50vh 0 0 calc(-1 * (3675px - 100vw) / 2);
+  transform-origin: 50% 50%;
+  will-change: transform;
 }
 
 .value-scroll__circle {
   position: absolute;
-  top: 0;
-  left: 0;
   width: 100%;
+  height: 100%;
   visibility: hidden;
-  transform-origin: 50% 60%; /* fan pivot near bottom-center of card */
+  transform-origin: 50% 50%;
   will-change: transform;
 }
 
@@ -108,40 +105,45 @@
   visibility: visible;
 }
 
-/* Placeholder height so the container has size even before JS runs */
-.value-scroll__circles::before {
-  content: "";
-  display: block;
-  padding-top: calc(100% / 0.85);
-}
-
 .value-scroll__media {
-  position: absolute;
-  inset: 0;
+  position: relative;
   display: flex;
   flex-direction: column;
   width: 100%;
+  max-width: 338px;
   aspect-ratio: 0.85;
+  margin: 0 auto;
   padding: 2.5rem 0;
   border-radius: 1.25rem;
   text-align: center;
+  transform: translate(0, -54%);
 }
 
-.value-scroll__media--mint   { background: #4ade80; }
-.value-scroll__media--yellow { background: #a3e635; }
-.value-scroll__media--sky    { background: #7dd3fc; }
-.value-scroll__media--grey   { background: #e2e8f0; }
+.value-scroll__media--mint {
+  background: #71cfa3;
+}
+
+.value-scroll__media--yellow {
+  background: #a3e635;
+}
+
+.value-scroll__media--sky {
+  background: #bcefff;
+}
+
+.value-scroll__media--grey {
+  background: #f3f3f3;
+}
 
 .value-scroll__card-title {
   margin: 0 auto;
   padding: 0 8%;
   font-family: var(--font-display);
-  font-size: clamp(2.1rem, 5.5vw, 3rem);
-  font-weight: 700;
-  line-height: 0.9;
-  letter-spacing: -0.02em;
-  text-transform: uppercase;
-  color: #111111;
+  font-size: clamp(1.75rem, 2.2vw, 2.25rem);
+  font-weight: 600;
+  line-height: 0.95;
+  letter-spacing: -0.03em;
+  color: #0a0a0b;
 }
 
 .value-scroll__card-index {
@@ -150,21 +152,19 @@
   left: 0;
   width: 100%;
   font-family: var(--font-display);
-  font-size: clamp(4rem, 14vw, 7.5rem);
+  font-size: 7.5rem;
   line-height: 1;
   opacity: 0.2;
   pointer-events: none;
-  color: #111111;
+  color: #0a0a0b;
 }
 
 .value-scroll__card-body {
   margin: auto 0 0;
   padding: 0 8%;
-  font-size: clamp(0.8rem, 1.6vw, 1rem);
-  line-height: 1.5;
-  color: #111111;
-  font-style: italic;
-  opacity: 0.75;
+  font-size: 1rem;
+  line-height: 1.45;
+  color: #0a0a0b;
 }
 
 /* ── Mobile ── */
@@ -180,7 +180,7 @@
 
   .value-scroll__text-container {
     height: auto;
-    padding: clamp(4rem, 12vw, 6rem) 0;
+    padding: 9.375rem 0;
   }
 
   .value-scroll__headline--desktop {
@@ -209,38 +209,41 @@
   }
 
   .value-scroll__cards-container {
-    display: block;
     width: 100%;
     height: auto;
-    overflow: visible;
+    overflow: auto;
+    scroll-snap-type: x mandatory;
     padding: 0 var(--section-px) clamp(4rem, 12vw, 6rem);
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  .value-scroll__cards-container::-webkit-scrollbar {
+    display: none;
   }
 
   .value-scroll__circles {
-    display: grid;
-    grid-template-columns: 1fr;
-    width: 100%;
+    display: flex;
+    width: max-content;
     gap: 1rem;
-    position: static;
-  }
-
-  .value-scroll__circles::before {
-    display: none;
+    margin: 0;
+    aspect-ratio: auto;
+    white-space: nowrap;
   }
 
   .value-scroll__circle {
     position: relative;
+    width: auto;
+    height: auto;
     visibility: visible;
-    width: 100%;
     transform: none !important;
   }
 
   .value-scroll__media {
-    position: relative;
-    inset: auto;
-    width: 100%;
-    max-width: none;
-    aspect-ratio: 0.85;
+    transform: none;
+    white-space: normal;
+    scroll-snap-align: center;
+    max-width: calc(100vw - 2 * var(--section-px) - 15px);
   }
 }
 
@@ -268,12 +271,8 @@
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
     width: 100%;
-    position: static;
+    margin: 0;
     gap: 1rem;
-  }
-
-  .value-scroll__circles::before {
-    display: none;
   }
 
   .value-scroll__circle {
@@ -283,8 +282,7 @@
   }
 
   .value-scroll__media {
-    position: relative;
-    inset: auto;
+    transform: none;
     max-width: none;
   }
 }

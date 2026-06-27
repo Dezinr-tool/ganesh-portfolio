@@ -6,8 +6,24 @@ import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { useReducedMotion } from "framer-motion";
 import { useRef } from "react";
 import { registerGsapPlugins } from "@/lib/gsap-scroll";
-import { bindTypographyScrollReveal } from "@/lib/typography-scroll-reveal";
+import {
+  formatOnScreenIndex,
+  hideOnScreen,
+  showOnScreen,
+} from "@/lib/on-screen-counter";
 import { scheduleScrollTriggerRefresh } from "@/lib/scroll-refresh";
+import {
+  buildCharPhysics,
+  clearCharPhysics,
+  launchCharExplosion,
+  restoreCharPhysics,
+  type CharPhysicsRuntime,
+} from "@/lib/value-scroll/physics";
+import {
+  bindMwgCharReveal,
+  lockParagraphHeights,
+} from "@/lib/value-scroll/mwg-char-reveal";
+import { bindMwgCardsCarousel } from "@/lib/value-scroll/mwg-cards-carousel";
 import {
   VALUE_SCROLL_CARDS,
   VALUE_SCROLL_DESKTOP_MQ,
@@ -16,7 +32,6 @@ import {
   type ValueScrollCard,
 } from "@/lib/value-scroll/constants";
 import "./value-scroll.css";
-import "./typography-scroll.css";
 
 function SplitLine({
   text,
@@ -30,9 +45,9 @@ function SplitLine({
       className={`value-scroll__paragraph${accent ? " value-scroll__paragraph--accent" : ""}`}
     >
       {[...text].map((char, index) => (
-        <span key={`${char}-${index}`} className="value-scroll__char" aria-hidden="true">
+        <span key={`${index}-${char}`} className="value-scroll__char" aria-hidden="true">
           <span className="value-scroll__char-inner">
-            {char === " " ? " " : char}
+            {char === " " ? "\u00a0" : char}
           </span>
         </span>
       ))}
@@ -54,65 +69,40 @@ function ValueCard({ card }: { card: ValueScrollCard }) {
   );
 }
 
-/** Scatter ALL chars at once — fires once when first card hits the headline.
- *  Letters fly to random positions and STAY VISIBLE (like MWG reference).
- *  They are NOT faded out — they remain as scattered white letters on screen. */
-function scatterChars(charEls: HTMLElement[]) {
-  charEls.forEach((char) => {
-    const angle = Math.random() * Math.PI * 2;
-    const dist  = 220 + Math.random() * 480;
-    gsap.to(char, {
-      x: Math.cos(angle) * dist,
-      y: Math.sin(angle) * dist - 60,
-      rotation: (Math.random() - 0.5) * 380,
-      // opacity stays 1 — scattered letters remain visible like MWG reference
-      duration: 0.7,
-      ease: "power3.out",
-      overwrite: true,
-    });
-  });
-}
-
-/** Restore chars back to original positions (on scroll-back). */
-function restoreChars(charEls: HTMLElement[]) {
-  gsap.to(charEls, {
-    x: 0,
-    y: 0,
-    rotation: 0,
-    opacity: 1,
-    stagger: { each: 0.007, from: "random" },
-    ease: "expo.out",
-    duration: 0.5,
-    overwrite: true,
-  });
-}
-
 export function ValueScrollSection() {
-  const rootRef          = useRef<HTMLDivElement>(null);
-  const textSectionRef   = useRef<HTMLElement>(null);
-  const textPinRef       = useRef<HTMLDivElement>(null);
+  const rootRef = useRef<HTMLDivElement>(null);
+  const textSectionRef = useRef<HTMLElement>(null);
+  const textPinRef = useRef<HTMLDivElement>(null);
   const textContainerRef = useRef<HTMLDivElement>(null);
-  const cardsSectionRef  = useRef<HTMLElement>(null);
-  const cardsPinRef      = useRef<HTMLDivElement>(null);
-  const cardsContainerRef= useRef<HTMLDivElement>(null);
-  const circlesRef       = useRef<HTMLDivElement>(null);
-  const reducedMotion    = useReducedMotion() ?? false;
+  const cardsSectionRef = useRef<HTMLElement>(null);
+  const cardsPinRef = useRef<HTMLDivElement>(null);
+  const cardsContainerRef = useRef<HTMLDivElement>(null);
+  const circlesRef = useRef<HTMLDivElement>(null);
+  const reducedMotion = useReducedMotion() ?? false;
 
   useGSAP(
     () => {
-      const root           = rootRef.current;
-      const textSection    = textSectionRef.current;
-      const textPin        = textPinRef.current;
-      const textContainer  = textContainerRef.current;
-      const cardsSection   = cardsSectionRef.current;
-      const cardsPin       = cardsPinRef.current;
+      const root = rootRef.current;
+      const textSection = textSectionRef.current;
+      const textPin = textPinRef.current;
+      const textContainer = textContainerRef.current;
+      const cardsSection = cardsSectionRef.current;
+      const cardsPin = cardsPinRef.current;
       const cardsContainer = cardsContainerRef.current;
-      const circles        = circlesRef.current;
+      const circles = circlesRef.current;
 
       if (
-        !root || !textSection || !textPin || !textContainer ||
-        !cardsSection || !cardsPin || !cardsContainer || !circles
-      ) return;
+        !root ||
+        !textSection ||
+        !textPin ||
+        !textContainer ||
+        !cardsSection ||
+        !cardsPin ||
+        !cardsContainer ||
+        !circles
+      ) {
+        return;
+      }
 
       registerGsapPlugins();
 
@@ -123,21 +113,36 @@ export function ValueScrollSection() {
       const headline = textContainer.querySelector<HTMLElement>(headlineSelector);
       if (!headline) return;
 
-      const chars = gsap.utils.toArray<HTMLElement>(
-        headline.querySelectorAll(".value-scroll__char-inner"),
-      );
-      const charWrappers = gsap.utils.toArray<HTMLElement>(
-        headline.querySelectorAll(".value-scroll__char"),
+      const paragraphs = gsap.utils.toArray<HTMLElement>(
+        headline.querySelectorAll(".value-scroll__paragraph"),
       );
       const cardEls = gsap.utils.toArray<HTMLElement>(
         circles.querySelectorAll(".value-scroll__circle"),
       );
-      const CARD_COUNT = cardEls.length;
+      const { carouselRotationStep } = VALUE_SCROLL_LAYOUT;
 
-      // ── Mobile: simple reveal, no scroll-pin ──
+      let charRevealCleanup: (() => void) | undefined;
+      let cardsCarouselCleanup: (() => void) | undefined;
+      let physicsRuntime: CharPhysicsRuntime | null = null;
+      let matterModule: typeof import("matter-js") | null = null;
+      let activeCardIndex = -1;
+      let onScreenVisible = false;
+
+      const syncOnScreen = (index: number) => {
+        const label = formatOnScreenIndex(index + 1);
+        if (!onScreenVisible) {
+          showOnScreen(label);
+          onScreenVisible = true;
+          return;
+        }
+        showOnScreen(label);
+      };
+
       if (isMobile) {
-        gsap.set(chars, { autoAlpha: 0 });
-        gsap.to(chars, {
+        gsap.set(headline.querySelectorAll(".value-scroll__char-inner"), {
+          autoAlpha: 0,
+        });
+        gsap.to(headline.querySelectorAll(".value-scroll__char-inner"), {
           autoAlpha: 1,
           stagger: { each: 0.015, from: "random" },
           ease: "power2.out",
@@ -152,152 +157,123 @@ export function ValueScrollSection() {
         return;
       }
 
-      // ── Desktop ──
+      lockParagraphHeights(paragraphs);
 
-      // Fix paragraph heights so pin doesn't collapse them
-      const paragraphs = gsap.utils.toArray<HTMLElement>(
-        headline.querySelectorAll(".value-scroll__paragraph"),
-      );
-      paragraphs.forEach((p) => { p.style.height = `${p.clientHeight}px`; });
+      charRevealCleanup = bindMwgCharReveal(textSection, ".value-scroll__char-inner", {
+        id: "value-scroll-headline-chars",
+        isMobile: false,
+        endExtraViewports: 4,
+      });
 
-      // Letters start visible; scroll-reveal as headline enters viewport
-      gsap.set(chars, { autoAlpha: 1 });
-      // headlineRevealCleanup must be a ref-like so scatter can kill it mid-session
-      let headlineRevealCleanup: (() => void) | undefined;
-      if (charWrappers.length) {
-        headlineRevealCleanup = bindTypographyScrollReveal(
-          headline,
-          ".value-scroll__char",
-          { id: "value-scroll-headline-letters", start: "top 85%", end: "top 25%", scrub: 1, stagger: 0.04 },
-        );
-      }
-
-      // ── Text pin: stays visible while cards rise over it ──
-      const textPinTrigger = ScrollTrigger.create({
+      ScrollTrigger.create({
         id: "value-scroll-text-pin",
         trigger: textPin,
         start: "top top",
-        endTrigger: cardsPin,
-        end: "bottom top",
+        end: "bottom bottom",
         pin: textContainer,
         anticipatePin: 1,
       });
 
-      // ── All cards start hidden below viewport ──
-      const riseOffset = window.innerHeight * 1.2;
-      cardEls.forEach((card) => {
-        gsap.set(card, { autoAlpha: 0, y: riseOffset, rotation: 0, x: 0, scale: 1 });
-      });
-
-      const { cardFanRotations, cardFanX } = VALUE_SCROLL_LAYOUT;
-
-      // ── Single scatter: ALL letters at once when card 1 hits the headline ──
-      // CRITICAL: kill the typography scrub first — it runs on every scroll tick
-      // and would override (fight) the scatter x/y transforms if left alive.
-      let scatterFired = false;
-      const scatterTrigger = ScrollTrigger.create({
-        id: "value-scroll-scatter",
-        trigger: cardsPin,
-        start: "top+=12% top",   // card 1 is fully risen and centred at ~15%
-        once: true,
-        onEnter: () => {
-          scatterFired = true;
-          headlineRevealCleanup?.();   // kill typography scrub so it stops fighting scatter
-          headlineRevealCleanup = undefined;
-          // Snap chars to y:0 first so scrub doesn't leave them mid-reveal
-          gsap.set(chars, { y: 0, autoAlpha: 1 });
-          scatterChars(chars);
-        },
-      });
-
-      // ── Cards scrub timeline ──
-      // Each card occupies 1/CARD_COUNT of the total scroll space.
-      // Card rises in the first 60% of its stage; remaining 40% is hold.
-      // As each new card rises, all previous cards fan into deck position.
-      const cardsTl = gsap.timeline({ paused: true });
-
-      cardEls.forEach((card, i) => {
-        const stageStart = i / CARD_COUNT;          // 0, 0.25, 0.5, 0.75
-        const riseEnd    = stageStart + 0.15;        // rise completes at 15% of stage
-
-        // Show and rise card
-        cardsTl
-          .set(card, { autoAlpha: 1 }, stageStart)
-          .fromTo(
-            card,
-            { y: riseOffset, scale: 0.9 },
-            { y: 0, scale: 1, ease: "power3.out" },
-            stageStart,
-          )
-          .to(card, { y: 0, ease: "none" }, riseEnd); // hold
-
-        // Fan all previous cards as this one arrives
-        for (let j = 0; j < i; j++) {
-          // Each previous card fans more as depth increases
-          const fanDepth = i - j;   // 1 = directly behind front card
-          const fanR = cardFanRotations[CARD_COUNT - 1 - (i - j)] ?? cardFanRotations[0] ?? -20;
-          const fanX = cardFanX[CARD_COUNT - 1 - (i - j)] ?? cardFanX[0] ?? -60;
-          cardsTl.to(
-            cardEls[j]!,
-            {
-              rotation: fanR,
-              x: fanX,
-              scale: 1 - fanDepth * 0.04,
-              ease: "power2.out",
-            },
-            stageStart,
-          );
-        }
-      });
-
-      // ── Cards pin with scrubbed timeline ──
-      let prevCardIndex = -1;
-      const cardsPinTrigger = ScrollTrigger.create({
-        id: "value-scroll-cards-pin",
-        trigger: cardsPin,
-        start: "top top",
-        end: "bottom bottom",
-        pin: cardsContainer,
-        animation: cardsTl,
-        scrub: 0.6,
-        anticipatePin: 1,
-        onLeaveBack: () => {
-          prevCardIndex = -1;
-          scatterFired = false;
-          cardEls.forEach((card) => {
-            card.classList.remove("is-on");
-            gsap.set(card, { autoAlpha: 0, y: riseOffset, rotation: 0, x: 0, scale: 1 });
-          });
-          restoreChars(chars);
-        },
-      });
-
-      // Track active card for visibility class
       ScrollTrigger.create({
-        id: "value-scroll-cards-track",
-        trigger: cardsPin,
-        start: "top top",
+        id: "value-scroll-on-screen-enter",
+        trigger: textSection,
+        start: "top 60%",
+        endTrigger: cardsSection,
         end: "bottom bottom",
-        onUpdate: (self) => {
-          const idx = Math.min(CARD_COUNT - 1, Math.floor(self.progress * CARD_COUNT));
-          if (idx !== prevCardIndex) {
-            for (let i = prevCardIndex + 1; i <= idx; i++) {
-              cardEls[i]?.classList.add("is-on");
-            }
-            prevCardIndex = idx;
+        onEnter: () => syncOnScreen(0),
+        onEnterBack: () => syncOnScreen(Math.max(0, activeCardIndex)),
+        onLeave: () => {
+          if (onScreenVisible) hideOnScreen();
+          onScreenVisible = false;
+        },
+        onLeaveBack: () => {
+          if (onScreenVisible) hideOnScreen();
+          onScreenVisible = false;
+        },
+      });
+
+      const loadMatter = async () => {
+        if (!matterModule) {
+          matterModule = await import("matter-js");
+        }
+        return matterModule;
+      };
+
+      ScrollTrigger.create({
+        id: "value-scroll-matter-burst",
+        trigger: cardsSection,
+        start: "top top",
+        onEnter: () => {
+          charRevealCleanup?.();
+          charRevealCleanup = undefined;
+
+          void loadMatter().then((Matter) => {
+            if (physicsRuntime) return;
+            physicsRuntime = buildCharPhysics(
+              Matter,
+              headline,
+              ".value-scroll__char-inner",
+            );
+            launchCharExplosion(Matter, physicsRuntime, gsap);
+            gsap.ticker.add(physicsRuntime.tick);
+          });
+        },
+        onLeave: () => {
+          if (physicsRuntime) {
+            gsap.ticker.remove(physicsRuntime.tick);
           }
+        },
+        onEnterBack: () => {
+          if (physicsRuntime) {
+            gsap.ticker.add(physicsRuntime.tick);
+          }
+        },
+        onLeaveBack: () => {
+          if (physicsRuntime && matterModule) {
+            gsap.ticker.remove(physicsRuntime.tick);
+            restoreCharPhysics(matterModule, physicsRuntime, gsap);
+            clearCharPhysics(matterModule, physicsRuntime);
+            physicsRuntime = null;
+          }
+
+          charRevealCleanup = bindMwgCharReveal(
+            textSection,
+            ".value-scroll__char-inner",
+            {
+              id: "value-scroll-headline-chars",
+              isMobile: false,
+              endExtraViewports: 4,
+            },
+          );
+        },
+      });
+
+      cardsCarouselCleanup = bindMwgCardsCarousel({
+        pinHeight: cardsPin,
+        container: cardsContainer,
+        circles,
+        cards: cardEls,
+        rotationStep: carouselRotationStep,
+        onIndexChange: (idx) => {
+          activeCardIndex = idx;
+          syncOnScreen(idx);
         },
       });
 
       scheduleScrollTriggerRefresh();
 
       return () => {
-        headlineRevealCleanup?.();
-        textPinTrigger.kill();
-        cardsPinTrigger.kill();
-        scatterTrigger.kill();
-        ScrollTrigger.getById("value-scroll-cards-track")?.kill();
-        cardsTl.kill();
+        charRevealCleanup?.();
+        cardsCarouselCleanup?.();
+        if (physicsRuntime && matterModule) {
+          gsap.ticker.remove(physicsRuntime.tick);
+          clearCharPhysics(matterModule, physicsRuntime);
+          physicsRuntime = null;
+        }
+        if (onScreenVisible) hideOnScreen();
+        ScrollTrigger.getById("value-scroll-text-pin")?.kill();
+        ScrollTrigger.getById("value-scroll-on-screen-enter")?.kill();
+        ScrollTrigger.getById("value-scroll-matter-burst")?.kill();
       };
     },
     { scope: rootRef, dependencies: [reducedMotion] },
@@ -312,7 +288,9 @@ export function ValueScrollSection() {
         className="value-scroll__text"
         aria-labelledby="value-scroll-heading"
       >
-        <h2 id="value-scroll-heading" className="sr-only">{srText}</h2>
+        <h2 id="value-scroll-heading" className="sr-only">
+          {srText}
+        </h2>
         <div ref={textPinRef} className="value-scroll__text-pin">
           <div ref={textContainerRef} className="value-scroll__text-container">
             <div className="value-scroll__headline value-scroll__headline--desktop">
@@ -320,7 +298,10 @@ export function ValueScrollSection() {
                 <SplitLine key={line} text={line} />
               ))}
             </div>
-            <div className="value-scroll__headline value-scroll__headline--mobile" aria-hidden="true">
+            <div
+              className="value-scroll__headline value-scroll__headline--mobile"
+              aria-hidden="true"
+            >
               {VALUE_SCROLL_TEXT.mobile.map((line, index) => (
                 <SplitLine
                   key={line}

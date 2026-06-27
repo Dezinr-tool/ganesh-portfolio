@@ -47,17 +47,13 @@ export const VALUE_SCROLL_CARDS: ValueScrollCard[] = [
   },
 ];
 
+/** Matches madewithgsap.com h-texts / h-cards layout */
 export const VALUE_SCROLL_LAYOUT = {
-  // Text section: shorter pin so cards arrive sooner
   textMarginTop: "-35vh",
-  textPinHeight: "400vh",
-  // Cards section: each card gets 100vh of scroll
-  cardsMarginTop: "-300vh",
-  cardsPinHeight: "400vh",      // 4 cards × 100vh each
-  // Card visual
-  cardMaxWidth: 420,
-  // Fan rotations — index 0 = deepest card (most tilted), index 3 = front card
-  // New card always arrives straight; previous cards pushed into fan positions
-  cardFanRotations: [-22, -13, -6, 0],
-  cardFanX: [-70, -40, -16, 0],        // px — all fan to the left
+  textPinHeight: "700vh",
+  cardsMarginTop: "-400vh",
+  cardsPinHeight: "400vh",
+  circlesSize: 3675,
+  cardMaxWidth: 338,
+  carouselRotationStep: 6.2,
 };

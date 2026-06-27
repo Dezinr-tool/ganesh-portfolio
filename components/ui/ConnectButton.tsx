@@ -1,6 +1,6 @@
 "use client";
 
-import { AnimatePresence, motion } from "framer-motion";
+import { AnimatePresence, motion } from "motion/react";
 import "./connect-button.css";
 import { useEffect, useRef, useState } from "react";
 
