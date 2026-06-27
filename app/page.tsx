@@ -5,7 +5,6 @@ import { Hero } from "@/components/sections/Hero";
 import { Testimonials } from "@/components/sections/Testimonials";
 import { Tools } from "@/components/sections/Tools";
 import { ValueScrollSection } from "@/components/sections/ValueScrollSection";
-import { OnScreenCounter } from "@/components/ui/OnScreenCounter";
 import "@/components/sections/value-scroll.css";
 import { getHomepageRenderData } from "@/lib/sanity/homepage";
 
@@ -31,7 +30,6 @@ export default async function Home() {
         bodyText={content.about.bodyText ?? ""}
       />
       <ValueScrollSection />
-      <OnScreenCounter />
       <FeaturedWork
         projects={projects}
         sectionTitle={content.siteSettings.worksSectionTitle ?? "recent works"}

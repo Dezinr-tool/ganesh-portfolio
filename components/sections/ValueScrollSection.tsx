@@ -6,11 +6,6 @@ import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { useReducedMotion } from "framer-motion";
 import { useRef } from "react";
 import { registerGsapPlugins } from "@/lib/gsap-scroll";
-import {
-  formatOnScreenIndex,
-  hideOnScreen,
-  showOnScreen,
-} from "@/lib/on-screen-counter";
 import { scheduleScrollTriggerRefresh } from "@/lib/scroll-refresh";
 import {
   buildCharPhysics,
@@ -125,18 +120,6 @@ export function ValueScrollSection() {
       let cardsCarouselCleanup: (() => void) | undefined;
       let physicsRuntime: CharPhysicsRuntime | null = null;
       let matterModule: typeof import("matter-js") | null = null;
-      let activeCardIndex = -1;
-      let onScreenVisible = false;
-
-      const syncOnScreen = (index: number) => {
-        const label = formatOnScreenIndex(index + 1);
-        if (!onScreenVisible) {
-          showOnScreen(label);
-          onScreenVisible = true;
-          return;
-        }
-        showOnScreen(label);
-      };
 
       if (isMobile) {
         gsap.set(headline.querySelectorAll(".value-scroll__char-inner"), {
@@ -174,23 +157,6 @@ export function ValueScrollSection() {
         anticipatePin: 1,
       });
 
-      ScrollTrigger.create({
-        id: "value-scroll-on-screen-enter",
-        trigger: textSection,
-        start: "top 60%",
-        endTrigger: cardsSection,
-        end: "bottom bottom",
-        onEnter: () => syncOnScreen(0),
-        onEnterBack: () => syncOnScreen(Math.max(0, activeCardIndex)),
-        onLeave: () => {
-          if (onScreenVisible) hideOnScreen();
-          onScreenVisible = false;
-        },
-        onLeaveBack: () => {
-          if (onScreenVisible) hideOnScreen();
-          onScreenVisible = false;
-        },
-      });
 
       const loadMatter = async () => {
         if (!matterModule) {
@@ -254,10 +220,6 @@ export function ValueScrollSection() {
         circles,
         cards: cardEls,
         rotationStep: carouselRotationStep,
-        onIndexChange: (idx) => {
-          activeCardIndex = idx;
-          syncOnScreen(idx);
-        },
       });
 
       scheduleScrollTriggerRefresh();
@@ -270,7 +232,6 @@ export function ValueScrollSection() {
           clearCharPhysics(matterModule, physicsRuntime);
           physicsRuntime = null;
         }
-        if (onScreenVisible) hideOnScreen();
         ScrollTrigger.getById("value-scroll-text-pin")?.kill();
         ScrollTrigger.getById("value-scroll-on-screen-enter")?.kill();
         ScrollTrigger.getById("value-scroll-matter-burst")?.kill();
