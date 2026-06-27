@@ -71,7 +71,17 @@ export function bindMwgCardsCarousel(options: {
     },
   });
 
+  const reset = () => {
+    activeIndex = -1;
+    cards.forEach((card) => {
+      card.classList.remove("is-on");
+      gsap.set(card, { rotation: 0, scale: 1, clearProps: "all" });
+    });
+    gsap.set(circles, { rotation: 0, clearProps: "all" });
+  };
+
   return () => {
     trigger.kill();
+    reset();
   };
 }
