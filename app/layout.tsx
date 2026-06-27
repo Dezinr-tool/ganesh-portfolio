@@ -72,6 +72,13 @@ export default async function RootLayout({
       lang="en"
       className={`${inter.variable} ${breton.variable} ${machine.variable} h-full`}
     >
+      <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `(function(){try{var p=location.pathname;if(p.indexOf("/dashboard")===0)return;if(sessionStorage.getItem("portfolio-loaded")==="1")return;if(window.matchMedia("(prefers-reduced-motion: reduce)").matches)return;document.documentElement.classList.add("page-loader-active")}catch(e){}})();`,
+          }}
+        />
+      </head>
       <body className="relative min-h-full bg-[var(--color-bg)] font-sans text-[var(--color-text)] antialiased">
         <DesignTokensStyle />
         <a href="#main-content" className="skip-link">

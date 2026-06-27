@@ -55,6 +55,13 @@ function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T | undefined>
   ]);
 }
 
+function fontFamilyFromVariable(variable: string, fallback: string): string {
+  const value = getComputedStyle(document.documentElement)
+    .getPropertyValue(variable)
+    .trim();
+  return value || fallback;
+}
+
 async function waitForLoaderFonts(): Promise<void> {
   const work = async () => {
     if (document.readyState !== "complete") {
@@ -67,10 +74,13 @@ async function waitForLoaderFonts(): Promise<void> {
       await document.fonts.ready;
     }
 
+    const displayFamily = fontFamilyFromVariable("--font-breton", "Breton");
+    const bodyFamily = fontFamilyFromVariable("--font-inter", "Inter");
+
     try {
-      await document.fonts.load('300 72px "Breton"');
-      await document.fonts.load('400 120px "other"');
-      await document.fonts.load('400 16px "Inter"');
+      await document.fonts.load(`700 38px ${displayFamily}`);
+      await document.fonts.load(`400 8px ${displayFamily}`);
+      await document.fonts.load(`400 16px ${bodyFamily}`);
     } catch {
       /* font load can fail in strict privacy modes */
     }
@@ -143,6 +153,7 @@ export function PageLoader() {
   const counterRef = useRef<HTMLDivElement>(null);
   const counterValueRef = useRef({ value: 0 });
   const exitStartedRef = useRef(false);
+  const wasActiveRef = useRef(false);
 
   const handleExitComplete = useCallback(() => {
     if (exitStartedRef.current) return;
@@ -154,6 +165,9 @@ export function PageLoader() {
 
   useLayoutEffect(() => {
     if (skipLoader) {
+      if (wasActiveRef.current) {
+        markSessionLoaded();
+      }
       document.documentElement.classList.remove("page-loader-active");
       // eslint-disable-next-line react-hooks/set-state-in-effect -- dashboard must never show portfolio loader
       setPhase("hidden");
@@ -177,6 +191,12 @@ export function PageLoader() {
     document.documentElement.classList.add("page-loader-active");
     setPhase("active");
   }, [skipLoader]);
+
+  useEffect(() => {
+    if (phase === "active") {
+      wasActiveRef.current = true;
+    }
+  }, [phase]);
 
   useEffect(() => {
     if (phase !== "active") return;
@@ -344,6 +364,7 @@ export function PageLoader() {
     <div
       ref={rootRef}
       className="page-loader"
+      data-page-loader=""
       role="status"
       aria-live="polite"
       aria-label="Loading site"

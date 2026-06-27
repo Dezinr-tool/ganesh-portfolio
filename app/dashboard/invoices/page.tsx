@@ -17,8 +17,9 @@ import { DeleteInvoiceButton } from "./delete-invoice-button";
 export const dynamic = "force-dynamic";
 
 function StatusBadge({ status }: { status: "Paid" | "Unpaid" }) {
+  const label = status === "Paid" ? "Paid" : "Pending";
   return (
-    <Badge variant={status === "Paid" ? "default" : "outline"}>{status}</Badge>
+    <Badge variant={status === "Paid" ? "default" : "outline"}>{label}</Badge>
   );
 }
 

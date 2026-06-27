@@ -28,8 +28,9 @@ import { RazorpayCheckout } from "@/components/dashboard/RazorpayCheckout";
 export const dynamic = "force-dynamic";
 
 function StatusBadge({ status }: { status: "Paid" | "Unpaid" }) {
+  const label = status === "Paid" ? "Paid" : "Pending";
   return (
-    <Badge variant={status === "Paid" ? "default" : "outline"}>{status}</Badge>
+    <Badge variant={status === "Paid" ? "default" : "outline"}>{label}</Badge>
   );
 }
 
@@ -47,9 +48,9 @@ export default async function InvoiceDetailPage({
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+      <div className="space-y-3">
         <BackLink href="/dashboard/invoices" label="Back to invoices" />
-        <div className="flex flex-wrap items-center justify-end gap-2">
+        <div className="flex items-center gap-2 overflow-x-auto">
           <DownloadPdfButton invoice={invoice} />
           <InvoiceStatusButton invoiceId={invoice.id} status={invoice.status} />
           <DeleteInvoiceButton
@@ -146,6 +147,14 @@ export default async function InvoiceDetailPage({
                 <span>{formatCurrency(invoice.taxAmount)}</span>
               </div>
             ) : null}
+            {invoice.processingFeePercent > 0 ? (
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">
+                  Payment processing ({invoice.processingFeePercent}%)
+                </span>
+                <span>{formatCurrency(invoice.processingFeeAmount)}</span>
+              </div>
+            ) : null}
             <Separator />
             <div className="flex justify-between text-base font-semibold">
               <span>Total</span>
@@ -170,7 +179,7 @@ export default async function InvoiceDetailPage({
               <Separator />
               <div className="flex items-center justify-between gap-4">
                 <p className="text-sm text-muted-foreground">
-                  Collect payment directly via Razorpay
+                  Share this invoice — client can pay online via Razorpay
                 </p>
                 <RazorpayCheckout
                   invoiceId={invoice.id}

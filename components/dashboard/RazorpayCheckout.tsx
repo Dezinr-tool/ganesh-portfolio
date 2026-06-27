@@ -165,7 +165,7 @@ export function RazorpayCheckout({ invoiceId, invoiceNumber, amount }: Props) {
         variant="default"
         size="sm"
       >
-        {status === "loading" ? "Opening payment…" : `Collect ₹${amount.toLocaleString("en-IN")} via Razorpay`}
+        {status === "loading" ? "Opening payment…" : "Pay Now"}
       </Button>
       {errorMessage ? (
         <p className="text-xs text-destructive">{errorMessage}</p>

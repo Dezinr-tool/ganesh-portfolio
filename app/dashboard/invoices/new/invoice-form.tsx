@@ -23,6 +23,7 @@ import {
   type InvoiceLineItem,
   calculateLineAmount,
   calculateTotals,
+  DEFAULT_PROCESSING_FEE_PERCENT,
   formatCurrency,
 } from "../../_lib/invoices";
 
@@ -105,7 +106,7 @@ export default function InvoiceForm() {
   const parsedTaxPercent = taxPercent === "" ? null : Number(taxPercent);
 
   const totals = useMemo(
-    () => calculateTotals(resolvedLineItems, parsedTaxPercent),
+    () => calculateTotals(resolvedLineItems, parsedTaxPercent, DEFAULT_PROCESSING_FEE_PERCENT),
     [resolvedLineItems, parsedTaxPercent],
   );
 
@@ -181,6 +182,8 @@ export default function InvoiceForm() {
           subtotal: totals.subtotal,
           taxPercent: parsedTaxPercent,
           taxAmount: totals.taxAmount,
+          processingFeePercent: DEFAULT_PROCESSING_FEE_PERCENT,
+          processingFeeAmount: totals.processingFeeAmount,
           total: totals.total,
           notes,
         }),
@@ -412,6 +415,12 @@ export default function InvoiceForm() {
                 <span>{formatCurrency(totals.taxAmount)}</span>
               </div>
             ) : null}
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">
+                Payment processing ({DEFAULT_PROCESSING_FEE_PERCENT}%)
+              </span>
+              <span>{formatCurrency(totals.processingFeeAmount)}</span>
+            </div>
             <Separator />
             <div className="flex justify-between text-base font-semibold">
               <span>Total</span>

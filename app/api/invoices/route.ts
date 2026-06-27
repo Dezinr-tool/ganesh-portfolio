@@ -64,6 +64,8 @@ export async function POST(request: Request) {
       subtotal: body.subtotal,
       taxPercent: body.taxPercent ?? null,
       taxAmount: body.taxAmount,
+      processingFeePercent: body.processingFeePercent ?? 2,
+      processingFeeAmount: body.processingFeeAmount ?? 0,
       total: body.total,
       notes: body.notes?.trim() ?? "",
       status: body.status ?? "Unpaid",

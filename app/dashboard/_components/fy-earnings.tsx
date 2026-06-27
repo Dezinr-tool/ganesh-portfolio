@@ -59,12 +59,13 @@ function FYCard({ fy, isCurrent }: { fy: FYSummary; isCurrent: boolean }) {
 }
 
 export function FYEarnings({ current, previous }: FYEarningsProps) {
+  const showPrevious = previous.invoiceCount > 0 || previous.earned > 0;
   return (
     <div className="space-y-3">
       <h2 className="text-sm font-medium text-muted-foreground">Earnings by financial year</h2>
-      <div className="grid gap-4 sm:grid-cols-2">
+      <div className={`grid gap-4 ${showPrevious ? "sm:grid-cols-2" : ""}`}>
         <FYCard fy={current} isCurrent={true} />
-        <FYCard fy={previous} isCurrent={false} />
+        {showPrevious ? <FYCard fy={previous} isCurrent={false} /> : null}
       </div>
     </div>
   );

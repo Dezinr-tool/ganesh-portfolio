@@ -3,6 +3,7 @@ import {
   type Invoice,
   type InvoiceLineItem,
   type InvoiceStatus,
+  DEFAULT_PROCESSING_FEE_PERCENT,
   calculateTotals,
   generateInvoiceNumber,
 } from "@/app/dashboard/_lib/invoices";
@@ -20,6 +21,8 @@ type InvoiceRow = {
   line_items: InvoiceLineItem[] | string;
   subtotal: string | number;
   tax_percent: string | number | null;
+  processing_fee_percent: string | number | null;
+  processing_fee_amount: string | number | null;
   total: string | number;
   notes: string | null;
   status: string;
@@ -65,6 +68,26 @@ function statusToDb(status: InvoiceStatus): string {
   return status.toLowerCase();
 }
 
+const RETURNING_COLS = `
+  id,
+  invoice_number,
+  client_name,
+  client_email,
+  client_company,
+  client_address,
+  issue_date,
+  due_date,
+  line_items,
+  subtotal,
+  tax_percent,
+  COALESCE(processing_fee_percent, ${DEFAULT_PROCESSING_FEE_PERCENT}) AS processing_fee_percent,
+  COALESCE(processing_fee_amount, 0) AS processing_fee_amount,
+  total,
+  notes,
+  status,
+  created_at
+`;
+
 function rowToInvoice(row: InvoiceRow): Invoice {
   const subtotal = parseNumber(row.subtotal);
   const taxPercent =
@@ -73,6 +96,11 @@ function rowToInvoice(row: InvoiceRow): Invoice {
     taxPercent === null
       ? 0
       : Math.round(subtotal * (taxPercent / 100) * 100) / 100;
+
+  const processingFeePercent =
+    row.processing_fee_percent === null
+      ? DEFAULT_PROCESSING_FEE_PERCENT
+      : parseNumber(row.processing_fee_percent);
 
   const lineItems = normalizeLineItems(
     typeof row.line_items === "string"
@@ -93,6 +121,8 @@ function rowToInvoice(row: InvoiceRow): Invoice {
     subtotal,
     taxPercent,
     taxAmount,
+    processingFeePercent,
+    processingFeeAmount: parseNumber(row.processing_fee_amount),
     total: parseNumber(row.total),
     notes: row.notes ?? "",
     status: statusFromDb(row.status),
@@ -114,6 +144,8 @@ export async function readInvoices(): Promise<Invoice[]> {
       line_items,
       subtotal,
       tax_percent,
+      COALESCE(processing_fee_percent, ${DEFAULT_PROCESSING_FEE_PERCENT}) AS processing_fee_percent,
+      COALESCE(processing_fee_amount, 0) AS processing_fee_amount,
       total,
       notes,
       status,
@@ -139,6 +171,8 @@ export async function getInvoiceById(id: string): Promise<Invoice | null> {
       line_items,
       subtotal,
       tax_percent,
+      COALESCE(processing_fee_percent, ${DEFAULT_PROCESSING_FEE_PERCENT}) AS processing_fee_percent,
+      COALESCE(processing_fee_amount, 0) AS processing_fee_amount,
       total,
       notes,
       status,
@@ -163,9 +197,13 @@ export async function getNextInvoiceNumber(): Promise<string> {
 }
 
 export async function createInvoice(input: CreateInvoiceInput): Promise<Invoice> {
-  const { subtotal, total } = calculateTotals(
+  const processingFeePercent =
+    input.processingFeePercent ?? DEFAULT_PROCESSING_FEE_PERCENT;
+
+  const { subtotal, taxAmount, processingFeeAmount, total } = calculateTotals(
     input.lineItems,
     input.taxPercent,
+    processingFeePercent,
   );
 
   const id = crypto.randomUUID();
@@ -186,6 +224,8 @@ export async function createInvoice(input: CreateInvoiceInput): Promise<Invoice>
       line_items,
       subtotal,
       tax_percent,
+      processing_fee_percent,
+      processing_fee_amount,
       total,
       notes,
       status
@@ -201,6 +241,8 @@ export async function createInvoice(input: CreateInvoiceInput): Promise<Invoice>
       ${JSON.stringify(input.lineItems)},
       ${subtotal},
       ${input.taxPercent},
+      ${processingFeePercent},
+      ${processingFeeAmount},
       ${total},
       ${notes || null},
       ${statusToDb(status)}
@@ -217,6 +259,8 @@ export async function createInvoice(input: CreateInvoiceInput): Promise<Invoice>
       line_items,
       subtotal,
       tax_percent,
+      processing_fee_percent,
+      processing_fee_amount,
       total,
       notes,
       status,
@@ -251,6 +295,8 @@ export async function updateInvoiceStatus(
       line_items,
       subtotal,
       tax_percent,
+      COALESCE(processing_fee_percent, ${DEFAULT_PROCESSING_FEE_PERCENT}) AS processing_fee_percent,
+      COALESCE(processing_fee_amount, 0) AS processing_fee_amount,
       total,
       notes,
       status,

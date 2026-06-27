@@ -85,16 +85,14 @@ export function Sparkline({
             />
           );
         })}
-        <circle
-          cx={(data.length - 1) * slotWidth + slotWidth / 2}
-          cy={
-            height -
-            (max === 0 ? 0 : (data[data.length - 1] / max) * (height - 4)) -
-            2
-          }
-          r={2.5}
-          fill={color}
-        />
+        {data[data.length - 1] > 0 ? (
+          <circle
+            cx={(data.length - 1) * slotWidth + slotWidth / 2}
+            cy={height - (max === 0 ? 0 : (data[data.length - 1] / max) * (height - 4)) - 2}
+            r={2.5}
+            fill={color}
+          />
+        ) : null}
       </svg>
     );
   }
