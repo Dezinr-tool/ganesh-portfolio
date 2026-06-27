@@ -38,24 +38,38 @@ export function bindMwgCardsCarousel(options: {
       if (idx === activeIndex) return;
 
       if (idx > activeIndex) {
-        const card = cards[idx];
-        card?.classList.add("is-on");
-        if (card) {
-          gsap.set(card, { rotation: idx * rotationStep });
-          gsap.from(card, {
-            scale: 0.94,
-            ease: "elastic.out(0.6, 0.3)",
-            duration: 0.5,
+        // Add all skipped cards (handles fast scroll jumping multiple steps)
+        for (let i = activeIndex + 1; i <= idx; i++) {
+          const card = cards[i];
+          if (!card) continue;
+          card.classList.add("is-on");
+          gsap.set(card, { rotation: i * rotationStep, scale: 1 });
+        }
+        // Entry pop only on the newly-arrived card
+        const newCard = cards[idx];
+        if (newCard) {
+          gsap.from(newCard, {
+            scale: 0.92,
+            duration: 0.45,
+            ease: "back.out(1.4)",
+            overwrite: "auto",
           });
         }
-      } else if (activeIndex >= 0) {
-        cards[activeIndex]?.classList.remove("is-on");
+      } else {
+        // Remove all skipped-over cards when scrolling back
+        for (let i = activeIndex; i > idx; i--) {
+          const card = cards[i];
+          if (!card) continue;
+          card.classList.remove("is-on");
+          gsap.set(card, { clearProps: "rotation,scale" });
+        }
       }
 
       gsap.to(circles, {
-        rotation: -idx * rotationStep + (rotationStep / 2) * idx,
-        ease: "elastic.out(0.6, 0.3)",
-        duration: 0.5,
+        rotation: -idx * rotationStep / 2,
+        ease: "power3.out",
+        duration: 0.4,
+        overwrite: "auto",
       });
 
       activeIndex = idx;
