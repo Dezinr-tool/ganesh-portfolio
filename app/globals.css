@@ -773,6 +773,7 @@ body {
   max-width: min(96vw, 72rem);
   overflow-wrap: normal;
   word-break: normal;
+  line-height: 1.12;
 }
 
 .hero-reveal-copy__body {
@@ -780,7 +781,7 @@ body {
   flex-wrap: wrap;
   justify-content: center;
   align-content: center;
-  gap: 0.28em 0.32em;
+  gap: 0.1em 0.32em;
   width: 100%;
   margin: 0 auto;
   text-align: center;
@@ -841,11 +842,11 @@ body {
     overflow-wrap: break-word;
     word-break: normal;
     font-size: clamp(24px, 5vw, 64px);
-    line-height: 1.12;
+    line-height: 1.06;
   }
 
   .hero-reveal-copy__body {
-    gap: 0.24em 0.28em;
+    gap: 0.08em 0.28em;
   }
 
   .hero-ganesh-watermark {
