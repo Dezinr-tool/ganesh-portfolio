@@ -64,6 +64,10 @@
   will-change: transform, opacity;
 }
 
+.value-scroll__char-inner.is-char-hidden {
+  display: none;
+}
+
 /* ── h-cards carousel (exact MWG geometry) ── */
 
 .value-scroll__cards {
