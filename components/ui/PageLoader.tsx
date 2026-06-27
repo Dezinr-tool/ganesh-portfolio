@@ -89,16 +89,15 @@ async function waitForNextFrame(): Promise<void> {
   });
 }
 
-const HERO_ARC_DEGREES = 200;
-const SUB_ARC_DEGREES = 180;
+const HERO_ARC_DEGREES = 360;
+const SUB_ARC_DEGREES = 360;
 
 function cylinderGlyphStyle(
   index: number,
   count: number,
   arcDegrees: number,
 ): CSSProperties {
-  // Center the arc so text is symmetrically visible on the front face
-  const angle = ((index / (count - 1)) - 0.5) * arcDegrees;
+  const angle = (index / count) * arcDegrees;
   return {
     transform: `rotateY(${angle}deg) translateZ(var(--glyph-radius)) translate(-50%, -50%)`,
   };
@@ -226,13 +225,31 @@ export function PageLoader() {
       counterValueRef.current.value = 0;
       counterEl.textContent = "0%";
 
-      const isDesktop = window.matchMedia("(min-width: 56.25rem)").matches;
-      const entryX = isDesktop ? "15vw" : "0vw";
-
       gsap.set(root, { y: 0, opacity: 1, overflow: "visible" });
-      gsap.set([heroGroup, subGroup], { y: "100vh", x: entryX });
+      gsap.set([heroGroup, subGroup], { y: "100vh" });
       gsap.set(counterEl, { opacity: 0 });
       gsap.set([heroCylinder, subCylinder], { rotateY: 0 });
+
+      const heroSpin = gsap.to(heroCylinder, {
+        rotateY: "+=360",
+        duration: 20,
+        ease: "none",
+        repeat: -1,
+        force3D: true,
+      });
+
+      const subSpin = gsap.to(subCylinder, {
+        rotateY: "+=360",
+        duration: 14,
+        ease: "none",
+        repeat: -1,
+        force3D: true,
+      });
+
+      cleanups.push(() => {
+        heroSpin.kill();
+        subSpin.kill();
+      });
 
       const timeline = gsap.timeline({
         onComplete: () => {
@@ -244,7 +261,6 @@ export function PageLoader() {
         [heroGroup, subGroup],
         {
           y: 0,
-          x: 0,
           duration: 2.5,
           delay: 1,
           ease: "power4.out",
@@ -281,6 +297,8 @@ export function PageLoader() {
       });
 
       timeline.add(() => {
+        heroSpin.kill();
+        subSpin.kill();
         gsap.set(root, { overflow: "hidden" });
       });
 
@@ -288,7 +306,6 @@ export function PageLoader() {
         [heroGroup, subGroup],
         {
           y: "110vh",
-          x: entryX,
           duration: 1.1,
           ease: "power4.in",
           stagger: 0.06,
