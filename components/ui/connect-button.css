@@ -1,0 +1,146 @@
+/* Floating connect pill — bottom-center, MWG-style dark pill */
+
+.connect-btn__root {
+  position: fixed;
+  bottom: clamp(20px, 3vh, 32px);
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+
+/* ── Pill trigger ── */
+
+.connect-btn__pill {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 20px;
+  background: #1a1a1a;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 999px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.18s ease, border-color 0.18s ease, transform 0.18s ease;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.35);
+}
+
+.connect-btn__pill:hover {
+  background: #222;
+  border-color: rgba(255, 255, 255, 0.2);
+  transform: translateY(-1px);
+}
+
+.connect-btn__pill.is-open {
+  background: #222;
+  border-color: rgba(255, 255, 255, 0.25);
+}
+
+.connect-btn__dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #a3e635;
+  flex-shrink: 0;
+  animation: connect-pulse 2.4s ease-in-out infinite;
+}
+
+@keyframes connect-pulse {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.4; }
+}
+
+.connect-btn__label {
+  font-family: var(--font-display);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  color: #ffffff;
+  text-transform: uppercase;
+}
+
+.connect-btn__chevron {
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.6);
+  transition: color 0.15s ease;
+  line-height: 1;
+}
+
+.connect-btn__pill:hover .connect-btn__chevron,
+.connect-btn__pill.is-open .connect-btn__chevron {
+  color: #ffffff;
+}
+
+/* ── Expanded options panel ── */
+
+.connect-btn__panel {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  background: #1a1a1a;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 16px;
+  padding: 8px;
+  min-width: 240px;
+  box-shadow: 0 8px 40px rgba(0, 0, 0, 0.5);
+  transform-origin: bottom center;
+}
+
+.connect-btn__option {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  border-radius: 10px;
+  text-decoration: none;
+  transition: background 0.14s ease;
+  cursor: pointer;
+}
+
+.connect-btn__option:hover {
+  background: rgba(255, 255, 255, 0.07);
+}
+
+.connect-btn__option-icon {
+  font-size: 16px;
+  color: rgba(255, 255, 255, 0.5);
+  width: 20px;
+  text-align: center;
+  flex-shrink: 0;
+  line-height: 1;
+}
+
+.connect-btn__option-label {
+  font-family: var(--font-display);
+  font-size: 13px;
+  font-weight: 400;
+  color: #ffffff;
+  flex: 1;
+  letter-spacing: 0.01em;
+}
+
+.connect-btn__option-arrow {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.3);
+  transition: color 0.14s ease, transform 0.14s ease;
+}
+
+.connect-btn__option:hover .connect-btn__option-arrow {
+  color: rgba(255, 255, 255, 0.8);
+  transform: translate(2px, -2px);
+}
+
+/* ── Mobile tweaks ── */
+
+@media (max-width: 39.9375rem) {
+  .connect-btn__root {
+    bottom: calc(env(safe-area-inset-bottom) + 72px); /* above bottom tab nav */
+  }
+
+  .connect-btn__panel {
+    min-width: 220px;
+  }
+}
