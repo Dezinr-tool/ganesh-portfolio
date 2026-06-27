@@ -54,18 +54,20 @@ function ValueCard({ card }: { card: ValueScrollCard }) {
   );
 }
 
-/** Scatter ALL chars at once — fires once when first card hits the headline. */
+/** Scatter ALL chars at once — fires once when first card hits the headline.
+ *  Letters fly to random positions and STAY VISIBLE (like MWG reference).
+ *  They are NOT faded out — they remain as scattered white letters on screen. */
 function scatterChars(charEls: HTMLElement[]) {
   charEls.forEach((char) => {
     const angle = Math.random() * Math.PI * 2;
-    const dist  = 250 + Math.random() * 550;   // fly to screen edges
+    const dist  = 220 + Math.random() * 480;
     gsap.to(char, {
       x: Math.cos(angle) * dist,
-      y: Math.sin(angle) * dist - 80,
-      rotation: (Math.random() - 0.5) * 420,
-      autoAlpha: 0,
-      duration: 0.8,
-      ease: "power3.in",
+      y: Math.sin(angle) * dist - 60,
+      rotation: (Math.random() - 0.5) * 380,
+      // opacity stays 1 — scattered letters remain visible like MWG reference
+      duration: 0.7,
+      ease: "power3.out",
       overwrite: true,
     });
   });
@@ -77,7 +79,7 @@ function restoreChars(charEls: HTMLElement[]) {
     x: 0,
     y: 0,
     rotation: 0,
-    autoAlpha: 1,
+    opacity: 1,
     stagger: { each: 0.007, from: "random" },
     ease: "expo.out",
     duration: 0.5,
@@ -160,6 +162,7 @@ export function ValueScrollSection() {
 
       // Letters start visible; scroll-reveal as headline enters viewport
       gsap.set(chars, { autoAlpha: 1 });
+      // headlineRevealCleanup must be a ref-like so scatter can kill it mid-session
       let headlineRevealCleanup: (() => void) | undefined;
       if (charWrappers.length) {
         headlineRevealCleanup = bindTypographyScrollReveal(
@@ -189,15 +192,20 @@ export function ValueScrollSection() {
       const { cardFanRotations, cardFanX } = VALUE_SCROLL_LAYOUT;
 
       // ── Single scatter: ALL letters at once when card 1 hits the headline ──
-      // Fires at 8% into the cardsPin scroll space (card 1 is fully risen by then)
+      // CRITICAL: kill the typography scrub first — it runs on every scroll tick
+      // and would override (fight) the scatter x/y transforms if left alive.
       let scatterFired = false;
       const scatterTrigger = ScrollTrigger.create({
         id: "value-scroll-scatter",
         trigger: cardsPin,
-        start: "top+=8% top",
+        start: "top+=12% top",   // card 1 is fully risen and centred at ~15%
         once: true,
         onEnter: () => {
           scatterFired = true;
+          headlineRevealCleanup?.();   // kill typography scrub so it stops fighting scatter
+          headlineRevealCleanup = undefined;
+          // Snap chars to y:0 first so scrub doesn't leave them mid-reveal
+          gsap.set(chars, { y: 0, autoAlpha: 1 });
           scatterChars(chars);
         },
       });
