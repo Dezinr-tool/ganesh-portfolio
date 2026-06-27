@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { DesignTokensStyle } from "@/components/design-system/design-tokens-style";
 import { SmoothScroll } from "@/components/providers/SmoothScroll";
 import { ConnectButton } from "@/components/ui/ConnectButton";
+import { SiteNav } from "@/components/ui/SiteNav";
 import { PageLoader } from "@/components/ui/PageLoader";
 import { ScrollProgress } from "@/components/ui/ScrollProgress";
 import { breton, inter, machine } from "./fonts";
@@ -88,6 +89,7 @@ export default async function RootLayout({
           <ScrollProgress />
           <PageLoader />
           {children}
+          <SiteNav />
           <ConnectButton />
         </SmoothScroll>
       </body>

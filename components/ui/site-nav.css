@@ -1,0 +1,237 @@
+/* Site nav — pacomepertant.com style menu */
+
+/* ── Trigger pill (top-right) ── */
+
+.site-nav__trigger {
+  position: fixed;
+  top: clamp(16px, 2.5vh, 28px);
+  right: clamp(16px, 2.5vw, 32px);
+  z-index: 9998;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  background: #141414;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 999px;
+  cursor: pointer;
+  transition: background 0.18s ease, border-color 0.18s ease, opacity 0.2s ease;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+}
+
+.site-nav__trigger:hover {
+  background: #222;
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+.site-nav__trigger.is-open {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.site-nav__trigger-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #a3e635;
+  flex-shrink: 0;
+  animation: nav-pulse 2.4s ease-in-out infinite;
+}
+
+@keyframes nav-pulse {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.3; }
+}
+
+.site-nav__trigger-label {
+  font-family: var(--font-display);
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  color: #ffffff;
+  text-transform: lowercase;
+}
+
+/* ── Backdrop ── */
+
+.site-nav__backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 9998;
+  background: rgba(0, 0, 0, 0.45);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.35s ease;
+}
+
+.site-nav__backdrop.is-open {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* ── Panel ── */
+
+.site-nav__panel {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 9999;
+  width: min(420px, 85vw);
+  background: #f5f4f0;
+  transform: translateX(100%);
+  transition: transform 0.42s cubic-bezier(0.76, 0, 0.24, 1);
+  display: flex;
+  flex-direction: column;
+}
+
+.site-nav__panel.is-open {
+  transform: translateX(0);
+}
+
+.site-nav__panel-inner {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  padding: clamp(24px, 4vh, 40px) clamp(24px, 5vw, 44px);
+}
+
+/* ── Close button ── */
+
+.site-nav__close {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  align-self: flex-end;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px 0;
+  color: #0a0a0b;
+  font-family: var(--font-display);
+  font-size: 13px;
+  font-weight: 400;
+  letter-spacing: 0.02em;
+  opacity: 0.6;
+  transition: opacity 0.15s ease;
+}
+
+.site-nav__close:hover {
+  opacity: 1;
+}
+
+.site-nav__close-x {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: #0a0a0b;
+  color: #f5f4f0;
+  font-size: 12px;
+}
+
+/* ── Nav links ── */
+
+.site-nav__links {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  margin-top: auto;
+  padding-bottom: clamp(24px, 4vh, 40px);
+}
+
+.site-nav__link {
+  background: none;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+  font-family: var(--font-display);
+  font-size: clamp(3.5rem, 9vw, 5.5rem);
+  font-weight: 700;
+  line-height: 1.05;
+  letter-spacing: -0.03em;
+  color: #0a0a0b;
+  padding: 0;
+  transition: opacity 0.15s ease, transform 0.15s ease;
+}
+
+.site-nav__link:hover {
+  opacity: 0.5;
+  transform: translateX(6px);
+}
+
+/* ── Footer row ── */
+
+.site-nav__footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding-top: clamp(20px, 3vh, 32px);
+  border-top: 1px solid rgba(10, 10, 11, 0.12);
+}
+
+.site-nav__email {
+  font-family: var(--font-display);
+  font-size: 11px;
+  font-weight: 400;
+  color: #0a0a0b;
+  opacity: 0.5;
+  text-decoration: none;
+  letter-spacing: 0.01em;
+  transition: opacity 0.15s ease;
+}
+
+.site-nav__email:hover {
+  opacity: 1;
+}
+
+.site-nav__socials {
+  display: flex;
+  gap: 8px;
+}
+
+.site-nav__social {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: #0a0a0b;
+  color: #f5f4f0;
+  text-decoration: none;
+  transition: background 0.15s ease, transform 0.15s ease;
+}
+
+.site-nav__social:hover {
+  background: #333;
+  transform: translateY(-2px);
+}
+
+.site-nav__be {
+  font-family: var(--font-display);
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1;
+}
+
+/* Body scroll lock */
+body.site-nav-open {
+  overflow: hidden;
+}
+
+/* ── Mobile ── */
+
+@media (max-width: 39.9375rem) {
+  .site-nav__panel {
+    width: 100vw;
+  }
+
+  .site-nav__link {
+    font-size: clamp(3rem, 14vw, 4rem);
+  }
+}
