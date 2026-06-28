@@ -37,6 +37,8 @@ export function SmoothScroll({ children }: { children: React.ReactNode }) {
     });
 
     setLenisInstance(lenis);
+    // Expose for Playwright/test tooling — allows test scripts to call lenis.scrollTo directly
+    (window as unknown as Record<string, unknown>).__lenis = lenis;
 
     lenis.on("scroll", ScrollTrigger.update);
 
@@ -78,6 +80,7 @@ export function SmoothScroll({ children }: { children: React.ReactNode }) {
       ScrollTrigger.removeEventListener("refresh", onRefresh);
       gsap.ticker.remove(ticker);
       lenis.destroy();
+      delete (window as unknown as Record<string, unknown>).__lenis;
       setLenisInstance(null);
       ScrollTrigger.scrollerProxy(window, {});
       ScrollTrigger.clearScrollMemory();
