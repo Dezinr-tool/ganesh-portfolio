@@ -2,7 +2,7 @@
 
 import { Canvas } from "@react-three/fiber";
 import Image from "next/image";
-import { Suspense, useMemo, type MutableRefObject, type RefObject } from "react";
+import { Suspense, useEffect, useMemo, useState, type MutableRefObject, type RefObject } from "react";
 import * as THREE from "three";
 import type { WorksProject } from "./projects";
 import { WorksCanvasErrorBoundary } from "./WorksCanvasErrorBoundary";
@@ -38,18 +38,32 @@ export function WorksCanvas({
   reducedMotion,
   className,
 }: WorksCanvasProps) {
-  const isMobile = useMemo(
-    () => typeof window !== "undefined" && window.matchMedia("(max-width: 68.75rem)").matches,
-    [],
-  );
+  // isMobile must be determined after mount to avoid SSR/client hydration mismatch.
+  // Both server and initial client render render the loading fallback, then after
+  // mount we switch to the correct view for the device.
+  const [isMobile, setIsMobile] = useState<boolean | null>(null);
+
+  useEffect(() => {
+    setIsMobile(window.matchMedia("(max-width: 68.75rem)").matches);
+  }, []);
 
   const dpr = useMemo(() => {
-    if (typeof window === "undefined") return 1;
+    if (typeof window === "undefined" || isMobile === null) return 1;
     return isMobile ? 1 : Math.min(2, window.devicePixelRatio);
   }, [isMobile]);
 
   if (reducedMotion) {
     return null;
+  }
+
+  // During SSR and hydration, render nothing in the canvas slot.
+  // After mount, isMobile resolves to the correct value.
+  if (isMobile === null) {
+    return (
+      <div className={className}>
+        <WorksCanvasFallback />
+      </div>
+    );
   }
 
   if (isMobile) {
@@ -87,8 +101,8 @@ export function WorksCanvas({
               far: 100,
             }}
             gl={{
-              antialias: !isMobile,
-              powerPreference: isMobile ? "default" : "high-performance",
+              antialias: false,
+              powerPreference: "high-performance",
               alpha: false,
               toneMapping: THREE.ACESFilmicToneMapping,
               toneMappingExposure: WORKS_TONE_MAPPING_EXPOSURE,
