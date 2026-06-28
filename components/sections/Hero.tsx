@@ -315,7 +315,8 @@ export function Hero({ content }: HeroProps) {
         </motion.div>
 
         {/* Subtext — hidden on mobile */}
-        <motion.div style={{ y: bottomY, opacity: bottomOpacity }} className={"hidden sm:block max-w-[22rem] sm:max-w-[24rem] lg:max-w-[26rem] text-right shrink-0" as any}>
+        {/* @ts-expect-error framer-motion className type mismatch */}
+        <motion.div style={{ y: bottomY, opacity: bottomOpacity }} className={"hidden sm:block max-w-[22rem] sm:max-w-[24rem] lg:max-w-[26rem] text-right shrink-0"}>
           <p
             ref={subtextRef}
             data-hero-reveal
