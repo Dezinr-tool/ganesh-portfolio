@@ -133,6 +133,17 @@ export function Footer({ siteSettings, socialLinks }: FooterContent) {
         return;
       }
 
+      const isMobile = window.matchMedia("(max-width: 56.25rem)").matches;
+
+      // On mobile, the circle clipPath animation + ScrollTrigger scrub is unreliable
+      // on iOS (lenis.scroll may not update, leaving content at opacity:0 forever).
+      if (isMobile) {
+        setCircleStageVisible(circle, true);
+        gsap.set(circle, { clipPath: "circle(150% at 50% 100%)", backgroundColor: FOOTER_BLACK });
+        gsap.set(content, { opacity: 1, y: 0 });
+        return;
+      }
+
       setCircleStageVisible(circle, false);
 
       ScrollTrigger.create({
@@ -151,9 +162,8 @@ export function Footer({ siteSettings, socialLinks }: FooterContent) {
       });
       gsap.set(content, { opacity: 0, y: 36 });
 
-      const isMobile = window.matchMedia("(max-width: 56.25rem)").matches;
-      const contentFadeStart = isMobile ? 0 : CONTENT_FADE_START;
-      const scrub = isMobile ? 0.8 : FOOTER_SCRUB;
+      const contentFadeStart = CONTENT_FADE_START;
+      const scrub = FOOTER_SCRUB;
 
       const tl = gsap.timeline({
         scrollTrigger: {

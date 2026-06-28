@@ -190,25 +190,31 @@ export function FeaturedWork({
       const fadeTargets = [link, swipePill].filter(Boolean) as HTMLElement[];
 
       if (fadeTargets.length) {
-        gsap.fromTo(
-          fadeTargets,
-          { opacity: 0 },
-          {
-            opacity: 1,
-            ease: "none",
-            scrollTrigger: {
-              id: "works-overlays",
-              trigger: section,
-              start: "top -100%",
-              end: "bottom 100%",
-              scrub: true,
-              onEnter: () => link?.classList.add("is-visible"),
-              onEnterBack: () => link?.classList.add("is-visible"),
-              onLeave: () => link?.classList.remove("is-visible"),
-              onLeaveBack: () => link?.classList.remove("is-visible"),
+        if (isMobile) {
+          // On mobile, skip scroll-scrub — show immediately so nothing stays invisible on iOS
+          gsap.set(fadeTargets, { opacity: 1 });
+          link?.classList.add("is-visible");
+        } else {
+          gsap.fromTo(
+            fadeTargets,
+            { opacity: 0 },
+            {
+              opacity: 1,
+              ease: "none",
+              scrollTrigger: {
+                id: "works-overlays",
+                trigger: section,
+                start: "top -100%",
+                end: "bottom 100%",
+                scrub: true,
+                onEnter: () => link?.classList.add("is-visible"),
+                onEnterBack: () => link?.classList.add("is-visible"),
+                onLeave: () => link?.classList.remove("is-visible"),
+                onLeaveBack: () => link?.classList.remove("is-visible"),
+              },
             },
-          },
-        );
+          );
+        }
       }
 
       const mobileQuery = window.matchMedia("(max-width: 68.75rem)");

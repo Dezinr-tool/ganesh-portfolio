@@ -25,6 +25,13 @@ function SectionBackgroundBridge({ variant }: { variant: BridgeVariant }) {
 
       registerGsapPlugins();
 
+      // On mobile, scrub-based ScrollTrigger is unreliable on iOS.
+      // Show the bridge at 50% opacity as a static mid-tone blend instead.
+      if (window.matchMedia("(max-width: 48rem)").matches) {
+        gsap.set(bridge, { opacity: 0.5 });
+        return;
+      }
+
       gsap.fromTo(
         bridge,
         { opacity: 0 },
@@ -84,6 +91,13 @@ export function ScrollBackgroundLayer() {
 
       const light = readCssColor("--color-bg");
       const dark = readCssColor("--color-text");
+
+      // On mobile, skip the scrub — just hide the layer so each section's own
+      // background color shows through without conflicting overlay.
+      if (window.matchMedia("(max-width: 48rem)").matches) {
+        gsap.set(layer, { display: "none" });
+        return;
+      }
 
       gsap.set(layer, { backgroundColor: light });
 

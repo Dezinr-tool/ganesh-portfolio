@@ -24,6 +24,8 @@ export function setRevealVisible(target: gsap.TweenTarget) {
   gsap.set(target, { opacity: 1, y: 0, clearProps: "transform" });
 }
 
+const MOBILE_MQ = "(max-width: 48rem)";
+
 export function animateRevealOnScroll(
   targets: gsap.TweenTarget,
   options: RevealOptions = {},
@@ -39,7 +41,12 @@ export function animateRevealOnScroll(
     reducedMotion = false,
   } = options;
 
-  if (reducedMotion) {
+  // On mobile, ScrollTrigger + Lenis scroll-proxy is unreliable on iOS.
+  // Show content immediately so nothing stays hidden if the trigger never fires.
+  const isMobile =
+    typeof window !== "undefined" && window.matchMedia(MOBILE_MQ).matches;
+
+  if (reducedMotion || isMobile) {
     setRevealVisible(targets);
     return;
   }

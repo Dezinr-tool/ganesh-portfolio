@@ -316,7 +316,6 @@ export function Testimonials({ heading, testimonials }: TestimonialsProps) {
           ref={headingRef}
           id="testimonials-heading"
           className="testimonials-section__heading"
-          style={{ opacity: 0 }}
         >
           {heading}
         </h2>
