@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { DesignTokensStyle } from "@/components/design-system/design-tokens-style";
 import { SmoothScroll } from "@/components/providers/SmoothScroll";
 import { ConnectButton } from "@/components/ui/ConnectButton";
+import { MusicToggle } from "@/components/ui/MusicToggle";
 import { SiteNav } from "@/components/ui/SiteNav";
 import { PageLoader } from "@/components/ui/PageLoader";
 import { ScrollProgress } from "@/components/ui/ScrollProgress";
@@ -90,6 +91,7 @@ export default async function RootLayout({
           <ScrollProgress />
           <PageLoader />
           {children}
+          <MusicToggle />
           <SiteNav />
           <ConnectButton />
         </SmoothScroll>
