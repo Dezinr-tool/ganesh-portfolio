@@ -8,10 +8,17 @@ import { ScrollProgress } from "@/components/ui/ScrollProgress";
 import { breton, inter, machine } from "./fonts";
 import "./globals.css";
 
-const siteUrl = "https://designbyganesh.com";
+const siteUrl = "https://www.designbyganesh.com";
 const title = "Ganesh Das — Design & Strategy Partner";
 const description =
   "Design & Strategy Partner for Startups. Ganesh Das helps founders build products people love — D2C, B2B & B2B2C specialist with 14+ years across funded Indian startups.";
+const ogImage = {
+  url: "/og-image.jpg",
+  width: 1200,
+  height: 630,
+  alt: title,
+  type: "image/jpeg",
+} as const;
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
@@ -33,20 +40,13 @@ export const metadata: Metadata = {
     siteName: "Ganesh Das",
     locale: "en_US",
     type: "website",
-    images: [
-      {
-        url: "/ganesh-profile.jpg",
-        width: 1200,
-        height: 630,
-        alt: "Ganesh Das — Design & Strategy Partner",
-      },
-    ],
+    images: [ogImage],
   },
   twitter: {
     card: "summary_large_image",
     title,
     description,
-    images: ["/ganesh-profile.jpg"],
+    images: [ogImage.url],
   },
   robots: { index: true, follow: true },
   appleWebApp: {
