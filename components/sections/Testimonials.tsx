@@ -243,42 +243,54 @@ export function Testimonials({ heading, testimonials }: TestimonialsProps) {
       if (reducedMotion) return;
       registerGsapPlugins();
 
+      const isMobile = window.matchMedia("(max-width: 48rem)").matches;
+
       if (headingRef.current) {
-        gsap.fromTo(
-          headingRef.current,
-          { opacity: 0, y: 32 },
-          {
-            opacity: 1,
-            y: 0,
-            duration: 0.8,
-            ease: "power3.out",
-            scrollTrigger: {
-              trigger: headingRef.current,
-              start: "top 85%",
-              toggleActions: "play none none none",
+        if (isMobile) {
+          // On mobile, skip the scroll-gated animation — if ScrollTrigger
+          // doesn't fire on iOS the heading stays permanently invisible.
+          gsap.set(headingRef.current, { opacity: 1, y: 0 });
+        } else {
+          gsap.fromTo(
+            headingRef.current,
+            { opacity: 0, y: 32 },
+            {
+              opacity: 1,
+              y: 0,
+              duration: 0.8,
+              ease: "power3.out",
+              scrollTrigger: {
+                trigger: headingRef.current,
+                start: "top 85%",
+                toggleActions: "play none none none",
+              },
             },
-          },
-        );
+          );
+        }
       }
 
       const cards = trackRef.current ? Array.from(trackRef.current.children) : [];
       if (cards.length) {
-        gsap.fromTo(
-          cards,
-          { x: -60, opacity: 0 },
-          {
-            x: 0,
-            opacity: 1,
-            duration: 0.65,
-            ease: "power3.out",
-            stagger: 0.1,
-            scrollTrigger: {
-              trigger: viewportRef.current,
-              start: "top 80%",
-              toggleActions: "play none none none",
+        if (isMobile) {
+          gsap.set(cards, { x: 0, opacity: 1 });
+        } else {
+          gsap.fromTo(
+            cards,
+            { x: -60, opacity: 0 },
+            {
+              x: 0,
+              opacity: 1,
+              duration: 0.65,
+              ease: "power3.out",
+              stagger: 0.1,
+              scrollTrigger: {
+                trigger: viewportRef.current,
+                start: "top 80%",
+                toggleActions: "play none none none",
+              },
             },
-          },
-        );
+          );
+        }
       }
     },
     { scope: sectionRef, dependencies: [reducedMotion] },
