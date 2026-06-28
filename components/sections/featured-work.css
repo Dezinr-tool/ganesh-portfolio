@@ -31,6 +31,10 @@
   letter-spacing: -0.12em;
 }
 
+.works-gallery__word:last-child {
+  padding-right: 0.1em;
+}
+
 .works-gallery__word + .works-gallery__word {
   margin-left: 0.18em;
 }

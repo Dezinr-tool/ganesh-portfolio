@@ -52,7 +52,19 @@ const OPTIONS: Option[] = [
 
 export function ConnectButton() {
   const [open, setOpen] = useState(false);
+  const [pastHero, setPastHero] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const check = () => {
+      const hero = document.getElementById("hero");
+      if (!hero) { setPastHero(true); return; }
+      setPastHero(window.scrollY >= hero.offsetHeight * 0.8);
+    };
+    check();
+    window.addEventListener("scroll", check, { passive: true });
+    return () => window.removeEventListener("scroll", check);
+  }, []);
 
   useEffect(() => {
     if (!open) return;
@@ -80,6 +92,11 @@ export function ConnectButton() {
       className="connect-btn__root"
       role="region"
       aria-label="Connect with Ganesh"
+      style={{
+        opacity: pastHero ? 1 : 0,
+        pointerEvents: pastHero ? "auto" : "none",
+        transition: "opacity 0.35s ease",
+      }}
     >
       <div className={`connect-btn__panel${open ? " is-open" : ""}`}>
         {OPTIONS.map((opt, i) => (
@@ -110,7 +127,7 @@ export function ConnectButton() {
         {open ? (
           <X size={14} strokeWidth={2} className="connect-btn__close-icon" aria-hidden="true" />
         ) : (
-          <span className="connect-btn__label">CONNECT WITH ME</span>
+          <span className="connect-btn__label">LET'S TALK</span>
         )}
       </button>
     </div>

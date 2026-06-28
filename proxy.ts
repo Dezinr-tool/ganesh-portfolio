@@ -24,7 +24,7 @@ function mbAdminLoginUrl(request: NextRequest, from?: string) {
   return loginUrl;
 }
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   // Sanity Studio handles its own auth — never gate /studio behind app middleware.

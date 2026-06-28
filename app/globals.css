@@ -59,6 +59,13 @@ body {
   }
 }
 
+/* ── Squircle — smooth iOS-style corners site-wide ── */
+*,
+*::before,
+*::after {
+  corner-shape: squircle;
+}
+
 /* Skip link — visible on keyboard focus */
 .skip-link {
   position: absolute;

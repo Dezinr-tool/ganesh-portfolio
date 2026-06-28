@@ -1,29 +1,22 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { CaseStudyView } from "@/components/work/CaseStudyView";
-import {
-  fetchAllProjectSlugs,
-  fetchCaseStudyBySlug,
-  fetchMoreWorks,
-  fetchWorksProjects,
-} from "@/lib/sanity/fetch";
+import { WORKS_PROJECTS } from "@/components/sections/works/projects";
+import { getCaseStudyBySlugFallback } from "@/lib/work/case-studies-fallback";
 
 type PageProps = {
   params: Promise<{ slug: string }>;
 };
 
-export async function generateStaticParams() {
-  const slugs = await fetchAllProjectSlugs();
-  return slugs.map((slug) => ({ slug }));
+export function generateStaticParams() {
+  return WORKS_PROJECTS.map((p) => ({ slug: p.id }));
 }
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { slug } = await params;
-  const study = await fetchCaseStudyBySlug(slug);
+  const study = getCaseStudyBySlugFallback(slug);
 
-  if (!study) {
-    return { title: "Project not found" };
-  }
+  if (!study) return { title: "Project not found" };
 
   const title = `${study.title} — Ganesh Das`;
   const description = study.sections[0]?.paragraphs[0] ?? "Case study by Ganesh Das.";
@@ -41,14 +34,13 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
 export default async function WorkCaseStudyPage({ params }: PageProps) {
   const { slug } = await params;
-  const study = await fetchCaseStudyBySlug(slug);
+  const study = getCaseStudyBySlugFallback(slug);
 
-  if (!study) {
-    notFound();
-  }
+  if (!study) notFound();
 
-  const projects = await fetchWorksProjects();
-  const moreWorks = await fetchMoreWorks(slug, projects);
+  const moreWorks = WORKS_PROJECTS.filter((p) => p.id !== slug)
+    .slice(0, 5)
+    .map((p) => ({ slug: p.id, title: p.title, image: p.image }));
 
   return <CaseStudyView study={study} moreWorks={moreWorks} />;
 }

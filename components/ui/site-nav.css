@@ -1,5 +1,28 @@
 /* Site nav — pacomepertant.com style menu */
 
+/* ── Logo (top-left) ── */
+
+.site-nav__logo {
+  position: fixed;
+  top: clamp(16px, 2.5vh, 28px);
+  left: clamp(16px, 2.5vw, 32px);
+  z-index: 9998;
+  display: flex;
+  align-items: center;
+  text-decoration: none;
+  transition: opacity 0.2s ease;
+}
+
+.site-nav__logo:hover {
+  opacity: 0.65;
+}
+
+.site-nav__logo-img {
+  width: auto;
+  height: 32px;
+  display: block;
+}
+
 /* ── Trigger pill (top-right) ── */
 
 .site-nav__trigger {
@@ -11,12 +34,11 @@
   align-items: center;
   gap: 8px;
   padding: 10px 16px;
-  background: transparent;
-  border: 1px solid rgba(255, 255, 255, 0.45);
+  background: #ffffff;
+  border: 1px solid rgba(0, 0, 0, 0.1);
   border-radius: 999px;
   cursor: pointer;
   transition: opacity 0.2s ease;
-  mix-blend-mode: difference;
 }
 
 .site-nav__trigger:hover {
@@ -30,7 +52,7 @@
 
 .site-nav__trigger-icon {
   flex-shrink: 0;
-  color: #ffffff;
+  color: #0a0a0b;
 }
 
 .site-nav__trigger-label {
@@ -38,9 +60,8 @@
   font-size: 12px;
   font-weight: 500;
   letter-spacing: 0.06em;
-  color: #ffffff;
+  color: #0a0a0b;
   text-transform: lowercase;
-  mix-blend-mode: normal;
 }
 
 /* ── Backdrop ── */

@@ -8,8 +8,8 @@ import { ScrollTrigger } from "gsap/ScrollTrigger";
 import Link from "next/link";
 import { useReducedMotion } from "framer-motion";
 import { useEffect, useRef, useState } from "react";
-import type { SanitySiteSettings, SanitySocialLinks } from "@/lib/sanity/types";
-import { phoneHref, splitEmailLines, splitLines } from "@/lib/sanity/mappers";
+import type { SiteSettings, SocialLinks } from "@/lib/content";
+import { phoneHref, splitEmailLines, splitLines } from "@/lib/content-utils";
 import "./footer-dome.css";
 
 const FOOTER_BLACK = "#111111";
@@ -22,7 +22,7 @@ const PRIMARY_NAV_LINKS = [
 ] as const;
 
 /** Tier 2 — full-width bracket row */
-function buildBracketNavLinks(socialLinks: SanitySocialLinks) {
+function buildBracketNavLinks(socialLinks: SocialLinks) {
   return [
     socialLinks.dribbble
       ? { label: "[ DRIBBBLE ]", href: socialLinks.dribbble }
@@ -38,8 +38,8 @@ function buildBracketNavLinks(socialLinks: SanitySocialLinks) {
 }
 
 export type FooterContent = {
-  siteSettings: SanitySiteSettings;
-  socialLinks: SanitySocialLinks;
+  siteSettings: SiteSettings;
+  socialLinks: SocialLinks;
 };
 
 const ADDRESS_FALLBACK = [
@@ -51,7 +51,7 @@ const ADDRESS_FALLBACK = [
 const CONTENT_FADE_START = 0.5;
 const CONTENT_FADE_DUR = 0.5;
 /** ScrollTrigger range — long distance + scrub lag for a slow, intentional reveal. */
-const FOOTER_SCROLL_START = "top 90%";
+const FOOTER_SCROLL_START = "top 70%";
 const FOOTER_SCROLL_END = "bottom 20%";
 const FOOTER_SCRUB = 3;
 

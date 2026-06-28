@@ -3,8 +3,8 @@
 export const VALUE_SCROLL_DESKTOP_MQ = "(max-width: 56.25rem)"; /* 900px */
 
 export const VALUE_SCROLL_TEXT = {
-  desktop: ["Design that delivers.", "From insight to interface."] as const,
-  mobile: ["Design that", "delivers.", "From insight", "to interface."] as const,
+  desktop: ["Good design isn't magic.", "It's method."] as const,
+  mobile: ["Good design", "isn't magic.", "It's method."] as const,
   mobileAccentFromLine: 2,
 };
 
@@ -18,30 +18,30 @@ export type ValueScrollCard = {
 
 export const VALUE_SCROLL_CARDS: ValueScrollCard[] = [
   {
-    id: "user-centered",
-    title: "User-Centered",
-    body: "Research, testing, and flows grounded in real user needs — not assumptions.",
+    id: "research-strategy",
+    title: "I start with why.",
+    body: "User research, competitor mapping, and product strategy. Before a single pixel is moved. Decisions backed by insight, not instinct.",
     tone: "mint",
     index: "1",
   },
   {
-    id: "ship-ready",
-    title: "Ship-Ready",
-    body: "High-fidelity components and specs teams can pick up and build from day one.",
+    id: "design-systems",
+    title: "I build things that scale.",
+    body: "From component libraries to full design systems. Ship-ready specs, high-fidelity UI, and handoffs engineers actually love.",
     tone: "yellow",
     index: "2",
   },
   {
-    id: "fast-iteration",
-    title: "Fast Iteration",
-    body: "Prototypes that validate ideas before heavy engineering spend.",
+    id: "prototyping",
+    title: "I kill bad ideas early.",
+    body: "Rapid prototypes that test assumptions before engineering burns time. Fail fast, learn faster, ship smarter.",
     tone: "sky",
     index: "3",
   },
   {
-    id: "end-to-end",
-    title: "End-to-End",
-    body: "Workshops, systems, UI, and handoff across the full product cycle.",
+    id: "leadership",
+    title: "I make teams better.",
+    body: "Design sprints, workshops, mentoring. 15 years of building products and the teams that build them. D2C, B2B, B2B2C, funded startups.",
     tone: "grey",
     index: "4",
   },

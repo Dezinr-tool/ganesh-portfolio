@@ -61,10 +61,10 @@ const CASE_STUDIES: CaseStudy[] = [
     'wellness platform',
     '2025',
     [
-      'The goal was to design a digital product that feels calm, human, and premium — translating a wellness brand into an interface people trust with their daily routines.',
+      'The goal was to design a digital product that feels calm, human, and premium translating a wellness brand into an interface people trust with their daily routines.',
     ],
     [
-      'We built a modular design system around soft contrast, editorial typography, and motion that guides rather than distracts — so the product feels intentional at every touchpoint.',
+      'We built a modular design system around soft contrast, editorial typography, and motion that guides rather than distracts, so the product feels intentional at every touchpoint.',
     ],
   ),
   baseCase(
@@ -90,7 +90,7 @@ const CASE_STUDIES: CaseStudy[] = [
       'Planza required a product experience that makes complex planning feel lightweight for distributed teams.',
     ],
     [
-      'We focused on clarity in navigation, progressive disclosure in dashboards, and a visual language that keeps focus on decisions — not chrome.',
+      'We focused on clarity in navigation, progressive disclosure in dashboards, and a visual language that keeps focus on decisions, not chrome.',
     ],
   ),
   baseCase(
@@ -126,7 +126,7 @@ const CASE_STUDIES: CaseStudy[] = [
     'creative studio',
     '2022',
     [
-      'Vera Studio wanted a portfolio that feels like entering a gallery — minimal, confident, and focused on the work itself.',
+      'Vera Studio wanted a portfolio that feels like entering a gallery. minimal, confident, and focused on the work itself.',
     ],
     [
       'The site uses generous whitespace, asymmetric layouts, and subtle motion to let each project breathe without losing navigational clarity.',
@@ -144,7 +144,7 @@ function genericCaseFromWorks(slug: string): CaseStudy | undefined {
     project.image,
     project.category.replace('-', ' '),
     project.year,
-    [`${project.title} — selected work from the portfolio.`],
+    [`${project.title}: selected work from the portfolio.`],
     ['Full case study content can be authored in Sanity Studio.'],
     { mainImage: project.image, backgroundMain: project.image },
   )

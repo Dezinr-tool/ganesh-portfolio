@@ -6,11 +6,11 @@ import { Testimonials } from "@/components/sections/Testimonials";
 import { Tools } from "@/components/sections/Tools";
 import { ValueScrollSection } from "@/components/sections/ValueScrollSection";
 import "@/components/sections/value-scroll.css";
-import { getHomepageRenderData } from "@/lib/sanity/homepage";
+import { getHomepageRenderData } from "@/lib/content";
 
-export default async function Home() {
+export default function Home() {
   const { content, projects, testimonials, headlineLines, badgeLines } =
-    await getHomepageRenderData();
+    getHomepageRenderData();
 
   return (
     <main
@@ -21,25 +21,22 @@ export default async function Home() {
       <Hero
         content={{
           headlineLines,
-          subtext: content.hero.subtext ?? "",
+          subtext: content.hero.subtext,
           badgeLines,
         }}
       />
       <AboutText
-        sectionLabel={content.about.sectionLabel ?? ""}
-        bodyText={content.about.bodyText ?? ""}
+        sectionLabel={content.about.sectionLabel}
+        bodyText={content.about.bodyText}
       />
       <ValueScrollSection />
       <FeaturedWork
         projects={projects}
-        sectionTitle={content.siteSettings.worksSectionTitle ?? "recent works"}
+        sectionTitle={content.siteSettings.worksSectionTitle}
       />
       <Tools />
       <Testimonials
-        heading={
-          content.siteSettings.testimonialsHeading ??
-          "Trusted by the people I've built with"
-        }
+        heading={content.siteSettings.testimonialsHeading}
         testimonials={testimonials}
       />
       <Footer siteSettings={content.siteSettings} socialLinks={content.socialLinks} />

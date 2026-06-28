@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { MenuIcon, type MenuIconHandle } from "./MenuIcon";
+import { XIcon, type XIconHandle } from "./XIcon";
 import "./site-nav.css";
 
 const NAV_LINKS = [
@@ -51,6 +52,7 @@ export function SiteNav() {
   const [open, setOpen] = useState(false);
   const panelRef = useRef<HTMLDivElement>(null);
   const menuIconRef = useRef<MenuIconHandle>(null);
+  const xIconRef = useRef<XIconHandle>(null);
 
   // Close on Escape
   useEffect(() => {
@@ -82,7 +84,7 @@ export function SiteNav() {
       {/* Trigger pill */}
       <button
         className={`site-nav__trigger${open ? " is-open" : ""}`}
-        onClick={() => { setOpen(true); menuIconRef.current?.startAnimation(); }}
+        onClick={() => { setOpen(true); menuIconRef.current?.startAnimation(); xIconRef.current?.startAnimation(); }}
         aria-label="Open navigation"
         aria-expanded={open}
       >
@@ -113,7 +115,7 @@ export function SiteNav() {
             aria-label="Close navigation"
           >
             <span>close</span>
-            <span className="site-nav__close-x">✕</span>
+            <XIcon ref={xIconRef} className="site-nav__close-x" size={14} aria-hidden="true" />
           </button>
 
           {/* Nav links */}

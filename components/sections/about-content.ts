@@ -1,2 +1,2 @@
 export const ABOUT_TEXT =
-  "I learned design the hard way through curiosity that wouldn't rest, mistakes that wouldn't be ignored, and iteration that wouldn't stop. What pulled me in was never just the surface, but the machinery beneath it. The patterns, the systems, the logic that makes everything else possible.";
+  "Curiosity got me in. Mistakes kept me honest. Iteration made me dangerous. I've never been interested in just the surface. I want to understand the machinery underneath. The patterns. The Systems. The invisible logic that makes great products inevitable.";

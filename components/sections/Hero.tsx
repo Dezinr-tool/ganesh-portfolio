@@ -295,15 +295,16 @@ export function Hero({ content }: HeroProps) {
       </div>
 
       {/* Headline — bottom left. pr-16 on mobile prevents N-button overlap */}
+      {/* Bottom row — h1 left, subtext right, tops aligned */}
       <div
         ref={bottomRef}
-        className="pointer-events-none absolute bottom-0 left-0 z-[2] max-w-[min(100%,42rem)] px-5 pb-8 pr-16 sm:pr-0 sm:px-10 sm:pb-12 lg:px-14 lg:pb-14"
+        className="pointer-events-none absolute bottom-0 left-0 right-0 z-[2] flex items-start justify-between px-5 pb-8 pr-16 sm:pr-10 sm:px-10 sm:pb-12 lg:px-14 lg:pb-14"
       >
         <motion.div style={{ y: bottomY, opacity: bottomOpacity }}>
           <h1
             ref={headlineRef}
             data-hero-headline
-            className="text-[clamp(36px,8vw,64px)] leading-[1.04] font-medium tracking-[-0.02em] text-[var(--color-text)] md:text-[clamp(2.25rem,4.5vw,3.75rem)]"
+            className="text-[clamp(28px,6vw,56px)] leading-[1.08] font-medium tracking-[-0.02em] text-[var(--color-text)] md:text-[clamp(2rem,4vw,3.5rem)]"
           >
             {content.headlineLines.map((line) => (
               <span key={line} className="block">
@@ -312,11 +313,9 @@ export function Hero({ content }: HeroProps) {
             ))}
           </h1>
         </motion.div>
-      </div>
 
-      {/* Subtext — bottom right, hidden on mobile to avoid headline collision */}
-      <div className="pointer-events-none absolute right-0 bottom-0 z-[2] hidden max-w-[min(100%,22rem)] px-5 pb-8 text-right sm:block sm:max-w-[24rem] sm:px-10 sm:pb-12 lg:max-w-[26rem] lg:px-14 lg:pb-14">
-        <motion.div style={{ y: bottomY, opacity: bottomOpacity }}>
+        {/* Subtext — hidden on mobile */}
+        <motion.div style={{ y: bottomY, opacity: bottomOpacity }} className={"hidden sm:block max-w-[22rem] sm:max-w-[24rem] lg:max-w-[26rem] text-right shrink-0" as any}>
           <p
             ref={subtextRef}
             data-hero-reveal
