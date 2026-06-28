@@ -143,10 +143,10 @@
   box-shadow: 0 28px 56px rgb(0 0 0 / 0.5), 0 8px 24px rgb(0 0 0 / 0.3);
 }
 
-.vs-card--mint .vs-card__surface  { background: #1a2820; }
-.vs-card--yellow .vs-card__surface { background: #26211a; }
-.vs-card--sky .vs-card__surface    { background: #1a2028; }
-.vs-card--grey .vs-card__surface   { background: #1e1e1e; }
+.vs-card--mint .vs-card__surface   { background: linear-gradient(180deg, #1a2820 0%, #1a2820 52%, #111111 100%); }
+.vs-card--yellow .vs-card__surface { background: linear-gradient(180deg, #26211a 0%, #26211a 52%, #111111 100%); }
+.vs-card--sky .vs-card__surface    { background: linear-gradient(180deg, #1a2028 0%, #1a2028 52%, #111111 100%); }
+.vs-card--grey .vs-card__surface   { background: linear-gradient(180deg, #1e1e1e 0%, #1e1e1e 52%, #111111 100%); }
 
 /* Copy — clipped inside card, rotates with arm as one unit */
 .vs-card__content {
