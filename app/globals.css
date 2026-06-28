@@ -855,12 +855,17 @@ body {
     max-width: 100%;
     overflow-wrap: break-word;
     word-break: normal;
-    font-size: clamp(24px, 5vw, 64px);
+    font-size: clamp(1.625rem, 7vw, 4rem);
     line-height: 1.06;
+    text-align: left;
+    margin-inline: 0;
+    padding: 0;
   }
 
   .hero-reveal-copy__body {
     gap: 0.08em 0.28em;
+    justify-content: flex-start;
+    text-align: left;
   }
 
   .hero-ganesh-watermark {

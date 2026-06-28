@@ -439,6 +439,15 @@ export function Tools() {
       aria-label="Experience and tools"
     >
       <div ref={innerRef} className="section-stage__inner">
+      <div className="tools-experience__cta">
+        <span className="tools-experience__cta-label">Have a project?</span>
+        <a
+          href="mailto:hello@designbyganesh.com"
+          className="tools-experience__cta-link"
+        >
+          Let&apos;s Talk
+        </a>
+      </div>
       <ol className="tools-experience__list">
         {TOOL_EXPERIENCE_ROWS.map((row) => (
           <ExperienceRow

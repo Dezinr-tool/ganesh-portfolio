@@ -250,10 +250,10 @@ export function Hero({ content }: HeroProps) {
             ref={photoRef}
             className="relative h-[min(82vh,640px)] min-h-[70vh] w-full overflow-visible will-change-transform md:h-[min(94vh,1080px)] md:min-h-[86vh]"
           >
-            {/* Badges — top-right corner on mobile, beside head on sm+ */}
+            {/* Badges — hidden on mobile (shown above H1 instead), beside head on sm+ */}
             <header
               ref={badgeRef}
-              className="pointer-events-auto absolute top-5 right-4 z-[3] text-right sm:top-[12%] sm:right-auto sm:left-[54%] sm:text-left sm:max-w-none md:top-[11%] md:left-[57%] lg:top-[10%] lg:left-[61%]"
+              className="pointer-events-auto hidden sm:absolute sm:top-[12%] sm:right-auto sm:left-[54%] sm:z-[3] sm:block sm:text-left sm:max-w-none md:top-[11%] md:left-[57%] lg:top-[10%] lg:left-[61%]"
             >
               <div className="flex flex-col items-end gap-1 sm:items-start sm:text-left">
                 {content.badgeLines.map((line, index) => (
@@ -294,17 +294,31 @@ export function Hero({ content }: HeroProps) {
         </div>
       </div>
 
-      {/* Headline — bottom left. pr-16 on mobile prevents N-button overlap */}
-      {/* Bottom row — h1 left, subtext right, tops aligned */}
+      {/* Bottom section — mobile: stacked (badge → h1 → subtext). sm+: row layout */}
       <div
         ref={bottomRef}
-        className="pointer-events-none absolute bottom-0 left-0 right-0 z-[2] flex items-start justify-between px-5 pb-8 pr-16 sm:pr-10 sm:px-10 sm:pb-12 lg:px-14 lg:pb-14"
+        className="pointer-events-none absolute bottom-0 left-0 right-0 z-[2] px-5 pb-6 sm:flex sm:items-start sm:justify-between sm:px-10 sm:pb-12 lg:px-14 lg:pb-14"
       >
         <motion.div style={{ y: bottomY, opacity: bottomOpacity }}>
+          {/* Badge — mobile only, above H1 */}
+          <div className="mb-2 flex flex-col items-start gap-1 sm:hidden">
+            {content.badgeLines.map((line, index) => (
+              <p key={`mob-${line}-${index}`} className={badgeLabelClass}>
+                {index === 0 ? (
+                  <GreenDot animated />
+                ) : (
+                  <span className="size-2 shrink-0" aria-hidden="true" />
+                )}
+                <span className={index === 0 ? "uppercase" : "font-semibold uppercase"}>
+                  {line}
+                </span>
+              </p>
+            ))}
+          </div>
           <h1
             ref={headlineRef}
             data-hero-headline
-            className="text-[clamp(28px,6vw,56px)] leading-[1.08] font-medium tracking-[-0.02em] text-[var(--color-text)] md:text-[clamp(2rem,4vw,3.5rem)]"
+            className="text-[clamp(28px,6vw,56px)] leading-[1.08] font-medium tracking-[-0.02em] text-[var(--color-text)] pr-14 sm:pr-0 md:text-[clamp(2rem,4vw,3.5rem)]"
           >
             {content.headlineLines.map((line) => (
               <span key={line} className="block">
@@ -312,9 +326,13 @@ export function Hero({ content }: HeroProps) {
               </span>
             ))}
           </h1>
+          {/* Subtext — mobile only, below H1 */}
+          <p className="mt-2 pr-14 text-[max(13px,0.8125rem)] leading-[1.48] font-normal text-[var(--color-text)] sm:hidden">
+            {content.subtext}
+          </p>
         </motion.div>
 
-        {/* Subtext — hidden on mobile */}
+        {/* Subtext — desktop only, right side */}
         {/* @ts-expect-error framer-motion className type mismatch */}
         <motion.div style={{ y: bottomY, opacity: bottomOpacity }} className={"hidden sm:block max-w-[22rem] sm:max-w-[24rem] lg:max-w-[26rem] text-right shrink-0"}>
           <p

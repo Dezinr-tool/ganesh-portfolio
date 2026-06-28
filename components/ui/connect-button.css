@@ -155,7 +155,7 @@ body.site-nav-open .connect-btn__root {
 
 @media (max-width: 39.9375rem) {
   .connect-btn__root {
-    bottom: calc(env(safe-area-inset-bottom) + 72px);
+    bottom: calc(env(safe-area-inset-bottom) + 24px);
     right: 16px;
   }
 

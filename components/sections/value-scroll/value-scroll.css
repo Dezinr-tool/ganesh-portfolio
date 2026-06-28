@@ -214,6 +214,12 @@
 /* ── Mobile ── */
 
 @media (max-width: 56.25rem) {
+  /* Ensure section is tall enough to fill viewport — prevents works-gallery title bleeding in */
+  .value-scroll {
+    z-index: 15;
+    min-height: 100dvh;
+  }
+
   .vs-headline__pin {
     height: auto;
   }
@@ -221,6 +227,7 @@
   .vs-headline__stage {
     height: auto;
     padding: 4rem 0 3rem;
+    place-items: start;
   }
 
   .vs-headline__copy--desktop {
@@ -229,12 +236,14 @@
 
   .vs-headline__copy--mobile {
     display: block;
+    text-align: left;
   }
 
   .vs-headline__line {
     font-size: clamp(1.5rem, 6.5vw, 2.5rem);
     white-space: normal;
     padding-right: 5rem; /* clear the menu button */
+    text-align: left;
   }
 
   .vs-cards {

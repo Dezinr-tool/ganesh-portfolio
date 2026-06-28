@@ -120,13 +120,18 @@
     min-height: var(--touch-target-min, 2.75rem);
   }
 
+  /* Accordion band expands from top for natural open feel */
+  .tools-experience__band {
+    transform-origin: top center;
+  }
+
   .tools-experience__content {
     gap: 0.5rem;
-    padding-block: 1.5rem;
+    padding-block: 1.25rem;
   }
 
   .tools-experience__title {
-    font-size: clamp(1.75rem, 9vw, 2.75rem);
+    font-size: clamp(1.5rem, 8vw, 2.25rem);
     line-height: 1.05;
     overflow-wrap: anywhere;
   }
@@ -137,6 +142,55 @@
 
   .tools-experience__marquee-viewport {
     overflow: hidden;
+  }
+}
+
+/* Reduce section padding on mobile so the tools list fits in one viewport */
+@media (max-width: 48rem) {
+  #tools.section-stage {
+    --section-stage-pt: clamp(2.5rem, 8vw, 3.5rem);
+    --section-stage-pb: clamp(2rem, 6vw, 3rem);
+  }
+}
+
+/* LET'S TALK cta above the tools list */
+.tools-experience__cta {
+  display: none;
+}
+
+@media (max-width: 48rem) {
+  .tools-experience__cta {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 var(--section-px, 1.25rem) 1.5rem;
+  }
+
+  .tools-experience__cta-label {
+    font-family: var(--font-sans);
+    font-size: 0.6875rem;
+    font-weight: 500;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--color-text);
+    opacity: 0.55;
+  }
+
+  .tools-experience__cta-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.6rem 1.25rem;
+    border: 1px solid var(--color-text);
+    border-radius: 9999px;
+    background: transparent;
+    color: var(--color-text);
+    font-family: var(--font-sans);
+    font-size: 0.8125rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    text-decoration: none;
   }
 }
 
