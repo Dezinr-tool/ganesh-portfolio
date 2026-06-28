@@ -1,19 +1,21 @@
 // @ts-check
-const { chromium, webkit } = require("@playwright/test");
+// Uses Chromium with iPhone emulation — matches the user's actual browser
+// (Chrome on iOS uses the same CSS/JS behavior as Chrome desktop emulation)
+const { chromium } = require("@playwright/test");
 const path = require("path");
 const fs = require("fs");
 
 const BASE_URL = "http://localhost:3000";
 
-const VIEWPORTS = [
-  { name: "iphone-se-13mini", width: 375, height: 812 },
-  { name: "iphone-14", width: 390, height: 844 },
-  { name: "iphone-14plus", width: 430, height: 932 },
-  { name: "ipad", width: 768, height: 1024 },
-  { name: "android-s21", width: 360, height: 800 },
-  { name: "android-pixel7", width: 412, height: 915 },
-  { name: "desktop-1280", width: 1280, height: 800 },
-  { name: "desktop-1440", width: 1440, height: 900 },
+const DEVICES = [
+  { name: "iphone-se-13mini", width: 375, height: 812, dpr: 3 },
+  { name: "iphone-14", width: 390, height: 844, dpr: 3 },
+  { name: "iphone-14plus", width: 430, height: 932, dpr: 3 },
+  { name: "ipad", width: 768, height: 1024, dpr: 2 },
+  { name: "android-s21", width: 360, height: 800, dpr: 3 },
+  { name: "android-pixel7", width: 412, height: 915, dpr: 2.625 },
+  { name: "desktop-1280", width: 1280, height: 800, dpr: 1 },
+  { name: "desktop-1440", width: 1440, height: 900, dpr: 1 },
 ];
 
 const SCROLL_STOPS = [
@@ -31,54 +33,61 @@ async function run() {
   const outDir = path.join(__dirname, "../screenshots/ios");
   fs.mkdirSync(outDir, { recursive: true });
 
-  const browser = await webkit.launch({ headless: true });
+  const browser = await chromium.launch({ headless: true });
 
-  for (const vp of VIEWPORTS) {
+  for (const vp of DEVICES) {
+    const isMobile = vp.width <= 768;
     console.log(`\n📱 Testing ${vp.name} (${vp.width}x${vp.height})...`);
 
     const context = await browser.newContext({
       viewport: { width: vp.width, height: vp.height },
-      deviceScaleFactor: vp.width <= 430 ? 3 : vp.width <= 768 ? 2 : 1,
-      isMobile: vp.width <= 768,
-      hasTouch: vp.width <= 768,
-      userAgent:
-        vp.width <= 768
-          ? "Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1"
-          : undefined,
+      deviceScaleFactor: vp.dpr,
+      isMobile,
+      hasTouch: isMobile,
+      userAgent: isMobile
+        ? "Mozilla/5.0 (Linux; Android 12; Pixel 6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36"
+        : undefined,
+    });
+
+    // Skip the intro page loader — it takes ~9s and hides all body content.
+    // The loader skips itself when sessionStorage["portfolio-loaded"] === "1".
+    await context.addInitScript(() => {
+      sessionStorage.setItem("portfolio-loaded", "1");
     });
 
     const page = await context.newPage();
-
-    // Suppress console noise
-    page.on("console", () => {});
-    page.on("pageerror", (err) => console.error(`  ❌ JS error: ${err.message}`));
+    page.on("pageerror", (err) =>
+      console.error(`  ❌ JS error: ${err.message.slice(0, 120)}`),
+    );
 
     await page.goto(BASE_URL, { waitUntil: "networkidle", timeout: 60000 });
 
-    // Wait for Next.js dev-mode compilation and React hydration to complete.
-    // The page is ready when Lenis adds its class to <html>.
-    await page.waitForFunction(
-      () =>
-        document.documentElement.classList.contains("lenis") ||
-        document.querySelector("[data-lenis-wrapper]") !== null ||
-        // Fallback: wait until the Next.js loading indicator is gone
-        !document.querySelector(".__next-loading-indicator"),
-      { timeout: 30000 },
-    ).catch(() => {});
-    // Extra settle time for GSAP/Lenis to finish first frame
-    await page.waitForTimeout(3000);
+    // Wait for Lenis to initialize (it adds its class to <html>)
+    await page
+      .waitForFunction(() => window.__lenis != null, { timeout: 15000 })
+      .catch(() => console.log("  ⚠ Lenis not detected, proceeding anyway"));
+
+    // Let GSAP/Lenis settle after load
+    await page.waitForTimeout(2000);
+
+    // Diagnostic — printed once per viewport
+    const diag = await page.evaluate(() => ({
+      windowScrollY: window.scrollY,
+      htmlOverflow: getComputedStyle(document.documentElement).overflow,
+      pageHeight: document.body.scrollHeight,
+      lenisScroll: window.__lenis?.scroll,
+      lenisTarget: window.__lenis?.targetScroll,
+      htmlClass: document.documentElement.className.slice(0, 80),
+    }));
+    console.log("  diag:", JSON.stringify(diag));
 
     for (const stop of SCROLL_STOPS) {
-      // Use lenis.scrollTo if available (bypasses native scroll interception)
       await page.evaluate((y) => {
         const lenis = window.__lenis;
-        if (lenis) {
-          lenis.scrollTo(y, { immediate: true, force: true });
-        } else {
-          window.scrollTo(0, y);
-        }
+        if (lenis) lenis.scrollTo(y, { immediate: true, force: true });
+        else window.scrollTo(0, y);
       }, stop.scrollY);
-      await page.waitForTimeout(800);
+      await page.waitForTimeout(500);
 
       const fname = `${vp.name}__${stop.name}.png`;
       await page.screenshot({
