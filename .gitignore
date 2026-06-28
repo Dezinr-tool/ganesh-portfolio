@@ -52,3 +52,12 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Build outputs
+dist/
+
+# Sanity runtime
+.sanity/
+
+# Misc
+1.1
