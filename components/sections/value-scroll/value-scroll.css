@@ -220,7 +220,7 @@
 
   .vs-headline__stage {
     height: auto;
-    padding: 9.375rem 0;
+    padding: 4rem 0 3rem;
   }
 
   .vs-headline__copy--desktop {
@@ -232,8 +232,9 @@
   }
 
   .vs-headline__line {
-    font-size: clamp(1.75rem, 8vw, 3rem);
+    font-size: clamp(1.5rem, 6.5vw, 2.5rem);
     white-space: normal;
+    padding-right: 5rem; /* clear the menu button */
   }
 
   .vs-cards {

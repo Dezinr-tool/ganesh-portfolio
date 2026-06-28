@@ -408,7 +408,11 @@
 
 @media (max-width: 68.75rem) {
   .works-gallery {
-    padding-top: clamp(3rem, 8vw, 3.125rem);
+    padding-top: clamp(5.5rem, 14vw, 6rem); /* room for filter bar */
+  }
+
+  .works-gallery__title {
+    font-size: clamp(2.75rem, 10vw, 4rem);
   }
 
   .works-gallery__canvas {
@@ -429,6 +433,8 @@
     padding-inline: var(--section-px, 1.25rem);
     -webkit-overflow-scrolling: touch;
     scrollbar-width: none;
+    -webkit-mask-image: linear-gradient(to right, #000 70%, transparent 100%);
+    mask-image: linear-gradient(to right, #000 70%, transparent 100%);
   }
 
   .works-gallery__category-filter::-webkit-scrollbar {
