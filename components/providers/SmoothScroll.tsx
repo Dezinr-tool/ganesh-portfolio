@@ -26,12 +26,14 @@ export function SmoothScroll({ children }: { children: React.ReactNode }) {
 
     registerGsapPlugins();
 
+    const isCoarsePointer = window.matchMedia("(pointer: coarse)").matches;
+
     const lenis = new Lenis({
-      lerp: 0.06,
+      lerp: isCoarsePointer ? 0.085 : 0.06,
       smoothWheel: true,
       wheelMultiplier: 1,
-      touchMultiplier: 1.2,
-      syncTouch: false, // Let iOS native scroll handle touch — syncTouch:true intercepts touch and causes GSAP ScrollTrigger to not fire on iOS Chrome
+      touchMultiplier: isCoarsePointer ? 1.65 : 1.2,
+      syncTouch: isCoarsePointer,
     });
 
     setLenisInstance(lenis);
