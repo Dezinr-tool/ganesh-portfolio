@@ -24,10 +24,10 @@ async function main() {
     await page.waitForTimeout(120);
 
     const metrics = await page.evaluate(() => {
-      const textContainer = document.querySelector(".value-scroll__text-container");
-      const firstCard = document.querySelector(".value-scroll__circle.is-on");
-      const firstMedia = document.querySelector(".value-scroll__media");
-      const chars = document.querySelectorAll(".value-scroll__char-inner");
+      const textContainer = document.querySelector(".vs-headline__stage");
+      const firstCard = document.querySelector(".vs-arm.is-active");
+      const firstMedia = document.querySelector(".vs-card");
+      const chars = document.querySelectorAll(".vs-headline__char-inner");
       let visibleChars = 0;
       chars.forEach((el) => {
         const style = window.getComputedStyle(el);

@@ -4,8 +4,7 @@ import { Footer } from "@/components/sections/Footer";
 import { Hero } from "@/components/sections/Hero";
 import { Testimonials } from "@/components/sections/Testimonials";
 import { Tools } from "@/components/sections/Tools";
-import { ValueScrollSection } from "@/components/sections/ValueScrollSection";
-import "@/components/sections/value-scroll.css";
+import { ValueScrollSection } from "@/components/sections/value-scroll/ValueScrollSection";
 import { getHomepageRenderData } from "@/lib/content";
 
 export default function Home() {

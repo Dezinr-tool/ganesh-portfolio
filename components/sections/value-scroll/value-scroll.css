@@ -1,53 +1,57 @@
-/* MWG-style h-texts + h-cards — madewithgsap.com */
+/* Value scroll — headline reveal + fanned capability cards */
 
 .value-scroll {
+  --vs-bg: #111111;
+  --vs-card-w: 338px;
+  --vs-card-ratio: 0.85;
+  --vs-card-h: calc(var(--vs-card-w) / var(--vs-card-ratio));
+  --vs-wheel-size: 3675px;
+  --vs-radius: 1.375rem;
+
   position: relative;
   z-index: 1;
-  isolation: isolate;
   color: #ffffff;
-  background: #111111;
+  background: var(--vs-bg);
   overflow: clip;
 }
 
-/* ── h-texts headline ── */
+/* ── Headline ── */
 
-.value-scroll__text {
+.vs-headline {
   position: relative;
   z-index: 1;
-  /* No negative margin — About (fold 2) pins above; -35vh caused fold 3 to overlap early */
   margin-top: 0;
   text-align: center;
 }
 
-.value-scroll__text-pin {
+.vs-headline__pin {
   height: 700vh;
 }
 
-.value-scroll__text-container {
+.vs-headline__stage {
   display: grid;
   place-items: center;
   height: 100vh;
   overflow: hidden;
-  background: #111111;
+  background: var(--vs-bg);
 }
 
-.value-scroll__headline {
+.vs-headline__copy {
   width: 100%;
-  max-width: none;
   padding: 0 var(--section-px);
 }
 
-.value-scroll__headline--desktop .value-scroll__paragraph {
+.vs-headline__copy--desktop .vs-headline__line {
   white-space: nowrap;
   width: 100%;
   font-size: min(10vw, 7.5rem);
 }
 
-.value-scroll__headline--mobile {
+.vs-headline__copy--mobile {
   display: none;
 }
 
-.value-scroll__paragraph {
+.vs-headline__line {
   margin: 0;
   font-family: var(--font-display);
   font-weight: 500;
@@ -56,83 +60,84 @@
   color: #ffffff;
 }
 
-.value-scroll__char {
+.vs-headline__line--accent {
+  color: rgb(255 255 255 / 0.45);
+}
+
+.vs-headline__char {
   display: inline-block;
 }
 
-.value-scroll__char-inner {
+.vs-headline__char-inner {
   display: inline-block;
   will-change: transform, opacity;
 }
 
-.value-scroll__char-inner.is-char-hidden {
+.vs-headline__char-inner.is-char-hidden {
   display: none;
 }
 
-/* ── h-cards carousel (exact MWG geometry) ── */
+/* ── Cards wheel ── */
 
-.value-scroll__cards {
+.vs-cards {
   position: relative;
   z-index: 2;
   margin-top: -400vh;
   text-align: center;
-  color: #0a0a0b;
 }
 
-.value-scroll__cards-pin {
+.vs-cards__pin {
   height: 400vh;
 }
 
-.value-scroll__cards-container {
+.vs-cards__stage {
   height: 100vh;
   overflow: hidden;
 }
 
-.value-scroll__circles {
+.vs-cards__wheel {
   position: relative;
-  width: 3675px;
+  width: var(--vs-wheel-size);
   aspect-ratio: 1;
-  margin: 50vh 0 0 calc(-1 * (3675px - 100vw) / 2);
+  margin: 50vh 0 0 calc(-1 * (var(--vs-wheel-size) - 100vw) / 2);
   transform-origin: 50% 50%;
   will-change: transform;
 }
 
-.value-scroll__circle {
+/* Arm = full wheel slice, GSAP rotates this */
+.vs-arm {
   position: absolute;
-  width: 100%;
-  height: 100%;
+  inset: 0;
   visibility: hidden;
   transform-origin: 50% 50%;
   will-change: transform;
 }
 
-.value-scroll__circle.is-on {
+.vs-arm.is-active {
   visibility: visible;
 }
 
-.value-scroll__media {
-  --value-card-width: min(100%, 338px);
-  --value-card-height: calc(var(--value-card-width) / 0.85);
+/* Card = fixed-size panel; entire unit scales on entry */
+.vs-card {
+  --vs-card-width: min(100%, var(--vs-card-w));
+  --vs-card-height: calc(var(--vs-card-width) / var(--vs-card-ratio));
+
   position: relative;
-  width: var(--value-card-width);
-  height: var(--value-card-height);
+  width: var(--vs-card-width);
+  height: var(--vs-card-height);
   margin: 0 auto;
-  margin-top: calc(var(--value-card-height) * -0.54);
-  padding: 0;
-  transform: none;
+  margin-top: calc(var(--vs-card-height) * -0.54);
+  overflow: hidden;
+  border-radius: var(--vs-radius);
+  transform-origin: 50% 50%;
 }
 
-/*
-  Frosted shell — CSS-only glass (no backdrop-filter).
-  backdrop-filter cannot sample through GSAP-rotated ancestors
-  (.value-scroll__circle + .value-scroll__circles + ScrollTrigger pin).
-  On #111 bg, blur would be invisible anyway — tint + highlight sell the glass.
-*/
-.value-scroll__media-glass {
+/* Glass surface — CSS-only (no backdrop-filter; breaks under GSAP transforms) */
+.vs-card__surface {
   position: absolute;
   inset: 0;
   z-index: 0;
-  border-radius: 1.375rem;
+  border-radius: inherit;
   pointer-events: none;
   background:
     linear-gradient(
@@ -140,7 +145,7 @@
       rgb(17 17 17 / 0) 48%,
       rgb(17 17 17 / 0.35) 68%,
       rgb(17 17 17 / 0.78) 84%,
-      #111111 100%
+      var(--vs-bg) 100%
     ),
     linear-gradient(
       145deg,
@@ -157,72 +162,69 @@
     0 8px 24px rgb(0 0 0 / 0.28);
 }
 
-.value-scroll__media--mint .value-scroll__media-glass {
+.vs-card--mint .vs-card__surface {
   background:
-    linear-gradient(180deg, rgb(17 17 17 / 0) 58%, rgb(17 17 17 / 0.35) 82%, #111111 100%),
+    linear-gradient(180deg, rgb(17 17 17 / 0) 58%, rgb(17 17 17 / 0.35) 82%, var(--vs-bg) 100%),
     radial-gradient(120% 90% at 50% 0%, rgb(113 207 163 / 0.38), transparent 68%),
     linear-gradient(145deg, rgb(255 255 255 / 0.24) 0%, rgb(255 255 255 / 0.1) 42%, rgb(255 255 255 / 0.04) 100%),
     rgb(255 255 255 / 0.1);
 }
 
-.value-scroll__media--yellow .value-scroll__media-glass {
+.vs-card--yellow .vs-card__surface {
   background:
-    linear-gradient(180deg, rgb(17 17 17 / 0) 58%, rgb(17 17 17 / 0.35) 82%, #111111 100%),
+    linear-gradient(180deg, rgb(17 17 17 / 0) 58%, rgb(17 17 17 / 0.35) 82%, var(--vs-bg) 100%),
     radial-gradient(120% 90% at 50% 0%, rgb(255 196 90 / 0.34), transparent 68%),
     linear-gradient(145deg, rgb(255 255 255 / 0.24) 0%, rgb(255 255 255 / 0.1) 42%, rgb(255 255 255 / 0.04) 100%),
     rgb(255 255 255 / 0.1);
 }
 
-.value-scroll__media--sky .value-scroll__media-glass {
+.vs-card--sky .vs-card__surface {
   background:
-    linear-gradient(180deg, rgb(17 17 17 / 0) 58%, rgb(17 17 17 / 0.35) 82%, #111111 100%),
+    linear-gradient(180deg, rgb(17 17 17 / 0) 58%, rgb(17 17 17 / 0.35) 82%, var(--vs-bg) 100%),
     radial-gradient(120% 90% at 50% 0%, rgb(120 210 255 / 0.36), transparent 68%),
     linear-gradient(145deg, rgb(255 255 255 / 0.24) 0%, rgb(255 255 255 / 0.1) 42%, rgb(255 255 255 / 0.04) 100%),
     rgb(255 255 255 / 0.1);
 }
 
-.value-scroll__media--grey .value-scroll__media-glass {
+.vs-card--grey .vs-card__surface {
   background:
-    linear-gradient(180deg, rgb(17 17 17 / 0) 58%, rgb(17 17 17 / 0.35) 82%, #111111 100%),
+    linear-gradient(180deg, rgb(17 17 17 / 0) 58%, rgb(17 17 17 / 0.35) 82%, var(--vs-bg) 100%),
     radial-gradient(120% 90% at 50% 0%, rgb(255 255 255 / 0.2), transparent 68%),
     linear-gradient(145deg, rgb(255 255 255 / 0.24) 0%, rgb(255 255 255 / 0.1) 42%, rgb(255 255 255 / 0.04) 100%),
     rgb(255 255 255 / 0.1);
 }
 
-/* Text layer — hard clip so copy never bleeds across fanned cards (WebKit) */
-.value-scroll__media-inner {
+/* Copy — clipped inside card, rotates with arm as one unit */
+.vs-card__content {
   position: absolute;
   inset: 0;
   z-index: 1;
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  border-radius: 1.375rem;
-  clip-path: inset(0 round 1.375rem);
-  -webkit-clip-path: inset(0 round 1.375rem);
-  contain: paint;
+  border-radius: inherit;
+  clip-path: inset(0 round var(--vs-radius));
+  -webkit-clip-path: inset(0 round var(--vs-radius));
   text-align: center;
 }
 
-.value-scroll__card-content {
-  position: relative;
-  z-index: 2;
-  display: flex;
-  flex-direction: column;
+.vs-card__index {
+  position: absolute;
+  z-index: 0;
+  top: 50%;
+  left: 50%;
   width: 100%;
-  margin-top: auto;
-  padding: 1.25rem 1.35rem 1.75rem;
-  text-align: center;
-  background: linear-gradient(
-    180deg,
-    rgb(17 17 17 / 0) 0%,
-    rgb(17 17 17 / 0.42) 32%,
-    rgb(17 17 17 / 0.78) 68%,
-    #111111 100%
-  );
+  font-family: var(--font-display);
+  font-size: clamp(5.5rem, 12vw, 7.5rem);
+  line-height: 1;
+  opacity: 0.07;
+  color: #ffffff;
+  transform: translate(-50%, -58%);
+  pointer-events: none;
+  user-select: none;
 }
 
-.value-scroll__card-title {
+.vs-card__title {
   position: relative;
   z-index: 2;
   margin: 0;
@@ -234,150 +236,119 @@
   letter-spacing: -0.03em;
   color: #ffffff;
   text-shadow: 0 1px 3px rgb(0 0 0 / 0.4);
-  overflow-wrap: anywhere;
 }
 
-.value-scroll__card-index {
-  position: absolute;
-  z-index: 1;
-  top: 50%;
-  left: 50%;
-  width: 100%;
-  font-family: var(--font-display);
-  font-size: clamp(5.5rem, 12vw, 7.5rem);
-  line-height: 1;
-  opacity: 0.07;
-  pointer-events: none;
-  color: #ffffff;
-  transform: translate(-50%, -58%);
-  user-select: none;
-}
-
-.value-scroll__card-body {
-  margin: 0;
-  padding: 0;
+.vs-card__body {
+  position: relative;
+  z-index: 2;
+  margin: auto 0 0;
+  padding: 1.25rem 1.35rem 1.75rem;
   font-size: 0.9375rem;
   line-height: 1.55;
   font-weight: 400;
   color: rgb(255 255 255 / 0.94);
   text-shadow: 0 1px 3px rgb(0 0 0 / 0.45);
+  background: linear-gradient(
+    180deg,
+    rgb(17 17 17 / 0) 0%,
+    rgb(17 17 17 / 0.42) 32%,
+    rgb(17 17 17 / 0.78) 68%,
+    var(--vs-bg) 100%
+  );
 }
 
 /* ── Mobile ── */
 
 @media (max-width: 56.25rem) {
-  .value-scroll__text {
-    margin-top: 0;
-  }
-
-  .value-scroll__text-pin {
+  .vs-headline__pin {
     height: auto;
   }
 
-  .value-scroll__text-container {
+  .vs-headline__stage {
     height: auto;
     padding: 9.375rem 0;
   }
 
-  .value-scroll__headline--desktop {
+  .vs-headline__copy--desktop {
     display: none;
   }
 
-  .value-scroll__headline--mobile {
+  .vs-headline__copy--mobile {
     display: block;
   }
 
-  .value-scroll__paragraph {
+  .vs-headline__line {
     font-size: clamp(1.75rem, 8vw, 3rem);
     white-space: normal;
   }
 
-  .value-scroll__paragraph--accent {
-    color: rgb(255 255 255 / 0.45);
-  }
-
-  .value-scroll__cards {
+  .vs-cards {
     margin-top: 0;
   }
 
-  .value-scroll__cards-pin {
+  .vs-cards__pin {
     height: auto;
   }
 
-  .value-scroll__cards-container {
-    width: 100%;
+  .vs-cards__stage {
     height: auto;
     overflow: auto;
     scroll-snap-type: x mandatory;
     padding: 0 var(--section-px) clamp(4rem, 12vw, 6rem);
-    -ms-overflow-style: none;
     scrollbar-width: none;
   }
 
-  .value-scroll__cards-container::-webkit-scrollbar {
+  .vs-cards__stage::-webkit-scrollbar {
     display: none;
   }
 
-  .value-scroll__circles {
+  .vs-cards__wheel {
     display: flex;
     width: max-content;
     gap: 1rem;
     margin: 0;
     aspect-ratio: auto;
-    white-space: nowrap;
   }
 
-  .value-scroll__circle {
+  .vs-arm {
     position: relative;
-    width: auto;
-    height: auto;
+    inset: auto;
     visibility: visible;
     transform: none !important;
   }
 
-  .value-scroll__media {
-    --value-card-width: min(calc(100vw - 2 * var(--section-px) - 15px), 338px);
+  .vs-card {
+    --vs-card-width: min(calc(100vw - 2 * var(--section-px) - 15px), var(--vs-card-w));
     margin-top: 0;
-    transform: none;
-    white-space: normal;
     scroll-snap-align: center;
   }
 
-  .value-scroll__card-title {
+  .vs-card__title {
     padding: 1.75rem 1.25rem 0;
   }
 
-  .value-scroll__card-content {
+  .vs-card__body {
     padding: 1rem 1.25rem 1.5rem;
-  }
-
-  .value-scroll__card-body {
-    font-size: 0.9375rem;
-    line-height: 1.52;
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .value-scroll__text {
-    margin-top: 0;
-  }
-
-  .value-scroll__text-pin,
-  .value-scroll__cards-pin {
+  .vs-headline__pin,
+  .vs-cards__pin {
     height: auto;
   }
 
-  .value-scroll__text-container,
-  .value-scroll__cards-container {
+  .vs-headline__stage,
+  .vs-cards__stage {
     height: auto;
     padding: var(--section-py) var(--section-px);
   }
 
-  .value-scroll__cards {
+  .vs-cards {
     margin-top: 0;
   }
 
-  .value-scroll__circles {
+  .vs-cards__wheel {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
     width: 100%;
@@ -385,15 +356,15 @@
     gap: 1rem;
   }
 
-  .value-scroll__circle {
+  .vs-arm {
     position: relative;
+    inset: auto;
     visibility: visible;
     transform: none !important;
   }
 
-  .value-scroll__media {
-    --value-card-width: 100%;
+  .vs-card {
+    --vs-card-width: 100%;
     margin-top: 0;
-    transform: none;
   }
 }

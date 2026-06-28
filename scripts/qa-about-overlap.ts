@@ -31,7 +31,7 @@ async function main() {
 
     const result = await page.evaluate(() => {
       const aboutEl = document.querySelector("#about");
-      const valueContainer = document.querySelector(".value-scroll__text-container");
+      const valueContainer = document.querySelector(".vs-headline__stage");
       if (!aboutEl || !valueContainer) {
         return { overlap: false, grayChars: 0, aboutZ: 0, valueZ: 0, valueVisible: false };
       }
