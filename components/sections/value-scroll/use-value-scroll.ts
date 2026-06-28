@@ -86,6 +86,29 @@ export function useValueScrollAnimations() {
             once: true,
           },
         });
+
+        // Stagger cards in from right as they enter viewport
+        const cards = wheel.querySelectorAll(".vs-card");
+        if (cards.length) {
+          gsap.fromTo(
+            cards,
+            { x: 48, autoAlpha: 0 },
+            {
+              x: 0,
+              autoAlpha: 1,
+              duration: 0.55,
+              ease: "power3.out",
+              stagger: 0.1,
+              scrollTrigger: {
+                id: "vs-cards-mobile",
+                trigger: cardsSection,
+                start: "top 80%",
+                once: true,
+              },
+            },
+          );
+        }
+
         return;
       }
 

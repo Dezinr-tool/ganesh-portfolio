@@ -34,6 +34,22 @@ export function AboutText({ sectionLabel, bodyText }: AboutTextProps) {
         return;
       }
 
+      // Animate section label on mobile entry
+      const label = section.querySelector<HTMLElement>(".text-consultant-label");
+      if (label && window.matchMedia("(max-width: 48rem)").matches) {
+        gsap.fromTo(
+          label,
+          { y: 20, autoAlpha: 0 },
+          {
+            y: 0,
+            autoAlpha: 1,
+            duration: 0.6,
+            ease: "power3.out",
+            scrollTrigger: { trigger: section, start: "top 80%", once: true },
+          },
+        );
+      }
+
       const chars = splitRevealCopy(copyRoot);
       const pinZIndex = 100;
 
