@@ -46,18 +46,22 @@ export function bindMwgCardsCarousel(options: {
           gsap.set(card, {
             rotation: i * rotationStep,
             scale: 1,
-            zIndex: i + 1,
+            zIndex: (i + 1) * 10,
             force3D: true,
           });
         }
         // Entry pop only on the newly-arrived card
         const newCard = cards[idx];
-        if (newCard) {
-          gsap.from(newCard, {
+        const newMedia = newCard?.querySelector<HTMLElement>(
+          ".value-scroll__media",
+        );
+        if (newMedia) {
+          gsap.from(newMedia, {
             scale: 0.92,
             duration: 0.45,
             ease: "back.out(1.4)",
             overwrite: "auto",
+            transformOrigin: "50% 50%",
           });
         }
       } else {
@@ -85,7 +89,9 @@ export function bindMwgCardsCarousel(options: {
       activeIndex = -1;
       cards.forEach((card) => {
         card.classList.remove("is-on");
-        gsap.set(card, { rotation: 0, scale: 1 });
+        gsap.set(card, { rotation: 0, scale: 1, zIndex: 0, clearProps: "transform" });
+        const media = card.querySelector<HTMLElement>(".value-scroll__media");
+        if (media) gsap.set(media, { scale: 1, clearProps: "transform" });
       });
       gsap.set(circles, { rotation: 0 });
     },
