@@ -34,23 +34,19 @@ export function AboutText({ sectionLabel, bodyText }: AboutTextProps) {
         return;
       }
 
-      // Animate section label on mobile entry
-      const label = section.querySelector<HTMLElement>(".text-consultant-label");
-      if (label && window.matchMedia("(max-width: 48rem)").matches) {
-        gsap.fromTo(
-          label,
-          { y: 20, autoAlpha: 0 },
-          {
-            y: 0,
-            autoAlpha: 1,
-            duration: 0.6,
-            ease: "power3.out",
-            scrollTrigger: { trigger: section, start: "top 80%", once: true },
-          },
-        );
-      }
+      const isMobile = window.matchMedia("(max-width: 48rem)").matches;
 
       const chars = splitRevealCopy(copyRoot);
+
+      // On mobile: skip the pin (200% extra height locks Lenis scroll on iOS).
+      // Just reveal all chars and ensure label is visible.
+      if (isMobile) {
+        applyRevealCopyHighlight(chars, 1);
+        const label = section.querySelector<HTMLElement>(".text-consultant-label");
+        if (label) gsap.set(label, { autoAlpha: 1, y: 0 });
+        return;
+      }
+
       const pinZIndex = 100;
 
       const setPinned = (pinned: boolean) => {

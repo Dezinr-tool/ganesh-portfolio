@@ -71,44 +71,10 @@ export function useValueScrollAnimations() {
       let matterModule: typeof import("matter-js") | null = null;
 
       if (isMobile) {
-        gsap.set(headlineCopy.querySelectorAll(".vs-headline__char-inner"), {
-          autoAlpha: 0,
-        });
-        gsap.to(headlineCopy.querySelectorAll(".vs-headline__char-inner"), {
-          autoAlpha: 1,
-          stagger: { each: 0.015, from: "random" },
-          ease: "power2.out",
-          duration: 0.6,
-          scrollTrigger: {
-            id: "vs-headline-mobile",
-            trigger: headline,
-            start: "top 75%",
-            once: true,
-          },
-        });
-
-        // Stagger cards in from right as they enter viewport
-        const cards = wheel.querySelectorAll(".vs-card");
-        if (cards.length) {
-          gsap.fromTo(
-            cards,
-            { x: 48, autoAlpha: 0 },
-            {
-              x: 0,
-              autoAlpha: 1,
-              duration: 0.55,
-              ease: "power3.out",
-              stagger: 0.1,
-              scrollTrigger: {
-                id: "vs-cards-mobile",
-                trigger: cardsSection,
-                start: "top 80%",
-                once: true,
-              },
-            },
-          );
-        }
-
+        // On mobile, skip all hiding animations — if ScrollTrigger-based reveal
+        // doesn't fire on iOS, content stays permanently invisible. Let CSS
+        // defaults keep everything visible. No GSAP scroll-gated content on mobile.
+        scheduleScrollTriggerRefresh();
         return;
       }
 

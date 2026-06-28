@@ -136,11 +136,15 @@ export function FeaturedWork({
       // On mobile, skip lockParagraphHeights — fixed height causes title pin jump
       if (!isMobile) lockParagraphHeights([title]);
 
-      const charRevealCleanup = bindMwgCharReveal(section, ".works-gallery__letter", {
-        id: "works-title-chars",
-        isMobile,
-        endExtraViewports: 2,
-      });
+      // On mobile, skip bindMwgCharReveal — it uses is-char-hidden (display:none) and
+      // relies on ScrollTrigger scrub which can fail on iOS. Just show title immediately.
+      const charRevealCleanup = isMobile
+        ? undefined
+        : bindMwgCharReveal(section, ".works-gallery__letter", {
+            id: "works-title-chars",
+            isMobile: false,
+            endExtraViewports: 2,
+          });
 
       let onScreenVisible = false;
 
@@ -227,7 +231,7 @@ export function FeaturedWork({
 
       return () => {
         window.removeEventListener("mousemove", onMouseMove);
-        charRevealCleanup();
+        charRevealCleanup?.();
         ScrollTrigger.getById("works-on-screen")?.kill();
         ScrollTrigger.getById("works-title-pin")?.kill();
         if (onScreenVisible) hideOnScreen();
