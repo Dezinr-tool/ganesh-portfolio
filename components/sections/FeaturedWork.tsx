@@ -131,11 +131,14 @@ export function FeaturedWork({
 
       if (!section || !title) return;
 
-      lockParagraphHeights([title]);
+      const isMobile = window.matchMedia("(max-width: 68.75rem)").matches;
+
+      // On mobile, skip lockParagraphHeights — fixed height causes title pin jump
+      if (!isMobile) lockParagraphHeights([title]);
 
       const charRevealCleanup = bindMwgCharReveal(section, ".works-gallery__letter", {
         id: "works-title-chars",
-        isMobile: window.matchMedia("(max-width: 68.75rem)").matches,
+        isMobile,
         endExtraViewports: 2,
       });
 
@@ -168,15 +171,17 @@ export function FeaturedWork({
         },
       });
 
-      ScrollTrigger.create({
-        id: "works-title-pin",
-        trigger: section,
-        start: "top top",
-        end: "+=200%",
-        pin: title,
-        pinSpacing: false,
-        anticipatePin: 1,
-      });
+      if (!isMobile) {
+        ScrollTrigger.create({
+          id: "works-title-pin",
+          trigger: section,
+          start: "top top",
+          end: "+=200%",
+          pin: title,
+          pinSpacing: false,
+          anticipatePin: 1,
+        });
+      }
 
       const fadeTargets = [link, swipePill].filter(Boolean) as HTMLElement[];
 

@@ -354,9 +354,10 @@
 
 @media (max-width: 48rem) {
   .testimonials-section__heading {
-    font-size: clamp(2.75rem, 10vw, 4rem);
+    font-size: clamp(1.625rem, 6.5vw, 2.25rem);
     text-align: left;
     margin-inline: 0;
+    max-width: 18ch;
   }
 
   .testimonials-section__header {

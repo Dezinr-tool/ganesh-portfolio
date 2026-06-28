@@ -214,9 +214,8 @@
 /* ── Mobile ── */
 
 @media (max-width: 56.25rem) {
-  /* Ensure section is tall enough to fill viewport — prevents works-gallery title bleeding in */
+  /* Ensure section fills at least one viewport so works-gallery doesn't bleed in at entry */
   .value-scroll {
-    z-index: 15;
     min-height: 100dvh;
   }
 
