@@ -1,6 +1,7 @@
 "use client";
 
 import { Canvas } from "@react-three/fiber";
+import Image from "next/image";
 import { Suspense, useMemo, type MutableRefObject, type RefObject } from "react";
 import * as THREE from "three";
 import type { WorksProject } from "./projects";
@@ -49,6 +50,27 @@ export function WorksCanvas({
 
   if (reducedMotion) {
     return null;
+  }
+
+  if (isMobile) {
+    const project = projects[activeIndex] ?? projects[0];
+    return (
+      <div className={className}>
+        <div className="works-gallery__canvas-host works-gallery__mobile-gallery">
+          {project && (
+            <Image
+              key={project.id}
+              src={project.image}
+              alt={project.title}
+              fill
+              className="works-gallery__mobile-image"
+              sizes="100vw"
+              priority
+            />
+          )}
+        </div>
+      </div>
+    );
   }
 
   return (
