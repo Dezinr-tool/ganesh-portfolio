@@ -37,10 +37,15 @@ export function WorksCanvas({
   reducedMotion,
   className,
 }: WorksCanvasProps) {
-  const dpr = useMemo(
-    () => Math.min(2, typeof window !== "undefined" ? window.devicePixelRatio : 1),
+  const isMobile = useMemo(
+    () => typeof window !== "undefined" && window.matchMedia("(max-width: 68.75rem)").matches,
     [],
   );
+
+  const dpr = useMemo(() => {
+    if (typeof window === "undefined") return 1;
+    return isMobile ? 1 : Math.min(2, window.devicePixelRatio);
+  }, [isMobile]);
 
   if (reducedMotion) {
     return null;
@@ -60,8 +65,8 @@ export function WorksCanvas({
               far: 100,
             }}
             gl={{
-              antialias: true,
-              powerPreference: "high-performance",
+              antialias: !isMobile,
+              powerPreference: isMobile ? "default" : "high-performance",
               alpha: false,
               toneMapping: THREE.ACESFilmicToneMapping,
               toneMappingExposure: WORKS_TONE_MAPPING_EXPOSURE,
