@@ -81,6 +81,14 @@
   background: #ffffff;
 }
 
+.t-card__photo-stack {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  isolation: isolate;
+  overflow: hidden;
+}
+
 .t-card__img {
   position: absolute;
   inset: 0;
@@ -91,25 +99,82 @@
   display: block;
 }
 
-/*
-  Fade covers bottom 42% of media block.
-  Face zone = top 58% of media = fully sharp.
-  Gradient goes transparent → white matching reference.
-*/
-.t-card__media-blur {
+/* Hero-style bottom blur merge — sharp top, soft dissolve into card body */
+.t-card__photo-blur {
   position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  height: 42%;
-  background: linear-gradient(
-    to bottom,
-    rgba(255, 255, 255, 0) 0%,
-    rgba(255, 255, 255, 0.55) 40%,
-    rgba(255, 255, 255, 0.88) 70%,
-    #ffffff 100%
-  );
+  inset: 0;
   pointer-events: none;
+  transform: scale(1.05);
+  transform-origin: center bottom;
+  -webkit-mask-size: 100% 100%;
+  mask-size: 100% 100%;
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+}
+
+.t-card__photo-blur--1 {
+  filter: blur(4px);
+  -webkit-mask-image: linear-gradient(
+    to bottom,
+    transparent 0%,
+    transparent 58%,
+    #111111 94%
+  );
+  mask-image: linear-gradient(
+    to bottom,
+    transparent 0%,
+    transparent 58%,
+    #111111 94%
+  );
+}
+
+.t-card__photo-blur--2 {
+  filter: blur(12px);
+  -webkit-mask-image: linear-gradient(
+    to bottom,
+    transparent 0%,
+    transparent 66%,
+    #111111 98%
+  );
+  mask-image: linear-gradient(
+    to bottom,
+    transparent 0%,
+    transparent 66%,
+    #111111 98%
+  );
+}
+
+.t-card__photo-blur--3 {
+  filter: blur(24px);
+  -webkit-mask-image: linear-gradient(
+    to bottom,
+    transparent 0%,
+    transparent 74%,
+    #111111 100%
+  );
+  mask-image: linear-gradient(
+    to bottom,
+    transparent 0%,
+    transparent 74%,
+    #111111 100%
+  );
+}
+
+.t-card__photo-glass {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+  opacity: 0.42;
+  -webkit-backdrop-filter: blur(14px);
+  backdrop-filter: blur(14px);
+  -webkit-mask-image: linear-gradient(to bottom, transparent 0%, #111111 100%);
+  mask-image: linear-gradient(to bottom, transparent 0%, #111111 100%);
+  -webkit-mask-size: 100% 100%;
+  mask-size: 100% 100%;
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  background: linear-gradient(to bottom, transparent 0%, #ffffff 100%);
 }
 
 .t-card__body {

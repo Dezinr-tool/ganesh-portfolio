@@ -75,21 +75,51 @@ function truncate(text: string) {
   return text.length > CHAR_LIMIT ? text.slice(0, CHAR_LIMIT).trimEnd() + "…" : text;
 }
 
+const THUMB_BLUR_STEPS = [
+  "t-card__photo-blur--1",
+  "t-card__photo-blur--2",
+  "t-card__photo-blur--3",
+] as const;
+
+function TestimonialThumbnail({
+  src,
+  alt,
+  imgClassName,
+}: {
+  src: string;
+  alt: string;
+  imgClassName: string;
+}) {
+  const imgProps = {
+    src,
+    loading: "lazy" as const,
+    draggable: false,
+    className: imgClassName,
+  };
+
+  return (
+    <div className="t-card__photo-stack">
+      <img {...imgProps} alt={alt} />
+      {THUMB_BLUR_STEPS.map((step) => (
+        <div key={step} className={`t-card__photo-blur ${step}`} aria-hidden="true">
+          <img {...imgProps} alt="" />
+        </div>
+      ))}
+      <div className="t-card__photo-glass" aria-hidden="true" />
+    </div>
+  );
+}
+
 function RecommendationCard({ item }: { item: Testimonial }) {
   return (
     <article className="t-card t-card--recommendation" role="listitem">
       <div className="t-card__media">
         {item.image && (
-          <>
-            <img
-              src={item.image}
-              alt={item.name}
-              className="t-card__img"
-              loading="lazy"
-              draggable={false}
-            />
-            <div className="t-card__media-blur" aria-hidden="true" />
-          </>
+          <TestimonialThumbnail
+            src={item.image}
+            alt={item.name}
+            imgClassName="t-card__img"
+          />
         )}
       </div>
       <div className="t-card__body">
