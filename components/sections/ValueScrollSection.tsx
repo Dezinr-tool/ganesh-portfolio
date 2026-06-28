@@ -54,12 +54,14 @@ function ValueCard({ card }: { card: ValueScrollCard }) {
   return (
     <div className="value-scroll__circle">
       <div className={`value-scroll__media value-scroll__media--${card.tone}`}>
-        <span className="value-scroll__card-index" aria-hidden="true">
-          {card.index}
-        </span>
-        <p className="value-scroll__card-title">{card.title}</p>
-        <div className="value-scroll__card-content">
-          <p className="value-scroll__card-body">{card.body}</p>
+        <div className="value-scroll__media-inner">
+          <span className="value-scroll__card-index" aria-hidden="true">
+            {card.index}
+          </span>
+          <p className="value-scroll__card-title">{card.title}</p>
+          <div className="value-scroll__card-content">
+            <p className="value-scroll__card-body">{card.body}</p>
+          </div>
         </div>
       </div>
     </div>

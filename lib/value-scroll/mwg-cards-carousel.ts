@@ -43,7 +43,12 @@ export function bindMwgCardsCarousel(options: {
           const card = cards[i];
           if (!card) continue;
           card.classList.add("is-on");
-          gsap.set(card, { rotation: i * rotationStep, scale: 1 });
+          gsap.set(card, {
+            rotation: i * rotationStep,
+            scale: 1,
+            zIndex: i + 1,
+            force3D: true,
+          });
         }
         // Entry pop only on the newly-arrived card
         const newCard = cards[idx];
@@ -61,7 +66,7 @@ export function bindMwgCardsCarousel(options: {
           const card = cards[i];
           if (!card) continue;
           card.classList.remove("is-on");
-          gsap.set(card, { clearProps: "rotation,scale" });
+          gsap.set(card, { clearProps: "rotation,scale,zIndex" });
         }
       }
 
@@ -70,6 +75,7 @@ export function bindMwgCardsCarousel(options: {
         ease: "power3.out",
         duration: 0.4,
         overwrite: "auto",
+        force3D: true,
       });
 
       activeIndex = idx;
