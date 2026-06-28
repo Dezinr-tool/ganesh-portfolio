@@ -240,9 +240,9 @@
   }
 
   .vs-headline__line {
-    font-size: clamp(1.5rem, 6.5vw, 2.5rem);
+    font-size: clamp(2.75rem, 10vw, 4rem);
     white-space: normal;
-    padding-right: 5rem; /* clear the menu button */
+    padding-right: 0;
     text-align: left;
   }
 
@@ -283,6 +283,7 @@
 
   .vs-card {
     --vs-card-width: min(calc(100vw - 2 * var(--section-px) - 15px), var(--vs-card-w));
+    --vs-card-ratio: 0.62;
     margin-top: 0;
     scroll-snap-align: center;
   }
