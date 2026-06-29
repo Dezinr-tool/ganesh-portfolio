@@ -1,28 +1,47 @@
 "use client";
 
-import {
-  useMotionValueEvent,
-  useReducedMotion,
-  useScroll,
-  useSpring,
-} from "framer-motion";
-import { useState } from "react";
+import { getLenisInstance, LENIS_READY_EVENT } from "@/lib/lenis-scroll";
+import { useReducedMotion } from "framer-motion";
+import { usePathname } from "next/navigation";
+import { useEffect, useState } from "react";
 
 export function ScrollProgress() {
   const reducedMotion = useReducedMotion();
-  const { scrollYProgress } = useScroll();
-  const scaleX = useSpring(scrollYProgress, {
-    stiffness: 120,
-    damping: 30,
-    restDelta: 0.001,
-  });
+  const pathname = usePathname();
   const [progress, setProgress] = useState(0);
 
-  useMotionValueEvent(scaleX, "change", (latest) => {
-    setProgress(latest);
-  });
+  useEffect(() => {
+    if (reducedMotion || pathname !== "/") return;
 
-  if (reducedMotion) return null;
+    let detach: (() => void) | undefined;
+
+    const attach = () => {
+      detach?.();
+      detach = undefined;
+
+      const lenis = getLenisInstance();
+      if (!lenis) return;
+
+      const onScroll = () => {
+        const limit = lenis.limit;
+        setProgress(limit > 0 ? lenis.scroll / limit : 0);
+      };
+
+      onScroll();
+      lenis.on("scroll", onScroll);
+      detach = () => lenis.off("scroll", onScroll);
+    };
+
+    attach();
+    window.addEventListener(LENIS_READY_EVENT, attach);
+
+    return () => {
+      window.removeEventListener(LENIS_READY_EVENT, attach);
+      detach?.();
+    };
+  }, [reducedMotion, pathname]);
+
+  if (reducedMotion || pathname !== "/") return null;
 
   return (
     <div

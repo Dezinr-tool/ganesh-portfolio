@@ -2,8 +2,13 @@ import type Lenis from "lenis";
 
 let lenisInstance: Lenis | null = null;
 
+export const LENIS_READY_EVENT = "lenis:ready";
+
 export function setLenisInstance(instance: Lenis | null) {
   lenisInstance = instance;
+  if (typeof window !== "undefined" && instance) {
+    window.dispatchEvent(new CustomEvent(LENIS_READY_EVENT));
+  }
 }
 
 export function getLenisInstance() {

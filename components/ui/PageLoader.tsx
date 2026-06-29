@@ -13,9 +13,14 @@ import {
 import "./page-loader.css";
 
 const SESSION_KEY = "portfolio-loaded";
-const FONT_WAIT_MS = 2500;
-const REF_WAIT_FRAMES = 48;
-const SAFETY_EXIT_MS = 14_000;
+const FONT_WAIT_MS = 1500;
+const REF_WAIT_FRAMES = 24;
+const SAFETY_EXIT_MS = 10_000;
+
+const ENTER_DELAY = 0.4;
+const ENTER_DURATION = 1.8;
+const TEXT_STAGGER = 0.08;
+const COUNTER_DURATION = 2.2;
 
 const HERO_TEXT = "DESIGN & STRATEGY FOR STARTUPS";
 const SUB_TEXT = "UX/UI DESIGN • PRODUCT THINKING • D2C & B2B";
@@ -276,43 +281,50 @@ export function PageLoader() {
         },
       });
 
-      timeline.to(
-        [heroGroup, subGroup],
-        {
-          y: 0,
-          duration: 2.5,
-          delay: 1,
-          ease: "power4.out",
-          stagger: 0.08,
-        },
-      );
+      const counterStart = ENTER_DELAY + ENTER_DURATION - 0.25;
+
+      timeline.to([heroGroup, subGroup], {
+        y: 0,
+        duration: ENTER_DURATION,
+        delay: ENTER_DELAY,
+        ease: "power4.out",
+        stagger: TEXT_STAGGER,
+      });
 
       timeline.to(
         counterEl,
         {
           opacity: 1,
-          duration: 0.6,
+          duration: 0.4,
         },
-        2.3,
+        counterStart,
       );
 
       timeline.to(
         counterValueRef.current,
         {
           value: 100,
-          duration: 4,
+          duration: COUNTER_DURATION,
           ease: "power3.out",
           onUpdate: () => {
             counterEl.textContent = `${Math.round(counterValueRef.current.value)}%`;
           },
         },
-        2.5,
+        counterStart,
       );
 
       timeline.to(counterEl, {
         opacity: 0,
-        duration: 0.35,
+        duration: 0.25,
         ease: "power2.out",
+      });
+
+      // Mirror enter: same distance, duration, stagger — keep overflow visible so 3D glyphs stay masked like entry.
+      timeline.to([heroGroup, subGroup], {
+        y: "100vh",
+        duration: ENTER_DURATION,
+        ease: "power4.in",
+        stagger: TEXT_STAGGER,
       });
 
       timeline.add(() => {
@@ -321,27 +333,12 @@ export function PageLoader() {
         gsap.set(root, { overflow: "hidden" });
       });
 
-      timeline.to(
-        [heroGroup, subGroup],
-        {
-          y: "110vh",
-          duration: 1.1,
-          ease: "power4.in",
-          stagger: 0.06,
-        },
-        "+=0.05",
-      );
-
-      timeline.to(
-        root,
-        {
-          y: "-100%",
-          opacity: 0,
-          duration: 0.85,
-          ease: "power4.inOut",
-        },
-        "-=0.55",
-      );
+      timeline.to(root, {
+        y: "-100%",
+        opacity: 0,
+        duration: 0.55,
+        ease: "power4.inOut",
+      });
 
       cleanups.push(() => {
         timeline.kill();

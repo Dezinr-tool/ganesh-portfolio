@@ -11,81 +11,128 @@ import { usePathname } from "next/navigation";
 import { useEffect } from "react";
 import "lenis/dist/lenis.css";
 
+function isHomepage(pathname: string) {
+  return pathname === "/";
+}
+
+/** Wait until page loader is gone — no changes to PageLoader itself. */
+function waitForLoaderExit(): Promise<void> {
+  const done = () =>
+    !document.documentElement.classList.contains("page-loader-active") &&
+    !document.querySelector("[data-page-loader]");
+
+  if (done()) return Promise.resolve();
+
+  return new Promise((resolve) => {
+    const finish = () => {
+      if (!done()) return;
+      observer.disconnect();
+      clearInterval(poll);
+      resolve();
+    };
+
+    const observer = new MutationObserver(finish);
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ["class"],
+    });
+    observer.observe(document.body, { childList: true, subtree: true });
+
+    const poll = window.setInterval(finish, 100);
+  });
+}
+
 export function SmoothScroll({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const reducedMotion = useReducedMotion() ?? false;
-  const isEaRoute = pathname.startsWith("/ea");
-  const isDashboardRoute = pathname.startsWith("/dashboard");
-  const disableSmoothScroll = isEaRoute || isDashboardRoute;
+  const homepage = isHomepage(pathname);
 
   useEffect(() => {
-    if (reducedMotion || disableSmoothScroll) {
+    if (reducedMotion || !homepage) {
       setLenisInstance(null);
       return;
     }
 
-    registerGsapPlugins();
+    let lenis: Lenis | null = null;
+    let cancelled = false;
 
-    const isCoarsePointer = window.matchMedia("(pointer: coarse)").matches;
+    const init = async () => {
+      await waitForLoaderExit();
+      if (cancelled) return;
 
-    const lenis = new Lenis({
-      lerp: isCoarsePointer ? 0.085 : 0.06,
-      smoothWheel: true,
-      wheelMultiplier: 1,
-      touchMultiplier: isCoarsePointer ? 1.65 : 1.2,
-      syncTouch: isCoarsePointer,
-    });
+      registerGsapPlugins();
 
-    setLenisInstance(lenis);
-    // Expose for Playwright/test tooling — allows test scripts to call lenis.scrollTo directly
-    (window as unknown as Record<string, unknown>).__lenis = lenis;
+      const isCoarsePointer = window.matchMedia("(pointer: coarse)").matches;
 
-    lenis.on("scroll", ScrollTrigger.update);
+      lenis = new Lenis({
+        lerp: isCoarsePointer ? 0.085 : 0.055,
+        smoothWheel: true,
+        wheelMultiplier: 1,
+        touchMultiplier: isCoarsePointer ? 1.65 : 1.2,
+        syncTouch: isCoarsePointer,
+        autoRaf: false,
+      });
 
-    // GSAP ticker time is in seconds; Lenis.raf expects milliseconds (like requestAnimationFrame)
-    const ticker = (time: number) => {
-      lenis.raf(time * 1000);
+      setLenisInstance(lenis);
+      (window as unknown as Record<string, unknown>).__lenis = lenis;
+
+      lenis.on("scroll", ScrollTrigger.update);
+
+      const ticker = (time: number) => {
+        lenis?.raf(time * 1000);
+      };
+
+      gsap.ticker.add(ticker);
+      gsap.ticker.lagSmoothing(0);
+
+      ScrollTrigger.scrollerProxy(window, {
+        scrollTop(value) {
+          if (arguments.length && typeof value === "number") {
+            lenis?.scrollTo(value, { immediate: true });
+          }
+          return lenis?.scroll ?? 0;
+        },
+        getBoundingClientRect() {
+          return {
+            top: 0,
+            left: 0,
+            width: window.innerWidth,
+            height: window.innerHeight,
+          };
+        },
+      });
+
+      const onRefresh = () => {
+        lenis?.resize();
+      };
+
+      ScrollTrigger.addEventListener("refresh", onRefresh);
+
+      requestAnimationFrame(() => {
+        lenis?.resize();
+        scheduleScrollTriggerRefresh();
+      });
+
+      cleanup = () => {
+        ScrollTrigger.removeEventListener("refresh", onRefresh);
+        gsap.ticker.remove(ticker);
+        lenis?.destroy();
+        delete (window as unknown as Record<string, unknown>).__lenis;
+        setLenisInstance(null);
+        ScrollTrigger.scrollerProxy(window, {});
+        ScrollTrigger.clearScrollMemory();
+      };
     };
 
-    gsap.ticker.add(ticker);
-    gsap.ticker.lagSmoothing(0);
+    let cleanup: (() => void) | undefined;
 
-    ScrollTrigger.scrollerProxy(window, {
-      scrollTop(value) {
-        if (arguments.length && typeof value === "number") {
-          lenis.scrollTo(value, { immediate: true });
-        }
-        return lenis.scroll;
-      },
-      getBoundingClientRect() {
-        return {
-          top: 0,
-          left: 0,
-          width: window.innerWidth,
-          height: window.innerHeight,
-        };
-      },
-    });
-
-    const onRefresh = () => {
-      lenis.resize();
-    };
-    ScrollTrigger.addEventListener("refresh", onRefresh);
-    requestAnimationFrame(() => {
-      lenis.resize();
-      scheduleScrollTriggerRefresh();
-    });
+    void init();
 
     return () => {
-      ScrollTrigger.removeEventListener("refresh", onRefresh);
-      gsap.ticker.remove(ticker);
-      lenis.destroy();
-      delete (window as unknown as Record<string, unknown>).__lenis;
-      setLenisInstance(null);
-      ScrollTrigger.scrollerProxy(window, {});
-      ScrollTrigger.clearScrollMemory();
+      cancelled = true;
+      cleanup?.();
     };
-  }, [reducedMotion, disableSmoothScroll]);
+  }, [reducedMotion, homepage]);
 
   return children;
 }
