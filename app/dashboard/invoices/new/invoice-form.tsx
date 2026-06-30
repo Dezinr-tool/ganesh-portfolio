@@ -20,6 +20,7 @@ import { EmailListField } from "@/components/dashboard/EmailListField";
 import { cn } from "@/lib/utils";
 import {
   BILLING_MODE_OPTIONS,
+  type Invoice,
   type InvoiceBillingMode,
   type InvoiceLineItem,
   calculateLineAmount,
@@ -62,28 +63,70 @@ function todayISO(): string {
   return new Date().toISOString().slice(0, 10);
 }
 
-export default function InvoiceForm() {
+function lineItemsFromInvoice(
+  invoice: Invoice,
+  billingMode: InvoiceBillingMode,
+): LineItemRow[] {
+  return invoice.lineItems.map((item) => ({
+    ...item,
+    projectAmount: billingMode === "lumpsum" ? item.amount : 0,
+    advancePercent: billingMode === "lumpsum" ? 100 : 0,
+  }));
+}
+
+type InvoiceFormProps = {
+  invoice?: Invoice;
+  initialClientPhone?: string;
+  initialClientGstNumber?: string;
+};
+
+export default function InvoiceForm({
+  invoice,
+  initialClientPhone = "",
+  initialClientGstNumber = "",
+}: InvoiceFormProps) {
   const router = useRouter();
-  const [invoiceNumber, setInvoiceNumber] = useState("INV-001");
-  const [issueDate, setIssueDate] = useState(todayISO);
-  const [clientName, setClientName] = useState("");
-  const [clientEmails, setClientEmails] = useState<string[]>([""]);
-  const [clientPhone, setClientPhone] = useState("");
-  const [clientCompany, setClientCompany] = useState("");
-  const [clientAddress, setClientAddress] = useState("");
-  const [gstNumber, setGstNumber] = useState("");
-  const [hourlyRate, setHourlyRate] = useState(0);
-  const [billingMode, setBillingMode] = useState<InvoiceBillingMode>("hourly");
-  const [lineItems, setLineItems] = useState<LineItemRow[]>([
-    createEmptyLineItem(0, "hourly"),
-  ]);
-  const [taxPercent, setTaxPercent] = useState<string>("");
-  const [notes, setNotes] = useState("");
+  const isEditing = Boolean(invoice);
+  const [invoiceNumber, setInvoiceNumber] = useState(
+    invoice?.invoiceNumber ?? "INV-001",
+  );
+  const [issueDate, setIssueDate] = useState(invoice?.issueDate ?? todayISO);
+  const [clientName, setClientName] = useState(invoice?.clientName ?? "");
+  const [clientEmails, setClientEmails] = useState<string[]>(
+    invoice?.clientEmails?.length ? invoice.clientEmails : [""],
+  );
+  const [clientPhone, setClientPhone] = useState(initialClientPhone);
+  const [clientCompany, setClientCompany] = useState(
+    invoice?.clientCompany ?? "",
+  );
+  const [clientAddress, setClientAddress] = useState(
+    invoice?.clientAddress ?? "",
+  );
+  const [gstNumber, setGstNumber] = useState(initialClientGstNumber);
+  const [hourlyRate, setHourlyRate] = useState(
+    invoice?.billingMode === "hourly"
+      ? (invoice.lineItems[0]?.rate ?? 0)
+      : 0,
+  );
+  const [billingMode, setBillingMode] = useState<InvoiceBillingMode>(
+    invoice?.billingMode ?? "hourly",
+  );
+  const [lineItems, setLineItems] = useState<LineItemRow[]>(() =>
+    invoice
+      ? lineItemsFromInvoice(invoice, invoice.billingMode)
+      : [createEmptyLineItem(0, "hourly")],
+  );
+  const [taxPercent, setTaxPercent] = useState<string>(
+    invoice?.taxPercent != null ? String(invoice.taxPercent) : "",
+  );
+  const [notes, setNotes] = useState(invoice?.notes ?? "");
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
-  const [loadingNumber, setLoadingNumber] = useState(true);
+  const [loadingNumber, setLoadingNumber] = useState(!isEditing);
 
   useEffect(() => {
+    if (isEditing) return;
+
     fetch("/api/invoices")
       .then((res) => res.json())
       .then((data) => {
@@ -93,9 +136,11 @@ export default function InvoiceForm() {
       })
       .catch(() => setError("Could not load invoice number."))
       .finally(() => setLoadingNumber(false));
-  }, []);
+  }, [isEditing]);
 
   useEffect(() => {
+    if (isEditing) return;
+
     fetch("/api/settings")
       .then((res) => res.json())
       .then((data) => {
@@ -104,7 +149,7 @@ export default function InvoiceForm() {
         }
       })
       .catch(() => setError("Could not load hourly rate."));
-  }, []);
+  }, [isEditing]);
 
   const resolvedLineItems = useMemo(() => {
     if (billingMode === "hourly") {
@@ -187,8 +232,9 @@ export default function InvoiceForm() {
     setSubmitting(true);
 
     try {
-      const response = await fetch("/api/invoices", {
-        method: "POST",
+      const url = isEditing ? `/api/invoices/${invoice!.id}` : "/api/invoices";
+      const response = await fetch(url, {
+        method: isEditing ? "PUT" : "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           issueDate,
@@ -521,10 +567,14 @@ export default function InvoiceForm() {
 
       <div className="flex items-center gap-3">
         <Button type="submit" disabled={submitting}>
-          {submitting ? "Saving…" : "Save invoice"}
+          {submitting ? "Saving…" : isEditing ? "Save changes" : "Save invoice"}
         </Button>
         <Link
-          href="/dashboard/invoices"
+          href={
+            isEditing
+              ? `/dashboard/invoices/${invoice!.id}`
+              : "/dashboard/invoices"
+          }
           className={cn(buttonVariants({ variant: "ghost" }))}
         >
           Cancel

@@ -3,6 +3,7 @@
 import { Calendar, Mail, MessageCircle, Phone, X } from "lucide-react";
 import "./connect-button.css";
 import { useEffect, useRef, useState } from "react";
+import { usePathname } from "next/navigation";
 
 const CONTACT = {
   email: "hello@designbyganesh.com",
@@ -51,6 +52,7 @@ const OPTIONS: Option[] = [
 ];
 
 export function ConnectButton() {
+  const pathname = usePathname();
   const [open, setOpen] = useState(false);
   const [pastHero, setPastHero] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
@@ -85,6 +87,8 @@ export function ConnectButton() {
     document.addEventListener("keydown", handler);
     return () => document.removeEventListener("keydown", handler);
   }, [open]);
+
+  if (pathname?.startsWith("/dashboard")) return null;
 
   return (
     <div

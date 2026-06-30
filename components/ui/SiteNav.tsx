@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { usePathname } from "next/navigation";
 import { MenuIcon, type MenuIconHandle } from "./MenuIcon";
 import { XIcon, type XIconHandle } from "./XIcon";
 import "./site-nav.css";
@@ -49,6 +50,7 @@ const SOCIAL = [
 const EMAIL = "hello@designbyganesh.com";
 
 export function SiteNav() {
+  const pathname = usePathname();
   const [open, setOpen] = useState(false);
   const panelRef = useRef<HTMLDivElement>(null);
   const menuIconRef = useRef<MenuIconHandle>(null);
@@ -78,6 +80,8 @@ export function SiteNav() {
       document.getElementById(id)?.scrollIntoView({ behavior: "smooth" });
     }, 320);
   };
+
+  if (pathname?.startsWith("/dashboard")) return null;
 
   return (
     <>

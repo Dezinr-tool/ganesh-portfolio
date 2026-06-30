@@ -1,5 +1,8 @@
+import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Badge } from "@/components/ui/badge";
+import { buttonVariants } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 import {
   Card,
   CardContent,
@@ -51,6 +54,12 @@ export default async function InvoiceDetailPage({
       <div className="space-y-3">
         <BackLink href="/dashboard/invoices" label="Back to invoices" />
         <div className="flex items-center gap-2 overflow-x-auto">
+          <Link
+            href={`/dashboard/invoices/${invoice.id}/edit`}
+            className={cn(buttonVariants({ variant: "outline" }))}
+          >
+            Edit
+          </Link>
           <DownloadPdfButton invoice={invoice} />
           <InvoiceStatusButton invoiceId={invoice.id} status={invoice.status} />
           <DeleteInvoiceButton

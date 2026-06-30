@@ -262,6 +262,63 @@ export async function createInvoice(input: CreateInvoiceInput): Promise<Invoice>
   return rowToInvoice(row);
 }
 
+export async function updateInvoice(
+  id: string,
+  input: CreateInvoiceInput,
+): Promise<Invoice | null> {
+  const processingFeePercent =
+    input.processingFeePercent ?? DEFAULT_PROCESSING_FEE_PERCENT;
+
+  const { subtotal, processingFeeAmount, total } = calculateTotals(
+    input.lineItems,
+    input.taxPercent,
+    processingFeePercent,
+  );
+
+  const notes = input.notes?.trim() ?? "";
+  const billingMode: InvoiceBillingMode = input.billingMode ?? "hourly";
+
+  const { rows } = await sql<InvoiceRow>`
+    UPDATE invoices
+    SET
+      client_name = ${input.clientName},
+      client_email = ${serializeClientEmails(input.clientEmails)},
+      client_company = ${input.clientCompany},
+      client_address = ${input.clientAddress ?? ""},
+      issue_date = ${input.issueDate},
+      billing_mode = ${billingMode},
+      line_items = ${JSON.stringify(input.lineItems)},
+      subtotal = ${subtotal},
+      tax_percent = ${input.taxPercent},
+      processing_fee_percent = ${processingFeePercent},
+      processing_fee_amount = ${processingFeeAmount},
+      total = ${total},
+      notes = ${notes || null}
+    WHERE id = ${id}
+    RETURNING
+      id,
+      invoice_number,
+      client_name,
+      client_email,
+      client_company,
+      client_address,
+      issue_date,
+      billing_mode,
+      line_items,
+      subtotal,
+      tax_percent,
+      COALESCE(processing_fee_percent, ${DEFAULT_PROCESSING_FEE_PERCENT}) AS processing_fee_percent,
+      COALESCE(processing_fee_amount, 0) AS processing_fee_amount,
+      total,
+      notes,
+      status,
+      created_at
+  `;
+
+  const row = rows[0];
+  return row ? rowToInvoice(row) : null;
+}
+
 export async function updateInvoiceStatus(
   id: string,
   status: InvoiceStatus,

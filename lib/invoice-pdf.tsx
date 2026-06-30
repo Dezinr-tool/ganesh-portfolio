@@ -323,7 +323,7 @@ export function InvoicePdf({
             <View key={item.id} style={styles.tableRow}>
               <Text style={styles.descriptionCol}>{item.description}</Text>
               <Text style={styles.costCol}>
-                ₹{formatPdfAmount(item.amount)}
+                Rs. {formatPdfAmount(item.amount)}
               </Text>
             </View>
           ))}
@@ -331,7 +331,7 @@ export function InvoicePdf({
 
         <View style={styles.totalsSection}>
           <Text style={styles.totalLine}>
-            Total Estimated Cost: ₹{formatPdfAmount(invoice.total)}
+            Total Estimated Cost: Rs. {formatPdfAmount(invoice.total)}
           </Text>
           <Text style={styles.amountWords}>
             Amount Chargeable (In Words): {amountInWords(invoice.total)}

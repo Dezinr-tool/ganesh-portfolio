@@ -1,8 +1,15 @@
 import { NextResponse } from "next/server";
-import type { InvoiceStatus } from "@/app/dashboard/_lib/invoices";
+import type {
+  CreateInvoiceInput,
+  InvoiceStatus,
+} from "@/app/dashboard/_lib/invoices";
+import { buildInvoiceInput, validateInvoiceLineItems } from "@/app/dashboard/_lib/invoices";
+import { hasValidClientEmails } from "@/app/dashboard/_lib/client-emails";
+import { upsertClientFromForm } from "@/lib/clients-store";
 import {
   deleteInvoice,
   getInvoiceById,
+  updateInvoice,
   updateInvoiceStatus,
 } from "@/lib/invoices-store";
 
@@ -56,6 +63,68 @@ export async function PATCH(
     if (!invoice) {
       return NextResponse.json({ error: "Invoice not found." }, { status: 404 });
     }
+
+    return NextResponse.json(invoice);
+  } catch {
+    return NextResponse.json(
+      { error: "Failed to update invoice." },
+      { status: 500 },
+    );
+  }
+}
+
+export async function PUT(
+  request: Request,
+  context: { params: Promise<{ id: string }> },
+) {
+  try {
+    const { id } = await context.params;
+    const body = (await request.json()) as CreateInvoiceInput;
+
+    if (
+      !body.issueDate ||
+      !body.clientName?.trim() ||
+      !hasValidClientEmails(body.clientEmails, body.clientEmail) ||
+      !Array.isArray(body.lineItems) ||
+      body.lineItems.length === 0
+    ) {
+      return NextResponse.json(
+        { error: "Missing required invoice fields." },
+        { status: 400 },
+      );
+    }
+
+    const billingMode = body.billingMode ?? "hourly";
+
+    const hasValidLineItems = validateInvoiceLineItems(body.lineItems, billingMode);
+
+    if (!hasValidLineItems) {
+      return NextResponse.json(
+        {
+          error:
+            billingMode === "hourly"
+              ? "Each line item needs a description and effort (hrs)."
+              : "Each line item needs a description and amount.",
+        },
+        { status: 400 },
+      );
+    }
+
+    const input = buildInvoiceInput({ ...body, billingMode });
+    const invoice = await updateInvoice(id, input);
+
+    if (!invoice) {
+      return NextResponse.json({ error: "Invoice not found." }, { status: 404 });
+    }
+
+    await upsertClientFromForm({
+      name: input.clientName,
+      email: input.clientEmail,
+      phone: body.clientPhone,
+      company: body.clientCompany,
+      address: body.clientAddress,
+      gstNumber: body.clientGstNumber,
+    }).catch(() => null);
 
     return NextResponse.json(invoice);
   } catch {
