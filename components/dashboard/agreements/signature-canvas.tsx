@@ -44,9 +44,15 @@ export const SignatureCanvas = forwardRef<
     if (!canvas) return;
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
-    ctx.fillStyle = "var(--color-bg)";
+    // Canvas fillStyle/strokeStyle can't resolve CSS custom properties
+    // directly (e.g. "var(--color-bg)") — they need an actual color value,
+    // so resolve the variables via getComputedStyle first.
+    const rootStyle = getComputedStyle(document.documentElement);
+    const bg = rootStyle.getPropertyValue("--color-bg").trim() || "#ffffff";
+    const text = rootStyle.getPropertyValue("--color-text").trim() || "#111111";
+    ctx.fillStyle = bg;
     ctx.fillRect(0, 0, canvas.width, canvas.height);
-    ctx.strokeStyle = "var(--color-text)";
+    ctx.strokeStyle = text;
     ctx.lineWidth = 2;
     ctx.lineCap = "round";
     ctx.lineJoin = "round";

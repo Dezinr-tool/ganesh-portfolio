@@ -88,7 +88,9 @@ export function ConnectButton() {
     return () => document.removeEventListener("keydown", handler);
   }, [open]);
 
-  if (pathname?.startsWith("/dashboard")) return null;
+  if (pathname?.startsWith("/dashboard") || pathname?.startsWith("/sign")) {
+    return null;
+  }
 
   return (
     <div

@@ -38,6 +38,8 @@ yarn-error.log*
 !components/design-tokens-scope.tsx
 !components/design-system/
 !components/design-system/**
+!**/\[token\]/
+!**/\[token\]/**
 *secret*
 
 # google calendar oauth tokens

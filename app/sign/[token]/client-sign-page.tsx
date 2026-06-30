@@ -1,21 +1,18 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { AgreementDocument } from "@/components/dashboard/agreements/agreement-document";
 import {
-  SignatureCanvas,
-  type SignatureCanvasRef,
-} from "@/components/dashboard/agreements/signature-canvas";
+  SignatureInput,
+  type SignatureInputRef,
+} from "@/components/dashboard/agreements/signature-input";
 import type { Agreement } from "@/app/dashboard/_lib/agreements";
-import type { DesignTokens } from "@/lib/design-tokens";
 
 type ClientSignPageProps = {
   token: string;
-  designTokens: DesignTokens;
 };
 
-export function ClientSignPage({ token, designTokens }: ClientSignPageProps) {
-  const canvasRef = useRef<SignatureCanvasRef>(null);
+export function ClientSignPage({ token }: ClientSignPageProps) {
+  const signatureRef = useRef<SignatureInputRef>(null);
   const [agreement, setAgreement] = useState<Agreement | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -41,9 +38,9 @@ export function ClientSignPage({ token, designTokens }: ClientSignPageProps) {
   }, [token]);
 
   async function handleSign() {
-    const signature = canvasRef.current?.getDataUrl();
+    const signature = signatureRef.current?.getDataUrl();
     if (!signature) {
-      setError("Please draw your signature before signing.");
+      setError("Please add your signature before signing.");
       return;
     }
 
@@ -95,70 +92,73 @@ export function ClientSignPage({ token, designTokens }: ClientSignPageProps) {
 
   if (!agreement) return null;
 
+  if (signed) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-[var(--color-bg)] px-4">
+        <div className="max-w-sm text-center">
+          <p className="text-lg font-medium text-[var(--color-text)]">
+            Agreement signed successfully
+          </p>
+          <p className="mt-2 text-sm text-[var(--color-text)]">
+            Thank you, {agreement.clientName}. Your signature has been
+            recorded. You can close this window now.
+          </p>
+          <button
+            type="button"
+            onClick={() => window.close()}
+            className="mt-6 rounded-md bg-[var(--color-text)] px-6 py-2.5 text-sm font-medium text-[var(--color-bg)]"
+          >
+            Close window
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="min-h-screen bg-[var(--color-bg)] py-10">
-      <div className="mx-auto max-w-[900px] px-4">
-        {signed ? (
-          <div className="mb-6 rounded-lg border border-[var(--color-accent)] bg-[var(--color-accent)] px-6 py-4 text-center">
-            <p className="font-medium text-[var(--color-accent)]">
-              Agreement signed successfully
-            </p>
-            <p className="mt-1 text-sm text-[var(--color-accent)]">
-              Thank you, {agreement.clientName}. A confirmation has been sent.
-            </p>
-          </div>
-        ) : (
-          <div className="mb-6 rounded-lg border border-[var(--color-text)] bg-[var(--color-bg)] px-6 py-4">
-            <h1 className="text-lg font-semibold text-[var(--color-text)]">
-              Review & Sign Agreement
-            </h1>
-            <p className="mt-1 text-sm text-[var(--color-text)]">
-              Please review the agreement below and sign to confirm.
-            </p>
-          </div>
-        )}
+    <div className="flex min-h-screen flex-col items-center bg-[var(--color-bg)] px-4 py-8">
+      <div className="w-full max-w-[900px]">
+        <div className="mb-4 text-center">
+          <h1 className="text-lg font-semibold text-[var(--color-text)]">
+            Review &amp; Sign Agreement
+          </h1>
+          <p className="mt-1 text-sm text-[var(--color-text)]">
+            Please review the agreement below and sign to confirm.
+          </p>
+        </div>
 
-        <AgreementDocument agreement={agreement} designTokens={designTokens} />
+        <div className="overflow-hidden rounded-lg border border-[var(--color-text)]">
+          <iframe
+            src={`/api/sign/${token}/pdf`}
+            title={`${agreement.title} agreement PDF`}
+            className="h-[75vh] w-full"
+          />
+        </div>
 
-        {!signed ? (
-          <div className="mt-6 rounded-lg border border-[var(--color-text)] bg-[var(--color-bg)] px-6 py-6">
-            <h2 className="text-sm font-semibold text-[var(--color-text)]">
-              Your signature
-            </h2>
-            <p className="mt-1 text-sm text-[var(--color-text)]">
-              Draw your signature below using mouse or touch.
-            </p>
-            <div className="mt-4 overflow-x-auto">
-              <SignatureCanvas
-                ref={canvasRef}
-                width={500}
-                height={200}
-                showClearButton={false}
-                onChange={setHasSignature}
-              />
-            </div>
-            {error ? (
-              <p className="mt-2 text-sm text-[var(--color-accent)]">{error}</p>
-            ) : null}
-            <div className="mt-4 flex gap-3">
-              <button
-                type="button"
-                onClick={() => canvasRef.current?.clear()}
-                className="rounded-md border border-[var(--color-text)] px-4 py-2.5 text-sm font-medium text-[var(--color-text)] hover:bg-[var(--color-bg)]"
-              >
-                Clear
-              </button>
-              <button
-                type="button"
-                onClick={handleSign}
-                disabled={submitting || !hasSignature}
-                className="rounded-md bg-[var(--color-text)] px-6 py-2.5 text-sm font-medium text-[var(--color-bg)] disabled:opacity-50"
-              >
-                {submitting ? "Signing…" : "Sign"}
-              </button>
-            </div>
+        <div className="mt-6 rounded-lg border border-[var(--color-text)] bg-[var(--color-bg)] px-6 py-6">
+          <h2 className="text-sm font-semibold text-[var(--color-text)]">
+            Your signature
+          </h2>
+          <p className="mt-1 text-sm text-[var(--color-text)]">
+            Draw, type, or upload an image of your signature.
+          </p>
+          <div className="mt-4">
+            <SignatureInput ref={signatureRef} onChange={setHasSignature} />
           </div>
-        ) : null}
+          {error ? (
+            <p className="mt-3 text-sm text-[var(--color-accent)]">{error}</p>
+          ) : null}
+          <div className="mt-4">
+            <button
+              type="button"
+              onClick={handleSign}
+              disabled={submitting || !hasSignature}
+              className="rounded-md bg-[var(--color-text)] px-6 py-2.5 text-sm font-medium text-[var(--color-bg)] disabled:opacity-50"
+            >
+              {submitting ? "Signing…" : "Sign Agreement"}
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   );
