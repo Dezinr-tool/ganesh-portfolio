@@ -1,9 +1,8 @@
 import { Document, Image, Page, StyleSheet, Text, View } from "@react-pdf/renderer";
-import type { Agreement } from "@/app/dashboard/_lib/agreements";
+import type { Agreement, AgreementCurrency } from "@/app/dashboard/_lib/agreements";
 import {
   CONFIDENTIALITY_TEXT,
   DEEMED_ACCEPTANCE_TEXT,
-  formatCurrency,
   formatDate,
   formatDateTime,
   formatClientEmails,
@@ -11,7 +10,6 @@ import {
   killFeeClauseText,
   latePaymentClauseText,
   LIMITATION_OF_LIABILITY_TEXT,
-  outOfScopeClauseText,
   paymentStructureLabel,
   PORTFOLIO_RIGHTS_TEXT,
   reviewWindowClauseText,
@@ -23,6 +21,29 @@ import {
   DEFAULT_DESIGN_TOKENS,
   type DesignTokens,
 } from "@/lib/design-tokens";
+
+// Helvetica (the PDF font) has no glyph for ₹, €, or £ in some viewers and
+// renders them as a garbled character. Currency codes ("INR 1,000.00")
+// render safely regardless of font support.
+function formatCurrency(amount: number, currency: AgreementCurrency = "INR"): string {
+  return new Intl.NumberFormat("en-IN", {
+    style: "currency",
+    currency,
+    currencyDisplay: "code",
+    minimumFractionDigits: 2,
+  }).format(amount);
+}
+
+function outOfScopeClauseText(
+  rate: number | null,
+  currency: AgreementCurrency = "INR",
+): string {
+  if (rate != null && rate > 0) {
+    const formatted = formatCurrency(rate, currency);
+    return `Any work requested beyond the agreed Scope of Work will be treated as a change order, quoted separately, and billed at ${formatted}/hour unless a new fixed fee is agreed in writing`;
+  }
+  return "Any work requested beyond the agreed Scope of Work will be treated as a change order, quoted separately, and billed at the designer's standard hourly rate unless a new fixed fee is agreed in writing";
+}
 
 function createAgreementPdfStyles(tokens: DesignTokens) {
   return StyleSheet.create({
@@ -37,10 +58,11 @@ function createAgreementPdfStyles(tokens: DesignTokens) {
     title: {
       fontSize: 18,
       fontFamily: "Helvetica-Bold",
+      lineHeight: 1.2,
     },
     subtitle: {
       fontSize: 10,
-      marginTop: 4,
+      marginTop: 10,
     },
     meta: {
       fontSize: 8,
