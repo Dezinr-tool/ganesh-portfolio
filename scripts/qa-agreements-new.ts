@@ -78,24 +78,19 @@ async function main() {
     (await page.getByPlaceholder("Milestone name").count()) === 0,
   );
 
-  const trigger = page.getByRole("button", { name: /saved client/i });
-  await trigger.click();
-  await page.locator("#client-selector-search").waitFor({ state: "visible" });
-  await page.locator("#client-selector-search").fill("Cove");
-  await page.waitForTimeout(300);
-  await page.getByRole("button", { name: /Adit & Sanya/i }).first().click();
-  await page.waitForTimeout(200);
-
+  await page.locator("#clientName").fill("Adit & Sanya");
+  await page.locator("#clientCompany").fill("Cove & Lane");
+  await page.locator("#clientEmail").fill("adit@coveandlane.in");
   await page.locator("#clientPhone").fill("+91 98765 43210");
   await page.locator("#clientAddress").fill("123 MG Road, Bangalore");
   await page.locator("#gstNumber").fill("29ABCDE1234F1Z5");
 
   check(
-    "Company auto-fills",
+    "Company filled",
     (await page.locator("#clientCompany").inputValue()).includes("Cove & Lane"),
   );
   check(
-    "Email auto-fills",
+    "Email filled",
     (await page.locator("#clientEmail").inputValue()) === "adit@coveandlane.in",
   );
 

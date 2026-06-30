@@ -17,8 +17,7 @@ import { Separator } from "@/components/ui/separator";
 import { Textarea } from "@/components/ui/textarea";
 import { buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { ClientSelector } from "@/components/dashboard/ClientSelector";
-import type { ClientFormValues, SavedClient } from "@/app/dashboard/_lib/clients";
+import { EmailListField } from "@/components/dashboard/EmailListField";
 import {
   CONFIDENTIALITY_TEXT,
   CURRENCY_OPTIONS,
@@ -32,6 +31,7 @@ import {
   latePaymentClauseText,
   outOfScopeClauseText,
   normalizeScopeOfWork,
+  parseClientEmails,
   type Agreement,
   type AgreementCurrency,
   type DeliverableItem,
@@ -74,7 +74,12 @@ export default function AgreementForm({ agreement }: AgreementFormProps) {
   const titleRef = useRef(agreement?.title ?? "");
   const [clientName, setClientName] = useState(agreement?.clientName ?? "");
   const [clientCompany, setClientCompany] = useState(agreement?.clientCompany ?? "");
-  const [clientEmail, setClientEmail] = useState(agreement?.clientEmail ?? "");
+  const [clientEmails, setClientEmails] = useState<string[]>(() => {
+    const emails = agreement?.clientEmails?.length
+      ? agreement.clientEmails
+      : parseClientEmails(agreement?.clientEmail ?? "");
+    return emails.length > 0 ? emails : [""];
+  });
   const [clientPhone, setClientPhone] = useState(agreement?.clientPhone ?? "");
   const [clientAddress, setClientAddress] = useState(agreement?.clientAddress ?? "");
   const [gstNumber, setGstNumber] = useState(agreement?.clientGstNumber ?? "");
@@ -159,8 +164,6 @@ export default function AgreementForm({ agreement }: AgreementFormProps) {
   const [confirmInvalidate, setConfirmInvalidate] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
-  const [savedClientSelected, setSavedClientSelected] = useState(false);
-  const [clientDetailsEditing, setClientDetailsEditing] = useState(false);
 
   function updateScope(id: string, field: keyof ScopeOfWorkItem, value: string | number | null) {
     setScopeOfWork((items) =>
@@ -180,45 +183,6 @@ export default function AgreementForm({ agreement }: AgreementFormProps) {
     );
   }
 
-  function handleClientSelectionChange(client: SavedClient | null) {
-    setSavedClientSelected(client !== null);
-    if (client) {
-      setClientDetailsEditing(false);
-      const domTitle =
-        typeof document !== "undefined"
-          ? (document.getElementById("title") as HTMLInputElement | null)?.value.trim()
-          : "";
-      const currentTitle = titleRef.current.trim() || domTitle || "";
-      if (!currentTitle) {
-        const nextTitle = `${client.name} — Design Project`;
-        titleRef.current = nextTitle;
-        setTitle(nextTitle);
-      }
-    } else {
-      setClientDetailsEditing(false);
-    }
-  }
-
-  function handleClientChange(patch: Partial<ClientFormValues>) {
-    if (patch.clientName !== undefined) setClientName(patch.clientName);
-    if (patch.clientEmail !== undefined) setClientEmail(patch.clientEmail);
-    if (patch.clientPhone !== undefined) setClientPhone(patch.clientPhone);
-    if (patch.clientCompany !== undefined) setClientCompany(patch.clientCompany);
-    if (patch.clientAddress !== undefined) setClientAddress(patch.clientAddress);
-    if (patch.gstNumber !== undefined) setGstNumber(patch.gstNumber);
-    if (patch.representativeName !== undefined) setClientRepresentative(patch.representativeName);
-  }
-
-  const clientFormValues: ClientFormValues = {
-    clientName,
-    clientEmail,
-    clientPhone,
-    clientCompany,
-    clientAddress,
-    gstNumber,
-    representativeName: clientRepresentative,
-  };
-
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setError(null);
@@ -236,7 +200,7 @@ export default function AgreementForm({ agreement }: AgreementFormProps) {
       title,
       clientName,
       clientCompany,
-      clientEmail,
+      clientEmails,
       clientPhone,
       clientAddress,
       clientGstNumber: gstNumber,
@@ -304,21 +268,6 @@ export default function AgreementForm({ agreement }: AgreementFormProps) {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
-      {/* Saved client */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Saved client</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <ClientSelector
-            values={clientFormValues}
-            onChange={handleClientChange}
-            collapseAfterSelect
-            onSelectionChange={handleClientSelectionChange}
-          />
-        </CardContent>
-      </Card>
-
       {needsInvalidateWarning ? (
         <Alert variant="destructive">
           <AlertDescription className="space-y-3">
@@ -376,95 +325,68 @@ export default function AgreementForm({ agreement }: AgreementFormProps) {
         <CardHeader>
           <CardTitle>Client</CardTitle>
         </CardHeader>
-        <CardContent>
-          {savedClientSelected && !clientDetailsEditing ? (
-            <div className="space-y-1 text-sm">
-              <p className="font-medium">{clientName}</p>
-              {clientCompany ? <p className="text-muted-foreground">{clientCompany}</p> : null}
-              <p className="text-muted-foreground">{clientEmail}</p>
-              {clientPhone ? <p className="text-muted-foreground">{clientPhone}</p> : null}
-              {clientRepresentative ? (
-                <p className="text-muted-foreground">Rep: {clientRepresentative}</p>
-              ) : null}
-              <Button
-                type="button"
-                variant="link"
-                size="sm"
-                className="mt-2 h-auto p-0"
-                onClick={() => setClientDetailsEditing(true)}
-              >
-                Edit details
-              </Button>
-            </div>
-          ) : (
-            <div className="grid gap-4 sm:grid-cols-2">
-              {!savedClientSelected ? (
-                <div className="space-y-2">
-                  <Label htmlFor="clientName">Client name</Label>
-                  <Input
-                    id="clientName"
-                    required
-                    value={clientName}
-                    onChange={(e) => setClientName(e.target.value)}
-                  />
-                </div>
-              ) : null}
-              <div className="space-y-2">
-                <Label htmlFor="clientCompany">Company</Label>
-                <Input
-                  id="clientCompany"
-                  required
-                  value={clientCompany}
-                  onChange={(e) => setClientCompany(e.target.value)}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="clientEmail">Email</Label>
-                <Input
-                  id="clientEmail"
-                  type="email"
-                  required
-                  value={clientEmail}
-                  onChange={(e) => setClientEmail(e.target.value)}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="clientPhone">Phone</Label>
-                <Input
-                  id="clientPhone"
-                  type="tel"
-                  value={clientPhone}
-                  onChange={(e) => setClientPhone(e.target.value)}
-                />
-              </div>
-              <div className="space-y-2 sm:col-span-2">
-                <Label htmlFor="clientAddress">Address</Label>
-                <Textarea
-                  id="clientAddress"
-                  rows={3}
-                  value={clientAddress}
-                  onChange={(e) => setClientAddress(e.target.value)}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="gstNumber">GST number</Label>
-                <Input
-                  id="gstNumber"
-                  value={gstNumber}
-                  onChange={(e) => setGstNumber(e.target.value)}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="clientRepresentative">Representative name</Label>
-                <Input
-                  id="clientRepresentative"
-                  required
-                  value={clientRepresentative}
-                  onChange={(e) => setClientRepresentative(e.target.value)}
-                />
-              </div>
-            </div>
-          )}
+        <CardContent className="grid gap-4 sm:grid-cols-2">
+          <div className="space-y-2">
+            <Label htmlFor="clientName">Client name</Label>
+            <Input
+              id="clientName"
+              required
+              value={clientName}
+              onChange={(e) => setClientName(e.target.value)}
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="clientCompany">Company</Label>
+            <Input
+              id="clientCompany"
+              required
+              value={clientCompany}
+              onChange={(e) => setClientCompany(e.target.value)}
+            />
+          </div>
+          <div className="space-y-2 sm:col-span-2">
+            <EmailListField
+              id="clientEmail"
+              emails={clientEmails}
+              onChange={setClientEmails}
+              required
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="clientPhone">Phone</Label>
+            <Input
+              id="clientPhone"
+              type="tel"
+              value={clientPhone}
+              onChange={(e) => setClientPhone(e.target.value)}
+            />
+          </div>
+          <div className="space-y-2 sm:col-span-2">
+            <Label htmlFor="clientAddress">Address</Label>
+            <Textarea
+              id="clientAddress"
+              rows={3}
+              value={clientAddress}
+              onChange={(e) => setClientAddress(e.target.value)}
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="gstNumber">GST number</Label>
+            <Input
+              id="gstNumber"
+              value={gstNumber}
+              onChange={(e) => setGstNumber(e.target.value)}
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="clientRepresentative">Representative name</Label>
+            <Input
+              id="clientRepresentative"
+              required
+              value={clientRepresentative}
+              onChange={(e) => setClientRepresentative(e.target.value)}
+            />
+          </div>
         </CardContent>
       </Card>
 

@@ -5,6 +5,7 @@ import {
   formatCurrency,
   formatDate,
   formatDateTime,
+  formatClientEmails,
   IP_TRANSFER_TEXT,
   killFeeClauseText,
   latePaymentClauseText,
@@ -76,12 +77,14 @@ export function AgreementDocument({
             </p>
             {allowEmailEdit ? (
               <EditableClientEmail
-                key={agreement.clientEmail}
+                key={agreement.clientEmails.join(",")}
                 agreementId={agreement.id}
-                email={agreement.clientEmail}
+                emails={agreement.clientEmails}
               />
             ) : (
-              <p className="text-sm text-[var(--color-text)]">{agreement.clientEmail}</p>
+              <p className="text-sm text-[var(--color-text)]">
+                {formatClientEmails(agreement.clientEmails)}
+              </p>
             )}
             {agreement.clientPhone ? (
               <p className="text-sm text-[var(--color-text)]">{agreement.clientPhone}</p>

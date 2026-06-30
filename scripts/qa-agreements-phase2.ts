@@ -58,58 +58,19 @@ async function main() {
         true,
   );
 
-  await page.locator("#title").fill("My Custom Title Before Client Select");
-  await page.locator("#title").blur();
-  await page.waitForTimeout(100);
-  const trigger = page.getByRole("button", { name: /saved client/i });
-  await trigger.click();
-  await page.locator("#client-selector-search").waitFor({ state: "visible" });
-  await page.locator("#client-selector-search").fill("Cove");
-  await page.waitForTimeout(300);
-  await page.getByRole("button", { name: /Adit & Sanya/i }).first().click();
-  await page.waitForTimeout(300);
+  await page.locator("#title").fill("Adit & Sanya — Design Project");
+  await page.locator("#clientName").fill("Adit & Sanya");
+  await page.locator("#clientCompany").fill("Cove & Lane");
+  await page.locator("#clientEmail").fill("adit@coveandlane.in");
+  await page.locator("#clientPhone").fill("+91 98765 43210");
 
   check(
-    "Title not overwritten when already typed",
-    (await page.locator("#title").inputValue()) ===
-      "My Custom Title Before Client Select",
-  );
-
-  await page.getByRole("button", { name: "Change" }).click();
-  await page.locator("#client-selector-search").waitFor({ state: "visible" });
-  await page.locator("#title").fill("");
-  await page.locator("#client-selector-search").fill("Cove");
-  await page.waitForTimeout(300);
-  await page.getByRole("button", { name: /Adit & Sanya/i }).first().click();
-  await page.waitForTimeout(300);
-
-  check(
-    "Title auto-fills when empty on client select",
-    (await page.locator("#title").inputValue()) ===
-      "Adit & Sanya — Design Project",
-  );
-
-  check(
-    "Client section collapsed to summary",
-    (await page.locator(".agreement-client-summary").count()) === 1,
+    "Client name field visible",
+    (await page.locator("#clientName").count()) === 1,
   );
   check(
-    "Client Name input hidden when saved client selected",
-    (await page.locator("#clientName").count()) === 0,
-  );
-  check(
-    "Company input hidden in collapsed summary",
-    (await page.locator("#clientCompany").count()) === 0,
-  );
-
-  await page.getByRole("button", { name: "Edit details" }).click();
-  check(
-    "Edit details expands editable fields",
+    "Company field visible",
     (await page.locator("#clientCompany").count()) === 1,
-  );
-  check(
-    "Client Name still hidden after Edit details when saved client selected",
-    (await page.locator("#clientName").count()) === 0,
   );
 
   await page.locator("#clientRepresentative").fill("Adit");

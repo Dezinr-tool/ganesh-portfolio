@@ -8,6 +8,8 @@ import {
   type PaymentStructure,
   type ScopeOfWorkItem,
   DEFAULT_GOVERNING_LAW,
+  parseClientEmails,
+  serializeClientEmails,
 } from "@/app/dashboard/_lib/agreements";
 import { sql } from "@/lib/db";
 import { v4 as uuidv4 } from "uuid";
@@ -84,12 +86,14 @@ function toDateString(value: Date | string | null | undefined): string {
 }
 
 function rowToAgreement(row: AgreementRow): Agreement {
+  const clientEmails = parseClientEmails(row.client_email);
   return {
     id: row.id,
     title: row.title,
     clientName: row.client_name,
     clientCompany: row.client_company,
-    clientEmail: row.client_email,
+    clientEmails,
+    clientEmail: clientEmails[0] ?? "",
     clientPhone: row.client_phone ?? "",
     clientAddress: row.client_address ?? "",
     clientGstNumber: row.client_gst_number ?? "",
@@ -394,7 +398,7 @@ export async function createAgreement(
       ${input.title},
       ${input.clientName},
       ${input.clientCompany},
-      ${input.clientEmail},
+      ${serializeClientEmails(input.clientEmails)},
       ${normalized.clientPhone},
       ${normalized.clientAddress},
       ${normalized.clientGstNumber},
@@ -702,7 +706,7 @@ export async function updateAgreement(
         title = ${input.title},
         client_name = ${input.clientName},
         client_company = ${input.clientCompany},
-        client_email = ${input.clientEmail},
+        client_email = ${serializeClientEmails(input.clientEmails)},
         client_phone = ${normalized.clientPhone},
         client_address = ${normalized.clientAddress},
         client_gst_number = ${normalized.clientGstNumber},
@@ -802,7 +806,7 @@ export async function updateAgreement(
       title = ${input.title},
       client_name = ${input.clientName},
       client_company = ${input.clientCompany},
-      client_email = ${input.clientEmail},
+      client_email = ${serializeClientEmails(input.clientEmails)},
       client_phone = ${normalized.clientPhone},
       client_address = ${normalized.clientAddress},
       client_gst_number = ${normalized.clientGstNumber},
@@ -894,11 +898,12 @@ export async function updateAgreement(
 
 export async function updateClientEmail(
   id: string,
-  clientEmail: string,
+  clientEmails: string[],
 ): Promise<Agreement | null> {
+  const storedEmail = serializeClientEmails(clientEmails);
   const { rows } = await sql<AgreementRow>`
     UPDATE agreements
-    SET client_email = ${clientEmail}
+    SET client_email = ${storedEmail}
     WHERE id = ${id}
       AND status != 'signed'
     RETURNING

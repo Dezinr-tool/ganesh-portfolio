@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import type { CreateAgreementInput } from "@/app/dashboard/_lib/agreements";
-import { buildAgreementInput } from "@/app/dashboard/_lib/agreements";
+import { buildAgreementInput, hasValidClientEmails, normalizeClientEmails } from "@/app/dashboard/_lib/agreements";
 import { upsertClientFromForm } from "@/lib/clients-store";
 import {
   deleteAgreement,
@@ -39,7 +39,7 @@ function validateAgreementFields(body: CreateAgreementInput): string | null {
     !body.title?.trim() ||
     !body.clientName?.trim() ||
     !body.clientCompany?.trim() ||
-    !body.clientEmail?.trim() ||
+    !hasValidClientEmails(body.clientEmails, body.clientEmail) ||
     !body.clientRepresentative?.trim() ||
     !body.projectOverview?.trim() ||
     !body.timeline?.trim() ||
@@ -73,6 +73,7 @@ export async function PATCH(
       action?: string;
       signature?: string;
       clientEmail?: string;
+      clientEmails?: string[];
     } & Partial<CreateAgreementInput>;
 
     if (body.action === "sign_ganesh") {
@@ -96,14 +97,17 @@ export async function PATCH(
     }
 
     if (body.action === "update_email") {
-      if (!body.clientEmail?.trim()) {
+      if (!hasValidClientEmails(body.clientEmails, body.clientEmail)) {
         return NextResponse.json(
-          { error: "Client email is required." },
+          { error: "At least one client email is required." },
           { status: 400 },
         );
       }
 
-      const agreement = await updateClientEmail(id, body.clientEmail.trim());
+      const agreement = await updateClientEmail(
+        id,
+        normalizeClientEmails(body.clientEmails, body.clientEmail),
+      );
 
       if (!agreement) {
         return NextResponse.json(

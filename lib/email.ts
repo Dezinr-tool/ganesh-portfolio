@@ -11,7 +11,7 @@ const SITE_URL =
 const GANESH_EMAIL = "hello@designbyganesh.com";
 
 export async function sendAgreementToClient(
-  clientEmail: string,
+  clientEmails: string | string[],
   clientName: string,
   title: string,
   token: string,
@@ -21,12 +21,19 @@ export async function sendAgreementToClient(
   }
 
   const from = FROM_EMAIL;
+  const recipients = Array.isArray(clientEmails)
+    ? clientEmails.map((email) => email.trim()).filter(Boolean)
+    : [clientEmails.trim()].filter(Boolean);
+
+  if (recipients.length === 0) {
+    throw new Error("At least one client email is required.");
+  }
 
   const signUrl = `${SITE_URL}/sign/${token}`;
 
   const { error } = await resend.emails.send({
     from,
-    to: clientEmail,
+    to: recipients,
     replyTo: GANESH_EMAIL,
     subject: `Agreement: ${title}`,
     html: `

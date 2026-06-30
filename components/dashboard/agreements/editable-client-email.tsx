@@ -2,25 +2,30 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { EmailListField } from "@/components/dashboard/EmailListField";
+import { normalizeClientEmails } from "@/app/dashboard/_lib/agreements";
 
 type EditableClientEmailProps = {
   agreementId: string;
-  email: string;
+  emails: string[];
 };
 
 export function EditableClientEmail({
   agreementId,
-  email: initialEmail,
+  emails: initialEmails,
 }: EditableClientEmailProps) {
   const router = useRouter();
   const [editing, setEditing] = useState(false);
-  const [email, setEmail] = useState(initialEmail);
+  const [emails, setEmails] = useState(
+    initialEmails.length > 0 ? initialEmails : [""],
+  );
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   async function handleSave() {
-    if (!email.trim()) {
-      setError("Email is required.");
+    const normalized = normalizeClientEmails(emails);
+    if (normalized.length === 0) {
+      setError("At least one email is required.");
       return;
     }
 
@@ -33,7 +38,7 @@ export function EditableClientEmail({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           action: "update_email",
-          clientEmail: email.trim(),
+          clientEmails: normalized,
         }),
       });
 
@@ -54,22 +59,21 @@ export function EditableClientEmail({
   }
 
   function handleCancel() {
-    setEmail(initialEmail);
+    setEmails(initialEmails.length > 0 ? initialEmails : [""]);
     setError(null);
     setEditing(false);
   }
 
   if (editing) {
     return (
-      <div className="mt-1">
-        <div className="flex items-center gap-2">
-          <input
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            className="rounded border border-[var(--color-text)] px-2 py-1 text-sm text-[var(--color-text)] outline-none focus:border-[var(--color-text)]"
-            autoFocus
-          />
+      <div className="mt-1 max-w-md">
+        <EmailListField
+          emails={emails}
+          onChange={setEmails}
+          label="Client emails"
+          required
+        />
+        <div className="mt-2 flex items-center gap-2">
           <button
             type="button"
             onClick={handleSave}
@@ -94,12 +98,14 @@ export function EditableClientEmail({
   }
 
   return (
-    <div className="mt-1 flex items-center gap-1.5">
-      <p className="text-sm text-[var(--color-text)]">{initialEmail}</p>
+    <div className="mt-1 flex items-start gap-1.5">
+      <p className="text-sm text-[var(--color-text)]">
+        {initialEmails.filter(Boolean).join(", ")}
+      </p>
       <button
         type="button"
         onClick={() => setEditing(true)}
-        aria-label="Edit client email"
+        aria-label="Edit client emails"
         className="rounded p-0.5 text-[var(--color-text)] hover:bg-[var(--color-bg)] hover:text-[var(--color-text)]"
       >
         <svg

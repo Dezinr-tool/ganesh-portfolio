@@ -37,7 +37,7 @@ export async function POST(
     }
 
     await sendAgreementToClient(
-      existing.clientEmail,
+      existing.clientEmails,
       existing.clientName,
       existing.title,
       agreement.clientSignToken,

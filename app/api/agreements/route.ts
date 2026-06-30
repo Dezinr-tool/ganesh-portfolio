@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import type { CreateAgreementInput } from "@/app/dashboard/_lib/agreements";
-import { buildAgreementInput } from "@/app/dashboard/_lib/agreements";
+import { buildAgreementInput, hasValidClientEmails } from "@/app/dashboard/_lib/agreements";
 import { upsertClientFromForm } from "@/lib/clients-store";
 import { createAgreement, readAgreements } from "@/lib/agreements-store";
 
@@ -24,7 +24,7 @@ export async function POST(request: Request) {
       !body.title?.trim() ||
       !body.clientName?.trim() ||
       !body.clientCompany?.trim() ||
-      !body.clientEmail?.trim() ||
+      !hasValidClientEmails(body.clientEmails, body.clientEmail) ||
       !body.clientRepresentative?.trim() ||
       !body.projectOverview?.trim() ||
       !body.timeline?.trim() ||

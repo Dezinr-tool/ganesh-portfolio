@@ -17,8 +17,6 @@ import { Separator } from "@/components/ui/separator";
 import { Textarea } from "@/components/ui/textarea";
 import { buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { ClientSelector } from "@/components/dashboard/ClientSelector";
-import type { ClientFormValues } from "@/app/dashboard/_lib/clients";
 import {
   type InvoiceLineItem,
   calculateLineAmount,
@@ -141,25 +139,6 @@ export default function InvoiceForm() {
     );
   }
 
-  function handleClientChange(patch: Partial<ClientFormValues>) {
-    if (patch.clientName !== undefined) setClientName(patch.clientName);
-    if (patch.clientEmail !== undefined) setClientEmail(patch.clientEmail);
-    if (patch.clientPhone !== undefined) setClientPhone(patch.clientPhone);
-    if (patch.clientCompany !== undefined) setClientCompany(patch.clientCompany);
-    if (patch.clientAddress !== undefined) setClientAddress(patch.clientAddress);
-    if (patch.gstNumber !== undefined) setGstNumber(patch.gstNumber);
-  }
-
-  const clientFormValues: ClientFormValues = {
-    clientName,
-    clientEmail,
-    clientPhone,
-    clientCompany,
-    clientAddress,
-    gstNumber,
-    representativeName: "",
-  };
-
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setError(null);
@@ -206,15 +185,6 @@ export default function InvoiceForm() {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
-      <Card>
-        <CardHeader>
-          <CardTitle>Saved client</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <ClientSelector values={clientFormValues} onChange={handleClientChange} />
-        </CardContent>
-      </Card>
-
       <Card>
         <CardHeader>
           <CardTitle>Invoice details</CardTitle>
