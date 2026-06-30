@@ -8,9 +8,11 @@ import {
   type PaymentStructure,
   type ScopeOfWorkItem,
   DEFAULT_GOVERNING_LAW,
+} from "@/app/dashboard/_lib/agreements";
+import {
   parseClientEmails,
   serializeClientEmails,
-} from "@/app/dashboard/_lib/agreements";
+} from "@/app/dashboard/_lib/client-emails";
 import { sql } from "@/lib/db";
 import { v4 as uuidv4 } from "uuid";
 

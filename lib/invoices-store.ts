@@ -7,6 +7,7 @@ import {
   calculateTotals,
   generateInvoiceNumber,
 } from "@/app/dashboard/_lib/invoices";
+import { parseClientEmails, serializeClientEmails } from "@/app/dashboard/_lib/client-emails";
 import { sql } from "@/lib/db";
 
 type InvoiceRow = {
@@ -88,13 +89,16 @@ function rowToInvoice(row: InvoiceRow): Invoice {
       : row.line_items,
   );
 
+  const clientEmails = parseClientEmails(row.client_email);
+
   return {
     id: row.id,
     invoiceNumber: row.invoice_number,
     issueDate: toDateString(row.issue_date),
     dueDate: toDateString(row.due_date),
     clientName: row.client_name,
-    clientEmail: row.client_email,
+    clientEmails,
+    clientEmail: clientEmails[0] ?? "",
     clientCompany: row.client_company,
     clientAddress: row.client_address ?? "",
     lineItems,
@@ -213,7 +217,7 @@ export async function createInvoice(input: CreateInvoiceInput): Promise<Invoice>
       ${id},
       ${invoiceNumber},
       ${input.clientName},
-      ${input.clientEmail},
+      ${serializeClientEmails(input.clientEmails)},
       ${input.clientCompany},
       ${input.clientAddress ?? ""},
       ${input.issueDate},

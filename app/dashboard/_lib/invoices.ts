@@ -1,3 +1,5 @@
+import { normalizeClientEmails } from "@/app/dashboard/_lib/client-emails";
+
 export type InvoiceStatus = "Paid" | "Unpaid";
 
 export type InvoiceLineItem = {
@@ -15,6 +17,7 @@ export type Invoice = {
   dueDate: string;
   clientName: string;
   clientEmail: string;
+  clientEmails: string[];
   clientCompany: string;
   clientAddress: string;
   lineItems: InvoiceLineItem[];
@@ -37,6 +40,24 @@ export type CreateInvoiceInput = Omit<
   clientPhone?: string;
   clientGstNumber?: string;
 };
+
+export function buildInvoiceInput(
+  body: CreateInvoiceInput & { clientEmails?: string[] },
+): CreateInvoiceInput {
+  const clientEmails = normalizeClientEmails(body.clientEmails, body.clientEmail);
+
+  return {
+    ...body,
+    issueDate: body.issueDate,
+    dueDate: body.dueDate,
+    clientName: body.clientName.trim(),
+    clientEmails,
+    clientEmail: clientEmails[0] ?? "",
+    clientCompany: body.clientCompany?.trim() ?? "",
+    clientAddress: body.clientAddress?.trim() ?? "",
+    notes: body.notes?.trim() ?? "",
+  };
+}
 
 export const DEFAULT_PROCESSING_FEE_PERCENT = 2;
 

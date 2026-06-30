@@ -16,6 +16,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { formatClientEmails } from "@/app/dashboard/_lib/client-emails";
 import { getInvoiceById } from "@/lib/invoices-store";
 import { BackLink } from "../../_components/back-link";
 import { formatCurrency, formatDate } from "../../_lib/invoices";
@@ -96,7 +97,7 @@ export default async function InvoiceDetailPage({
                   {invoice.clientAddress}
                 </p>
               ) : null}
-              <p className="text-sm">{invoice.clientEmail}</p>
+              <p className="text-sm">{formatClientEmails(invoice.clientEmails)}</p>
             </div>
             <div className="sm:text-right">
               <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">

@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
 import type { CreateInvoiceInput } from "@/app/dashboard/_lib/invoices";
+import { buildInvoiceInput } from "@/app/dashboard/_lib/invoices";
+import { hasValidClientEmails } from "@/app/dashboard/_lib/client-emails";
 import { upsertClientFromForm } from "@/lib/clients-store";
 import {
   createInvoice,
@@ -28,7 +30,7 @@ export async function POST(request: Request) {
       !body.issueDate ||
       !body.dueDate ||
       !body.clientName?.trim() ||
-      !body.clientEmail?.trim() ||
+      !hasValidClientEmails(body.clientEmails, body.clientEmail) ||
       !Array.isArray(body.lineItems) ||
       body.lineItems.length === 0
     ) {
@@ -53,27 +55,12 @@ export async function POST(request: Request) {
       );
     }
 
-    const invoice = await createInvoice({
-      issueDate: body.issueDate,
-      dueDate: body.dueDate,
-      clientName: body.clientName.trim(),
-      clientEmail: body.clientEmail.trim(),
-      clientCompany: body.clientCompany?.trim() ?? "",
-      clientAddress: body.clientAddress?.trim() ?? "",
-      lineItems: body.lineItems,
-      subtotal: body.subtotal,
-      taxPercent: body.taxPercent ?? null,
-      taxAmount: body.taxAmount,
-      processingFeePercent: body.processingFeePercent ?? 2,
-      processingFeeAmount: body.processingFeeAmount ?? 0,
-      total: body.total,
-      notes: body.notes?.trim() ?? "",
-      status: body.status ?? "Unpaid",
-    });
+    const input = buildInvoiceInput(body);
+    const invoice = await createInvoice(input);
 
     await upsertClientFromForm({
-      name: body.clientName.trim(),
-      email: body.clientEmail.trim(),
+      name: input.clientName,
+      email: input.clientEmail,
       phone: body.clientPhone,
       company: body.clientCompany,
       address: body.clientAddress,

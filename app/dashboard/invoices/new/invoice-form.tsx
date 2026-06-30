@@ -16,6 +16,7 @@ import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { Textarea } from "@/components/ui/textarea";
 import { buttonVariants } from "@/components/ui/button";
+import { EmailListField } from "@/components/dashboard/EmailListField";
 import { cn } from "@/lib/utils";
 import {
   type InvoiceLineItem,
@@ -53,7 +54,7 @@ export default function InvoiceForm() {
   const [issueDate, setIssueDate] = useState(todayISO);
   const [dueDate, setDueDate] = useState(dueDateISO);
   const [clientName, setClientName] = useState("");
-  const [clientEmail, setClientEmail] = useState("");
+  const [clientEmails, setClientEmails] = useState<string[]>([""]);
   const [clientPhone, setClientPhone] = useState("");
   const [clientCompany, setClientCompany] = useState("");
   const [clientAddress, setClientAddress] = useState("");
@@ -152,7 +153,7 @@ export default function InvoiceForm() {
           issueDate,
           dueDate,
           clientName,
-          clientEmail,
+          clientEmails,
           clientPhone,
           clientCompany,
           clientAddress,
@@ -235,14 +236,13 @@ export default function InvoiceForm() {
               onChange={(e) => setClientName(e.target.value)}
             />
           </div>
-          <div className="space-y-2">
-            <Label htmlFor="clientEmail">Client email</Label>
-            <Input
+          <div className="space-y-2 sm:col-span-2">
+            <EmailListField
               id="clientEmail"
-              type="email"
+              label="Client email"
+              emails={clientEmails}
+              onChange={setClientEmails}
               required
-              value={clientEmail}
-              onChange={(e) => setClientEmail(e.target.value)}
             />
           </div>
           <div className="space-y-2">
