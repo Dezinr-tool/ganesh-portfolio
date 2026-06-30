@@ -1,6 +1,6 @@
-import * as dotenv from 'dotenv';
-dotenv.config({ path: '.env.local' });
-import { sql } from "../lib/db";
+import * as dotenv from "dotenv";
+dotenv.config({ path: ".env.local" });
+import { sql } from "@vercel/postgres";
 import { ensureBillingDefaults } from "../lib/settings-store";
 import { ensureDesignTokenDefaults } from "../lib/design-tokens";
 
