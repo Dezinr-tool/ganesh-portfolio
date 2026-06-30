@@ -13,7 +13,6 @@ const CREATE_INVOICES_TABLE = `
     client_company TEXT NOT NULL DEFAULT '',
     client_address TEXT NOT NULL DEFAULT '',
     issue_date DATE NOT NULL,
-    due_date DATE NOT NULL,
     line_items JSONB NOT NULL,
     subtotal NUMERIC(12, 2) NOT NULL,
     tax_percent NUMERIC(5, 2),
@@ -142,6 +141,14 @@ const ALTER_EA_CALENDAR_TOKENS_ADD_EMAIL = `
   ALTER TABLE ea_calendar_tokens ADD COLUMN IF NOT EXISTS account_email TEXT;
 `;
 
+const ALTER_INVOICES_DROP_DUE_DATE_REQUIRED = `
+  ALTER TABLE invoices ALTER COLUMN due_date DROP NOT NULL;
+`;
+
+const ALTER_INVOICES_ADD_BILLING_MODE = `
+  ALTER TABLE invoices ADD COLUMN IF NOT EXISTS billing_mode TEXT NOT NULL DEFAULT 'hourly';
+`;
+
 async function initDb() {
   console.log("Creating invoices table if it doesn't exist…");
   await sql.query(CREATE_INVOICES_TABLE);
@@ -150,6 +157,14 @@ async function initDb() {
   console.log("Adding client_address column to invoices if missing…");
   await sql.query(ALTER_INVOICES_ADD_CLIENT_ADDRESS);
   console.log("Done. invoices client_address column is ready.");
+
+  console.log("Making invoices.due_date optional…");
+  await sql.query(ALTER_INVOICES_DROP_DUE_DATE_REQUIRED);
+  console.log("Done. invoices.due_date is optional.");
+
+  console.log("Adding invoices.billing_mode column if missing…");
+  await sql.query(ALTER_INVOICES_ADD_BILLING_MODE);
+  console.log("Done. invoices.billing_mode column is ready.");
 
   console.log("Creating agreements table if it doesn't exist…");
   await sql.query(CREATE_AGREEMENTS_TABLE);

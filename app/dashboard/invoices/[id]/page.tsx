@@ -73,10 +73,6 @@ export default async function InvoiceDetailPage({
               Issue date:{" "}
               <span className="text-foreground">{formatDate(invoice.issueDate)}</span>
             </p>
-            <p>
-              Due date:{" "}
-              <span className="text-foreground">{formatDate(invoice.dueDate)}</span>
-            </p>
           </div>
         </CardHeader>
 
@@ -115,8 +111,12 @@ export default async function InvoiceDetailPage({
             <TableHeader>
               <TableRow>
                 <TableHead>Description</TableHead>
-                <TableHead>Effort (hrs)</TableHead>
-                <TableHead>Rate</TableHead>
+                {invoice.billingMode === "hourly" ? (
+                  <>
+                    <TableHead>Effort (hrs)</TableHead>
+                    <TableHead>Rate</TableHead>
+                  </>
+                ) : null}
                 <TableHead className="text-right">Amount</TableHead>
               </TableRow>
             </TableHeader>
@@ -124,8 +124,12 @@ export default async function InvoiceDetailPage({
               {invoice.lineItems.map((item) => (
                 <TableRow key={item.id}>
                   <TableCell>{item.description}</TableCell>
-                  <TableCell>{item.effortHrs}</TableCell>
-                  <TableCell>{formatCurrency(item.rate)}</TableCell>
+                  {invoice.billingMode === "hourly" ? (
+                    <>
+                      <TableCell>{item.effortHrs}</TableCell>
+                      <TableCell>{formatCurrency(item.rate)}</TableCell>
+                    </>
+                  ) : null}
                   <TableCell className="text-right">
                     {formatCurrency(item.amount)}
                   </TableCell>

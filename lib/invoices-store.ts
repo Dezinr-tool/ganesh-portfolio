@@ -6,6 +6,8 @@ import {
   DEFAULT_PROCESSING_FEE_PERCENT,
   calculateTotals,
   generateInvoiceNumber,
+  inferBillingMode,
+  type InvoiceBillingMode,
 } from "@/app/dashboard/_lib/invoices";
 import { parseClientEmails, serializeClientEmails } from "@/app/dashboard/_lib/client-emails";
 import { sql } from "@/lib/db";
@@ -18,7 +20,7 @@ type InvoiceRow = {
   client_company: string;
   client_address: string;
   issue_date: Date | string;
-  due_date: Date | string;
+  billing_mode: string | null;
   line_items: InvoiceLineItem[] | string;
   subtotal: string | number;
   tax_percent: string | number | null;
@@ -95,12 +97,12 @@ function rowToInvoice(row: InvoiceRow): Invoice {
     id: row.id,
     invoiceNumber: row.invoice_number,
     issueDate: toDateString(row.issue_date),
-    dueDate: toDateString(row.due_date),
     clientName: row.client_name,
     clientEmails,
     clientEmail: clientEmails[0] ?? "",
     clientCompany: row.client_company,
     clientAddress: row.client_address ?? "",
+    billingMode: inferBillingMode(row.billing_mode, lineItems),
     lineItems,
     subtotal,
     taxPercent,
@@ -124,7 +126,7 @@ export async function readInvoices(): Promise<Invoice[]> {
       client_company,
       client_address,
       issue_date,
-      due_date,
+      billing_mode,
       line_items,
       subtotal,
       tax_percent,
@@ -151,7 +153,7 @@ export async function getInvoiceById(id: string): Promise<Invoice | null> {
       client_company,
       client_address,
       issue_date,
-      due_date,
+      billing_mode,
       line_items,
       subtotal,
       tax_percent,
@@ -194,6 +196,7 @@ export async function createInvoice(input: CreateInvoiceInput): Promise<Invoice>
   const invoiceNumber = await getNextInvoiceNumber();
   const status = input.status ?? "Unpaid";
   const notes = input.notes?.trim() ?? "";
+  const billingMode: InvoiceBillingMode = input.billingMode ?? "hourly";
 
   const { rows } = await sql<InvoiceRow>`
     INSERT INTO invoices (
@@ -204,7 +207,7 @@ export async function createInvoice(input: CreateInvoiceInput): Promise<Invoice>
       client_company,
       client_address,
       issue_date,
-      due_date,
+      billing_mode,
       line_items,
       subtotal,
       tax_percent,
@@ -221,7 +224,7 @@ export async function createInvoice(input: CreateInvoiceInput): Promise<Invoice>
       ${input.clientCompany},
       ${input.clientAddress ?? ""},
       ${input.issueDate},
-      ${input.dueDate},
+      ${billingMode},
       ${JSON.stringify(input.lineItems)},
       ${subtotal},
       ${input.taxPercent},
@@ -239,7 +242,7 @@ export async function createInvoice(input: CreateInvoiceInput): Promise<Invoice>
       client_company,
       client_address,
       issue_date,
-      due_date,
+      billing_mode,
       line_items,
       subtotal,
       tax_percent,
@@ -275,7 +278,7 @@ export async function updateInvoiceStatus(
       client_company,
       client_address,
       issue_date,
-      due_date,
+      billing_mode,
       line_items,
       subtotal,
       tax_percent,

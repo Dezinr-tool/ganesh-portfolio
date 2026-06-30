@@ -19,6 +19,8 @@ import { buttonVariants } from "@/components/ui/button";
 import { EmailListField } from "@/components/dashboard/EmailListField";
 import { cn } from "@/lib/utils";
 import {
+  BILLING_MODE_OPTIONS,
+  type InvoiceBillingMode,
   type InvoiceLineItem,
   calculateLineAmount,
   calculateTotals,
@@ -26,14 +28,20 @@ import {
   formatCurrency,
 } from "../../_lib/invoices";
 
+const selectClassName =
+  "h-8 w-full rounded-lg border border-input bg-transparent px-2.5 py-1 text-sm outline-none transition-colors focus:border-ring focus:ring-3 focus:ring-ring/50";
+
 type LineItemRow = InvoiceLineItem;
 
-function createEmptyLineItem(hourlyRate: number): LineItemRow {
+function createEmptyLineItem(
+  hourlyRate: number,
+  billingMode: InvoiceBillingMode,
+): LineItemRow {
   return {
     id: crypto.randomUUID(),
     description: "",
     effortHrs: 0,
-    rate: hourlyRate,
+    rate: billingMode === "hourly" ? hourlyRate : 0,
     amount: 0,
   };
 }
@@ -42,17 +50,10 @@ function todayISO(): string {
   return new Date().toISOString().slice(0, 10);
 }
 
-function dueDateISO(): string {
-  const date = new Date();
-  date.setDate(date.getDate() + 30);
-  return date.toISOString().slice(0, 10);
-}
-
 export default function InvoiceForm() {
   const router = useRouter();
   const [invoiceNumber, setInvoiceNumber] = useState("INV-001");
   const [issueDate, setIssueDate] = useState(todayISO);
-  const [dueDate, setDueDate] = useState(dueDateISO);
   const [clientName, setClientName] = useState("");
   const [clientEmails, setClientEmails] = useState<string[]>([""]);
   const [clientPhone, setClientPhone] = useState("");
@@ -60,8 +61,9 @@ export default function InvoiceForm() {
   const [clientAddress, setClientAddress] = useState("");
   const [gstNumber, setGstNumber] = useState("");
   const [hourlyRate, setHourlyRate] = useState(0);
+  const [billingMode, setBillingMode] = useState<InvoiceBillingMode>("hourly");
   const [lineItems, setLineItems] = useState<LineItemRow[]>([
-    createEmptyLineItem(0),
+    createEmptyLineItem(0, "hourly"),
   ]);
   const [taxPercent, setTaxPercent] = useState<string>("");
   const [notes, setNotes] = useState("");
@@ -92,15 +94,22 @@ export default function InvoiceForm() {
       .catch(() => setError("Could not load hourly rate."));
   }, []);
 
-  const resolvedLineItems = useMemo(
-    () =>
-      lineItems.map((item) => ({
+  const resolvedLineItems = useMemo(() => {
+    if (billingMode === "hourly") {
+      return lineItems.map((item) => ({
         ...item,
         rate: hourlyRate,
         amount: calculateLineAmount(item.effortHrs, hourlyRate),
-      })),
-    [lineItems, hourlyRate],
-  );
+      }));
+    }
+
+    return lineItems.map((item) => ({
+      ...item,
+      effortHrs: 0,
+      rate: 0,
+      amount: Math.round(Number(item.amount) * 100) / 100,
+    }));
+  }, [lineItems, hourlyRate, billingMode]);
 
   const parsedTaxPercent = taxPercent === "" ? null : Number(taxPercent);
 
@@ -125,13 +134,24 @@ export default function InvoiceForm() {
           updated.amount = calculateLineAmount(Number(value), hourlyRate);
         }
 
+        if (field === "amount" && billingMode === "lumpsum") {
+          updated.effortHrs = 0;
+          updated.rate = 0;
+          updated.amount = Math.round(Number(value) * 100) / 100;
+        }
+
         return updated;
       }),
     );
   }
 
+  function handleBillingModeChange(nextMode: InvoiceBillingMode) {
+    setBillingMode(nextMode);
+    setLineItems([createEmptyLineItem(hourlyRate, nextMode)]);
+  }
+
   function addLineItem() {
-    setLineItems((items) => [...items, createEmptyLineItem(hourlyRate)]);
+    setLineItems((items) => [...items, createEmptyLineItem(hourlyRate, billingMode)]);
   }
 
   function removeLineItem(id: string) {
@@ -151,13 +171,13 @@ export default function InvoiceForm() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           issueDate,
-          dueDate,
           clientName,
           clientEmails,
           clientPhone,
           clientCompany,
           clientAddress,
           clientGstNumber: gstNumber,
+          billingMode,
           lineItems: resolvedLineItems,
           subtotal: totals.subtotal,
           taxPercent: parsedTaxPercent,
@@ -190,7 +210,7 @@ export default function InvoiceForm() {
         <CardHeader>
           <CardTitle>Invoice details</CardTitle>
         </CardHeader>
-        <CardContent className="grid gap-4 sm:grid-cols-3">
+        <CardContent className="grid gap-4 sm:grid-cols-2">
           <div className="space-y-2">
             <Label>Invoice number</Label>
             <Input
@@ -207,16 +227,6 @@ export default function InvoiceForm() {
               required
               value={issueDate}
               onChange={(e) => setIssueDate(e.target.value)}
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="dueDate">Due date</Label>
-            <Input
-              id="dueDate"
-              type="date"
-              required
-              value={dueDate}
-              onChange={(e) => setDueDate(e.target.value)}
             />
           </div>
         </CardContent>
@@ -283,8 +293,27 @@ export default function InvoiceForm() {
       </Card>
 
       <Card>
-        <CardHeader className="flex flex-row items-center justify-between">
-          <CardTitle>Line items</CardTitle>
+        <CardHeader className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+          <div className="space-y-2">
+            <CardTitle>Line items</CardTitle>
+            <div className="max-w-xs space-y-2">
+              <Label htmlFor="billingMode">Billing type</Label>
+              <select
+                id="billingMode"
+                value={billingMode}
+                onChange={(event) =>
+                  handleBillingModeChange(event.target.value as InvoiceBillingMode)
+                }
+                className={selectClassName}
+              >
+                {BILLING_MODE_OPTIONS.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
           <Button type="button" variant="outline" size="sm" onClick={addLineItem}>
             Add row
           </Button>
@@ -295,43 +324,75 @@ export default function InvoiceForm() {
               key={item.id}
               className="grid gap-3 rounded-lg border border-border p-4 sm:grid-cols-12"
             >
-              <div className="space-y-2 sm:col-span-5">
+              <div
+                className={cn(
+                  "space-y-2",
+                  billingMode === "hourly" ? "sm:col-span-5" : "sm:col-span-8",
+                )}
+              >
                 <Label className="sm:sr-only">Description</Label>
                 <Input
                   required
-                  placeholder="Design consultation"
+                  placeholder={
+                    billingMode === "hourly"
+                      ? "Design consultation"
+                      : "Advance payment (50%)"
+                  }
                   value={item.description}
                   onChange={(e) =>
                     updateLineItem(item.id, "description", e.target.value)
                   }
                 />
               </div>
-              <div className="space-y-2 sm:col-span-2">
-                <Label className="sm:sr-only">Effort (hrs)</Label>
-                <Input
-                  type="number"
-                  min="0"
-                  step="0.5"
-                  required
-                  placeholder="0"
-                  value={item.effortHrs === 0 ? "" : item.effortHrs}
-                  onChange={(e) =>
-                    updateLineItem(
-                      item.id,
-                      "effortHrs",
-                      e.target.value === "" ? 0 : Number(e.target.value),
-                    )
-                  }
-                />
-              </div>
-              <div className="space-y-2 sm:col-span-2">
-                <Label className="sm:sr-only">Rate</Label>
-                <Input readOnly value={formatCurrency(hourlyRate)} />
-              </div>
-              <div className="space-y-2 sm:col-span-2">
-                <Label className="sm:sr-only">Amount</Label>
-                <Input readOnly value={formatCurrency(item.amount)} />
-              </div>
+              {billingMode === "hourly" ? (
+                <>
+                  <div className="space-y-2 sm:col-span-2">
+                    <Label className="sm:sr-only">Effort (hrs)</Label>
+                    <Input
+                      type="number"
+                      min="0"
+                      step="0.5"
+                      required
+                      placeholder="0"
+                      value={item.effortHrs === 0 ? "" : item.effortHrs}
+                      onChange={(e) =>
+                        updateLineItem(
+                          item.id,
+                          "effortHrs",
+                          e.target.value === "" ? 0 : Number(e.target.value),
+                        )
+                      }
+                    />
+                  </div>
+                  <div className="space-y-2 sm:col-span-2">
+                    <Label className="sm:sr-only">Rate</Label>
+                    <Input readOnly value={formatCurrency(hourlyRate)} />
+                  </div>
+                  <div className="space-y-2 sm:col-span-2">
+                    <Label className="sm:sr-only">Amount</Label>
+                    <Input readOnly value={formatCurrency(item.amount)} />
+                  </div>
+                </>
+              ) : (
+                <div className="space-y-2 sm:col-span-3">
+                  <Label className="sm:sr-only">Amount</Label>
+                  <Input
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    required
+                    placeholder="0"
+                    value={item.amount === 0 ? "" : item.amount}
+                    onChange={(e) =>
+                      updateLineItem(
+                        item.id,
+                        "amount",
+                        e.target.value === "" ? 0 : Number(e.target.value),
+                      )
+                    }
+                  />
+                </div>
+              )}
               <div className="flex items-end sm:col-span-1">
                 <Button
                   type="button"
