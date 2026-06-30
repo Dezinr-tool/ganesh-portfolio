@@ -11,7 +11,7 @@ import { BackLink } from "../../_components/back-link";
 import { statusLabel } from "../../_lib/agreements";
 import type { AgreementStatus } from "../../_lib/agreements";
 import { DeleteAgreementButton } from "../delete-agreement-button";
-import { SendToClientButton } from "../send-to-client-button";
+import { DownloadPdfButton } from "../download-pdf-button";
 import { SignGaneshButton } from "../sign-ganesh-button";
 
 export const dynamic = "force-dynamic";
@@ -69,13 +69,7 @@ export default async function AgreementDetailPage({
             agreementId={agreement.id}
             alreadySigned={!!agreement.ganeshSignedAt}
           />
-          <SendToClientButton
-            agreementId={agreement.id}
-            disabled={!agreement.ganeshSignedAt}
-            alreadySent={
-              agreement.status === "sent" || agreement.status === "signed"
-            }
-          />
+          <DownloadPdfButton agreement={agreement} />
           <DeleteAgreementButton
             agreementId={agreement.id}
             title={agreement.title}
