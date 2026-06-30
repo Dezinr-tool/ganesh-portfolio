@@ -1,5 +1,6 @@
 import { readAgreements } from "@/lib/agreements-store";
 import { readInvoices } from "@/lib/invoices-store";
+import { readProjects } from "@/lib/projects-store";
 
 export type FYSummary = {
   label: string; // e.g. "FY 2025–26"
@@ -22,6 +23,10 @@ export type DashboardStats = {
   monthlyAgreements: number[];
   currentFY: FYSummary;
   previousFY: FYSummary;
+  totalProjects: number;
+  convertedProjects: number;
+  conversionRate: number;
+  repeatClients: number;
 };
 
 function monthKey(date: Date | string): string {
@@ -85,9 +90,10 @@ function buildFY(
 }
 
 export async function getDashboardStats(): Promise<DashboardStats> {
-  const [invoices, agreements] = await Promise.all([
+  const [invoices, agreements, projects] = await Promise.all([
     readInvoices(),
     readAgreements(),
+    readProjects(),
   ]);
 
   const now = new Date();
@@ -116,6 +122,24 @@ export async function getDashboardStats(): Promise<DashboardStats> {
     monthlyAgreements[index]++;
   }
 
+  const convertedProjects = projects.filter((p) => p.status === "converted");
+  const conversionRate =
+    projects.length > 0
+      ? roundMoney((convertedProjects.length / projects.length) * 100)
+      : 0;
+
+  // Retention = clients who've converted more than once (identified by
+  // email, falling back to name when no email was recorded).
+  const conversionsByClient = new Map<string, number>();
+  for (const project of convertedProjects) {
+    const key = (project.clientEmail || project.clientName).trim().toLowerCase();
+    if (!key) continue;
+    conversionsByClient.set(key, (conversionsByClient.get(key) ?? 0) + 1);
+  }
+  const repeatClients = [...conversionsByClient.values()].filter(
+    (count) => count >= 2,
+  ).length;
+
   return {
     totalEarned: roundMoney(
       invoices.filter((i) => i.status === "Paid").reduce((s, i) => s + i.total, 0),
@@ -131,5 +155,9 @@ export async function getDashboardStats(): Promise<DashboardStats> {
     monthlyAgreements,
     currentFY: buildFY(currentFYStart, invoices),
     previousFY: buildFY(currentFYStart - 1, invoices),
+    totalProjects: projects.length,
+    convertedProjects: convertedProjects.length,
+    conversionRate,
+    repeatClients,
   };
 }

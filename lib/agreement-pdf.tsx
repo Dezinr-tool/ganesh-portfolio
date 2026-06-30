@@ -424,7 +424,7 @@ export function AgreementPdf({
             <View style={styles.bullet}>
               <Text style={styles.bulletDot}>•</Text>
               <Text style={styles.bulletText}>
-                {killFeeClauseText(agreement.killFeePercent)}
+                {killFeeClauseText()}
               </Text>
             </View>
           ) : null}

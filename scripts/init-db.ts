@@ -149,6 +149,19 @@ const ALTER_INVOICES_ADD_BILLING_MODE = `
   ALTER TABLE invoices ADD COLUMN IF NOT EXISTS billing_mode TEXT NOT NULL DEFAULT 'hourly';
 `;
 
+const CREATE_PROJECTS_TABLE = `
+  CREATE TABLE IF NOT EXISTS projects (
+    id UUID PRIMARY KEY,
+    client_name TEXT NOT NULL,
+    client_company TEXT NOT NULL DEFAULT '',
+    client_email TEXT NOT NULL DEFAULT '',
+    client_address TEXT NOT NULL DEFAULT '',
+    requirements TEXT NOT NULL DEFAULT '',
+    status TEXT NOT NULL DEFAULT 'lead',
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+  );
+`;
+
 async function initDb() {
   console.log("Creating invoices table if it doesn't exist…");
   await sql.query(CREATE_INVOICES_TABLE);
@@ -214,6 +227,10 @@ async function initDb() {
   await sql.query(CREATE_EA_CONVERSATIONS_TABLE);
   await sql.query(CREATE_EA_CONVERSATIONS_INDEX);
   console.log("Done. ea_conversations table is ready.");
+
+  console.log("Creating projects table if it doesn't exist…");
+  await sql.query(CREATE_PROJECTS_TABLE);
+  console.log("Done. projects table is ready.");
 }
 
 initDb().catch((error) => {

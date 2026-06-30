@@ -57,8 +57,8 @@ export const CURRENCY_OPTIONS: { value: AgreementCurrency; label: string }[] = [
   { value: "AED", label: "AED" },
 ];
 
-export function killFeeClauseText(percent: number): string {
-  return `If project is cancelled after kickoff, ${percent}% of total fee is retained`;
+export function killFeeClauseText(): string {
+  return "If the project is terminated before completion, the Designer will invoice the Client only for work delivered up to that point (based on effort/milestones completed), and any unused portion of advance payment already received will be refunded to the Client";
 }
 
 export function latePaymentClauseText(days: number, interest: number): string {

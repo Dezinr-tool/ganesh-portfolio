@@ -872,7 +872,7 @@ export default function AgreementForm({ agreement }: AgreementFormProps) {
 
           <Separator />
 
-          {/* Kill fee */}
+          {/* Early termination */}
           <label className="flex cursor-pointer items-start gap-3">
             <input
               type="checkbox"
@@ -881,25 +881,13 @@ export default function AgreementForm({ agreement }: AgreementFormProps) {
               onChange={(e) => setKillFee(e.target.checked)}
             />
             <span className="text-sm font-medium">
-              Kill fee applies if project is cancelled after kickoff
+              Early termination clause
             </span>
           </label>
           {killFee ? (
-            <div className="space-y-2 max-w-[200px]">
-              <Label htmlFor="killFeePercent">Kill fee %</Label>
-              <Input
-                id="killFeePercent"
-                type="number"
-                min="0"
-                max="100"
-                step="1"
-                value={killFeePercent}
-                onChange={(e) => setKillFeePercent(Number(e.target.value))}
-              />
-              <p className="text-sm text-muted-foreground">
-                {killFeeClauseText(killFeePercent)}
-              </p>
-            </div>
+            <p className="max-w-[520px] text-sm text-muted-foreground">
+              {killFeeClauseText()}
+            </p>
           ) : null}
 
           <Separator />

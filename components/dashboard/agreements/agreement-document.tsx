@@ -313,7 +313,7 @@ export function AgreementDocument({
           {agreement.ipTransfer ? <li>{IP_TRANSFER_TEXT}</li> : null}
           {agreement.confidentiality ? <li>{CONFIDENTIALITY_TEXT}</li> : null}
           {agreement.killFee ? (
-            <li>{killFeeClauseText(agreement.killFeePercent)}</li>
+            <li>{killFeeClauseText()}</li>
           ) : null}
           {agreement.portfolioRights ? <li>{PORTFOLIO_RIGHTS_TEXT}</li> : null}
           {agreement.outOfScopeClause ? (

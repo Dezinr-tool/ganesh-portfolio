@@ -60,6 +60,8 @@ export function Sparkline({
 
   if (variant === "bar") {
     const slotWidth = width / data.length;
+    const barWidth = slotWidth * 0.6;
+    const maxBarHeight = height - 6;
 
     return (
       <svg
@@ -69,30 +71,29 @@ export function Sparkline({
         aria-hidden
       >
         {data.map((value, index) => {
-          const barHeight = max === 0 ? 0 : (value / max) * (height - 4);
-          const x = index * slotWidth + 1;
+          // Every month gets a visible bar — zero months render as a faint
+          // baseline nub instead of collapsing to nothing, so the chart
+          // always reads as a full 12-month timeline, not a single block.
+          const barHeight =
+            value > 0
+              ? Math.max((value / max) * maxBarHeight, 4)
+              : 2;
+          const x = index * slotWidth + (slotWidth - barWidth) / 2;
+          const isPeak = max > 0 && value === max;
 
           return (
             <rect
               key={index}
               x={x}
               y={height - barHeight - 2}
-              width={Math.max(slotWidth - 2, 1)}
-              height={Math.max(barHeight, value > 0 ? 2 : 0)}
-              rx={1}
+              width={barWidth}
+              height={barHeight}
+              rx={1.5}
               fill={color}
-              fillOpacity={index === data.length - 1 ? 0.95 : 0.45}
+              fillOpacity={isPeak ? 1 : value > 0 ? 0.5 : 0.15}
             />
           );
         })}
-        {data[data.length - 1] > 0 ? (
-          <circle
-            cx={(data.length - 1) * slotWidth + slotWidth / 2}
-            cy={height - (max === 0 ? 0 : (data[data.length - 1] / max) * (height - 4)) - 2}
-            r={2.5}
-            fill={color}
-          />
-        ) : null}
       </svg>
     );
   }

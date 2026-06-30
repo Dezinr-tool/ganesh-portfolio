@@ -18,6 +18,7 @@ import {
   FileCheckIcon,
   type FileCheckIconHandle,
 } from "@/components/ui/file-check";
+import { UsersIcon, type UsersIconHandle } from "@/components/ui/users-icon";
 import {
   SlidersHorizontalIcon,
   type SlidersHorizontalIconHandle,
@@ -31,6 +32,7 @@ type NavItem = {
 
 const NAV_ITEMS: NavItem[] = [
   { href: "/dashboard", label: "Overview", exact: true },
+  { href: "/dashboard/projects", label: "Projects", exact: false },
   { href: "/dashboard/invoices", label: "Invoices", exact: false },
   { href: "/dashboard/agreements", label: "Agreements", exact: false },
   { href: "/dashboard/settings", label: "Settings", exact: false },
@@ -43,6 +45,7 @@ function isActive(pathname: string, href: string, exact: boolean) {
 
 function AnimatedTabBar({ pathname }: { pathname: string }) {
   const overviewRef = useRef<LayoutGridIconHandle>(null);
+  const projectsRef = useRef<UsersIconHandle>(null);
   const invoicesRef = useRef<FileTextIconHandle>(null);
   const agreementsRef = useRef<FileCheckIconHandle>(null);
   const settingsRef = useRef<SlidersHorizontalIconHandle>(null);
@@ -59,6 +62,15 @@ function AnimatedTabBar({ pathname }: { pathname: string }) {
     },
     {
       ...NAV_ITEMS[1],
+      ref: projectsRef,
+      Icon: UsersIcon as React.ComponentType<{
+        ref?: React.Ref<UsersIconHandle>;
+        size?: number;
+        className?: string;
+      }>,
+    },
+    {
+      ...NAV_ITEMS[2],
       ref: invoicesRef,
       Icon: FileTextIcon as React.ComponentType<{
         ref?: React.Ref<FileTextIconHandle>;
@@ -67,7 +79,7 @@ function AnimatedTabBar({ pathname }: { pathname: string }) {
       }>,
     },
     {
-      ...NAV_ITEMS[2],
+      ...NAV_ITEMS[3],
       ref: agreementsRef,
       Icon: FileCheckIcon as React.ComponentType<{
         ref?: React.Ref<FileCheckIconHandle>;
@@ -76,7 +88,7 @@ function AnimatedTabBar({ pathname }: { pathname: string }) {
       }>,
     },
     {
-      ...NAV_ITEMS[3],
+      ...NAV_ITEMS[4],
       ref: settingsRef,
       Icon: SlidersHorizontalIcon as React.ComponentType<{
         ref?: React.Ref<SlidersHorizontalIconHandle>;
