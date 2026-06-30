@@ -64,7 +64,10 @@ function parseNumber(value: string | number | null): number {
 }
 
 function statusFromDb(status: string): InvoiceStatus {
-  return status.toLowerCase() === "paid" ? "Paid" : "Unpaid";
+  const normalized = status.toLowerCase();
+  if (normalized === "paid") return "Paid";
+  if (normalized === "draft") return "Draft";
+  return "Unpaid";
 }
 
 function statusToDb(status: InvoiceStatus): string {
@@ -278,6 +281,11 @@ export async function updateInvoice(
   const notes = input.notes?.trim() ?? "";
   const billingMode: InvoiceBillingMode = input.billingMode ?? "hourly";
 
+  // Editing an already-finalized invoice (Paid/Unpaid) must not silently
+  // reset its status — only write a new status when the caller explicitly
+  // provides one (e.g. saving as draft, or finalizing a draft).
+  const status = input.status ? statusToDb(input.status) : null;
+
   const { rows } = await sql<InvoiceRow>`
     UPDATE invoices
     SET
@@ -293,7 +301,8 @@ export async function updateInvoice(
       processing_fee_percent = ${processingFeePercent},
       processing_fee_amount = ${processingFeeAmount},
       total = ${total},
-      notes = ${notes || null}
+      notes = ${notes || null},
+      status = COALESCE(${status}, status)
     WHERE id = ${id}
     RETURNING
       id,

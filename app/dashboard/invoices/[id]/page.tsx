@@ -23,6 +23,7 @@ import { formatClientEmails } from "@/app/dashboard/_lib/client-emails";
 import { getInvoiceById } from "@/lib/invoices-store";
 import { BackLink } from "../../_components/back-link";
 import { formatCurrency, formatDate } from "../../_lib/invoices";
+import type { InvoiceStatus } from "../../_lib/invoices";
 import { DeleteInvoiceButton } from "../delete-invoice-button";
 import { InvoiceStatusButton } from "../invoice-status-button";
 import { DownloadPdfButton } from "./download-pdf-button";
@@ -30,7 +31,10 @@ import { RazorpayCheckout } from "@/components/dashboard/RazorpayCheckout";
 
 export const dynamic = "force-dynamic";
 
-function StatusBadge({ status }: { status: "Paid" | "Unpaid" }) {
+function StatusBadge({ status }: { status: InvoiceStatus }) {
+  if (status === "Draft") {
+    return <Badge variant="secondary">Draft</Badge>;
+  }
   const label = status === "Paid" ? "Paid" : "Pending";
   return (
     <Badge variant={status === "Paid" ? "default" : "outline"}>{label}</Badge>
@@ -53,6 +57,12 @@ export default async function InvoiceDetailPage({
     <div className="space-y-6">
       <div className="space-y-3">
         <BackLink href="/dashboard/invoices" label="Back to invoices" />
+        {invoice.status === "Draft" ? (
+          <p className="text-sm text-muted-foreground">
+            This invoice is a draft. Continue editing and save it normally to
+            finalize.
+          </p>
+        ) : null}
         <div className="flex items-center gap-2 overflow-x-auto">
           <Link
             href={`/dashboard/invoices/${invoice.id}/edit`}
@@ -61,7 +71,9 @@ export default async function InvoiceDetailPage({
             Edit
           </Link>
           <DownloadPdfButton invoice={invoice} />
-          <InvoiceStatusButton invoiceId={invoice.id} status={invoice.status} />
+          {invoice.status !== "Draft" ? (
+            <InvoiceStatusButton invoiceId={invoice.id} status={invoice.status} />
+          ) : null}
           <DeleteInvoiceButton
             invoiceId={invoice.id}
             invoiceNumber={invoice.invoiceNumber}

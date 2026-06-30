@@ -1,6 +1,6 @@
 import { normalizeClientEmails } from "@/app/dashboard/_lib/client-emails";
 
-export type InvoiceStatus = "Paid" | "Unpaid";
+export type InvoiceStatus = "Paid" | "Unpaid" | "Draft";
 
 export type InvoiceBillingMode = "hourly" | "lumpsum";
 

@@ -24,14 +24,18 @@ export async function GET() {
 
 export async function POST(request: Request) {
   try {
-    const body = (await request.json()) as CreateInvoiceInput;
+    const body = (await request.json()) as CreateInvoiceInput & {
+      isDraft?: boolean;
+    };
+    const billingMode = body.billingMode ?? "hourly";
 
     if (
-      !body.issueDate ||
-      !body.clientName?.trim() ||
-      !hasValidClientEmails(body.clientEmails, body.clientEmail) ||
-      !Array.isArray(body.lineItems) ||
-      body.lineItems.length === 0
+      !body.isDraft &&
+      (!body.issueDate ||
+        !body.clientName?.trim() ||
+        !hasValidClientEmails(body.clientEmails, body.clientEmail) ||
+        !Array.isArray(body.lineItems) ||
+        body.lineItems.length === 0)
     ) {
       return NextResponse.json(
         { error: "Missing required invoice fields." },
@@ -39,23 +43,40 @@ export async function POST(request: Request) {
       );
     }
 
-    const billingMode = body.billingMode ?? "hourly";
+    if (!body.isDraft) {
+      const hasValidLineItems = validateInvoiceLineItems(body.lineItems, billingMode);
 
-    const hasValidLineItems = validateInvoiceLineItems(body.lineItems, billingMode);
-
-    if (!hasValidLineItems) {
-      return NextResponse.json(
-        {
-          error:
-            billingMode === "hourly"
-              ? "Each line item needs a description and effort (hrs)."
-              : "Each line item needs a description and amount.",
-        },
-        { status: 400 },
-      );
+      if (!hasValidLineItems) {
+        return NextResponse.json(
+          {
+            error:
+              billingMode === "hourly"
+                ? "Each line item needs a description and effort (hrs)."
+                : "Each line item needs a description and amount.",
+          },
+          { status: 400 },
+        );
+      }
     }
 
-    const input = buildInvoiceInput({ ...body, billingMode });
+    const input = buildInvoiceInput({
+      ...body,
+      billingMode,
+      issueDate: body.issueDate || new Date().toISOString().slice(0, 10),
+      clientName: body.clientName ?? "",
+      lineItems: Array.isArray(body.lineItems) && body.lineItems.length > 0
+        ? body.lineItems
+        : [
+            {
+              id: crypto.randomUUID(),
+              description: "",
+              effortHrs: 0,
+              rate: 0,
+              amount: 0,
+            },
+          ],
+      status: body.isDraft ? "Draft" : body.status,
+    });
     const invoice = await createInvoice(input);
 
     await upsertClientFromForm({

@@ -226,8 +226,35 @@ export default function InvoiceForm({
     );
   }
 
-  async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
-    event.preventDefault();
+  function buildPayload(isDraft: boolean) {
+    const isFinalizingDraft = isEditing && invoice?.status === "Draft";
+    return {
+      issueDate,
+      clientName,
+      clientEmails,
+      clientPhone,
+      clientCompany,
+      clientAddress,
+      clientGstNumber: gstNumber,
+      billingMode,
+      lineItems: resolvedLineItems,
+      subtotal: totals.subtotal,
+      taxPercent: parsedTaxPercent,
+      taxAmount: totals.taxAmount,
+      processingFeePercent: DEFAULT_PROCESSING_FEE_PERCENT,
+      processingFeeAmount: totals.processingFeeAmount,
+      total: totals.total,
+      notes,
+      isDraft,
+      ...(isDraft
+        ? { status: "Draft" }
+        : isFinalizingDraft
+          ? { status: "Unpaid" }
+          : {}),
+    };
+  }
+
+  async function saveInvoice(isDraft: boolean) {
     setError(null);
     setSubmitting(true);
 
@@ -236,24 +263,7 @@ export default function InvoiceForm({
       const response = await fetch(url, {
         method: isEditing ? "PUT" : "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          issueDate,
-          clientName,
-          clientEmails,
-          clientPhone,
-          clientCompany,
-          clientAddress,
-          clientGstNumber: gstNumber,
-          billingMode,
-          lineItems: resolvedLineItems,
-          subtotal: totals.subtotal,
-          taxPercent: parsedTaxPercent,
-          taxAmount: totals.taxAmount,
-          processingFeePercent: DEFAULT_PROCESSING_FEE_PERCENT,
-          processingFeeAmount: totals.processingFeeAmount,
-          total: totals.total,
-          notes,
-        }),
+        body: JSON.stringify(buildPayload(isDraft)),
       });
 
       const data = await response.json();
@@ -269,6 +279,15 @@ export default function InvoiceForm({
     } finally {
       setSubmitting(false);
     }
+  }
+
+  async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    await saveInvoice(false);
+  }
+
+  async function handleSaveDraft() {
+    await saveInvoice(true);
   }
 
   return (
@@ -569,6 +588,16 @@ export default function InvoiceForm({
         <Button type="submit" disabled={submitting}>
           {submitting ? "Saving…" : isEditing ? "Save changes" : "Save invoice"}
         </Button>
+        {!isEditing || invoice?.status === "Draft" ? (
+          <Button
+            type="button"
+            variant="outline"
+            disabled={submitting}
+            onClick={handleSaveDraft}
+          >
+            Save as draft
+          </Button>
+        ) : null}
         <Link
           href={
             isEditing

@@ -12,11 +12,15 @@ import { readInvoices } from "@/lib/invoices-store";
 import { EmptyState } from "../_components/empty-state";
 import { PageHeader } from "../_components/page-header";
 import { formatCurrency, formatDate } from "../_lib/invoices";
+import type { InvoiceStatus } from "../_lib/invoices";
 import { DeleteInvoiceButton } from "./delete-invoice-button";
 
 export const dynamic = "force-dynamic";
 
-function StatusBadge({ status }: { status: "Paid" | "Unpaid" }) {
+function StatusBadge({ status }: { status: InvoiceStatus }) {
+  if (status === "Draft") {
+    return <Badge variant="secondary">Draft</Badge>;
+  }
   const label = status === "Paid" ? "Paid" : "Pending";
   return (
     <Badge variant={status === "Paid" ? "default" : "outline"}>{label}</Badge>

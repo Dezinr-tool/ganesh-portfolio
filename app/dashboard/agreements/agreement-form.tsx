@@ -183,20 +183,8 @@ export default function AgreementForm({ agreement }: AgreementFormProps) {
     );
   }
 
-  async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    setError(null);
-
-    if (needsInvalidateWarning && !confirmInvalidate) {
-      setError(
-        "Please confirm that you understand editing will invalidate the previous signing link.",
-      );
-      return;
-    }
-
-    setSubmitting(true);
-
-    const payload = {
+  function buildPayload(isDraft: boolean) {
+    return {
       title,
       clientName,
       clientCompany,
@@ -234,7 +222,23 @@ export default function AgreementForm({ agreement }: AgreementFormProps) {
       limitationOfLiability,
       terminationNoticeDays: Number(terminationNoticeDays) || 7,
       governingLaw,
+      isDraft,
     };
+  }
+
+  async function saveAgreement(isDraft: boolean) {
+    setError(null);
+
+    if (!isDraft && needsInvalidateWarning && !confirmInvalidate) {
+      setError(
+        "Please confirm that you understand editing will invalidate the previous signing link.",
+      );
+      return;
+    }
+
+    setSubmitting(true);
+
+    const payload = buildPayload(isDraft);
 
     try {
       const response = await fetch(
@@ -260,6 +264,15 @@ export default function AgreementForm({ agreement }: AgreementFormProps) {
     } finally {
       setSubmitting(false);
     }
+  }
+
+  async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    await saveAgreement(false);
+  }
+
+  async function handleSaveDraft() {
+    await saveAgreement(true);
   }
 
   const cancelHref = isEdit
@@ -987,6 +1000,16 @@ export default function AgreementForm({ agreement }: AgreementFormProps) {
         <Button type="submit" disabled={submitting}>
           {submitting ? "Saving…" : isEdit ? "Save changes" : "Create agreement"}
         </Button>
+        {!isEdit || agreement?.status === "draft" ? (
+          <Button
+            type="button"
+            variant="outline"
+            disabled={submitting}
+            onClick={handleSaveDraft}
+          >
+            Save as draft
+          </Button>
+        ) : null}
         <Link href={cancelHref} className={cn(buttonVariants({ variant: "ghost" }))}>
           Cancel
         </Link>

@@ -143,15 +143,35 @@ export async function PATCH(
         );
       }
 
-      const validationError = validateAgreementFields(
-        body as CreateAgreementInput,
-      );
-      if (validationError) {
-        return NextResponse.json({ error: validationError }, { status: 400 });
+      const isDraft = Boolean((body as { isDraft?: boolean }).isDraft);
+
+      if (isDraft) {
+        if (!body.title?.trim()) {
+          return NextResponse.json(
+            { error: "A title is required to save a draft." },
+            { status: 400 },
+          );
+        }
+      } else {
+        const validationError = validateAgreementFields(
+          body as CreateAgreementInput,
+        );
+        if (validationError) {
+          return NextResponse.json({ error: validationError }, { status: 400 });
+        }
       }
 
       const resetSigning = existing.status === "awaiting_client";
-      const input = buildAgreementInput(body as CreateAgreementInput);
+      const input = buildAgreementInput({
+        ...(body as CreateAgreementInput),
+        clientName: body.clientName ?? "",
+        clientCompany: body.clientCompany ?? "",
+        clientRepresentative: body.clientRepresentative ?? "",
+        projectOverview: body.projectOverview ?? "",
+        timeline: body.timeline ?? "",
+        scopeOfWork: Array.isArray(body.scopeOfWork) ? body.scopeOfWork : [],
+        deliverables: Array.isArray(body.deliverables) ? body.deliverables : [],
+      });
 
       const agreement = await updateAgreement(id, input, resetSigning);
 
