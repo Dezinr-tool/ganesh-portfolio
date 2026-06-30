@@ -69,7 +69,7 @@ export function buildInvoiceInput(
   };
 }
 
-export const DEFAULT_PROCESSING_FEE_PERCENT = 2;
+export const DEFAULT_PROCESSING_FEE_PERCENT = 0;
 
 export const inputClassName =
   "w-full rounded-md border border-[var(--color-text)] bg-[var(--color-bg)] px-3 py-2 text-sm text-[var(--color-text)] outline-none focus:border-[var(--color-text)]";

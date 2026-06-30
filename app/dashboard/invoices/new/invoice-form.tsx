@@ -31,7 +31,10 @@ import {
 const selectClassName =
   "h-8 w-full rounded-lg border border-input bg-transparent px-2.5 py-1 text-sm outline-none transition-colors focus:border-ring focus:ring-3 focus:ring-ring/50";
 
-type LineItemRow = InvoiceLineItem;
+type LineItemRow = InvoiceLineItem & {
+  projectAmount?: number;
+  advancePercent?: number;
+};
 
 function createEmptyLineItem(
   hourlyRate: number,
@@ -43,7 +46,16 @@ function createEmptyLineItem(
     effortHrs: 0,
     rate: billingMode === "hourly" ? hourlyRate : 0,
     amount: 0,
+    projectAmount: 0,
+    advancePercent: 0,
   };
+}
+
+function calculateAdvanceAmount(
+  projectAmount: number,
+  advancePercent: number,
+): number {
+  return Math.round(projectAmount * (advancePercent / 100) * 100) / 100;
 }
 
 function todayISO(): string {
@@ -107,7 +119,10 @@ export default function InvoiceForm() {
       ...item,
       effortHrs: 0,
       rate: 0,
-      amount: Math.round(Number(item.amount) * 100) / 100,
+      amount: calculateAdvanceAmount(
+        Number(item.projectAmount ?? 0),
+        Number(item.advancePercent ?? 0),
+      ),
     }));
   }, [lineItems, hourlyRate, billingMode]);
 
@@ -134,10 +149,16 @@ export default function InvoiceForm() {
           updated.amount = calculateLineAmount(Number(value), hourlyRate);
         }
 
-        if (field === "amount" && billingMode === "lumpsum") {
+        if (
+          (field === "projectAmount" || field === "advancePercent") &&
+          billingMode === "lumpsum"
+        ) {
           updated.effortHrs = 0;
           updated.rate = 0;
-          updated.amount = Math.round(Number(value) * 100) / 100;
+          updated.amount = calculateAdvanceAmount(
+            Number(updated.projectAmount ?? 0),
+            Number(updated.advancePercent ?? 0),
+          );
         }
 
         return updated;
@@ -327,7 +348,7 @@ export default function InvoiceForm() {
               <div
                 className={cn(
                   "space-y-2",
-                  billingMode === "hourly" ? "sm:col-span-5" : "sm:col-span-8",
+                  billingMode === "hourly" ? "sm:col-span-5" : "sm:col-span-4",
                 )}
               >
                 <Label className="sm:sr-only">Description</Label>
@@ -374,24 +395,53 @@ export default function InvoiceForm() {
                   </div>
                 </>
               ) : (
-                <div className="space-y-2 sm:col-span-3">
-                  <Label className="sm:sr-only">Amount</Label>
-                  <Input
-                    type="number"
-                    min="0"
-                    step="0.01"
-                    required
-                    placeholder="0"
-                    value={item.amount === 0 ? "" : item.amount}
-                    onChange={(e) =>
-                      updateLineItem(
-                        item.id,
-                        "amount",
-                        e.target.value === "" ? 0 : Number(e.target.value),
-                      )
-                    }
-                  />
-                </div>
+                <>
+                  <div className="space-y-2 sm:col-span-3">
+                    <Label className="sm:sr-only">Project amount</Label>
+                    <Input
+                      type="number"
+                      min="0"
+                      step="0.01"
+                      required
+                      placeholder="Project amount"
+                      value={
+                        item.projectAmount === 0 ? "" : item.projectAmount
+                      }
+                      onChange={(e) =>
+                        updateLineItem(
+                          item.id,
+                          "projectAmount",
+                          e.target.value === "" ? 0 : Number(e.target.value),
+                        )
+                      }
+                    />
+                  </div>
+                  <div className="space-y-2 sm:col-span-2">
+                    <Label className="sm:sr-only">Advance %</Label>
+                    <Input
+                      type="number"
+                      min="0"
+                      max="100"
+                      step="0.01"
+                      required
+                      placeholder="Advance %"
+                      value={
+                        item.advancePercent === 0 ? "" : item.advancePercent
+                      }
+                      onChange={(e) =>
+                        updateLineItem(
+                          item.id,
+                          "advancePercent",
+                          e.target.value === "" ? 0 : Number(e.target.value),
+                        )
+                      }
+                    />
+                  </div>
+                  <div className="space-y-2 sm:col-span-2">
+                    <Label className="sm:sr-only">Amount</Label>
+                    <Input readOnly value={formatCurrency(item.amount)} />
+                  </div>
+                </>
               )}
               <div className="flex items-end sm:col-span-1">
                 <Button
@@ -446,12 +496,14 @@ export default function InvoiceForm() {
                 <span>{formatCurrency(totals.taxAmount)}</span>
               </div>
             ) : null}
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">
-                Payment processing ({DEFAULT_PROCESSING_FEE_PERCENT}%)
-              </span>
-              <span>{formatCurrency(totals.processingFeeAmount)}</span>
-            </div>
+            {DEFAULT_PROCESSING_FEE_PERCENT > 0 ? (
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">
+                  Payment processing ({DEFAULT_PROCESSING_FEE_PERCENT}%)
+                </span>
+                <span>{formatCurrency(totals.processingFeeAmount)}</span>
+              </div>
+            ) : null}
             <Separator />
             <div className="flex justify-between text-base font-semibold">
               <span>Total</span>
