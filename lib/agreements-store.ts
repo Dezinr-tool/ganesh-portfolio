@@ -842,6 +842,8 @@ export async function updateAgreement(
       project_overview = ${input.projectOverview},
       scope_of_work = ${JSON.stringify(input.scopeOfWork)},
       deliverables = ${JSON.stringify(input.deliverables)},
+      deliverable_phases = ${JSON.stringify(input.deliverablePhases ?? [])},
+      total_timeline = ${input.totalTimeline ?? ""},
       milestones = ${normalized.milestonesJson},
       timeline = ${input.timeline},
       hourly_rate = ${input.hourlyRate},
