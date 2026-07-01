@@ -122,7 +122,17 @@ export default function AgreementForm({ agreement }: AgreementFormProps) {
       ? agreement.deliverablePhases
       : [createPhase(1)],
   );
-  const [totalTimeline, setTotalTimeline] = useState(agreement?.totalTimeline ?? "");
+  const totalTimeline = useMemo(() => {
+    let total = 0;
+    for (const phase of deliverablePhases) {
+      for (const item of phase.items) {
+        const match = item.timeline.match(/(\d+\.?\d*)/);
+        if (match) total += parseFloat(match[1]);
+      }
+    }
+    if (total === 0) return "";
+    return total % 1 === 0 ? `${total} Weeks` : `${total} Weeks`;
+  }, [deliverablePhases]);
   const [timeline, setTimeline] = useState(agreement?.timeline ?? "");
   const [hourlyRate, setHourlyRate] = useState(
     agreement?.hourlyRate != null ? String(agreement.hourlyRate) : "",
@@ -756,15 +766,13 @@ export default function AgreementForm({ agreement }: AgreementFormProps) {
 
           <Separator />
 
-          <div className="space-y-2 max-w-xs">
-            <Label htmlFor="totalTimeline">Estimated total timeline</Label>
-            <Input
-              id="totalTimeline"
-              placeholder="e.g. 8 Weeks"
-              value={totalTimeline}
-              onChange={(e) => setTotalTimeline(e.target.value)}
-            />
-          </div>
+          {totalTimeline ? (
+            <p className="text-sm text-muted-foreground">
+              Estimated total timeline:{" "}
+              <span className="font-medium text-foreground">{totalTimeline}</span>
+              <span className="ml-2 text-xs">(auto-calculated from timelines above)</span>
+            </p>
+          ) : null}
         </CardContent>
       </Card>
 
