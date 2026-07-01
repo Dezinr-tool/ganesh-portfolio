@@ -86,9 +86,8 @@ function createAgreementPdfStyles(tokens: DesignTokens) {
     },
     divider: {
       borderBottomWidth: 1,
-      borderBottomColor: tokens.text,
+      borderBottomColor: "#CCCCCC",
       marginTop: 14,
-      opacity: 0.1,
     },
     row: {
       flexDirection: "row",
