@@ -147,9 +147,11 @@ function createAgreementPdfStyles(tokens: DesignTokens) {
     th: {
       fontSize: 8.5,
       fontFamily: "Helvetica-Bold",
+      paddingRight: 8,
     },
     td: {
       fontSize: 9,
+      paddingRight: 8,
     },
     colTask: { flex: 3 },
     colHours: { flex: 1, textAlign: "right" },
@@ -159,12 +161,12 @@ function createAgreementPdfStyles(tokens: DesignTokens) {
     colAmount: { flex: 1, textAlign: "right" },
     colDueOn: { flex: 1.5 },
     // phased breakdown columns
-    colNum: { width: 20 },
-    colPhaseDeliverable: { flex: 2 },
-    colPhaseTimeline: { flex: 1.2 },
-    colPhaseEffort: { flex: 0.8, textAlign: "right" },
-    colPhaseCost: { flex: 1, textAlign: "right" },
-    colPhaseNotes: { flex: 2.5 },
+    colNum: { width: 18 },
+    colPhaseDeliverable: { flex: 2.2 },
+    colPhaseTimeline: { flex: 1 },
+    colPhaseEffort: { flex: 0.6, textAlign: "right" },
+    colPhaseCost: { flex: 1.2, textAlign: "right" },
+    colPhaseNotes: { flex: 2.2, paddingRight: 0 },
     phaseHeaderRow: {
       flexDirection: "row",
       backgroundColor: tokens.text,

@@ -175,33 +175,45 @@ export function AgreementDocument({
         </h2>
         {agreement.deliverablePhases?.length > 0 ? (
           <div className="mt-4 space-y-3">
-            <Table>
+            <Table className="table-fixed">
+              <colgroup>
+                <col className="w-8" />
+                <col className="w-[22%]" />
+                <col className="w-[14%]" />
+                <col className="w-[8%]" />
+                <col className="w-[13%]" />
+                <col />
+              </colgroup>
               <TableHeader>
                 <TableRow>
-                  <TableHead className="w-8">#</TableHead>
-                  <TableHead>Deliverable</TableHead>
-                  <TableHead>Timeline</TableHead>
-                  <TableHead className="text-right">Hrs</TableHead>
-                  <TableHead className="text-right">Cost</TableHead>
-                  <TableHead>Notes</TableHead>
+                  <TableHead className="py-2">#</TableHead>
+                  <TableHead className="py-2">Deliverable</TableHead>
+                  <TableHead className="py-2">Timeline</TableHead>
+                  <TableHead className="py-2 text-right">Hrs</TableHead>
+                  <TableHead className="py-2 text-right">Cost</TableHead>
+                  <TableHead className="py-2">Notes</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {agreement.deliverablePhases.map((phase) => (
                   <>
                     <TableRow key={phase.id} className="bg-foreground hover:bg-foreground">
-                      <TableCell colSpan={6} className="py-1.5 text-xs font-bold uppercase tracking-wide text-background">
+                      <TableCell colSpan={6} className="py-2 text-xs font-bold uppercase tracking-wide text-background">
                         {phase.name}
                       </TableCell>
                     </TableRow>
                     {phase.items.map((item, idx) => (
-                      <TableRow key={item.id}>
-                        <TableCell className="text-muted-foreground">{idx + 1}</TableCell>
-                        <TableCell className="font-medium">{item.deliverable}</TableCell>
-                        <TableCell className="text-muted-foreground">{item.timeline}</TableCell>
-                        <TableCell className="text-right text-muted-foreground">{item.effortHours ?? ""}</TableCell>
-                        <TableCell className="text-right">{item.cost != null ? new Intl.NumberFormat("en-IN", { style: "currency", currency: agreement.currency ?? "INR", minimumFractionDigits: 0 }).format(item.cost) : ""}</TableCell>
-                        <TableCell className="text-muted-foreground">{item.notes}</TableCell>
+                      <TableRow key={item.id} className="align-top">
+                        <TableCell className="py-2.5 text-muted-foreground">{idx + 1}</TableCell>
+                        <TableCell className="py-2.5 font-medium whitespace-normal break-words">{item.deliverable}</TableCell>
+                        <TableCell className="py-2.5 text-muted-foreground whitespace-nowrap">{item.timeline}</TableCell>
+                        <TableCell className="py-2.5 text-right text-muted-foreground">{item.effortHours ?? ""}</TableCell>
+                        <TableCell className="py-2.5 text-right whitespace-nowrap">
+                          {item.cost != null ? new Intl.NumberFormat("en-IN", { style: "currency", currency: agreement.currency ?? "INR", minimumFractionDigits: 0 }).format(item.cost) : ""}
+                        </TableCell>
+                        <TableCell className="py-2.5 text-muted-foreground text-xs whitespace-normal break-words leading-relaxed">
+                          {item.notes}
+                        </TableCell>
                       </TableRow>
                     ))}
                   </>
@@ -209,13 +221,13 @@ export function AgreementDocument({
               </TableBody>
               <TableFooter>
                 <TableRow>
-                  <TableCell colSpan={4} className="font-semibold">Total Project Cost</TableCell>
-                  <TableCell className="text-right font-semibold">
+                  <TableCell colSpan={4} className="font-semibold py-3">Total Project Cost</TableCell>
+                  <TableCell className="text-right font-semibold py-3 whitespace-nowrap">
                     {new Intl.NumberFormat("en-IN", { style: "currency", currency: agreement.currency ?? "INR", minimumFractionDigits: 0 }).format(
                       agreement.deliverablePhases.reduce((sum, p) => sum + p.items.reduce((s, i) => s + (i.cost ?? 0), 0), 0)
                     )}
                   </TableCell>
-                  <TableCell className="text-muted-foreground text-sm">
+                  <TableCell className="text-muted-foreground text-sm py-3">
                     {agreement.totalTimeline ? `Est. ${agreement.totalTimeline}` : ""}
                   </TableCell>
                 </TableRow>
