@@ -206,7 +206,7 @@ export function AgreementDocument({
                       <TableRow key={item.id} className="align-top">
                         <TableCell className="py-2.5 text-muted-foreground">{idx + 1}</TableCell>
                         <TableCell className="py-2.5 font-medium whitespace-normal break-words">{item.deliverable}</TableCell>
-                        <TableCell className="py-2.5 text-muted-foreground whitespace-nowrap">{item.timeline}</TableCell>
+                        <TableCell className="py-2.5 text-muted-foreground whitespace-normal break-words">{item.timeline}</TableCell>
                         <TableCell className="py-2.5 text-right text-muted-foreground">{item.effortHours ?? ""}</TableCell>
                         <TableCell className="py-2.5 text-right whitespace-nowrap">
                           {item.cost != null ? new Intl.NumberFormat("en-IN", { style: "currency", currency: agreement.currency ?? "INR", minimumFractionDigits: 0 }).format(item.cost) : ""}
