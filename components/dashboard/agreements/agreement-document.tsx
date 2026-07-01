@@ -164,24 +164,69 @@ export function AgreementDocument({
       {/* Deliverables */}
       <section>
         <h2 className="text-sm font-bold uppercase tracking-wide">
-          Deliverables
+          Deliverables, Timeline &amp; Cost Breakdown
         </h2>
-        <table className="mt-4 w-full border-collapse text-sm">
-          <thead>
-            <tr className="border-b-2 border-[var(--color-text)]">
-              <th className="py-2 pr-4 text-left font-semibold">Priority</th>
-              <th className="py-2 text-left font-semibold">Deliverable</th>
-            </tr>
-          </thead>
-          <tbody>
-            {agreement.deliverables.map((item) => (
-              <tr key={item.id} className="border-b border-[var(--color-text)]">
-                <td className="py-2.5 pr-4 font-medium">{item.priority}</td>
-                <td className="py-2.5">{item.item}</td>
+        {agreement.deliverablePhases?.length > 0 ? (
+          <div className="mt-4 space-y-4">
+            <table className="w-full border-collapse text-sm">
+              <thead>
+                <tr className="border-b-2 border-[var(--color-text)]">
+                  <th className="py-2 pr-3 text-left font-semibold w-6">#</th>
+                  <th className="py-2 pr-3 text-left font-semibold">Deliverable</th>
+                  <th className="py-2 pr-3 text-left font-semibold">Timeline</th>
+                  <th className="py-2 pr-3 text-right font-semibold">Hrs</th>
+                  <th className="py-2 pr-3 text-right font-semibold">Cost</th>
+                  <th className="py-2 text-left font-semibold">Notes</th>
+                </tr>
+              </thead>
+              <tbody>
+                {agreement.deliverablePhases.map((phase) => (
+                  <>
+                    <tr key={phase.id} className="bg-foreground text-background">
+                      <td colSpan={6} className="py-1.5 px-2 text-xs font-bold uppercase tracking-wide">
+                        {phase.name}
+                      </td>
+                    </tr>
+                    {phase.items.map((item, idx) => (
+                      <tr key={item.id} className="border-b border-[var(--color-text)] border-opacity-10">
+                        <td className="py-2 pr-3 text-muted-foreground">{idx + 1}</td>
+                        <td className="py-2 pr-3 font-medium">{item.deliverable}</td>
+                        <td className="py-2 pr-3 text-muted-foreground">{item.timeline}</td>
+                        <td className="py-2 pr-3 text-right text-muted-foreground">{item.effortHours ?? ""}</td>
+                        <td className="py-2 pr-3 text-right">{item.cost != null ? new Intl.NumberFormat("en-IN", { style: "currency", currency: agreement.currency ?? "INR", minimumFractionDigits: 0 }).format(item.cost) : ""}</td>
+                        <td className="py-2 text-sm text-muted-foreground">{item.notes}</td>
+                      </tr>
+                    ))}
+                  </>
+                ))}
+              </tbody>
+            </table>
+            <p className="text-sm font-semibold">
+              Total Project Cost:{" "}
+              {new Intl.NumberFormat("en-IN", { style: "currency", currency: agreement.currency ?? "INR", minimumFractionDigits: 0 }).format(
+                agreement.deliverablePhases.reduce((sum, p) => sum + p.items.reduce((s, i) => s + (i.cost ?? 0), 0), 0)
+              )}
+              {agreement.totalTimeline ? `  |  Estimated Timeline: ${agreement.totalTimeline}` : ""}
+            </p>
+          </div>
+        ) : (
+          <table className="mt-4 w-full border-collapse text-sm">
+            <thead>
+              <tr className="border-b-2 border-[var(--color-text)]">
+                <th className="py-2 pr-4 text-left font-semibold">Priority</th>
+                <th className="py-2 text-left font-semibold">Deliverable</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {agreement.deliverables.map((item) => (
+                <tr key={item.id} className="border-b border-[var(--color-text)]">
+                  <td className="py-2.5 pr-4 font-medium">{item.priority}</td>
+                  <td className="py-2.5">{item.item}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
       </section>
 
       <hr className="my-8 border-[var(--color-text)]" />
