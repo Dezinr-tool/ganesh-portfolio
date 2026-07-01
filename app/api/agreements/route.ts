@@ -37,7 +37,6 @@ export async function POST(request: Request) {
         !hasValidClientEmails(body.clientEmails, body.clientEmail) ||
         !body.clientRepresentative?.trim() ||
         !body.projectOverview?.trim() ||
-        !body.timeline?.trim() ||
         !Array.isArray(body.scopeOfWork) ||
         body.scopeOfWork.length === 0 ||
         (!Array.isArray(body.deliverablePhases) || body.deliverablePhases.length === 0)

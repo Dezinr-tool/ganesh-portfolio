@@ -245,7 +245,7 @@ export default function AgreementForm({ agreement }: AgreementFormProps) {
       deliverablePhases,
       totalTimeline,
       milestones: paymentStructure === "milestone" ? milestones : [],
-      timeline,
+      timeline: totalTimeline || timeline,
       hourlyRate: hourlyRate === "" ? null : Number(hourlyRate),
       fixedCost: fixedCost === "" ? null : Number(fixedCost),
       paymentNotes,
@@ -831,23 +831,6 @@ export default function AgreementForm({ agreement }: AgreementFormProps) {
               If no feedback is received within the review window, deliverables are deemed accepted
             </span>
           </label>
-        </CardContent>
-      </Card>
-
-      {/* Timeline */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Timeline</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <Textarea
-            id="timeline"
-            rows={3}
-            required
-            value={timeline}
-            onChange={(e) => setTimeline(e.target.value)}
-            placeholder="e.g. Week 1–2: Discovery, Week 3–4: Design…"
-          />
         </CardContent>
       </Card>
 
