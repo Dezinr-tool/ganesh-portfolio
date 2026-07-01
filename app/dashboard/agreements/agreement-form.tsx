@@ -627,7 +627,10 @@ export default function AgreementForm({ agreement }: AgreementFormProps) {
                       step="1"
                       placeholder="Hrs"
                       value={item.effortHours ?? ""}
-                      onChange={(e) =>
+                      onChange={(e) => {
+                        const hrs = e.target.value === "" ? null : Number(e.target.value);
+                        const rate = hourlyRate === "" ? null : Number(hourlyRate);
+                        const autoCost = hrs != null && rate != null ? hrs * rate : null;
                         setDeliverablePhases((phases) =>
                           phases.map((p) =>
                             p.id === phase.id
@@ -637,18 +640,16 @@ export default function AgreementForm({ agreement }: AgreementFormProps) {
                                     r.id === item.id
                                       ? {
                                           ...r,
-                                          effortHours:
-                                            e.target.value === ""
-                                              ? null
-                                              : Number(e.target.value),
+                                          effortHours: hrs,
+                                          cost: autoCost ?? r.cost,
                                         }
                                       : r,
                                   ),
                                 }
                               : p,
                           ),
-                        )
-                      }
+                        );
+                      }}
                     />
                   </div>
                   <div className="space-y-1 sm:col-span-2">
