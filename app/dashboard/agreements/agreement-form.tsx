@@ -35,6 +35,8 @@ import {
   type Agreement,
   type AgreementCurrency,
   type DeliverableItem,
+  type DeliverablePhase,
+  type DeliverablePhaseItem,
   type DeliverablePriority,
   type MilestoneItem,
   type PaymentStructure,
@@ -50,6 +52,25 @@ function createScopeItem(): ScopeOfWorkItem {
 
 function createDeliverable(): DeliverableItem {
   return { id: crypto.randomUUID(), priority: "P0", item: "" };
+}
+
+function createPhaseItem(): DeliverablePhaseItem {
+  return {
+    id: crypto.randomUUID(),
+    deliverable: "",
+    timeline: "",
+    effortHours: null,
+    cost: null,
+    notes: "",
+  };
+}
+
+function createPhase(index: number): DeliverablePhase {
+  return {
+    id: crypto.randomUUID(),
+    name: `Phase ${index}`,
+    items: [createPhaseItem()],
+  };
 }
 
 function createMilestone(): MilestoneItem {
@@ -96,6 +117,12 @@ export default function AgreementForm({ agreement }: AgreementFormProps) {
   const [deliverables, setDeliverables] = useState<DeliverableItem[]>(
     agreement?.deliverables.length ? agreement.deliverables : [createDeliverable()],
   );
+  const [deliverablePhases, setDeliverablePhases] = useState<DeliverablePhase[]>(
+    agreement?.deliverablePhases?.length
+      ? agreement.deliverablePhases
+      : [createPhase(1)],
+  );
+  const [totalTimeline, setTotalTimeline] = useState(agreement?.totalTimeline ?? "");
   const [timeline, setTimeline] = useState(agreement?.timeline ?? "");
   const [hourlyRate, setHourlyRate] = useState(
     agreement?.hourlyRate != null ? String(agreement.hourlyRate) : "",
@@ -197,6 +224,8 @@ export default function AgreementForm({ agreement }: AgreementFormProps) {
       projectOverview,
       scopeOfWork: normalizeScopeOfWork(scopeOfWork),
       deliverables,
+      deliverablePhases,
+      totalTimeline,
       milestones: paymentStructure === "milestone" ? milestones : [],
       timeline,
       hourlyRate: hourlyRate === "" ? null : Number(hourlyRate),
@@ -488,68 +517,271 @@ export default function AgreementForm({ agreement }: AgreementFormProps) {
         </CardContent>
       </Card>
 
-      {/* Deliverables */}
+      {/* Deliverables — phased breakdown */}
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
           <div>
-            <CardTitle>Deliverables</CardTitle>
+            <CardTitle>Deliverables &amp; Cost Breakdown</CardTitle>
             <p className="mt-1 text-sm text-muted-foreground">
-              List specific outputs the client receives. e.g. Logo files, Brand Guidelines PDF
+              Group deliverables into phases. Each row gets a timeline, effort estimate, and cost.
             </p>
           </div>
           <Button
             type="button"
             variant="outline"
             size="sm"
-            onClick={() => setDeliverables((items) => [...items, createDeliverable()])}
+            onClick={() =>
+              setDeliverablePhases((phases) => [
+                ...phases,
+                createPhase(phases.length + 1),
+              ])
+            }
           >
-            Add row
+            Add phase
           </Button>
         </CardHeader>
-        <CardContent className="space-y-3">
-          {deliverables.map((item) => (
-            <div key={item.id} className="grid gap-3 rounded-lg border border-border p-3 sm:grid-cols-12">
-              <div className="space-y-2 sm:col-span-2">
-                <Label className="sm:sr-only">Priority</Label>
-                <select
-                  value={item.priority}
-                  onChange={(e) =>
-                    updateDeliverable(item.id, "priority", e.target.value as DeliverablePriority)
-                  }
-                  className={selectClassName}
-                  aria-label="Priority"
-                >
-                  <option value="P0">P0</option>
-                  <option value="P1">P1</option>
-                  <option value="P2">P2</option>
-                </select>
-              </div>
-              <div className="space-y-2 sm:col-span-8">
-                <Label className="sm:sr-only">Deliverable</Label>
+        <CardContent className="space-y-6">
+          {deliverablePhases.map((phase, phaseIdx) => (
+            <div key={phase.id} className="space-y-3">
+              {/* Phase header */}
+              <div className="flex items-center gap-2">
                 <Input
-                  required
-                  placeholder="Deliverable name"
-                  value={item.item}
-                  onChange={(e) => updateDeliverable(item.id, "item", e.target.value)}
+                  placeholder={`Phase ${phaseIdx + 1} — Name`}
+                  value={phase.name}
+                  onChange={(e) =>
+                    setDeliverablePhases((phases) =>
+                      phases.map((p) =>
+                        p.id === phase.id ? { ...p, name: e.target.value } : p,
+                      ),
+                    )
+                  }
+                  className="flex-1 font-medium"
                 />
-              </div>
-              <div className="flex items-end sm:col-span-2">
                 <Button
                   type="button"
                   variant="ghost"
                   size="sm"
                   onClick={() =>
-                    setDeliverables((items) =>
-                      items.length === 1 ? items : items.filter((i) => i.id !== item.id),
+                    setDeliverablePhases((phases) =>
+                      phases.length === 1
+                        ? phases
+                        : phases.filter((p) => p.id !== phase.id),
                     )
                   }
-                  disabled={deliverables.length === 1}
+                  disabled={deliverablePhases.length === 1}
                 >
-                  Remove
+                  Remove phase
                 </Button>
               </div>
+
+              {/* Column headers */}
+              <div className="hidden grid-cols-12 gap-2 px-1 text-xs font-medium text-muted-foreground sm:grid">
+                <span className="col-span-3">Deliverable</span>
+                <span className="col-span-2">Timeline</span>
+                <span className="col-span-1">Hrs</span>
+                <span className="col-span-2">Cost ({currency})</span>
+                <span className="col-span-3">Notes</span>
+                <span className="col-span-1" />
+              </div>
+
+              {/* Rows */}
+              {phase.items.map((item) => (
+                <div
+                  key={item.id}
+                  className="grid gap-2 rounded-lg border border-border p-3 sm:grid-cols-12"
+                >
+                  <div className="space-y-1 sm:col-span-3">
+                    <Label className="text-xs sm:sr-only">Deliverable</Label>
+                    <Input
+                      required
+                      placeholder="Deliverable name"
+                      value={item.deliverable}
+                      onChange={(e) =>
+                        setDeliverablePhases((phases) =>
+                          phases.map((p) =>
+                            p.id === phase.id
+                              ? {
+                                  ...p,
+                                  items: p.items.map((r) =>
+                                    r.id === item.id
+                                      ? { ...r, deliverable: e.target.value }
+                                      : r,
+                                  ),
+                                }
+                              : p,
+                          ),
+                        )
+                      }
+                    />
+                  </div>
+                  <div className="space-y-1 sm:col-span-2">
+                    <Label className="text-xs sm:sr-only">Timeline</Label>
+                    <Input
+                      placeholder="e.g. 1 Week"
+                      value={item.timeline}
+                      onChange={(e) =>
+                        setDeliverablePhases((phases) =>
+                          phases.map((p) =>
+                            p.id === phase.id
+                              ? {
+                                  ...p,
+                                  items: p.items.map((r) =>
+                                    r.id === item.id
+                                      ? { ...r, timeline: e.target.value }
+                                      : r,
+                                  ),
+                                }
+                              : p,
+                          ),
+                        )
+                      }
+                    />
+                  </div>
+                  <div className="space-y-1 sm:col-span-1">
+                    <Label className="text-xs sm:sr-only">Hours</Label>
+                    <Input
+                      type="number"
+                      min="0"
+                      step="1"
+                      placeholder="Hrs"
+                      value={item.effortHours ?? ""}
+                      onChange={(e) =>
+                        setDeliverablePhases((phases) =>
+                          phases.map((p) =>
+                            p.id === phase.id
+                              ? {
+                                  ...p,
+                                  items: p.items.map((r) =>
+                                    r.id === item.id
+                                      ? {
+                                          ...r,
+                                          effortHours:
+                                            e.target.value === ""
+                                              ? null
+                                              : Number(e.target.value),
+                                        }
+                                      : r,
+                                  ),
+                                }
+                              : p,
+                          ),
+                        )
+                      }
+                    />
+                  </div>
+                  <div className="space-y-1 sm:col-span-2">
+                    <Label className="text-xs sm:sr-only">Cost</Label>
+                    <Input
+                      type="number"
+                      min="0"
+                      step="1"
+                      placeholder="Cost"
+                      value={item.cost ?? ""}
+                      onChange={(e) =>
+                        setDeliverablePhases((phases) =>
+                          phases.map((p) =>
+                            p.id === phase.id
+                              ? {
+                                  ...p,
+                                  items: p.items.map((r) =>
+                                    r.id === item.id
+                                      ? {
+                                          ...r,
+                                          cost:
+                                            e.target.value === ""
+                                              ? null
+                                              : Number(e.target.value),
+                                        }
+                                      : r,
+                                  ),
+                                }
+                              : p,
+                          ),
+                        )
+                      }
+                    />
+                  </div>
+                  <div className="space-y-1 sm:col-span-3">
+                    <Label className="text-xs sm:sr-only">Notes</Label>
+                    <Input
+                      placeholder="Notes (optional)"
+                      value={item.notes}
+                      onChange={(e) =>
+                        setDeliverablePhases((phases) =>
+                          phases.map((p) =>
+                            p.id === phase.id
+                              ? {
+                                  ...p,
+                                  items: p.items.map((r) =>
+                                    r.id === item.id
+                                      ? { ...r, notes: e.target.value }
+                                      : r,
+                                  ),
+                                }
+                              : p,
+                          ),
+                        )
+                      }
+                    />
+                  </div>
+                  <div className="flex items-end sm:col-span-1">
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={() =>
+                        setDeliverablePhases((phases) =>
+                          phases.map((p) =>
+                            p.id === phase.id
+                              ? {
+                                  ...p,
+                                  items:
+                                    p.items.length === 1
+                                      ? p.items
+                                      : p.items.filter((r) => r.id !== item.id),
+                                }
+                              : p,
+                          ),
+                        )
+                      }
+                      disabled={phase.items.length === 1}
+                    >
+                      ×
+                    </Button>
+                  </div>
+                </div>
+              ))}
+
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() =>
+                  setDeliverablePhases((phases) =>
+                    phases.map((p) =>
+                      p.id === phase.id
+                        ? { ...p, items: [...p.items, createPhaseItem()] }
+                        : p,
+                    ),
+                  )
+                }
+              >
+                + Add row
+              </Button>
             </div>
           ))}
+
+          <Separator />
+
+          <div className="space-y-2 max-w-xs">
+            <Label htmlFor="totalTimeline">Estimated total timeline</Label>
+            <Input
+              id="totalTimeline"
+              placeholder="e.g. 8 Weeks"
+              value={totalTimeline}
+              onChange={(e) => setTotalTimeline(e.target.value)}
+            />
+          </div>
         </CardContent>
       </Card>
 

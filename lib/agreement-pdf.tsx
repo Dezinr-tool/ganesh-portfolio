@@ -15,6 +15,7 @@ import {
   reviewWindowClauseText,
   scopeHasHours,
   terminationNoticeClauseText,
+  totalDeliverablesCost,
   totalScopeHours,
 } from "@/app/dashboard/_lib/agreements";
 import {
@@ -158,6 +159,45 @@ function createAgreementPdfStyles(tokens: DesignTokens) {
     colMilestone: { flex: 2 },
     colAmount: { flex: 1, textAlign: "right" },
     colDueOn: { flex: 1.5 },
+    // phased breakdown columns
+    colNum: { width: 20 },
+    colPhaseDeliverable: { flex: 2 },
+    colPhaseTimeline: { flex: 1.2 },
+    colPhaseEffort: { flex: 0.8, textAlign: "right" },
+    colPhaseCost: { flex: 1, textAlign: "right" },
+    colPhaseNotes: { flex: 2.5 },
+    phaseHeaderRow: {
+      flexDirection: "row",
+      backgroundColor: "#B22222",
+      paddingVertical: 5,
+      paddingHorizontal: 4,
+      marginTop: 6,
+    },
+    phaseHeaderText: {
+      fontSize: 8.5,
+      fontFamily: "Helvetica-Bold",
+      color: "#ffffff",
+    },
+    phaseTotal: {
+      flexDirection: "row",
+      borderTopWidth: 1.5,
+      borderTopColor: tokens.text,
+      paddingTop: 5,
+      marginTop: 2,
+    },
+    phaseTotalText: {
+      fontSize: 9.5,
+      fontFamily: "Helvetica-Bold",
+    },
+    breakdownFooter: {
+      flexDirection: "row",
+      marginTop: 10,
+      gap: 24,
+    },
+    breakdownFooterText: {
+      fontSize: 10,
+      fontFamily: "Helvetica-Bold",
+    },
     signatureBox: {
       marginTop: 8,
       height: 64,
@@ -199,6 +239,7 @@ export function AgreementPdf({
   const currency = agreement.currency;
   const totalHours = totalScopeHours(agreement.scopeOfWork);
   const showScopeHours = scopeHasHours(agreement.scopeOfWork);
+  const hasPhases = (agreement.deliverablePhases?.length ?? 0) > 0;
 
   return (
     <Document>
@@ -290,23 +331,63 @@ export function AgreementPdf({
         <View style={styles.divider} />
 
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Deliverables</Text>
-          <View style={styles.table}>
-            <View style={styles.tableHeaderRow}>
-              <Text style={[styles.th, styles.colPriority]}>Priority</Text>
-              <Text style={[styles.th, styles.colDeliverable]}>Deliverable</Text>
-            </View>
-            {agreement.deliverables.map((item) => (
-              <View key={item.id} style={styles.tableRow}>
-                <Text style={[styles.td, styles.colPriority]}>
-                  {item.priority}
-                </Text>
-                <Text style={[styles.td, styles.colDeliverable]}>
-                  {item.item}
+          <Text style={styles.sectionTitle}>Deliverables, Timeline &amp; Cost Breakdown</Text>
+          {/* Table column headers */}
+          <View style={[styles.tableHeaderRow, { marginTop: 8 }]}>
+            <Text style={[styles.th, styles.colNum]}>#</Text>
+            <Text style={[styles.th, styles.colPhaseDeliverable]}>Deliverables</Text>
+            <Text style={[styles.th, styles.colPhaseTimeline]}>Timeline</Text>
+            <Text style={[styles.th, styles.colPhaseEffort]}>Hrs</Text>
+            <Text style={[styles.th, styles.colPhaseCost]}>Cost</Text>
+            <Text style={[styles.th, styles.colPhaseNotes]}>Notes</Text>
+          </View>
+          {agreement.deliverablePhases?.map((phase) => (
+            <View key={phase.id}>
+              {/* Phase header row */}
+              <View style={styles.phaseHeaderRow}>
+                <Text style={[styles.phaseHeaderText, { flex: 1 }]}>
+                  {phase.name}
                 </Text>
               </View>
-            ))}
-          </View>
+              {phase.items.map((item, idx) => (
+                <View key={item.id} style={styles.tableRow}>
+                  <Text style={[styles.td, styles.colNum]}>{idx + 1}</Text>
+                  <Text style={[styles.td, styles.colPhaseDeliverable]}>
+                    {item.deliverable}
+                  </Text>
+                  <Text style={[styles.td, styles.colPhaseTimeline]}>
+                    {item.timeline}
+                  </Text>
+                  <Text style={[styles.td, styles.colPhaseEffort]}>
+                    {item.effortHours ?? ""}
+                  </Text>
+                  <Text style={[styles.td, styles.colPhaseCost]}>
+                    {item.cost != null ? formatCurrency(item.cost, currency) : ""}
+                  </Text>
+                  <Text style={[styles.td, styles.colPhaseNotes]}>
+                    {item.notes}
+                  </Text>
+                </View>
+              ))}
+            </View>
+          ))}
+          {/* Footer: total cost + timeline */}
+          {agreement.deliverablePhases?.length > 0 ? (
+            <View style={styles.breakdownFooter}>
+              <Text style={styles.breakdownFooterText}>
+                Total Project Cost:{" "}
+                {formatCurrency(
+                  totalDeliverablesCost(agreement.deliverablePhases),
+                  currency,
+                )}
+              </Text>
+              {agreement.totalTimeline ? (
+                <Text style={styles.breakdownFooterText}>
+                  {"  |  "}Estimated Timeline: {agreement.totalTimeline}
+                </Text>
+              ) : null}
+            </View>
+          ) : null}
         </View>
 
         <View style={styles.divider} />

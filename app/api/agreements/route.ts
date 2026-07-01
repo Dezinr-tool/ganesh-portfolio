@@ -40,8 +40,7 @@ export async function POST(request: Request) {
         !body.timeline?.trim() ||
         !Array.isArray(body.scopeOfWork) ||
         body.scopeOfWork.length === 0 ||
-        !Array.isArray(body.deliverables) ||
-        body.deliverables.length === 0
+        (!Array.isArray(body.deliverablePhases) || body.deliverablePhases.length === 0)
       ) {
         return NextResponse.json(
           { error: "Missing required agreement fields." },
@@ -50,16 +49,6 @@ export async function POST(request: Request) {
       }
 
       const validScope = body.scopeOfWork.every((item) => item.task?.trim());
-      const validDeliverables = body.deliverables.every(
-        (item) => item.item?.trim() && ["P0", "P1", "P2"].includes(item.priority),
-      );
-
-      if (!validScope || !validDeliverables) {
-        return NextResponse.json(
-          { error: "Invalid scope of work or deliverables." },
-          { status: 400 },
-        );
-      }
     }
 
     const input = buildAgreementInput({
@@ -71,6 +60,7 @@ export async function POST(request: Request) {
       timeline: body.timeline ?? "",
       scopeOfWork: Array.isArray(body.scopeOfWork) ? body.scopeOfWork : [],
       deliverables: Array.isArray(body.deliverables) ? body.deliverables : [],
+      deliverablePhases: Array.isArray(body.deliverablePhases) ? body.deliverablePhases : [],
     });
     const agreement = await createAgreement(input);
 

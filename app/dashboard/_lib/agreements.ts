@@ -121,6 +121,29 @@ export type DeliverableItem = {
   item: string;
 };
 
+export type DeliverablePhaseItem = {
+  id: string;
+  deliverable: string;
+  timeline: string;
+  effortHours: number | null;
+  cost: number | null;
+  notes: string;
+};
+
+export type DeliverablePhase = {
+  id: string;
+  name: string;
+  items: DeliverablePhaseItem[];
+};
+
+export function totalDeliverablesCost(phases: DeliverablePhase[]): number {
+  return phases.reduce(
+    (sum, phase) =>
+      sum + phase.items.reduce((s, item) => s + (item.cost ?? 0), 0),
+    0,
+  );
+}
+
 export type Agreement = {
   id: string;
   title: string;
@@ -136,6 +159,8 @@ export type Agreement = {
   projectOverview: string;
   scopeOfWork: ScopeOfWorkItem[];
   deliverables: DeliverableItem[];
+  deliverablePhases: DeliverablePhase[];
+  totalTimeline: string;
   milestones: MilestoneItem[];
   timeline: string;
   hourlyRate: number | null;
@@ -263,6 +288,8 @@ export function buildAgreementInput(body: CreateAgreementInput): CreateAgreement
     projectOverview: body.projectOverview.trim(),
     scopeOfWork: normalizeScopeOfWork(body.scopeOfWork),
     deliverables: body.deliverables,
+    deliverablePhases: body.deliverablePhases ?? [],
+    totalTimeline: body.totalTimeline?.trim() ?? "",
     milestones: body.milestones ?? [],
     timeline: body.timeline.trim(),
     hourlyRate: body.hourlyRate ?? null,

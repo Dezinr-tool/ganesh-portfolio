@@ -45,19 +45,14 @@ function validateAgreementFields(body: CreateAgreementInput): string | null {
     !body.timeline?.trim() ||
     !Array.isArray(body.scopeOfWork) ||
     body.scopeOfWork.length === 0 ||
-    !Array.isArray(body.deliverables) ||
-    body.deliverables.length === 0
+    (!Array.isArray(body.deliverablePhases) || body.deliverablePhases.length === 0)
   ) {
     return "Missing required agreement fields.";
   }
 
   const validScope = body.scopeOfWork.every((item) => item.task?.trim());
-  const validDeliverables = body.deliverables.every(
-    (item) => item.item?.trim() && ["P0", "P1", "P2"].includes(item.priority),
-  );
-
-  if (!validScope || !validDeliverables) {
-    return "Invalid scope of work or deliverables.";
+  if (!validScope) {
+    return "Invalid scope of work.";
   }
 
   return null;
