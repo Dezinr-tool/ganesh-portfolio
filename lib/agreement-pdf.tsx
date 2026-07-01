@@ -167,7 +167,7 @@ function createAgreementPdfStyles(tokens: DesignTokens) {
     colPhaseNotes: { flex: 2.5 },
     phaseHeaderRow: {
       flexDirection: "row",
-      backgroundColor: tokens.accent,
+      backgroundColor: tokens.text,
       paddingVertical: 5,
       paddingHorizontal: 4,
       marginTop: 6,
@@ -175,7 +175,7 @@ function createAgreementPdfStyles(tokens: DesignTokens) {
     phaseHeaderText: {
       fontSize: 8.5,
       fontFamily: "Helvetica-Bold",
-      color: "#ffffff",
+      color: tokens.bg,
     },
     phaseTotal: {
       flexDirection: "row",
@@ -198,7 +198,7 @@ function createAgreementPdfStyles(tokens: DesignTokens) {
       fontFamily: "Helvetica-Bold",
     },
     accentTotal: {
-      color: tokens.accent,
+      color: tokens.text,
     },
     signatureBox: {
       marginTop: 8,

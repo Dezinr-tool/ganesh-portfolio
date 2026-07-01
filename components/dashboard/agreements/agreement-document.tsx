@@ -253,13 +253,10 @@ export function AgreementDocument({
               <p className="text-muted-foreground">{MILESTONE_PAYMENT_INTRO}</p>
               <Table>
                 <TableHeader>
-                  <TableRow
-                    style={{ backgroundColor: "var(--color-accent)" }}
-                    className="border-0 hover:opacity-100"
-                  >
-                    <TableHead className="text-white font-bold py-3 text-sm">Milestone</TableHead>
-                    <TableHead className="text-right text-white font-bold py-3 text-sm">Percentage</TableHead>
-                    <TableHead className="text-right text-white font-bold py-3 text-sm">Amount ({currency})</TableHead>
+                  <TableRow className="border-0 bg-foreground hover:bg-foreground">
+                    <TableHead className="text-background font-bold py-3 text-sm">Milestone</TableHead>
+                    <TableHead className="text-right text-background font-bold py-3 text-sm">Percentage</TableHead>
+                    <TableHead className="text-right text-background font-bold py-3 text-sm">Amount ({currency})</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -275,7 +272,7 @@ export function AgreementDocument({
                   <TableRow className="border-t-2 border-[var(--color-text)] bg-transparent">
                     <TableCell className="font-bold py-3">Total Project Cost</TableCell>
                     <TableCell />
-                    <TableCell className="text-right font-bold py-3" style={{ color: "var(--color-accent)" }}>
+                    <TableCell className="text-right font-bold py-3">
                       {formatCurrency(totalDeliverablesCost(agreement.deliverablePhases ?? []) || agreement.milestones.reduce((s, m) => s + m.amount, 0), currency)}
                     </TableCell>
                   </TableRow>
