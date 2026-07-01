@@ -470,31 +470,13 @@ export default function AgreementForm({ agreement }: AgreementFormProps) {
         <CardContent className="space-y-3">
           {scopeOfWork.map((item) => (
             <div key={item.id} className="grid gap-3 rounded-lg border border-border p-3 sm:grid-cols-12">
-              <div className="space-y-2 sm:col-span-8">
+              <div className="space-y-2 sm:col-span-10">
                 <Label className="sm:sr-only">Task</Label>
                 <Input
                   required
                   placeholder="Task name"
                   value={item.task}
                   onChange={(e) => updateScope(item.id, "task", e.target.value)}
-                />
-              </div>
-              <div className="space-y-2 sm:col-span-2">
-                <Label className="sm:sr-only">Est. hours (optional)</Label>
-                <Input
-                  type="number"
-                  min="0.5"
-                  step="0.5"
-                  placeholder="hrs"
-                  value={item.hours ?? ""}
-                  onChange={(e) =>
-                    updateScope(
-                      item.id,
-                      "hours",
-                      e.target.value === "" ? null : Number(e.target.value),
-                    )
-                  }
-                  aria-label="Est. Hours (optional)"
                 />
               </div>
               <div className="flex items-end sm:col-span-2">
