@@ -122,6 +122,14 @@ export default function AgreementForm({ agreement }: AgreementFormProps) {
       ? agreement.deliverablePhases
       : [createPhase(1)],
   );
+  const totalProjectCost = useMemo(() => {
+    return deliverablePhases.reduce(
+      (sum, phase) =>
+        sum + phase.items.reduce((s, item) => s + (item.cost ?? 0), 0),
+      0,
+    );
+  }, [deliverablePhases]);
+
   const totalTimeline = useMemo(() => {
     let total = 0;
     for (const phase of deliverablePhases) {
@@ -766,12 +774,28 @@ export default function AgreementForm({ agreement }: AgreementFormProps) {
 
           <Separator />
 
-          {totalTimeline ? (
-            <p className="text-sm text-muted-foreground">
-              Estimated total timeline:{" "}
-              <span className="font-medium text-foreground">{totalTimeline}</span>
-              <span className="ml-2 text-xs">(auto-calculated from timelines above)</span>
-            </p>
+          {(totalProjectCost > 0 || totalTimeline) ? (
+            <div className="flex flex-wrap gap-6 text-sm text-muted-foreground">
+              {totalProjectCost > 0 ? (
+                <p>
+                  Total project cost:{" "}
+                  <span className="font-medium text-foreground">
+                    {new Intl.NumberFormat("en-IN", {
+                      style: "currency",
+                      currency,
+                      minimumFractionDigits: 0,
+                      maximumFractionDigits: 0,
+                    }).format(totalProjectCost)}
+                  </span>
+                </p>
+              ) : null}
+              {totalTimeline ? (
+                <p>
+                  Estimated timeline:{" "}
+                  <span className="font-medium text-foreground">{totalTimeline}</span>
+                </p>
+              ) : null}
+            </div>
           ) : null}
         </CardContent>
       </Card>
