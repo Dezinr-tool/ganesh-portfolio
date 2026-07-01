@@ -166,6 +166,7 @@ export async function PATCH(
         timeline: body.timeline ?? "",
         scopeOfWork: Array.isArray(body.scopeOfWork) ? body.scopeOfWork : [],
         deliverables: Array.isArray(body.deliverables) ? body.deliverables : [],
+        deliverablePhases: Array.isArray(body.deliverablePhases) ? body.deliverablePhases : [],
       });
 
       const agreement = await updateAgreement(id, input, resetSigning);
