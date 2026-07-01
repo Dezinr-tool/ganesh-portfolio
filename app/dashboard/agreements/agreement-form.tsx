@@ -29,6 +29,7 @@ import {
   PAYMENT_STRUCTURE_OPTIONS,
   killFeeClauseText,
   latePaymentClauseText,
+  MILESTONE_PAYMENT_METHOD,
   outOfScopeClauseText,
   normalizeScopeOfWork,
   parseClientEmails,
@@ -74,7 +75,7 @@ function createPhase(index: number): DeliverablePhase {
 }
 
 function createMilestone(): MilestoneItem {
-  return { id: crypto.randomUUID(), name: "", amount: 0, dueOn: "" };
+  return { id: crypto.randomUUID(), name: "", percent: 0, amount: 0, dueOn: "" };
 }
 
 function todayIsoDate(): string {
@@ -925,62 +926,85 @@ export default function AgreementForm({ agreement }: AgreementFormProps) {
                   Add row
                 </Button>
               </div>
-              {milestones.map((item) => (
-                <div
-                  key={item.id}
-                  className="grid gap-3 rounded-lg border border-border p-3 sm:grid-cols-12"
-                >
-                  <div className="space-y-2 sm:col-span-4">
-                    <Label className="sm:sr-only">Milestone name</Label>
-                    <Input
-                      required
-                      placeholder="Milestone name"
-                      value={item.name}
-                      onChange={(e) => updateMilestone(item.id, "name", e.target.value)}
-                    />
+              {/* Column headers */}
+              <div className="hidden grid-cols-12 gap-3 px-1 text-xs font-medium text-muted-foreground sm:grid">
+                <span className="col-span-7">Milestone</span>
+                <span className="col-span-2 text-right">%</span>
+                <span className="col-span-2 text-right">Amount ({currency})</span>
+                <span className="col-span-1" />
+              </div>
+              {milestones.map((item) => {
+                const computedAmount = totalProjectCost > 0
+                  ? Math.round((item.percent / 100) * totalProjectCost)
+                  : item.amount;
+                return (
+                  <div
+                    key={item.id}
+                    className="grid gap-3 rounded-lg border border-border p-3 sm:grid-cols-12 items-center"
+                  >
+                    <div className="space-y-1 sm:col-span-7">
+                      <Label className="text-xs sm:sr-only">Milestone</Label>
+                      <Input
+                        required
+                        placeholder='e.g. "10% Advance (Before project start)"'
+                        value={item.name}
+                        onChange={(e) => updateMilestone(item.id, "name", e.target.value)}
+                      />
+                    </div>
+                    <div className="space-y-1 sm:col-span-2">
+                      <Label className="text-xs sm:sr-only">%</Label>
+                      <Input
+                        type="number"
+                        min="0"
+                        max="100"
+                        step="1"
+                        placeholder="%"
+                        value={item.percent || ""}
+                        onChange={(e) => {
+                          const pct = Number(e.target.value);
+                          const amt = totalProjectCost > 0 ? Math.round((pct / 100) * totalProjectCost) : 0;
+                          setMilestones((items) =>
+                            items.map((m) => m.id === item.id ? { ...m, percent: pct, amount: amt } : m)
+                          );
+                        }}
+                      />
+                    </div>
+                    <div className="sm:col-span-2 text-right text-sm font-medium">
+                      {computedAmount > 0
+                        ? new Intl.NumberFormat("en-IN", { style: "currency", currency, minimumFractionDigits: 0 }).format(computedAmount)
+                        : "—"}
+                    </div>
+                    <div className="flex items-center justify-end sm:col-span-1">
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={() =>
+                          setMilestones((items) =>
+                            items.length === 1 ? items : items.filter((i) => i.id !== item.id),
+                          )
+                        }
+                        disabled={milestones.length === 1}
+                      >
+                        ×
+                      </Button>
+                    </div>
                   </div>
-                  <div className="space-y-2 sm:col-span-3">
-                    <Label className="sm:sr-only">Amount ({currency})</Label>
-                    <Input
-                      type="number"
-                      min="0"
-                      step="0.01"
-                      required
-                      placeholder={`Amount (${currency})`}
-                      value={item.amount || ""}
-                      onChange={(e) =>
-                        updateMilestone(item.id, "amount", Number(e.target.value))
-                      }
-                    />
-                  </div>
-                  <div className="space-y-2 sm:col-span-3">
-                    <Label className="sm:sr-only">Due on</Label>
-                    <Input
-                      required
-                      placeholder='Due on (e.g. "On delivery")'
-                      value={item.dueOn}
-                      onChange={(e) => updateMilestone(item.id, "dueOn", e.target.value)}
-                    />
-                  </div>
-                  <div className="flex items-end sm:col-span-2">
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="sm"
-                      onClick={() =>
-                        setMilestones((items) =>
-                          items.length === 1
-                            ? items
-                            : items.filter((i) => i.id !== item.id),
-                        )
-                      }
-                      disabled={milestones.length === 1}
-                    >
-                      Remove
-                    </Button>
-                  </div>
-                </div>
-              ))}
+                );
+              })}
+              {/* Total + percentage check */}
+              <div className="flex items-center justify-between rounded-lg bg-muted px-3 py-2 text-sm">
+                <span className="font-medium">Total</span>
+                <span className="text-muted-foreground">
+                  {milestones.reduce((s, m) => s + (m.percent || 0), 0)}% ={" "}
+                  <span className="font-semibold text-foreground">
+                    {new Intl.NumberFormat("en-IN", { style: "currency", currency, minimumFractionDigits: 0 }).format(
+                      milestones.reduce((s, m) => s + Math.round((m.percent / 100) * totalProjectCost), 0)
+                    )}
+                  </span>
+                </span>
+              </div>
+              <p className="text-xs text-muted-foreground">{MILESTONE_PAYMENT_METHOD}</p>
             </div>
           ) : null}
 

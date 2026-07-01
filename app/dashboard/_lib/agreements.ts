@@ -89,9 +89,19 @@ export type AgreementStatus = "draft" | "awaiting_client" | "sent" | "signed";
 export type MilestoneItem = {
   id: string;
   name: string;
+  percent: number;
   amount: number;
   dueOn: string;
 };
+
+export const MILESTONE_PAYMENT_INTRO =
+  "Payments are milestone-based and must be received before the commencement of each subsequent phase:";
+
+export const MILESTONE_PAYMENT_METHOD =
+  "Payments to be made via Bank Transfer / UPI / Razorpay. Payment details will be shared separately.";
+
+export const MILESTONE_INVOICE_TERMS =
+  "Invoices will be raised at each milestone. Payment is expected within 3 working days of invoice receipt.";
 
 export function deriveAdvancePercent(
   structure: PaymentStructure,

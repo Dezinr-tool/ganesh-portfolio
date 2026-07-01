@@ -10,9 +10,13 @@ import {
   killFeeClauseText,
   latePaymentClauseText,
   LIMITATION_OF_LIABILITY_TEXT,
+  MILESTONE_INVOICE_TERMS,
+  MILESTONE_PAYMENT_INTRO,
+  MILESTONE_PAYMENT_METHOD,
   outOfScopeClauseText,
   paymentStructureLabel,
   PORTFOLIO_RIGHTS_TEXT,
+  totalDeliverablesCost,
   reviewWindowClauseText,
   scopeHasHours,
   terminationNoticeClauseText,
@@ -256,76 +260,73 @@ export function AgreementDocument({
 
       {/* Payment Terms */}
       <section>
-        <h2 className="text-sm font-bold uppercase tracking-wide">
-          Payment Terms
-        </h2>
-        <div className="mt-4 space-y-2 text-sm">
-          <p className="text-[var(--color-text)]">
-            All amounts in this agreement are in {currency}.
-          </p>
-          <p>
-            <span className="font-semibold">Payment Structure:</span>{" "}
-            {paymentStructureLabel(agreement.paymentStructure)}
-          </p>
-          {agreement.paymentStructure === "custom" &&
-          agreement.customPaymentTerms ? (
-            <p className="whitespace-pre-wrap text-[var(--color-text)]">
-              {agreement.customPaymentTerms}
-            </p>
-          ) : null}
-          {agreement.hourlyRate !== null ? (
-            <p>
-              <span className="font-semibold">Hourly Rate:</span>{" "}
-              {formatCurrency(agreement.hourlyRate, currency)}/hr
-            </p>
-          ) : null}
-          {agreement.fixedCost !== null ? (
-            <p>
-              <span className="font-semibold">Fixed Cost:</span>{" "}
-              {formatCurrency(agreement.fixedCost, currency)}
-            </p>
-          ) : null}
-          {agreement.paymentStructure === "milestone" &&
-          agreement.milestones.length > 0 ? (
-            <table className="mt-4 w-full border-collapse text-sm">
-              <thead>
-                <tr className="border-b-2 border-[var(--color-text)]">
-                  <th className="py-2 pr-4 text-left font-semibold">Milestone</th>
-                  <th className="py-2 pr-4 text-right font-semibold">Amount</th>
-                  <th className="py-2 text-left font-semibold">Due On</th>
-                </tr>
-              </thead>
-              <tbody>
-                {agreement.milestones.map((item) => (
-                  <tr
-                    key={item.id}
-                    className="border-b border-[var(--color-text)]"
-                  >
-                    <td className="py-2.5 pr-4">{item.name}</td>
-                    <td className="py-2.5 pr-4 text-right">
-                      {formatCurrency(item.amount, currency)}
-                    </td>
-                    <td className="py-2.5">{item.dueOn}</td>
+        <h2 className="text-sm font-bold uppercase tracking-wide">Payment Terms</h2>
+        <div className="mt-4 space-y-4 text-sm">
+          {agreement.paymentStructure === "milestone" && agreement.milestones.length > 0 ? (
+            <>
+              <p className="text-[var(--color-text)]">{MILESTONE_PAYMENT_INTRO}</p>
+              <table className="w-full border-collapse text-sm">
+                <thead>
+                  <tr style={{ backgroundColor: "#B22222" }}>
+                    <th className="py-2 px-3 text-left font-semibold text-white">Milestone</th>
+                    <th className="py-2 px-3 text-right font-semibold text-white">Percentage</th>
+                    <th className="py-2 px-3 text-right font-semibold text-white">Amount ({currency})</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          ) : null}
+                </thead>
+                <tbody>
+                  {agreement.milestones.map((item) => (
+                    <tr key={item.id} className="border-b border-[var(--color-text)] border-opacity-10">
+                      <td className="py-2.5 px-3">{item.name}</td>
+                      <td className="py-2.5 px-3 text-right text-muted-foreground">{item.percent}%</td>
+                      <td className="py-2.5 px-3 text-right">{formatCurrency(item.amount, currency)}</td>
+                    </tr>
+                  ))}
+                  <tr className="bg-muted">
+                    <td className="py-2.5 px-3 font-bold">Total Project Cost</td>
+                    <td />
+                    <td className="py-2.5 px-3 text-right font-bold" style={{ color: "#B22222" }}>
+                      {formatCurrency(totalDeliverablesCost(agreement.deliverablePhases ?? []) || agreement.milestones.reduce((s, m) => s + m.amount, 0), currency)}
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+              <p className="text-[var(--color-text)]">{MILESTONE_PAYMENT_METHOD}</p>
+            </>
+          ) : (
+            <>
+              <p>
+                <span className="font-semibold">Payment Structure:</span>{" "}
+                {paymentStructureLabel(agreement.paymentStructure)}
+              </p>
+              {agreement.paymentStructure === "custom" && agreement.customPaymentTerms ? (
+                <p className="whitespace-pre-wrap">{agreement.customPaymentTerms}</p>
+              ) : null}
+              {agreement.hourlyRate !== null ? (
+                <p><span className="font-semibold">Hourly Rate:</span> {formatCurrency(agreement.hourlyRate, currency)}/hr</p>
+              ) : null}
+              {agreement.fixedCost !== null ? (
+                <p><span className="font-semibold">Fixed Cost:</span> {formatCurrency(agreement.fixedCost, currency)}</p>
+              ) : null}
+            </>
+          )}
           {agreement.latePaymentClause ? (
             <p className="text-[var(--color-text)]">
-              {latePaymentClauseText(
-                agreement.latePaymentDays,
-                agreement.latePaymentInterest,
-              )}
+              {latePaymentClauseText(agreement.latePaymentDays, agreement.latePaymentInterest)}
             </p>
           ) : null}
           {agreement.paymentNotes ? (
-            <p className="mt-3 whitespace-pre-wrap text-[var(--color-text)]">
-              {agreement.paymentNotes}
-            </p>
+            <p className="whitespace-pre-wrap text-[var(--color-text)]">{agreement.paymentNotes}</p>
           ) : null}
         </div>
       </section>
+
+      <hr className="my-8 border-[var(--color-text)]" />
+
+      {agreement.paymentStructure === "milestone" ? (
+        <section>
+          <p className="text-sm text-[var(--color-text)]">{MILESTONE_INVOICE_TERMS}</p>
+        </section>
+      ) : null}
 
       <hr className="my-8 border-[var(--color-text)]" />
 

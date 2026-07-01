@@ -10,6 +10,9 @@ import {
   killFeeClauseText,
   latePaymentClauseText,
   LIMITATION_OF_LIABILITY_TEXT,
+  MILESTONE_INVOICE_TERMS,
+  MILESTONE_PAYMENT_INTRO,
+  MILESTONE_PAYMENT_METHOD,
   paymentStructureLabel,
   PORTFOLIO_RIGHTS_TEXT,
   reviewWindowClauseText,
@@ -420,59 +423,78 @@ export function AgreementPdf({
 
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Payment Terms</Text>
-          <Text style={styles.bodyText}>
-            All amounts in this agreement are in {currency}.
-          </Text>
-          <Text style={styles.bodyText}>
-            Payment Structure: {paymentStructureLabel(agreement.paymentStructure)}
-          </Text>
-          {agreement.paymentStructure === "custom" &&
-          agreement.customPaymentTerms ? (
-            <Text style={styles.bodyText}>{agreement.customPaymentTerms}</Text>
-          ) : null}
-          {agreement.hourlyRate !== null ? (
-            <Text style={styles.bodyText}>
-              Hourly Rate: {formatCurrency(agreement.hourlyRate, currency)}/hr
-            </Text>
-          ) : null}
-          {agreement.fixedCost !== null ? (
-            <Text style={styles.bodyText}>
-              Fixed Cost: {formatCurrency(agreement.fixedCost, currency)}
-            </Text>
-          ) : null}
           {agreement.paymentStructure === "milestone" &&
           agreement.milestones.length > 0 ? (
-            <View style={styles.table}>
-              <View style={styles.tableHeaderRow}>
-                <Text style={[styles.th, styles.colMilestone]}>Milestone</Text>
-                <Text style={[styles.th, styles.colAmount]}>Amount</Text>
-                <Text style={[styles.th, styles.colDueOn]}>Due On</Text>
-              </View>
-              {agreement.milestones.map((item) => (
-                <View key={item.id} style={styles.tableRow}>
-                  <Text style={[styles.td, styles.colMilestone]}>
-                    {item.name}
-                  </Text>
-                  <Text style={[styles.td, styles.colAmount]}>
-                    {formatCurrency(item.amount, currency)}
-                  </Text>
-                  <Text style={[styles.td, styles.colDueOn]}>{item.dueOn}</Text>
+            <>
+              <Text style={styles.bodyText}>{MILESTONE_PAYMENT_INTRO}</Text>
+              <View style={styles.table}>
+                {/* Header row */}
+                <View style={[styles.phaseHeaderRow, { marginTop: 8 }]}>
+                  <Text style={[styles.phaseHeaderText, { flex: 3 }]}>Milestone</Text>
+                  <Text style={[styles.phaseHeaderText, { flex: 1, textAlign: "right" }]}>Percentage</Text>
+                  <Text style={[styles.phaseHeaderText, { flex: 1.5, textAlign: "right" }]}>Amount ({currency})</Text>
                 </View>
-              ))}
-            </View>
-          ) : null}
+                {agreement.milestones.map((item) => (
+                  <View key={item.id} style={styles.tableRow}>
+                    <Text style={[styles.td, { flex: 3 }]}>{item.name}</Text>
+                    <Text style={[styles.td, { flex: 1, textAlign: "right" }]}>{item.percent}%</Text>
+                    <Text style={[styles.td, { flex: 1.5, textAlign: "right" }]}>
+                      {formatCurrency(item.amount, currency)}
+                    </Text>
+                  </View>
+                ))}
+                {/* Total row */}
+                <View style={[styles.tableFooterRow]}>
+                  <Text style={[styles.th, { flex: 3 }]}>Total Project Cost</Text>
+                  <Text style={[styles.th, { flex: 1 }]} />
+                  <Text style={[styles.th, { flex: 1.5, textAlign: "right", color: "#B22222" }]}>
+                    {formatCurrency(
+                      totalDeliverablesCost(agreement.deliverablePhases ?? []) ||
+                        agreement.milestones.reduce((s, m) => s + m.amount, 0),
+                      currency,
+                    )}
+                  </Text>
+                </View>
+              </View>
+              <Text style={styles.bodyText}>{MILESTONE_PAYMENT_METHOD}</Text>
+            </>
+          ) : (
+            <>
+              <Text style={styles.bodyText}>
+                Payment Structure: {paymentStructureLabel(agreement.paymentStructure)}
+              </Text>
+              {agreement.paymentStructure === "custom" && agreement.customPaymentTerms ? (
+                <Text style={styles.bodyText}>{agreement.customPaymentTerms}</Text>
+              ) : null}
+              {agreement.hourlyRate !== null ? (
+                <Text style={styles.bodyText}>
+                  Hourly Rate: {formatCurrency(agreement.hourlyRate, currency)}/hr
+                </Text>
+              ) : null}
+              {agreement.fixedCost !== null ? (
+                <Text style={styles.bodyText}>
+                  Fixed Cost: {formatCurrency(agreement.fixedCost, currency)}
+                </Text>
+              ) : null}
+            </>
+          )}
           {agreement.latePaymentClause ? (
             <Text style={styles.bodyText}>
-              {latePaymentClauseText(
-                agreement.latePaymentDays,
-                agreement.latePaymentInterest,
-              )}
+              {latePaymentClauseText(agreement.latePaymentDays, agreement.latePaymentInterest)}
             </Text>
           ) : null}
           {agreement.paymentNotes ? (
             <Text style={styles.bodyText}>{agreement.paymentNotes}</Text>
           ) : null}
         </View>
+
+        <View style={styles.divider} />
+
+        {agreement.paymentStructure === "milestone" ? (
+          <View style={styles.section}>
+            <Text style={styles.bodyText}>{MILESTONE_INVOICE_TERMS}</Text>
+          </View>
+        ) : null}
 
         <View style={styles.divider} />
 
