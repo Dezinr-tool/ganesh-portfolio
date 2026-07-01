@@ -1,5 +1,14 @@
 import type { Agreement } from "@/app/dashboard/_lib/agreements";
 import {
+  Table,
+  TableBody,
+  TableCell,
+  TableFooter,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import {
   DEFAULT_COMMUNICATION_PROTOCOL,
   DEFAULT_EXCLUSIONS,
   DEEMED_ACCEPTANCE_TEXT,
@@ -126,30 +135,28 @@ export function AgreementDocument({
           Scope of Work
         </h2>
         {showScopeHours ? (
-          <table className="mt-4 w-full border-collapse text-sm">
-            <thead>
-              <tr className="border-b-2 border-[var(--color-text)]">
-                <th className="py-2 pr-4 text-left font-semibold">Task</th>
-                <th className="py-2 text-right font-semibold">
-                  Est. Hours (optional)
-                </th>
-              </tr>
-            </thead>
-            <tbody>
+          <Table className="mt-4">
+            <TableHeader>
+              <TableRow>
+                <TableHead>Task</TableHead>
+                <TableHead className="text-right">Est. Hours</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
               {agreement.scopeOfWork.map((item) => (
-                <tr key={item.id} className="border-b border-[var(--color-text)]">
-                  <td className="py-2.5 pr-4">{item.task}</td>
-                  <td className="py-2.5 text-right">{item.hours}</td>
-                </tr>
+                <TableRow key={item.id}>
+                  <TableCell>{item.task}</TableCell>
+                  <TableCell className="text-right">{item.hours}</TableCell>
+                </TableRow>
               ))}
-            </tbody>
-            <tfoot>
-              <tr className="border-t-2 border-[var(--color-text)] font-semibold">
-                <td className="py-2.5 pr-4">Total</td>
-                <td className="py-2.5 text-right">{totalHours}</td>
-              </tr>
-            </tfoot>
-          </table>
+            </TableBody>
+            <TableFooter>
+              <TableRow>
+                <TableCell className="font-semibold">Total</TableCell>
+                <TableCell className="text-right font-semibold">{totalHours}</TableCell>
+              </TableRow>
+            </TableFooter>
+          </Table>
         ) : (
           <ul className="mt-4 list-disc space-y-1.5 pl-5 text-sm">
             {agreement.scopeOfWork.map((item) => (
@@ -167,65 +174,71 @@ export function AgreementDocument({
           Deliverables, Timeline &amp; Cost Breakdown
         </h2>
         {agreement.deliverablePhases?.length > 0 ? (
-          <div className="mt-4 space-y-4">
-            <table className="w-full border-collapse text-sm">
-              <thead>
-                <tr className="border-b-2 border-[var(--color-text)]">
-                  <th className="py-2 pr-3 text-left font-semibold w-6">#</th>
-                  <th className="py-2 pr-3 text-left font-semibold">Deliverable</th>
-                  <th className="py-2 pr-3 text-left font-semibold">Timeline</th>
-                  <th className="py-2 pr-3 text-right font-semibold">Hrs</th>
-                  <th className="py-2 pr-3 text-right font-semibold">Cost</th>
-                  <th className="py-2 text-left font-semibold">Notes</th>
-                </tr>
-              </thead>
-              <tbody>
+          <div className="mt-4 space-y-3">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="w-8">#</TableHead>
+                  <TableHead>Deliverable</TableHead>
+                  <TableHead>Timeline</TableHead>
+                  <TableHead className="text-right">Hrs</TableHead>
+                  <TableHead className="text-right">Cost</TableHead>
+                  <TableHead>Notes</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
                 {agreement.deliverablePhases.map((phase) => (
                   <>
-                    <tr key={phase.id} className="bg-foreground text-background">
-                      <td colSpan={6} className="py-1.5 px-2 text-xs font-bold uppercase tracking-wide">
+                    <TableRow key={phase.id} className="bg-foreground hover:bg-foreground">
+                      <TableCell colSpan={6} className="py-1.5 text-xs font-bold uppercase tracking-wide text-background">
                         {phase.name}
-                      </td>
-                    </tr>
+                      </TableCell>
+                    </TableRow>
                     {phase.items.map((item, idx) => (
-                      <tr key={item.id} className="border-b border-[var(--color-text)] border-opacity-10">
-                        <td className="py-2 pr-3 text-muted-foreground">{idx + 1}</td>
-                        <td className="py-2 pr-3 font-medium">{item.deliverable}</td>
-                        <td className="py-2 pr-3 text-muted-foreground">{item.timeline}</td>
-                        <td className="py-2 pr-3 text-right text-muted-foreground">{item.effortHours ?? ""}</td>
-                        <td className="py-2 pr-3 text-right">{item.cost != null ? new Intl.NumberFormat("en-IN", { style: "currency", currency: agreement.currency ?? "INR", minimumFractionDigits: 0 }).format(item.cost) : ""}</td>
-                        <td className="py-2 text-sm text-muted-foreground">{item.notes}</td>
-                      </tr>
+                      <TableRow key={item.id}>
+                        <TableCell className="text-muted-foreground">{idx + 1}</TableCell>
+                        <TableCell className="font-medium">{item.deliverable}</TableCell>
+                        <TableCell className="text-muted-foreground">{item.timeline}</TableCell>
+                        <TableCell className="text-right text-muted-foreground">{item.effortHours ?? ""}</TableCell>
+                        <TableCell className="text-right">{item.cost != null ? new Intl.NumberFormat("en-IN", { style: "currency", currency: agreement.currency ?? "INR", minimumFractionDigits: 0 }).format(item.cost) : ""}</TableCell>
+                        <TableCell className="text-muted-foreground">{item.notes}</TableCell>
+                      </TableRow>
                     ))}
                   </>
                 ))}
-              </tbody>
-            </table>
-            <p className="text-sm font-semibold">
-              Total Project Cost:{" "}
-              {new Intl.NumberFormat("en-IN", { style: "currency", currency: agreement.currency ?? "INR", minimumFractionDigits: 0 }).format(
-                agreement.deliverablePhases.reduce((sum, p) => sum + p.items.reduce((s, i) => s + (i.cost ?? 0), 0), 0)
-              )}
-              {agreement.totalTimeline ? `  |  Estimated Timeline: ${agreement.totalTimeline}` : ""}
-            </p>
+              </TableBody>
+              <TableFooter>
+                <TableRow>
+                  <TableCell colSpan={4} className="font-semibold">Total Project Cost</TableCell>
+                  <TableCell className="text-right font-semibold">
+                    {new Intl.NumberFormat("en-IN", { style: "currency", currency: agreement.currency ?? "INR", minimumFractionDigits: 0 }).format(
+                      agreement.deliverablePhases.reduce((sum, p) => sum + p.items.reduce((s, i) => s + (i.cost ?? 0), 0), 0)
+                    )}
+                  </TableCell>
+                  <TableCell className="text-muted-foreground text-sm">
+                    {agreement.totalTimeline ? `Est. ${agreement.totalTimeline}` : ""}
+                  </TableCell>
+                </TableRow>
+              </TableFooter>
+            </Table>
           </div>
         ) : (
-          <table className="mt-4 w-full border-collapse text-sm">
-            <thead>
-              <tr className="border-b-2 border-[var(--color-text)]">
-                <th className="py-2 pr-4 text-left font-semibold">Priority</th>
-                <th className="py-2 text-left font-semibold">Deliverable</th>
-              </tr>
-            </thead>
-            <tbody>
+          <Table className="mt-4">
+            <TableHeader>
+              <TableRow>
+                <TableHead>Priority</TableHead>
+                <TableHead>Deliverable</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
               {agreement.deliverables.map((item) => (
-                <tr key={item.id} className="border-b border-[var(--color-text)]">
-                  <td className="py-2.5 pr-4 font-medium">{item.priority}</td>
-                  <td className="py-2.5">{item.item}</td>
-                </tr>
+                <TableRow key={item.id}>
+                  <TableCell className="font-medium">{item.priority}</TableCell>
+                  <TableCell>{item.item}</TableCell>
+                </TableRow>
               ))}
-            </tbody>
-          </table>
+            </TableBody>
+          </Table>
         )}
       </section>
 
@@ -237,33 +250,35 @@ export function AgreementDocument({
         <div className="mt-4 space-y-4 text-sm">
           {agreement.paymentStructure === "milestone" && agreement.milestones.length > 0 ? (
             <>
-              <p className="text-[var(--color-text)]">{MILESTONE_PAYMENT_INTRO}</p>
-              <table className="w-full border-collapse text-sm">
-                <thead>
-                  <tr style={{ backgroundColor: "#B22222" }}>
-                    <th className="py-2 px-3 text-left font-semibold text-white">Milestone</th>
-                    <th className="py-2 px-3 text-right font-semibold text-white">Percentage</th>
-                    <th className="py-2 px-3 text-right font-semibold text-white">Amount ({currency})</th>
-                  </tr>
-                </thead>
-                <tbody>
+              <p className="text-muted-foreground">{MILESTONE_PAYMENT_INTRO}</p>
+              <Table>
+                <TableHeader>
+                  <TableRow style={{ backgroundColor: "#B22222" }} className="hover:bg-[#B22222]">
+                    <TableHead className="text-white font-semibold">Milestone</TableHead>
+                    <TableHead className="text-right text-white font-semibold">Percentage</TableHead>
+                    <TableHead className="text-right text-white font-semibold">Amount ({currency})</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
                   {agreement.milestones.map((item) => (
-                    <tr key={item.id} className="border-b border-[var(--color-text)] border-opacity-10">
-                      <td className="py-2.5 px-3">{item.name}</td>
-                      <td className="py-2.5 px-3 text-right text-muted-foreground">{item.percent}%</td>
-                      <td className="py-2.5 px-3 text-right">{formatCurrency(item.amount, currency)}</td>
-                    </tr>
+                    <TableRow key={item.id}>
+                      <TableCell>{item.name}</TableCell>
+                      <TableCell className="text-right text-muted-foreground">{item.percent}%</TableCell>
+                      <TableCell className="text-right">{formatCurrency(item.amount, currency)}</TableCell>
+                    </TableRow>
                   ))}
-                  <tr className="bg-muted">
-                    <td className="py-2.5 px-3 font-bold">Total Project Cost</td>
-                    <td />
-                    <td className="py-2.5 px-3 text-right font-bold" style={{ color: "#B22222" }}>
+                </TableBody>
+                <TableFooter>
+                  <TableRow>
+                    <TableCell className="font-bold">Total Project Cost</TableCell>
+                    <TableCell />
+                    <TableCell className="text-right font-bold" style={{ color: "#B22222" }}>
                       {formatCurrency(totalDeliverablesCost(agreement.deliverablePhases ?? []) || agreement.milestones.reduce((s, m) => s + m.amount, 0), currency)}
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
-              <p className="text-[var(--color-text)]">{MILESTONE_PAYMENT_METHOD}</p>
+                    </TableCell>
+                  </TableRow>
+                </TableFooter>
+              </Table>
+              <p className="text-muted-foreground">{MILESTONE_PAYMENT_METHOD}</p>
             </>
           ) : (
             <>
