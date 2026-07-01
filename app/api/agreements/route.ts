@@ -60,6 +60,8 @@ export async function POST(request: Request) {
       scopeOfWork: Array.isArray(body.scopeOfWork) ? body.scopeOfWork : [],
       deliverables: Array.isArray(body.deliverables) ? body.deliverables : [],
       deliverablePhases: Array.isArray(body.deliverablePhases) ? body.deliverablePhases : [],
+      exclusions: body.exclusions ?? "",
+      communicationProtocol: body.communicationProtocol ?? "",
     });
     const agreement = await createAgreement(input);
 

@@ -94,6 +94,22 @@ export type MilestoneItem = {
   dueOn: string;
 };
 
+export const DEFAULT_EXCLUSIONS = [
+  "Content writing, product copy beyond UI design requirements",
+  "Design for additional pages or screens not listed in the agreed scope",
+  "Premium stock image or icon purchases (if required, billed separately with prior approval)",
+  "Pre-launch design QA or developer support",
+  "Hosting, domain, or development/engineering work of any kind",
+].join("\n");
+
+export const DEFAULT_COMMUNICATION_PROTOCOL = [
+  "Client feedback must be provided within 48 hours of receiving each milestone deliverable",
+  "All feedback should be consolidated and submitted as a single document or Figma comment thread",
+  "Design files will be shared via Figma (view access by default; edit access upon full payment)",
+  "Primary communication channel: Email / WhatsApp",
+  "Weekly check-in calls can be scheduled upon mutual agreement",
+].join("\n");
+
 export const MILESTONE_PAYMENT_INTRO =
   "Payments are milestone-based and must be received before the commencement of each subsequent phase:";
 
@@ -178,6 +194,8 @@ export type Agreement = {
   advancePercent: number | null;
   paymentNotes: string;
   paymentStructure: PaymentStructure;
+  exclusions: string;
+  communicationProtocol: string;
   customPaymentTerms: string;
   latePaymentClause: boolean;
   latePaymentDays: number;
@@ -307,6 +325,8 @@ export function buildAgreementInput(body: CreateAgreementInput): CreateAgreement
     advancePercent: deriveAdvancePercent(paymentStructure),
     paymentNotes: body.paymentNotes?.trim() ?? "",
     paymentStructure,
+    exclusions: body.exclusions?.trim() ?? DEFAULT_EXCLUSIONS,
+    communicationProtocol: body.communicationProtocol?.trim() ?? DEFAULT_COMMUNICATION_PROTOCOL,
     customPaymentTerms: body.customPaymentTerms?.trim() ?? "",
     latePaymentClause: body.latePaymentClause ?? true,
     latePaymentDays: Number(body.latePaymentDays) || 7,

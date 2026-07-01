@@ -1,25 +1,21 @@
 import type { Agreement } from "@/app/dashboard/_lib/agreements";
 import {
-  CONFIDENTIALITY_TEXT,
+  DEFAULT_COMMUNICATION_PROTOCOL,
+  DEFAULT_EXCLUSIONS,
   DEEMED_ACCEPTANCE_TEXT,
   formatCurrency,
   formatDate,
   formatDateTime,
   formatClientEmails,
-  IP_TRANSFER_TEXT,
-  killFeeClauseText,
   latePaymentClauseText,
-  LIMITATION_OF_LIABILITY_TEXT,
   MILESTONE_INVOICE_TERMS,
   MILESTONE_PAYMENT_INTRO,
   MILESTONE_PAYMENT_METHOD,
   outOfScopeClauseText,
   paymentStructureLabel,
-  PORTFOLIO_RIGHTS_TEXT,
   totalDeliverablesCost,
   reviewWindowClauseText,
   scopeHasHours,
-  terminationNoticeClauseText,
   totalScopeHours,
 } from "@/app/dashboard/_lib/agreements";
 import { DesignTokensScope } from "@/components/design-tokens-scope";
@@ -235,29 +231,6 @@ export function AgreementDocument({
 
       <hr className="my-8 border-[var(--color-text)]" />
 
-      {/* Approval & Acceptance */}
-      <section>
-        <h2 className="text-sm font-bold uppercase tracking-wide">
-          Approval & Acceptance
-        </h2>
-        <ul className="mt-3 list-disc space-y-2 pl-5 text-sm leading-relaxed text-[var(--color-text)]">
-          <li>{reviewWindowClauseText(agreement.reviewWindowDays)}</li>
-          {agreement.deemedAcceptance ? <li>{DEEMED_ACCEPTANCE_TEXT}</li> : null}
-        </ul>
-      </section>
-
-      <hr className="my-8 border-[var(--color-text)]" />
-
-      {/* Timeline */}
-      <section>
-        <h2 className="text-sm font-bold uppercase tracking-wide">Timeline</h2>
-        <p className="mt-3 whitespace-pre-wrap text-sm leading-relaxed text-[var(--color-text)]">
-          {agreement.timeline}
-        </p>
-      </section>
-
-      <hr className="my-8 border-[var(--color-text)]" />
-
       {/* Payment Terms */}
       <section>
         <h2 className="text-sm font-bold uppercase tracking-wide">Payment Terms</h2>
@@ -322,60 +295,161 @@ export function AgreementDocument({
 
       <hr className="my-8 border-[var(--color-text)]" />
 
-      {agreement.paymentStructure === "milestone" ? (
-        <section>
-          <p className="text-sm text-[var(--color-text)]">{MILESTONE_INVOICE_TERMS}</p>
-        </section>
-      ) : null}
-
-      <hr className="my-8 border-[var(--color-text)]" />
-
-      {/* Revision Policy */}
+      {/* Revisions Policy */}
       <section>
-        <h2 className="text-sm font-bold uppercase tracking-wide">
-          Revision Policy
-        </h2>
-        <div className="mt-4 space-y-2 text-sm">
+        <h2 className="text-sm font-bold uppercase tracking-wide">Revisions Policy</h2>
+        <div className="mt-4 space-y-3 text-sm leading-relaxed">
+          <p>Each design phase includes {agreement.revisionsIncluded} rounds of revisions at no additional cost:</p>
+          <ul className="list-disc space-y-1 pl-5">
+            <li>Round 1: Minor direction or layout adjustments within the approved brief</li>
+            <li>Round 2: Refinements based on consolidated feedback</li>
+            {agreement.revisionsIncluded > 2 ? (
+              Array.from({ length: agreement.revisionsIncluded - 2 }, (_, i) => (
+                <li key={i}>Round {i + 3}: Additional revision as agreed</li>
+              ))
+            ) : null}
+          </ul>
           <p>
-            <span className="font-semibold">Revisions included:</span>{" "}
-            {agreement.revisionsIncluded}
+            Additional revision requests beyond the included rounds will be billed at{" "}
+            {agreement.hourlyRate
+              ? formatCurrency(agreement.hourlyRate, currency)
+              : "the designer's standard hourly rate"}
+            /hour. Revision requests must be submitted in a consolidated document; piecemeal feedback may be treated as separate revision rounds.
           </p>
-          {agreement.revisionScopeNote ? (
-            <p className="whitespace-pre-wrap text-[var(--color-text)]">
-              {agreement.revisionScopeNote}
-            </p>
+          {(agreement.deemedAcceptance || agreement.reviewWindowDays) ? (
+            <ul className="list-disc space-y-1 pl-5">
+              <li>{reviewWindowClauseText(agreement.reviewWindowDays)}</li>
+              {agreement.deemedAcceptance ? <li>{DEEMED_ACCEPTANCE_TEXT}</li> : null}
+            </ul>
           ) : null}
         </div>
       </section>
 
-      <hr className="my-8 border-[var(--color-text)]" />
+      <hr className="my-8 border-[var(--color-text)]" style={{ opacity: 0.1 }} />
 
-      {/* Legal Clauses */}
+      {/* Timeline & Delays */}
+      {agreement.totalTimeline ? (
+        <section>
+          <h2 className="text-sm font-bold uppercase tracking-wide">Timeline &amp; Delays</h2>
+          <div className="mt-4 space-y-3 text-sm leading-relaxed">
+            <p>
+              The total estimated project duration is <strong>{agreement.totalTimeline}</strong> from the date of advance payment receipt. The timeline is contingent upon:
+            </p>
+            <ul className="list-disc space-y-1 pl-5">
+              <li>Timely client feedback within 48 hours of each milestone delivery</li>
+              <li>No scope additions or change requests post phase sign-off</li>
+              <li>Advance payment cleared before project kickoff</li>
+            </ul>
+            <p>
+              Any delay caused by late feedback, scope change, or additional requirements will extend the timeline proportionally. The Service Provider will communicate revised timelines in writing.
+            </p>
+          </div>
+        </section>
+      ) : null}
+
+      {agreement.totalTimeline ? <hr className="my-8 border-[var(--color-text)]" style={{ opacity: 0.1 }} /> : null}
+
+      {/* Exclusions */}
+      {(agreement.exclusions ?? DEFAULT_EXCLUSIONS) ? (
+        <section>
+          <h2 className="text-sm font-bold uppercase tracking-wide">Exclusions — What&apos;s Not Included</h2>
+          <ul className="mt-4 list-disc space-y-1 pl-5 text-sm leading-relaxed">
+            {(agreement.exclusions ?? DEFAULT_EXCLUSIONS).split("\n").filter(Boolean).map((item, i) => (
+              <li key={i}>{item}</li>
+            ))}
+          </ul>
+        </section>
+      ) : null}
+
+      <hr className="my-8 border-[var(--color-text)]" style={{ opacity: 0.1 }} />
+
+      {/* Communication & Feedback Protocol */}
+      {(agreement.communicationProtocol ?? DEFAULT_COMMUNICATION_PROTOCOL) ? (
+        <section>
+          <h2 className="text-sm font-bold uppercase tracking-wide">Communication &amp; Feedback Protocol</h2>
+          <p className="mt-4 text-sm">To ensure smooth project delivery:</p>
+          <ul className="mt-2 list-disc space-y-1 pl-5 text-sm leading-relaxed">
+            {(agreement.communicationProtocol ?? DEFAULT_COMMUNICATION_PROTOCOL).split("\n").filter(Boolean).map((item, i) => (
+              <li key={i}>{item}</li>
+            ))}
+          </ul>
+        </section>
+      ) : null}
+
+      <hr className="my-8 border-[var(--color-text)]" style={{ opacity: 0.1 }} />
+
+      {/* Ownership & Intellectual Property */}
+      {(agreement.ipTransfer || agreement.portfolioRights) ? (
+        <section>
+          <h2 className="text-sm font-bold uppercase tracking-wide">Ownership &amp; Intellectual Property</h2>
+          <div className="mt-4 space-y-3 text-sm leading-relaxed">
+            {agreement.ipTransfer ? (
+              <p>
+                Upon receipt of full and final payment, all approved design files, assets, and deliverables become the exclusive property of{" "}
+                {agreement.clientCompany
+                  ? <><strong>{agreement.clientCompany}</strong>{agreement.clientRepresentative ? ` (${agreement.clientRepresentative})` : ""}</>
+                  : <strong>{agreement.clientRepresentative}</strong>
+                }.
+              </p>
+            ) : null}
+            {agreement.portfolioRights ? (
+              <>
+                <p>
+                  The Service Provider retains the right to display the work or a stylised version thereof in their professional portfolio, case studies, or social media, unless otherwise agreed in writing by both parties.
+                </p>
+                <p>Any design concepts not selected or approved remain the intellectual property of the Service Provider.</p>
+              </>
+            ) : null}
+          </div>
+        </section>
+      ) : null}
+
+      {(agreement.ipTransfer || agreement.portfolioRights) ? <hr className="my-8 border-[var(--color-text)]" style={{ opacity: 0.1 }} /> : null}
+
+      {/* Confidentiality */}
+      {agreement.confidentiality ? (
+        <>
+          <section>
+            <h2 className="text-sm font-bold uppercase tracking-wide">Confidentiality</h2>
+            <div className="mt-4 space-y-3 text-sm leading-relaxed">
+              <p>
+                Both parties agree to keep all confidential information — including business strategies, product roadmaps, design files, and any proprietary data — strictly confidential during and after the project engagement.
+              </p>
+              <p>
+                Neither party shall disclose confidential information to any third party without prior written consent from the other party.
+              </p>
+            </div>
+          </section>
+          <hr className="my-8 border-[var(--color-text)]" style={{ opacity: 0.1 }} />
+        </>
+      ) : null}
+
+      {/* Termination Clause */}
       <section>
-        <h2 className="text-sm font-bold uppercase tracking-wide">
-          Legal Clauses
-        </h2>
-        <ul className="mt-3 list-disc space-y-2 pl-5 text-sm leading-relaxed text-[var(--color-text)]">
-          {agreement.ipTransfer ? <li>{IP_TRANSFER_TEXT}</li> : null}
-          {agreement.confidentiality ? <li>{CONFIDENTIALITY_TEXT}</li> : null}
-          {agreement.killFee ? (
-            <li>{killFeeClauseText()}</li>
-          ) : null}
-          {agreement.portfolioRights ? <li>{PORTFOLIO_RIGHTS_TEXT}</li> : null}
-          {agreement.outOfScopeClause ? (
-            <li>
-              {outOfScopeClauseText(agreement.outOfScopeRate, currency)}
-            </li>
-          ) : null}
-          {agreement.limitationOfLiability ? (
-            <li>{LIMITATION_OF_LIABILITY_TEXT}</li>
-          ) : null}
-          <li>{terminationNoticeClauseText(agreement.terminationNoticeDays)}</li>
-          <li>
-            This agreement shall be governed by the laws of{" "}
-            {agreement.governingLaw}.
-          </li>
-        </ul>
+        <h2 className="text-sm font-bold uppercase tracking-wide">Termination Clause</h2>
+        <div className="mt-4 space-y-3 text-sm leading-relaxed">
+          <p>
+            Either party may terminate this agreement with written notice (email constitutes written notice). In the event of termination:
+          </p>
+          <ul className="list-disc space-y-1 pl-5">
+            <li>Payment will be adjusted based on work completed and hours spent up to the date of termination</li>
+            <li>If the project is terminated after the Moodboard or Wireframe phase, the advance will be partially refunded after deducting hours spent at the agreed project rate</li>
+            <li>If the Service Provider terminates the project without cause, the full advance received will be refunded to the Client</li>
+            <li>Work completed and approved up to the termination point remains the property of the Client, subject to proportional payment</li>
+          </ul>
+        </div>
+      </section>
+
+      <hr className="my-8 border-[var(--color-text)]" style={{ opacity: 0.1 }} />
+
+      {/* Governing Law */}
+      <section>
+        <h2 className="text-sm font-bold uppercase tracking-wide">Governing Law</h2>
+        <div className="mt-4 space-y-3 text-sm leading-relaxed">
+          <p>
+            This Agreement shall be governed by and construed in accordance with the laws of India. Any disputes arising out of or in connection with this Agreement shall be subject to the exclusive jurisdiction of the courts in {agreement.governingLaw}.
+          </p>
+        </div>
       </section>
 
       {showSignatures ? (

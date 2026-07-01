@@ -1,0 +1,402 @@
+/* MWG-style h-texts + h-cards — madewithgsap.com */
+
+.value-scroll {
+  position: relative;
+  z-index: 1;
+  isolation: isolate;
+  color: #ffffff;
+  background: #111111;
+  overflow: clip;
+}
+
+/* ── h-texts headline ── */
+
+.value-scroll__text {
+  position: relative;
+  z-index: 1;
+  /* No negative margin — About (fold 2) pins above; -35vh caused fold 3 to overlap early */
+  margin-top: 0;
+  text-align: center;
+}
+
+.value-scroll__text-pin {
+  height: 700vh;
+}
+
+.value-scroll__text-container {
+  display: grid;
+  place-items: center;
+  height: 100vh;
+  overflow: hidden;
+  background: #111111;
+}
+
+.value-scroll__headline {
+  width: 100%;
+  max-width: none;
+  padding: 0 var(--section-px);
+}
+
+.value-scroll__headline--desktop .value-scroll__paragraph {
+  white-space: nowrap;
+  width: 100%;
+  font-size: min(10vw, 7.5rem);
+}
+
+.value-scroll__headline--mobile {
+  display: none;
+}
+
+.value-scroll__paragraph {
+  margin: 0;
+  font-family: var(--font-display);
+  font-weight: 500;
+  line-height: 0.95;
+  letter-spacing: -0.02em;
+  color: #ffffff;
+}
+
+.value-scroll__char {
+  display: inline-block;
+}
+
+.value-scroll__char-inner {
+  display: inline-block;
+  will-change: transform, opacity;
+}
+
+.value-scroll__char-inner.is-char-hidden {
+  display: none;
+}
+
+/* ── h-cards carousel (exact MWG geometry) ── */
+
+.value-scroll__cards {
+  position: relative;
+  z-index: 2;
+  margin-top: -400vh;
+  text-align: center;
+  color: #0a0a0b;
+}
+
+.value-scroll__cards-pin {
+  height: 400vh;
+}
+
+.value-scroll__cards-container {
+  height: 100vh;
+  overflow: hidden;
+}
+
+.value-scroll__circles {
+  position: relative;
+  width: 3675px;
+  aspect-ratio: 1;
+  margin: 50vh 0 0 calc(-1 * (3675px - 100vw) / 2);
+  transform-origin: 50% 50%;
+  will-change: transform;
+}
+
+.value-scroll__circle {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  visibility: hidden;
+  transform-origin: 50% 50%;
+  will-change: transform;
+}
+
+.value-scroll__circle.is-on {
+  visibility: visible;
+}
+
+.value-scroll__media {
+  --value-card-width: min(100%, 338px);
+  --value-card-height: calc(var(--value-card-width) / 0.85);
+  position: relative;
+  width: var(--value-card-width);
+  height: var(--value-card-height);
+  margin: 0 auto;
+  margin-top: calc(var(--value-card-height) * -0.54);
+  padding: 0;
+  transform: none;
+  contain: layout style;
+}
+
+/* Frosted shell — separate layer, no text inside (Safari clip bug fix) */
+.value-scroll__media-glass {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  border-radius: 1.375rem;
+  pointer-events: none;
+  background:
+    linear-gradient(
+      180deg,
+      rgb(17 17 17 / 0) 48%,
+      rgb(17 17 17 / 0.28) 68%,
+      rgb(17 17 17 / 0.72) 84%,
+      #111111 100%
+    ),
+    linear-gradient(
+      145deg,
+      rgb(255 255 255 / 0.22) 0%,
+      rgb(255 255 255 / 0.06) 42%,
+      rgb(255 255 255 / 0.02) 100%
+    );
+  border: 1px solid rgb(255 255 255 / 0.22);
+  border-bottom-color: transparent;
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.55),
+    0 28px 56px rgb(0 0 0 / 0.45),
+    0 8px 24px rgb(0 0 0 / 0.28);
+  backdrop-filter: blur(48px) saturate(160%) brightness(1.08);
+  -webkit-backdrop-filter: blur(48px) saturate(160%) brightness(1.08);
+}
+
+.value-scroll__media--mint .value-scroll__media-glass {
+  background:
+    linear-gradient(180deg, rgb(17 17 17 / 0) 58%, rgb(17 17 17 / 0.35) 82%, #111111 100%),
+    radial-gradient(120% 90% at 50% 0%, rgb(113 207 163 / 0.35), transparent 68%),
+    linear-gradient(145deg, rgb(255 255 255 / 0.22) 0%, rgb(255 255 255 / 0.06) 42%, rgb(255 255 255 / 0.02) 100%);
+}
+
+.value-scroll__media--yellow .value-scroll__media-glass {
+  background:
+    linear-gradient(180deg, rgb(17 17 17 / 0) 58%, rgb(17 17 17 / 0.35) 82%, #111111 100%),
+    radial-gradient(120% 90% at 50% 0%, rgb(255 196 90 / 0.32), transparent 68%),
+    linear-gradient(145deg, rgb(255 255 255 / 0.22) 0%, rgb(255 255 255 / 0.06) 42%, rgb(255 255 255 / 0.02) 100%);
+}
+
+.value-scroll__media--sky .value-scroll__media-glass {
+  background:
+    linear-gradient(180deg, rgb(17 17 17 / 0) 58%, rgb(17 17 17 / 0.35) 82%, #111111 100%),
+    radial-gradient(120% 90% at 50% 0%, rgb(120 210 255 / 0.34), transparent 68%),
+    linear-gradient(145deg, rgb(255 255 255 / 0.22) 0%, rgb(255 255 255 / 0.06) 42%, rgb(255 255 255 / 0.02) 100%);
+}
+
+.value-scroll__media--grey .value-scroll__media-glass {
+  background:
+    linear-gradient(180deg, rgb(17 17 17 / 0) 58%, rgb(17 17 17 / 0.35) 82%, #111111 100%),
+    radial-gradient(120% 90% at 50% 0%, rgb(255 255 255 / 0.18), transparent 68%),
+    linear-gradient(145deg, rgb(255 255 255 / 0.22) 0%, rgb(255 255 255 / 0.06) 42%, rgb(255 255 255 / 0.02) 100%);
+}
+
+/* Text layer — hard clip so copy never bleeds across fanned cards (WebKit) */
+.value-scroll__media-inner {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border-radius: 1.375rem;
+  clip-path: inset(0 round 1.375rem);
+  -webkit-clip-path: inset(0 round 1.375rem);
+  contain: paint;
+  text-align: center;
+}
+
+.value-scroll__card-content {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  margin-top: auto;
+  padding: 1.25rem 1.35rem 1.75rem;
+  text-align: center;
+  background: linear-gradient(
+    180deg,
+    rgb(17 17 17 / 0) 0%,
+    rgb(17 17 17 / 0.42) 32%,
+    rgb(17 17 17 / 0.78) 68%,
+    #111111 100%
+  );
+}
+
+.value-scroll__card-title {
+  position: relative;
+  z-index: 2;
+  margin: 0;
+  padding: 2rem 1.35rem 0;
+  font-family: var(--font-display);
+  font-size: clamp(1.65rem, 2.2vw, 2.125rem);
+  font-weight: 600;
+  line-height: 1.08;
+  letter-spacing: -0.03em;
+  color: #ffffff;
+  text-shadow: 0 1px 3px rgb(0 0 0 / 0.4);
+  overflow-wrap: anywhere;
+}
+
+.value-scroll__card-index {
+  position: absolute;
+  z-index: 1;
+  top: 50%;
+  left: 50%;
+  width: 100%;
+  font-family: var(--font-display);
+  font-size: clamp(5.5rem, 12vw, 7.5rem);
+  line-height: 1;
+  opacity: 0.07;
+  pointer-events: none;
+  color: #ffffff;
+  transform: translate(-50%, -58%);
+  user-select: none;
+}
+
+.value-scroll__card-body {
+  margin: 0;
+  padding: 0;
+  font-size: 0.9375rem;
+  line-height: 1.55;
+  font-weight: 400;
+  color: rgb(255 255 255 / 0.94);
+  text-shadow: 0 1px 3px rgb(0 0 0 / 0.45);
+}
+
+/* ── Mobile ── */
+
+@media (max-width: 56.25rem) {
+  .value-scroll__text {
+    margin-top: 0;
+  }
+
+  .value-scroll__text-pin {
+    height: auto;
+  }
+
+  .value-scroll__text-container {
+    height: auto;
+    padding: 9.375rem 0;
+  }
+
+  .value-scroll__headline--desktop {
+    display: none;
+  }
+
+  .value-scroll__headline--mobile {
+    display: block;
+  }
+
+  .value-scroll__paragraph {
+    font-size: clamp(1.75rem, 8vw, 3rem);
+    white-space: normal;
+  }
+
+  .value-scroll__paragraph--accent {
+    color: rgb(255 255 255 / 0.45);
+  }
+
+  .value-scroll__cards {
+    margin-top: 0;
+  }
+
+  .value-scroll__cards-pin {
+    height: auto;
+  }
+
+  .value-scroll__cards-container {
+    width: 100%;
+    height: auto;
+    overflow: auto;
+    scroll-snap-type: x mandatory;
+    padding: 0 var(--section-px) clamp(4rem, 12vw, 6rem);
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  .value-scroll__cards-container::-webkit-scrollbar {
+    display: none;
+  }
+
+  .value-scroll__circles {
+    display: flex;
+    width: max-content;
+    gap: 1rem;
+    margin: 0;
+    aspect-ratio: auto;
+    white-space: nowrap;
+  }
+
+  .value-scroll__circle {
+    position: relative;
+    width: auto;
+    height: auto;
+    visibility: visible;
+    transform: none !important;
+  }
+
+  .value-scroll__media {
+    --value-card-width: min(calc(100vw - 2 * var(--section-px) - 15px), 338px);
+    margin-top: 0;
+    transform: none;
+    white-space: normal;
+    scroll-snap-align: center;
+  }
+
+  .value-scroll__card-title {
+    padding: 1.75rem 1.25rem 0;
+  }
+
+  .value-scroll__card-content {
+    padding: 1rem 1.25rem 1.5rem;
+  }
+
+  .value-scroll__card-body {
+    font-size: 0.9375rem;
+    line-height: 1.52;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .value-scroll__text {
+    margin-top: 0;
+  }
+
+  .value-scroll__text-pin,
+  .value-scroll__cards-pin {
+    height: auto;
+  }
+
+  .value-scroll__text-container,
+  .value-scroll__cards-container {
+    height: auto;
+    padding: var(--section-py) var(--section-px);
+  }
+
+  .value-scroll__cards {
+    margin-top: 0;
+  }
+
+  .value-scroll__circles {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
+    width: 100%;
+    margin: 0;
+    gap: 1rem;
+  }
+
+  .value-scroll__circle {
+    position: relative;
+    visibility: visible;
+    transform: none !important;
+  }
+
+  .value-scroll__media {
+    --value-card-width: 100%;
+    margin-top: 0;
+    transform: none;
+  }
+}
+
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .value-scroll__media-glass {
+    background:
+      linear-gradient(180deg, rgb(17 17 17 / 0) 48%, rgb(17 17 17 / 0.72) 84%, #111111 100%),
+      rgb(28 28 32 / 0.88);
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+}

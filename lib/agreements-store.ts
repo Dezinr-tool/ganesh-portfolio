@@ -9,6 +9,8 @@ import {
   type PaymentStructure,
   type ScopeOfWorkItem,
   DEFAULT_GOVERNING_LAW,
+  DEFAULT_EXCLUSIONS,
+  DEFAULT_COMMUNICATION_PROTOCOL,
 } from "@/app/dashboard/_lib/agreements";
 import {
   parseClientEmails,
@@ -59,6 +61,8 @@ type AgreementRow = {
   termination_notice_days: number | null;
   currency: string | null;
   governing_law: string;
+  exclusions: string | null;
+  communication_protocol: string | null;
   status: string;
   ganesh_signature: string | null;
   client_signature: string | null;
@@ -135,6 +139,8 @@ function rowToAgreement(row: AgreementRow): Agreement {
     terminationNoticeDays: row.termination_notice_days ?? 7,
     currency: (row.currency ?? "INR") as AgreementCurrency,
     governingLaw: row.governing_law,
+    exclusions: row.exclusions ?? DEFAULT_EXCLUSIONS,
+    communicationProtocol: row.communication_protocol ?? DEFAULT_COMMUNICATION_PROTOCOL,
     status: row.status as AgreementStatus,
     ganeshSignature: row.ganesh_signature,
     clientSignature: row.client_signature,
@@ -223,6 +229,8 @@ export async function readAgreements(): Promise<Agreement[]> {
       termination_notice_days,
       currency,
       governing_law,
+      exclusions,
+      communication_protocol,
       status,
       ganesh_signature,
       client_signature,
@@ -281,6 +289,8 @@ export async function getAgreementById(id: string): Promise<Agreement | null> {
       termination_notice_days,
       currency,
       governing_law,
+      exclusions,
+      communication_protocol,
       status,
       ganesh_signature,
       client_signature,
@@ -343,6 +353,8 @@ export async function getAgreementByToken(
       termination_notice_days,
       currency,
       governing_law,
+      exclusions,
+      communication_protocol,
       status,
       ganesh_signature,
       client_signature,
@@ -407,7 +419,9 @@ export async function createAgreement(
       limitation_of_liability,
       termination_notice_days,
       currency,
-      governing_law
+      governing_law,
+      exclusions,
+      communication_protocol
     ) VALUES (
       ${id},
       ${input.title},
@@ -449,7 +463,9 @@ export async function createAgreement(
       ${normalized.limitationOfLiability},
       ${normalized.terminationNoticeDays},
       ${normalized.currency},
-      ${normalized.governingLaw}
+      ${normalized.governingLaw},
+      ${input.exclusions ?? null},
+      ${input.communicationProtocol ?? null}
     )
     RETURNING
       id,
@@ -493,6 +509,8 @@ export async function createAgreement(
       termination_notice_days,
       currency,
       governing_law,
+      exclusions,
+      communication_protocol,
       status,
       ganesh_signature,
       client_signature,
@@ -560,6 +578,8 @@ export async function signAsGanesh(
       termination_notice_days,
       currency,
       governing_law,
+      exclusions,
+      communication_protocol,
       status,
       ganesh_signature,
       client_signature,
@@ -627,6 +647,8 @@ export async function sendToClient(
       termination_notice_days,
       currency,
       governing_law,
+      exclusions,
+      communication_protocol,
       status,
       ganesh_signature,
       client_signature,
@@ -694,6 +716,8 @@ export async function signAsClient(
       termination_notice_days,
       currency,
       governing_law,
+      exclusions,
+      communication_protocol,
       status,
       ganesh_signature,
       client_signature,
@@ -768,6 +792,8 @@ export async function updateAgreement(
         termination_notice_days = ${normalized.terminationNoticeDays},
         currency = ${normalized.currency},
         governing_law = ${normalized.governingLaw},
+        exclusions = ${input.exclusions ?? null},
+        communication_protocol = ${input.communicationProtocol ?? null},
         client_sign_token = NULL,
         ganesh_signed_at = NULL,
         ganesh_signature = NULL,
@@ -814,6 +840,8 @@ export async function updateAgreement(
         termination_notice_days,
         currency,
         governing_law,
+      exclusions,
+      communication_protocol,
         status,
         ganesh_signature,
         client_signature,
@@ -869,7 +897,9 @@ export async function updateAgreement(
       limitation_of_liability = ${normalized.limitationOfLiability},
       termination_notice_days = ${normalized.terminationNoticeDays},
       currency = ${normalized.currency},
-      governing_law = ${normalized.governingLaw}
+      governing_law = ${normalized.governingLaw},
+      exclusions = ${input.exclusions ?? null},
+      communication_protocol = ${input.communicationProtocol ?? null}
     WHERE id = ${id}
       AND status IN ('draft', 'awaiting_client')
     RETURNING
@@ -914,6 +944,8 @@ export async function updateAgreement(
       termination_notice_days,
       currency,
       governing_law,
+      exclusions,
+      communication_protocol,
       status,
       ganesh_signature,
       client_signature,
@@ -979,6 +1011,8 @@ export async function updateClientEmail(
       termination_notice_days,
       currency,
       governing_law,
+      exclusions,
+      communication_protocol,
       status,
       ganesh_signature,
       client_signature,

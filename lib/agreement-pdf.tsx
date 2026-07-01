@@ -1,23 +1,19 @@
 import { Document, Image, Page, StyleSheet, Text, View } from "@react-pdf/renderer";
 import type { Agreement, AgreementCurrency } from "@/app/dashboard/_lib/agreements";
 import {
-  CONFIDENTIALITY_TEXT,
+  DEFAULT_COMMUNICATION_PROTOCOL,
+  DEFAULT_EXCLUSIONS,
   DEEMED_ACCEPTANCE_TEXT,
   formatDate,
   formatDateTime,
   formatClientEmails,
-  IP_TRANSFER_TEXT,
-  killFeeClauseText,
   latePaymentClauseText,
-  LIMITATION_OF_LIABILITY_TEXT,
   MILESTONE_INVOICE_TERMS,
   MILESTONE_PAYMENT_INTRO,
   MILESTONE_PAYMENT_METHOD,
   paymentStructureLabel,
-  PORTFOLIO_RIGHTS_TEXT,
   reviewWindowClauseText,
   scopeHasHours,
-  terminationNoticeClauseText,
   totalDeliverablesCost,
   totalScopeHours,
 } from "@/app/dashboard/_lib/agreements";
@@ -397,31 +393,6 @@ export function AgreementPdf({
         <View style={styles.divider} />
 
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Approval &amp; Acceptance</Text>
-          <View style={styles.bullet}>
-            <Text style={styles.bulletDot}>•</Text>
-            <Text style={styles.bulletText}>
-              {reviewWindowClauseText(agreement.reviewWindowDays)}
-            </Text>
-          </View>
-          {agreement.deemedAcceptance ? (
-            <View style={styles.bullet}>
-              <Text style={styles.bulletDot}>•</Text>
-              <Text style={styles.bulletText}>{DEEMED_ACCEPTANCE_TEXT}</Text>
-            </View>
-          ) : null}
-        </View>
-
-        <View style={styles.divider} />
-
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Timeline</Text>
-          <Text style={styles.bodyText}>{agreement.timeline}</Text>
-        </View>
-
-        <View style={styles.divider} />
-
-        <View style={styles.section}>
           <Text style={styles.sectionTitle}>Payment Terms</Text>
           {agreement.paymentStructure === "milestone" &&
           agreement.milestones.length > 0 ? (
@@ -490,83 +461,181 @@ export function AgreementPdf({
 
         <View style={styles.divider} />
 
-        {agreement.paymentStructure === "milestone" ? (
-          <View style={styles.section}>
-            <Text style={styles.bodyText}>{MILESTONE_INVOICE_TERMS}</Text>
-          </View>
-        ) : null}
-
-        <View style={styles.divider} />
-
+        {/* Revisions Policy */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Revision Policy</Text>
+          <Text style={styles.sectionTitle}>Revisions Policy</Text>
           <Text style={styles.bodyText}>
-            Revisions included: {agreement.revisionsIncluded}
+            Each design phase includes {agreement.revisionsIncluded} rounds of revisions at no additional cost:
           </Text>
-          {agreement.revisionScopeNote ? (
-            <Text style={styles.bodyText}>{agreement.revisionScopeNote}</Text>
+          <View style={styles.bullet}>
+            <Text style={styles.bulletDot}>•</Text>
+            <Text style={styles.bulletText}>Round 1: Minor direction or layout adjustments within the approved brief</Text>
+          </View>
+          <View style={styles.bullet}>
+            <Text style={styles.bulletDot}>•</Text>
+            <Text style={styles.bulletText}>Round 2: Refinements based on consolidated feedback</Text>
+          </View>
+          {agreement.revisionsIncluded > 2
+            ? Array.from({ length: agreement.revisionsIncluded - 2 }, (_, i) => (
+                <View key={i} style={styles.bullet}>
+                  <Text style={styles.bulletDot}>•</Text>
+                  <Text style={styles.bulletText}>Round {i + 3}: Additional revision as agreed</Text>
+                </View>
+              ))
+            : null}
+          <Text style={styles.bodyText}>
+            Additional revision requests beyond the included rounds will be billed at{" "}
+            {agreement.hourlyRate
+              ? `${formatCurrency(agreement.hourlyRate, currency)}/hour`
+              : "the designer's standard hourly rate"}
+            . Revision requests must be submitted in a consolidated document; piecemeal feedback may be treated as separate revision rounds.
+          </Text>
+          <View style={styles.bullet}>
+            <Text style={styles.bulletDot}>•</Text>
+            <Text style={styles.bulletText}>{reviewWindowClauseText(agreement.reviewWindowDays)}</Text>
+          </View>
+          {agreement.deemedAcceptance ? (
+            <View style={styles.bullet}>
+              <Text style={styles.bulletDot}>•</Text>
+              <Text style={styles.bulletText}>{DEEMED_ACCEPTANCE_TEXT}</Text>
+            </View>
           ) : null}
         </View>
 
         <View style={styles.divider} />
 
+        {/* Timeline & Delays */}
+        {agreement.totalTimeline ? (
+          <>
+            <View style={styles.section}>
+              <Text style={styles.sectionTitle}>Timeline &amp; Delays</Text>
+              <Text style={styles.bodyText}>
+                The total estimated project duration is {agreement.totalTimeline} from the date of advance payment receipt. The timeline is contingent upon:
+              </Text>
+              <View style={styles.bullet}>
+                <Text style={styles.bulletDot}>•</Text>
+                <Text style={styles.bulletText}>Timely client feedback within 48 hours of each milestone delivery</Text>
+              </View>
+              <View style={styles.bullet}>
+                <Text style={styles.bulletDot}>•</Text>
+                <Text style={styles.bulletText}>No scope additions or change requests post phase sign-off</Text>
+              </View>
+              <View style={styles.bullet}>
+                <Text style={styles.bulletDot}>•</Text>
+                <Text style={styles.bulletText}>Advance payment cleared before project kickoff</Text>
+              </View>
+              <Text style={styles.bodyText}>
+                Any delay caused by late feedback, scope change, or additional requirements will extend the timeline proportionally. The Service Provider will communicate revised timelines in writing.
+              </Text>
+            </View>
+            <View style={styles.divider} />
+          </>
+        ) : null}
+
+        {/* Exclusions */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Legal Clauses</Text>
-          {agreement.ipTransfer ? (
-            <View style={styles.bullet}>
+          <Text style={styles.sectionTitle}>Exclusions — What's Not Included</Text>
+          {(agreement.exclusions ?? DEFAULT_EXCLUSIONS).split("\n").filter(Boolean).map((item, i) => (
+            <View key={i} style={styles.bullet}>
               <Text style={styles.bulletDot}>•</Text>
-              <Text style={styles.bulletText}>{IP_TRANSFER_TEXT}</Text>
+              <Text style={styles.bulletText}>{item}</Text>
             </View>
-          ) : null}
-          {agreement.confidentiality ? (
-            <View style={styles.bullet}>
+          ))}
+        </View>
+
+        <View style={styles.divider} />
+
+        {/* Communication & Feedback Protocol */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Communication &amp; Feedback Protocol</Text>
+          <Text style={styles.bodyText}>To ensure smooth project delivery:</Text>
+          {(agreement.communicationProtocol ?? DEFAULT_COMMUNICATION_PROTOCOL).split("\n").filter(Boolean).map((item, i) => (
+            <View key={i} style={styles.bullet}>
               <Text style={styles.bulletDot}>•</Text>
-              <Text style={styles.bulletText}>{CONFIDENTIALITY_TEXT}</Text>
+              <Text style={styles.bulletText}>{item}</Text>
             </View>
-          ) : null}
-          {agreement.killFee ? (
-            <View style={styles.bullet}>
-              <Text style={styles.bulletDot}>•</Text>
-              <Text style={styles.bulletText}>
-                {killFeeClauseText()}
+          ))}
+        </View>
+
+        <View style={styles.divider} />
+
+        {/* Ownership & Intellectual Property */}
+        {(agreement.ipTransfer || agreement.portfolioRights) ? (
+          <>
+            <View style={styles.section}>
+              <Text style={styles.sectionTitle}>Ownership &amp; Intellectual Property</Text>
+              {agreement.ipTransfer ? (
+                <Text style={styles.bodyText}>
+                  Upon receipt of full and final payment, all approved design files, assets, and deliverables become the exclusive property of{" "}
+                  {agreement.clientCompany
+                    ? `${agreement.clientCompany}${agreement.clientRepresentative ? ` (${agreement.clientRepresentative})` : ""}`
+                    : agreement.clientRepresentative}
+                  .
+                </Text>
+              ) : null}
+              {agreement.portfolioRights ? (
+                <>
+                  <Text style={styles.bodyText}>
+                    The Service Provider retains the right to display the work or a stylised version thereof in their professional portfolio, case studies, or social media, unless otherwise agreed in writing by both parties.
+                  </Text>
+                  <Text style={styles.bodyText}>
+                    Any design concepts not selected or approved remain the intellectual property of the Service Provider.
+                  </Text>
+                </>
+              ) : null}
+            </View>
+            <View style={styles.divider} />
+          </>
+        ) : null}
+
+        {/* Confidentiality */}
+        {agreement.confidentiality ? (
+          <>
+            <View style={styles.section}>
+              <Text style={styles.sectionTitle}>Confidentiality</Text>
+              <Text style={styles.bodyText}>
+                Both parties agree to keep all confidential information — including business strategies, product roadmaps, design files, and any proprietary data — strictly confidential during and after the project engagement.
+              </Text>
+              <Text style={styles.bodyText}>
+                Neither party shall disclose confidential information to any third party without prior written consent from the other party.
               </Text>
             </View>
-          ) : null}
-          {agreement.portfolioRights ? (
-            <View style={styles.bullet}>
-              <Text style={styles.bulletDot}>•</Text>
-              <Text style={styles.bulletText}>{PORTFOLIO_RIGHTS_TEXT}</Text>
-            </View>
-          ) : null}
-          {agreement.outOfScopeClause ? (
-            <View style={styles.bullet}>
-              <Text style={styles.bulletDot}>•</Text>
-              <Text style={styles.bulletText}>
-                {outOfScopeClauseText(agreement.outOfScopeRate, currency)}
-              </Text>
-            </View>
-          ) : null}
-          {agreement.limitationOfLiability ? (
-            <View style={styles.bullet}>
-              <Text style={styles.bulletDot}>•</Text>
-              <Text style={styles.bulletText}>
-                {LIMITATION_OF_LIABILITY_TEXT}
-              </Text>
-            </View>
-          ) : null}
+            <View style={styles.divider} />
+          </>
+        ) : null}
+
+        {/* Termination Clause */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Termination Clause</Text>
+          <Text style={styles.bodyText}>
+            Either party may terminate this agreement with written notice (email constitutes written notice). In the event of termination:
+          </Text>
           <View style={styles.bullet}>
             <Text style={styles.bulletDot}>•</Text>
-            <Text style={styles.bulletText}>
-              {terminationNoticeClauseText(agreement.terminationNoticeDays)}
-            </Text>
+            <Text style={styles.bulletText}>Payment will be adjusted based on work completed and hours spent up to the date of termination</Text>
           </View>
           <View style={styles.bullet}>
             <Text style={styles.bulletDot}>•</Text>
-            <Text style={styles.bulletText}>
-              This agreement shall be governed by the laws of{" "}
-              {agreement.governingLaw}.
-            </Text>
+            <Text style={styles.bulletText}>If the project is terminated after the Moodboard or Wireframe phase, the advance will be partially refunded after deducting hours spent at the agreed project rate</Text>
           </View>
+          <View style={styles.bullet}>
+            <Text style={styles.bulletDot}>•</Text>
+            <Text style={styles.bulletText}>If the Service Provider terminates the project without cause, the full advance received will be refunded to the Client</Text>
+          </View>
+          <View style={styles.bullet}>
+            <Text style={styles.bulletDot}>•</Text>
+            <Text style={styles.bulletText}>Work completed and approved up to the termination point remains the property of the Client, subject to proportional payment</Text>
+          </View>
+        </View>
+
+        <View style={styles.divider} />
+
+        {/* Governing Law */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Governing Law</Text>
+          <Text style={styles.bodyText}>
+            This Agreement shall be governed by and construed in accordance with the laws of India. Any disputes arising out of or in connection with this Agreement shall be subject to the exclusive jurisdiction of the courts in {agreement.governingLaw}.
+          </Text>
         </View>
 
         <View style={styles.divider} />

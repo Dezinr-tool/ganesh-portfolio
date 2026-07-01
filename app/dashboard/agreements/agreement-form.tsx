@@ -23,6 +23,8 @@ import {
   CURRENCY_OPTIONS,
   DEFAULT_GOVERNING_LAW,
   DEFAULT_REVISION_SCOPE_NOTE,
+  DEFAULT_EXCLUSIONS,
+  DEFAULT_COMMUNICATION_PROTOCOL,
   IP_TRANSFER_TEXT,
   LIMITATION_OF_LIABILITY_TEXT,
   PORTFOLIO_RIGHTS_TEXT,
@@ -84,9 +86,10 @@ function todayIsoDate(): string {
 
 type AgreementFormProps = {
   agreement?: Agreement;
+  defaultHourlyRate?: number;
 };
 
-export default function AgreementForm({ agreement }: AgreementFormProps) {
+export default function AgreementForm({ agreement, defaultHourlyRate }: AgreementFormProps) {
   const isEdit = Boolean(agreement);
   const router = useRouter();
   const needsInvalidateWarning =
@@ -143,9 +146,11 @@ export default function AgreementForm({ agreement }: AgreementFormProps) {
     return total % 1 === 0 ? `${total} Weeks` : `${total} Weeks`;
   }, [deliverablePhases]);
   const [timeline, setTimeline] = useState(agreement?.timeline ?? "");
-  const [hourlyRate, setHourlyRate] = useState(
-    agreement?.hourlyRate != null ? String(agreement.hourlyRate) : "",
-  );
+  const [hourlyRate, setHourlyRate] = useState(() => {
+    if (agreement?.hourlyRate != null) return String(agreement.hourlyRate);
+    if (defaultHourlyRate != null && defaultHourlyRate > 0) return String(defaultHourlyRate);
+    return "";
+  });
   const [fixedCost, setFixedCost] = useState(
     agreement?.fixedCost != null ? String(agreement.fixedCost) : "",
   );
@@ -206,6 +211,12 @@ export default function AgreementForm({ agreement }: AgreementFormProps) {
   );
   const [governingLaw, setGoverningLaw] = useState(
     agreement?.governingLaw ?? DEFAULT_GOVERNING_LAW,
+  );
+  const [exclusions, setExclusions] = useState(
+    agreement?.exclusions ?? DEFAULT_EXCLUSIONS,
+  );
+  const [communicationProtocol, setCommunicationProtocol] = useState(
+    agreement?.communicationProtocol ?? DEFAULT_COMMUNICATION_PROTOCOL,
   );
   const [confirmInvalidate, setConfirmInvalidate] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -270,6 +281,8 @@ export default function AgreementForm({ agreement }: AgreementFormProps) {
       limitationOfLiability,
       terminationNoticeDays: Number(terminationNoticeDays) || 7,
       governingLaw,
+      exclusions,
+      communicationProtocol,
       isDraft,
     };
   }
@@ -835,62 +848,6 @@ export default function AgreementForm({ agreement }: AgreementFormProps) {
         </CardContent>
       </Card>
 
-      {/* Payment */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Payment</CardTitle>
-        </CardHeader>
-        <CardContent className="grid gap-4 sm:grid-cols-2">
-          <div className="space-y-2">
-            <Label htmlFor="currency">Currency</Label>
-            <select
-              id="currency"
-              value={currency}
-              onChange={(e) => setCurrency(e.target.value as AgreementCurrency)}
-              className={selectClassName}
-            >
-              {CURRENCY_OPTIONS.map((option) => (
-                <option key={option.value} value={option.value}>
-                  {option.label}
-                </option>
-              ))}
-            </select>
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="hourlyRate">Hourly rate (optional)</Label>
-            <Input
-              id="hourlyRate"
-              type="number"
-              min="0"
-              step="0.01"
-              value={hourlyRate}
-              onChange={(e) => setHourlyRate(e.target.value)}
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="fixedCost">Fixed cost (optional)</Label>
-            <Input
-              id="fixedCost"
-              type="number"
-              min="0"
-              step="0.01"
-              value={fixedCost}
-              onChange={(e) => setFixedCost(e.target.value)}
-            />
-          </div>
-          <div className="space-y-2 sm:col-span-2">
-            <Label htmlFor="paymentNotes">Payment notes (optional)</Label>
-            <Textarea
-              id="paymentNotes"
-              rows={3}
-              value={paymentNotes}
-              onChange={(e) => setPaymentNotes(e.target.value)}
-              placeholder="Bank details, payment schedule, etc."
-            />
-          </div>
-        </CardContent>
-      </Card>
-
       {/* Payment terms */}
       <Card>
         <CardHeader>
@@ -1227,6 +1184,34 @@ export default function AgreementForm({ agreement }: AgreementFormProps) {
               id="governingLaw"
               value={governingLaw}
               onChange={(e) => setGoverningLaw(e.target.value)}
+            />
+          </div>
+
+          <Separator />
+
+          {/* Exclusions */}
+          <div className="space-y-2">
+            <Label htmlFor="exclusions">Exclusions — What&apos;s Not Included</Label>
+            <p className="text-xs text-muted-foreground">One item per line</p>
+            <Textarea
+              id="exclusions"
+              rows={6}
+              value={exclusions}
+              onChange={(e) => setExclusions(e.target.value)}
+            />
+          </div>
+
+          <Separator />
+
+          {/* Communication protocol */}
+          <div className="space-y-2">
+            <Label htmlFor="communicationProtocol">Communication &amp; Feedback Protocol</Label>
+            <p className="text-xs text-muted-foreground">One item per line</p>
+            <Textarea
+              id="communicationProtocol"
+              rows={6}
+              value={communicationProtocol}
+              onChange={(e) => setCommunicationProtocol(e.target.value)}
             />
           </div>
         </CardContent>

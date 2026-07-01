@@ -2,6 +2,7 @@ import { notFound, redirect } from "next/navigation";
 import { getAgreementById } from "@/lib/agreements-store";
 import AgreementForm from "../../agreement-form";
 import { BackLink } from "../../../_components/back-link";
+import { getBillingSettings } from "@/lib/settings-store";
 
 export const dynamic = "force-dynamic";
 
@@ -11,7 +12,10 @@ export default async function EditAgreementPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const agreement = await getAgreementById(id);
+  const [agreement, billing] = await Promise.all([
+    getAgreementById(id),
+    getBillingSettings(),
+  ]);
 
   if (!agreement) {
     notFound();
@@ -28,7 +32,7 @@ export default async function EditAgreementPage({
   return (
     <div className="space-y-6">
       <BackLink href={`/dashboard/agreements/${id}`} label="Back to agreement" />
-      <AgreementForm agreement={agreement} />
+      <AgreementForm agreement={agreement} defaultHourlyRate={billing.hourlyRate} />
     </div>
   );
 }
