@@ -253,26 +253,29 @@ export function AgreementDocument({
               <p className="text-muted-foreground">{MILESTONE_PAYMENT_INTRO}</p>
               <Table>
                 <TableHeader>
-                  <TableRow style={{ backgroundColor: "#B22222" }} className="hover:bg-[#B22222]">
-                    <TableHead className="text-white font-semibold">Milestone</TableHead>
-                    <TableHead className="text-right text-white font-semibold">Percentage</TableHead>
-                    <TableHead className="text-right text-white font-semibold">Amount ({currency})</TableHead>
+                  <TableRow
+                    style={{ backgroundColor: "var(--color-accent)" }}
+                    className="border-0 hover:opacity-100"
+                  >
+                    <TableHead className="text-white font-bold py-3 text-sm">Milestone</TableHead>
+                    <TableHead className="text-right text-white font-bold py-3 text-sm">Percentage</TableHead>
+                    <TableHead className="text-right text-white font-bold py-3 text-sm">Amount ({currency})</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {agreement.milestones.map((item) => (
-                    <TableRow key={item.id}>
-                      <TableCell>{item.name}</TableCell>
-                      <TableCell className="text-right text-muted-foreground">{item.percent}%</TableCell>
-                      <TableCell className="text-right">{formatCurrency(item.amount, currency)}</TableCell>
+                    <TableRow key={item.id} className="border-b border-[var(--color-text)]/10">
+                      <TableCell className="py-3">{item.name}</TableCell>
+                      <TableCell className="text-right py-3 text-muted-foreground">{item.percent}%</TableCell>
+                      <TableCell className="text-right py-3 font-medium">{formatCurrency(item.amount, currency)}</TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
                 <TableFooter>
-                  <TableRow>
-                    <TableCell className="font-bold">Total Project Cost</TableCell>
+                  <TableRow className="border-t-2 border-[var(--color-text)] bg-transparent">
+                    <TableCell className="font-bold py-3">Total Project Cost</TableCell>
                     <TableCell />
-                    <TableCell className="text-right font-bold" style={{ color: "#B22222" }}>
+                    <TableCell className="text-right font-bold py-3" style={{ color: "var(--color-accent)" }}>
                       {formatCurrency(totalDeliverablesCost(agreement.deliverablePhases ?? []) || agreement.milestones.reduce((s, m) => s + m.amount, 0), currency)}
                     </TableCell>
                   </TableRow>

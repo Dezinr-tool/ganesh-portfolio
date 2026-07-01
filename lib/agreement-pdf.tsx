@@ -167,7 +167,7 @@ function createAgreementPdfStyles(tokens: DesignTokens) {
     colPhaseNotes: { flex: 2.5 },
     phaseHeaderRow: {
       flexDirection: "row",
-      backgroundColor: "#B22222",
+      backgroundColor: tokens.accent,
       paddingVertical: 5,
       paddingHorizontal: 4,
       marginTop: 6,
@@ -196,6 +196,9 @@ function createAgreementPdfStyles(tokens: DesignTokens) {
     breakdownFooterText: {
       fontSize: 10,
       fontFamily: "Helvetica-Bold",
+    },
+    accentTotal: {
+      color: tokens.accent,
     },
     signatureBox: {
       marginTop: 8,
@@ -417,7 +420,7 @@ export function AgreementPdf({
                 <View style={[styles.tableFooterRow]}>
                   <Text style={[styles.th, { flex: 3 }]}>Total Project Cost</Text>
                   <Text style={[styles.th, { flex: 1 }]} />
-                  <Text style={[styles.th, { flex: 1.5, textAlign: "right", color: "#B22222" }]}>
+                  <Text style={[styles.th, styles.accentTotal, { flex: 1.5, textAlign: "right" }]}>
                     {formatCurrency(
                       totalDeliverablesCost(agreement.deliverablePhases ?? []) ||
                         agreement.milestones.reduce((s, m) => s + m.amount, 0),
