@@ -23,10 +23,6 @@ import {
   SlidersHorizontalIcon,
   type SlidersHorizontalIconHandle,
 } from "@/components/ui/sliders-horizontal";
-import {
-  DashboardAdBanner,
-  DashboardAdRail,
-} from "@/components/dashboard/dashboard-ad-rail";
 
 type NavItem = {
   href: string;
@@ -141,7 +137,7 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
     <div className="dashboard-app min-h-dvh bg-background text-foreground">
       {/* Header — desktop nav only */}
       <header className="sticky top-0 z-40 border-b border-border bg-background">
-        <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 sm:px-6 sm:py-4">
+        <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3 sm:px-6 sm:py-4">
           <Link
             href="/dashboard"
             className="text-sm font-semibold tracking-tight text-foreground"
@@ -171,17 +167,9 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
 
       <Separator className="hidden sm:block" />
 
-      {/* Main content + optional ad rail */}
-      <main
-        id="main-content"
-        className="mx-auto flex w-full max-w-7xl gap-8 px-4 py-6 pb-24 sm:px-6 sm:py-10 sm:pb-10"
-      >
-        <div className="min-w-0 flex-1">
-          <DashboardAdBanner className="mb-6 xl:hidden" />
-          {children}
-          <DashboardAdBanner className="mt-8 hidden lg:block xl:hidden" />
-        </div>
-        <DashboardAdRail />
+      {/* Main content */}
+      <main id="main-content" className="mx-auto max-w-6xl px-4 py-6 pb-24 sm:px-6 sm:py-10 sm:pb-10">
+        {children}
       </main>
 
       {/* Mobile bottom tab bar with animated icons */}

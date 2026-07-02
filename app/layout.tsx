@@ -5,7 +5,6 @@ import { ConnectButton } from "@/components/ui/ConnectButton";
 import { SiteNav } from "@/components/ui/SiteNav";
 import { PageLoader } from "@/components/ui/PageLoader";
 import { ScrollProgress } from "@/components/ui/ScrollProgress";
-import { ADSENSE_CLIENT_ID, isAdSenseConfigured } from "@/lib/adsense-config";
 import { breton, inter, machine } from "./fonts";
 import "./globals.css";
 
@@ -76,16 +75,6 @@ export default async function RootLayout({
       suppressHydrationWarning
     >
       <head>
-        {isAdSenseConfigured() ? (
-          <>
-            <meta name="google-adsense-account" content={ADSENSE_CLIENT_ID} />
-            <script
-              async
-              src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${ADSENSE_CLIENT_ID}`}
-              crossOrigin="anonymous"
-            />
-          </>
-        ) : null}
         <script
           dangerouslySetInnerHTML={{
             __html: `(function(){try{var p=location.pathname;if(p.indexOf("/dashboard")===0)return;if(sessionStorage.getItem("portfolio-loaded")==="1")return;if(window.matchMedia("(prefers-reduced-motion: reduce)").matches)return;if(window.matchMedia("(max-width: 56.25rem)").matches)return;if(window.matchMedia("(pointer: coarse)").matches)return;document.documentElement.classList.add("page-loader-active")}catch(e){}})();`,
