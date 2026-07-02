@@ -8,6 +8,7 @@ import {
 import { useGSAP } from "@gsap/react";
 import gsap from "gsap";
 import { registerGsapPlugins } from "@/lib/gsap-scroll";
+import { MOBILE_VIEWPORT_MQ } from "@/lib/mobile-viewport";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { useReducedMotion } from "framer-motion";
 import { useRef } from "react";
@@ -34,7 +35,7 @@ export function AboutText({ sectionLabel, bodyText }: AboutTextProps) {
         return;
       }
 
-      const isMobile = window.matchMedia("(max-width: 48rem)").matches;
+      const isMobile = window.matchMedia(MOBILE_VIEWPORT_MQ).matches;
 
       const chars = splitRevealCopy(copyRoot);
 

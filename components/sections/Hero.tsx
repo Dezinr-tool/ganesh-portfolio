@@ -1,6 +1,7 @@
 "use client";
 
 import { mohave } from "@/app/fonts";
+import { shouldUseNativeScroll } from "@/lib/mobile-viewport";
 import { useGSAP } from "@gsap/react";
 import gsap from "gsap";
 import {
@@ -137,9 +138,13 @@ export function Hero({ content }: HeroProps) {
         "(prefers-reduced-motion: reduce)",
       ).matches;
 
-      if (reduced) {
+      if (reduced || shouldUseNativeScroll()) {
         gsap.set([ganesh, photo, badge, subtext, headlineRef.current].filter(Boolean), {
-          clearProps: "all",
+          opacity: 1,
+          scale: 1,
+          y: 0,
+          filter: "blur(0px)",
+          clearProps: "transform",
         });
         return;
       }
@@ -215,7 +220,7 @@ export function Hero({ content }: HeroProps) {
     <section
       ref={sectionRef}
       id="hero"
-      className="sticky top-0 z-0 relative h-dvh min-h-svh w-full overflow-x-clip overflow-y-hidden bg-[var(--color-bg)] text-[var(--color-text)] md:min-h-[700px]"
+      className="relative z-0 h-dvh min-h-svh w-full overflow-x-clip bg-[var(--color-bg)] text-[var(--color-text)] md:sticky md:top-0 md:overflow-y-hidden md:min-h-[700px]"
       aria-label="Introduction"
     >
       {/* GANESH watermark — hidden on mobile where it renders poorly, visible sm+ */}

@@ -2,6 +2,7 @@
 
 import { setLenisInstance } from "@/lib/lenis-scroll";
 import { registerGsapPlugins } from "@/lib/gsap-scroll";
+import { shouldUseNativeScroll } from "@/lib/mobile-viewport";
 import { scheduleScrollTriggerRefresh } from "@/lib/scroll-refresh";
 import { useReducedMotion } from "framer-motion";
 import gsap from "gsap";
@@ -62,14 +63,27 @@ export function SmoothScroll({ children }: { children: React.ReactNode }) {
 
       registerGsapPlugins();
 
-      const isCoarsePointer = window.matchMedia("(pointer: coarse)").matches;
+      // Lenis + ScrollTrigger scrollerProxy breaks scroll position on iOS/Android.
+      // Desktop keeps smooth Lenis; touch devices use native scroll only.
+      if (shouldUseNativeScroll()) {
+        const onScroll = () => ScrollTrigger.update();
+        window.addEventListener("scroll", onScroll, { passive: true });
+        requestAnimationFrame(() => {
+          scheduleScrollTriggerRefresh();
+        });
+
+        cleanup = () => {
+          window.removeEventListener("scroll", onScroll);
+        };
+        return;
+      }
 
       lenis = new Lenis({
-        lerp: isCoarsePointer ? 0.085 : 0.055,
+        lerp: 0.055,
         smoothWheel: true,
         wheelMultiplier: 1,
-        touchMultiplier: isCoarsePointer ? 1.65 : 1.2,
-        syncTouch: isCoarsePointer,
+        touchMultiplier: 1.2,
+        syncTouch: false,
         autoRaf: false,
       });
 

@@ -51,6 +51,15 @@ function prefersReducedMotion(): boolean {
   return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 }
 
+function shouldSkipLoader(): boolean {
+  if (typeof window === "undefined") return false;
+  return (
+    prefersReducedMotion() ||
+    window.matchMedia("(max-width: 56.25rem)").matches ||
+    window.matchMedia("(pointer: coarse)").matches
+  );
+}
+
 function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T | undefined> {
   return Promise.race([
     promise,
@@ -181,6 +190,13 @@ export function PageLoader() {
 
     if (readSessionLoaded()) {
       document.documentElement.classList.remove("page-loader-active");
+      setPhase("hidden");
+      return;
+    }
+
+    if (shouldSkipLoader()) {
+      document.documentElement.classList.remove("page-loader-active");
+      markSessionLoaded();
       setPhase("hidden");
       return;
     }

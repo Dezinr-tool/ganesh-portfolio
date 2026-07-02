@@ -2,6 +2,8 @@
 
 import { Calendar, Mail, MessageCircle, Phone, X } from "lucide-react";
 import "./connect-button.css";
+import { getLenisInstance, LENIS_READY_EVENT } from "@/lib/lenis-scroll";
+import { getScrollY } from "@/lib/mobile-viewport";
 import { useEffect, useRef, useState } from "react";
 import { usePathname } from "next/navigation";
 
@@ -60,12 +62,33 @@ export function ConnectButton() {
   useEffect(() => {
     const check = () => {
       const hero = document.getElementById("hero");
-      if (!hero) { setPastHero(true); return; }
-      setPastHero(window.scrollY >= hero.offsetHeight * 0.8);
+      if (!hero) {
+        setPastHero(true);
+        return;
+      }
+      setPastHero(getScrollY() >= hero.offsetHeight * 0.8);
     };
+
     check();
-    window.addEventListener("scroll", check, { passive: true });
-    return () => window.removeEventListener("scroll", check);
+
+    const onScroll = () => check();
+    window.addEventListener("scroll", onScroll, { passive: true });
+
+    const lenis = getLenisInstance();
+    if (lenis) lenis.on("scroll", onScroll);
+
+    const onLenisReady = () => {
+      const instance = getLenisInstance();
+      if (instance) instance.on("scroll", onScroll);
+      check();
+    };
+    window.addEventListener(LENIS_READY_EVENT, onLenisReady);
+
+    return () => {
+      window.removeEventListener("scroll", onScroll);
+      window.removeEventListener(LENIS_READY_EVENT, onLenisReady);
+      getLenisInstance()?.off("scroll", onScroll);
+    };
   }, []);
 
   useEffect(() => {
@@ -105,7 +128,7 @@ export function ConnectButton() {
       }}
     >
       <div className={`connect-btn__panel${open ? " is-open" : ""}`}>
-        {OPTIONS.map((opt, i) => (
+        {OPTIONS.map((opt) => (
           <a
             key={opt.id}
             href={opt.href}

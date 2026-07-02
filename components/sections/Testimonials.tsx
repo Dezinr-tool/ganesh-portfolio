@@ -5,6 +5,7 @@ import gsap from "gsap";
 import { useReducedMotion } from "framer-motion";
 import { useCallback, useRef } from "react";
 import { registerGsapPlugins } from "@/lib/gsap-scroll";
+import { MOBILE_VIEWPORT_MQ } from "@/lib/mobile-viewport";
 import "./testimonials.css";
 import "./section-stage.css";
 
@@ -243,7 +244,7 @@ export function Testimonials({ heading, testimonials }: TestimonialsProps) {
       if (reducedMotion) return;
       registerGsapPlugins();
 
-      const isMobile = window.matchMedia("(max-width: 48rem)").matches;
+      const isMobile = window.matchMedia(MOBILE_VIEWPORT_MQ).matches;
 
       if (headingRef.current) {
         if (isMobile) {

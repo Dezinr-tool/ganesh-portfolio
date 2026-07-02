@@ -1,5 +1,6 @@
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
+import { MOBILE_VIEWPORT_MQ } from "@/lib/mobile-viewport";
 
 let pluginsRegistered = false;
 
@@ -24,7 +25,7 @@ export function setRevealVisible(target: gsap.TweenTarget) {
   gsap.set(target, { opacity: 1, y: 0, clearProps: "transform" });
 }
 
-const MOBILE_MQ = "(max-width: 48rem)";
+const MOBILE_MQ = MOBILE_VIEWPORT_MQ;
 
 export function animateRevealOnScroll(
   targets: gsap.TweenTarget,

@@ -167,3 +167,18 @@ html.page-loader-active [data-page-loader] {
     display: none;
   }
 }
+
+/* Failsafe: never trap the page on touch / narrow viewports if loader stalls */
+@media (max-width: 56.25rem), (pointer: coarse) {
+  html.page-loader-active {
+    overflow: auto;
+  }
+
+  html.page-loader-active body > * {
+    visibility: visible;
+  }
+
+  html.page-loader-active [data-page-loader] {
+    display: none;
+  }
+}
