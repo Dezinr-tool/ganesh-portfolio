@@ -4,6 +4,7 @@ import { EALegalShell } from "../_components/ea-legal-shell";
 export const metadata = {
   title: "Privacy Policy — Virtual EA",
   description: "Privacy policy for Virtual EA",
+  robots: { index: true, follow: true },
 };
 
 export default function EAPrivacyPage() {
@@ -83,6 +84,40 @@ export default function EAPrivacyPage() {
                 you explicitly approve (e.g. meeting follow-ups, agreements).
               </li>
             </ul>
+          </section>
+
+          <section>
+            <h2 className="text-lg font-medium text-[var(--color-bg)]">Advertising</h2>
+            <p className="mt-3">
+              Public pages such as this privacy policy may show ads through{" "}
+              <strong className="text-[var(--color-text)]">Google AdSense</strong>.
+              Google and its partners may use cookies or similar technologies to
+              serve and measure ads, including based on your prior visits to this
+              or other websites. This applies to public marketing and legal pages
+              only — not to your signed-in Virtual EA workspace, chat, or meeting
+              data.
+            </p>
+            <p className="mt-3">
+              You can learn more about how Google uses data for advertising at{" "}
+              <a
+                href="https://policies.google.com/technologies/ads"
+                className="text-[var(--color-bg)] underline hover:text-[var(--color-text)]"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                Google&apos;s Advertising Policies
+              </a>{" "}
+              and manage ad personalization in{" "}
+              <a
+                href="https://adssettings.google.com"
+                className="text-[var(--color-bg)] underline hover:text-[var(--color-text)]"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                Google Ads Settings
+              </a>
+              .
+            </p>
           </section>
 
           <section>
