@@ -41,11 +41,19 @@ export function bindValueScrollCarousel(options: {
         if (card) {
           gsap.fromTo(
             card,
-            { scale: 0.92 },
             {
+              y: () => Math.min(window.innerHeight * 0.22, 180),
+              scale: 0.9,
+              opacity: 0,
+              transformOrigin: "50% 100%",
+            },
+            {
+              y: 0,
               scale: 1,
-              duration: 0.45,
-              ease: "back.out(1.4)",
+              opacity: 1,
+              transformOrigin: "50% 50%",
+              duration: 0.65,
+              ease: "power3.out",
               overwrite: "auto",
             },
           );
@@ -74,7 +82,7 @@ export function bindValueScrollCarousel(options: {
         arm.classList.remove("is-active");
         gsap.set(arm, { clearProps: "rotation,zIndex" });
         const card = arm.querySelector<HTMLElement>(".vs-card");
-        if (card) gsap.set(card, { scale: 1, clearProps: "transform" });
+        if (card) gsap.set(card, { scale: 1, y: 0, opacity: 1, clearProps: "transform,opacity" });
       });
       gsap.set(wheel, { rotation: 0, clearProps: "transform" });
     },
