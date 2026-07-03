@@ -11,6 +11,7 @@ import {
   type CSSProperties,
 } from "react";
 import "./page-loader.css";
+import { isStandaloneDocumentRoute } from "@/lib/standalone-document-routes";
 
 const SESSION_KEY = "portfolio-loaded";
 const FONT_WAIT_MS = 1500;
@@ -28,7 +29,7 @@ const SUB_TEXT = "UX/UI DESIGN • PRODUCT THINKING • D2C & B2B";
 type LoaderPhase = "pending" | "active" | "hidden";
 
 function isDashboardRoute(pathname: string | null): boolean {
-  return pathname?.startsWith("/dashboard") ?? false;
+  return isStandaloneDocumentRoute(pathname);
 }
 
 function readSessionLoaded(): boolean {

@@ -4,6 +4,7 @@ import { Calendar, Mail, MessageCircle, Phone, X } from "lucide-react";
 import "./connect-button.css";
 import { getLenisInstance, LENIS_READY_EVENT } from "@/lib/lenis-scroll";
 import { getScrollY } from "@/lib/mobile-viewport";
+import { isStandaloneDocumentRoute } from "@/lib/standalone-document-routes";
 import { useEffect, useRef, useState } from "react";
 import { usePathname } from "next/navigation";
 
@@ -111,7 +112,7 @@ export function ConnectButton() {
     return () => document.removeEventListener("keydown", handler);
   }, [open]);
 
-  if (pathname?.startsWith("/dashboard") || pathname?.startsWith("/sign")) {
+  if (isStandaloneDocumentRoute(pathname)) {
     return null;
   }
 

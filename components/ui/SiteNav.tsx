@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { MenuIcon, type MenuIconHandle } from "./MenuIcon";
 import { XIcon, type XIconHandle } from "./XIcon";
 import "./site-nav.css";
+import { isStandaloneDocumentRoute } from "@/lib/standalone-document-routes";
 
 const NAV_LINKS = [
   { label: "works", href: "#works" },
@@ -81,7 +82,7 @@ export function SiteNav() {
     }, 320);
   };
 
-  if (pathname?.startsWith("/dashboard") || pathname?.startsWith("/sign")) {
+  if (isStandaloneDocumentRoute(pathname)) {
     return null;
   }
 

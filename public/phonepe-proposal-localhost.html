@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>PhonePe Proposal — Local</title>
+    <style>
+      :root {
+        --bg: #ffffff;
+        --text: #111111;
+        --accent: #5f259f;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        min-height: 100vh;
+        font-family: system-ui, -apple-system, sans-serif;
+        background: var(--bg);
+        color: var(--text);
+        display: grid;
+        place-items: center;
+        padding: 2rem;
+      }
+      main {
+        max-width: 32rem;
+        width: 100%;
+      }
+      h1 {
+        font-size: 1.5rem;
+        margin: 0 0 0.5rem;
+      }
+      p {
+        line-height: 1.55;
+        margin: 0 0 1rem;
+        color: color-mix(in srgb, var(--text) 78%, var(--bg));
+      }
+      .note {
+        font-size: 0.875rem;
+        padding: 1rem;
+        border: 1px solid color-mix(in srgb, var(--text) 12%, var(--bg));
+        margin-bottom: 1.5rem;
+      }
+      .actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.75rem;
+      }
+      a,
+      button {
+        appearance: none;
+        border: 1px solid var(--text);
+        background: var(--bg);
+        color: var(--text);
+        font: inherit;
+        font-size: 0.875rem;
+        padding: 0.65rem 1rem;
+        text-decoration: none;
+        cursor: pointer;
+      }
+      a.primary,
+      button.primary {
+        background: var(--accent);
+        border-color: var(--accent);
+        color: var(--bg);
+      }
+      code {
+        font-size: 0.8125rem;
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>PhonePe Brand Consistency Proposal</h1>
+      <p>Brucira capabilities response — local preview and downloads.</p>
+
+      <div class="note">
+        <strong>Team model:</strong> 4 design FTE · 6–8 months · Developers (1–2 FTE) optional
+        add-on for coded design system (tokens, components, Storybook).
+      </div>
+
+      <div class="actions">
+        <a class="primary" id="open-proposal" href="http://localhost:3000/phonepe-proposal"
+          >Open proposal</a
+        >
+        <a href="/downloads/phonepe-brand-consistency-capabilities-response.pdf">Download PDF</a>
+        <a href="/downloads/phonepe-brand-consistency-capabilities-response.md">Download MD</a>
+      </div>
+
+      <p style="margin-top: 1.5rem">
+        Start the server first:<br />
+        <code>npm run dev</code> then open
+        <code>http://localhost:3000/phonepe-proposal</code>
+      </p>
+      <p>
+        Regenerate PDF:<br />
+        <code>npm run export:phonepe-pdf</code>
+      </p>
+    </main>
+    <script>
+      (function () {
+        var target = "http://localhost:3000/phonepe-proposal";
+        if (location.hostname === "localhost" || location.hostname === "127.0.0.1") {
+          var params = new URLSearchParams(location.search);
+          if (params.get("redirect") === "1") {
+            location.replace(target);
+          }
+        }
+      })();
+    </script>
+  </body>
+</html>
