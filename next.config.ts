@@ -9,6 +9,9 @@ const nextConfig: NextConfig = {
     "@napi-rs/canvas",
     "jszip",
   ],
+  outputFileTracingIncludes: {
+    "/api/tools/voice-notes/download": ["./chrome-extension/voice-notes/**/*"],
+  },
   env: {
     EA_PASSWORD: process.env.EA_PASSWORD,
   },
