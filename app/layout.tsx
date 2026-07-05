@@ -77,7 +77,7 @@ export default async function RootLayout({
       <head>
         <script
           dangerouslySetInnerHTML={{
-            __html: `(function(){try{var p=location.pathname;if(p.indexOf("/dashboard")===0||p.indexOf("/sign")===0||p.indexOf("/phonepe-proposal")===0)return;if(sessionStorage.getItem("portfolio-loaded")==="1")return;if(window.matchMedia("(prefers-reduced-motion: reduce)").matches)return;if(window.matchMedia("(max-width: 56.25rem)").matches)return;if(window.matchMedia("(pointer: coarse)").matches)return;document.documentElement.classList.add("page-loader-active")}catch(e){}})();`,
+            __html: `(function(){try{var p=location.pathname;if(p.indexOf("/dashboard")===0||p.indexOf("/sign")===0)return;if(sessionStorage.getItem("portfolio-loaded")==="1")return;if(window.matchMedia("(prefers-reduced-motion: reduce)").matches)return;if(window.matchMedia("(max-width: 56.25rem)").matches)return;if(window.matchMedia("(pointer: coarse)").matches)return;document.documentElement.classList.add("page-loader-active")}catch(e){}})();`,
           }}
         />
       </head>
