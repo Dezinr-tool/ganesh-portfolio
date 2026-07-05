@@ -17,6 +17,11 @@ const STEPS = [
     title: "Click the mic, anywhere",
     body: "The panel opens on any tab. Click the mic, allow microphone access once, and keep talking — it's one continuous note until you turn it off.",
   },
+  {
+    n: "04",
+    title: "Circle anything to screenshot it",
+    body: "Click the pen button, draw a mark around something on the page, and release — a screenshot of just that area attaches to your note.",
+  },
 ] as const;
 
 export function VoiceNotesProductPage() {
@@ -28,7 +33,8 @@ export function VoiceNotesProductPage() {
       <h1 className="mb-3 text-3xl font-semibold">🎙️ Voice Notes</h1>
       <p className="mb-8 text-[15px] leading-relaxed text-neutral-700">
         A side panel that stays open across every tab. Click the mic and keep talking — it notes
-        down the whole thing as one continuous note, until you turn it off.
+        down the whole thing as one continuous note, until you turn it off. Circle anything on the
+        page with the pen tool to attach a screenshot too.
       </p>
 
       <div className="mb-10 flex flex-wrap items-center gap-3">
@@ -64,7 +70,8 @@ export function VoiceNotesProductPage() {
 
       <h2 className="mb-4 text-lg font-medium">Try it in your browser first</h2>
       <p className="mb-6 text-sm text-neutral-600">
-        No install needed — this is the same speech-to-text logic running right on this page.
+        No install needed — this is the same speech-to-text logic running right on this page. The
+        pen tool needs the actual extension since it draws on top of other websites.
       </p>
       <div className="overflow-hidden rounded-xl border border-neutral-200">
         <VoiceNotesTool />

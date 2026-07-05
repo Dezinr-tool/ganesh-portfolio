@@ -47,14 +47,35 @@ export default function VoiceNotesPrivacyPage() {
       </section>
 
       <section className="mb-8">
+        <h2 className="mb-2 text-lg font-medium">The pen tool (screenshots)</h2>
+        <p className="text-[15px] leading-relaxed text-neutral-700">
+          Click the pen button, then draw a mark around anything on the page — a screenshot of
+          just that marked area is attached to your note. Voice Notes never takes a screenshot on
+          its own: capture only happens right after you finish drawing. It captures the marked
+          area of the currently visible tab, not your whole screen, other tabs, or your browsing
+          history. Screenshots are stored the same way as your notes — locally, on your device,
+          never uploaded anywhere by us.
+        </p>
+      </section>
+
+      <section className="mb-8">
         <h2 className="mb-2 text-lg font-medium">Permissions</h2>
         <ul className="list-disc space-y-1 pl-5 text-[15px] leading-relaxed text-neutral-700">
           <li>
-            <strong>storage</strong> — save your notes and language preference locally on your
-            device.
+            <strong>storage</strong> — save your notes, screenshots, and language preference
+            locally on your device.
           </li>
           <li>
             <strong>sidePanel</strong> — show the Voice Notes panel alongside any tab.
+          </li>
+          <li>
+            <strong>activeTab</strong> — act on the tab you&apos;re viewing only when you use the
+            pen tool. This is scoped to that single interaction, not standing access to every page
+            you visit.
+          </li>
+          <li>
+            <strong>scripting</strong> — inject the drawing overlay so you can circle something on
+            the page, only when you click the pen button.
           </li>
         </ul>
       </section>

@@ -1,9 +1,9 @@
 {
   "manifest_version": 3,
   "name": "Voice Notes - Floating Panel",
-  "version": "3.0",
-  "description": "A side panel that stays open across every tab. Click the mic and keep talking — it notes down the whole thing as one continuous note until you turn it off.",
-  "permissions": ["storage", "sidePanel"],
+  "version": "3.1",
+  "description": "A side panel that stays open across every tab. Click the mic and keep talking — it notes down the whole thing as one continuous note until you turn it off. Circle anything on the page with the pen tool to attach a screenshot.",
+  "permissions": ["storage", "sidePanel", "activeTab", "scripting"],
   "icons": {
     "16": "icons/icon16.png",
     "48": "icons/icon48.png",

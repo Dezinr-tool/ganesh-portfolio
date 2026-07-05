@@ -4,7 +4,13 @@ import path from "node:path";
 
 const EXTENSION_DIR = path.join(process.cwd(), "chrome-extension", "voice-notes");
 
-const TEXT_FILES = ["manifest.json", "background.js", "sidepanel.html", "sidepanel.js"];
+const TEXT_FILES = [
+  "manifest.json",
+  "background.js",
+  "sidepanel.html",
+  "sidepanel.js",
+  "pen-overlay.js",
+];
 const ICON_FILES = ["icon16.png", "icon48.png", "icon128.png"];
 
 export async function GET() {

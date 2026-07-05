@@ -8,6 +8,7 @@ const copyBtn = document.getElementById("copyBtn");
 const exportBtn = document.getElementById("exportBtn");
 const clearBtn = document.getElementById("clearBtn");
 const langSelect = document.getElementById("langSelect");
+const penBtn = document.getElementById("penBtn");
 
 let listening = false;
 let recognition = null;
@@ -72,8 +73,11 @@ function appendToActiveNote(transcript) {
 }
 
 function endNoteSession() {
-  // Drop an empty note if the user turned the mic off without saying anything.
-  if (activeNoteIndex !== -1 && notes[activeNoteIndex] && !notes[activeNoteIndex].text.trim()) {
+  // Drop an empty note if the user turned the mic off without saying anything
+  // AND without attaching any screenshots via the pen tool.
+  const note = activeNoteIndex !== -1 ? notes[activeNoteIndex] : null;
+  const hasImages = note && note.images && note.images.length > 0;
+  if (note && !note.text.trim() && !hasImages) {
     notes.splice(activeNoteIndex, 1);
     saveNotes();
   }
@@ -89,6 +93,80 @@ function deleteNote(index) {
   renderNotes();
 }
 
+function attachImageToNote(dataUrl) {
+  if (listening && activeNoteIndex !== -1 && notes[activeNoteIndex]) {
+    const note = notes[activeNoteIndex];
+    note.images = note.images || [];
+    note.images.push(dataUrl);
+  } else {
+    notes.unshift({ text: "", time: new Date().toLocaleString(), images: [dataUrl] });
+  }
+  saveNotes();
+  renderNotes();
+}
+
+// ---- Pen tool: circle something on the page, get a cropped screenshot ----
+function cropScreenshot(fullDataUrl, rect, dpr) {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.onload = () => {
+      const canvas = document.createElement("canvas");
+      canvas.width = Math.round(rect.width * dpr);
+      canvas.height = Math.round(rect.height * dpr);
+      const ctx = canvas.getContext("2d");
+      ctx.drawImage(
+        img,
+        Math.round(rect.x * dpr),
+        Math.round(rect.y * dpr),
+        Math.round(rect.width * dpr),
+        Math.round(rect.height * dpr),
+        0,
+        0,
+        canvas.width,
+        canvas.height,
+      );
+      resolve(canvas.toDataURL("image/png"));
+    };
+    img.onerror = reject;
+    img.src = fullDataUrl;
+  });
+}
+
+async function handleCaptureRequest(rect, dpr) {
+  try {
+    const fullDataUrl = await chrome.tabs.captureVisibleTab(undefined, { format: "png" });
+    const cropped = await cropScreenshot(fullDataUrl, rect, dpr);
+    attachImageToNote(cropped);
+  } catch (err) {
+    console.error("Screenshot capture failed:", err);
+    statusEl.textContent = "Couldn't capture that screenshot — try again.";
+  } finally {
+    penBtn.classList.remove("active");
+  }
+}
+
+chrome.runtime.onMessage.addListener((message) => {
+  if (message?.type === "vn-capture-request") {
+    handleCaptureRequest(message.rect, message.dpr);
+  } else if (message?.type === "vn-pen-cancelled") {
+    penBtn.classList.remove("active");
+  }
+});
+
+penBtn.addEventListener("click", async () => {
+  try {
+    const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+    if (!tab?.id) return;
+    penBtn.classList.add("active");
+    await chrome.scripting.executeScript({ target: { tabId: tab.id }, files: ["pen-overlay.js"] });
+  } catch (err) {
+    console.error("Pen tool injection failed:", err);
+    penBtn.classList.remove("active");
+    statusEl.textContent =
+      "Couldn't arm the pen tool here — try reopening the panel on this tab.";
+  }
+});
+
 function renderNotes() {
   notesList.innerHTML = "";
   emptyEl.style.display = notes.length ? "none" : "block";
@@ -102,8 +180,25 @@ function renderNotes() {
         ${index === activeNoteIndex ? '<span class="badge">Recording…</span>' : ""}
       </div>
       <div class="text"></div>
+      <div class="images"></div>
     `;
     div.querySelector(".text").textContent = note.text;
+    if (note.images && note.images.length) {
+      const imagesEl = div.querySelector(".images");
+      note.images.forEach((src) => {
+        const img = document.createElement("img");
+        img.src = src;
+        img.className = "note-image";
+        img.addEventListener("click", () => {
+          // Chrome blocks top-level navigation straight to a data: URL —
+          // go through a blob: URL instead so "view full size" works.
+          fetch(src)
+            .then((res) => res.blob())
+            .then((blob) => window.open(URL.createObjectURL(blob), "_blank"));
+        });
+        imagesEl.appendChild(img);
+      });
+    }
     notesList.appendChild(div);
   });
   notesList.querySelectorAll(".delete").forEach((btn) => {
@@ -337,7 +432,15 @@ copyBtn.addEventListener("click", async () => {
 });
 
 exportBtn.addEventListener("click", () => {
-  const text = notes.map((n) => `[${n.time}]\n${n.text}\n`).join("\n");
+  const text = notes
+    .map((n) => {
+      const imageNote =
+        n.images && n.images.length
+          ? `\n[${n.images.length} screenshot${n.images.length > 1 ? "s" : ""} attached — open the extension to view]`
+          : "";
+      return `[${n.time}]\n${n.text}${imageNote}\n`;
+    })
+    .join("\n");
   const blob = new Blob([text], { type: "text/plain" });
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
