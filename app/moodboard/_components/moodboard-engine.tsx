@@ -22,14 +22,15 @@ import {
 } from "./moodboard-chat-history";
 import { MoodboardComposer, type MoodboardComposerHandle } from "./moodboard-composer";
 import { MoodboardOutputShell } from "./moodboard-output-shell";
-import { MoodboardNav } from "./moodboard-nav";
 import { MoodboardLanding } from "./moodboard-landing";
+import { MoodboardShell } from "./moodboard-shell";
+import { IntakeQuestionPanel } from "./intake-question-panel";
+import type { MoodboardQuestion } from "@/lib/moodboard/db-types";
 import { readStoredValue, useClientSessionId } from "@/lib/client-storage";
 import { restoreSessionState } from "@/lib/moodboard/session-restore";
 import { registerSession, startNewSession, upsertSessionIndex, createFreshSessionId } from "@/lib/moodboard/session-index";
 import { loadSessionSnapshot, saveSessionSnapshot } from "@/lib/moodboard/session-snapshot";
 import type { MoodboardSession } from "@/lib/moodboard/db-types";
-import { MoodboardSessionsSidebar } from "./moodboard-sessions-sidebar";
 import { MoodboardSectionsPicker } from "./moodboard-sections-picker";
 
 const MODEL_STORAGE_KEY = "moodboard-model-id";
@@ -76,6 +77,9 @@ export function MoodboardEngine() {
   const [conversationStarted, setConversationStarted] = useState(false);
   const [sessionSyncing, setSessionSyncing] = useState(false);
   const [readyToGenerate, setReadyToGenerate] = useState(false);
+  const [dismissedQuestionKeys, setDismissedQuestionKeys] = useState<Set<string>>(
+    () => new Set(),
+  );
 
   const composerTextRef = useRef(composerText);
   useEffect(() => {
@@ -156,6 +160,7 @@ export function MoodboardEngine() {
     setThinking(false);
     setGenStatus("");
     setLoadingPreConfirm(false);
+    setDismissedQuestionKeys(new Set());
     interactionStartedRef.current = false;
     conversationLockedRef.current = false;
   }, []);
@@ -461,6 +466,12 @@ export function MoodboardEngine() {
         });
       }
 
+      void trackMoodboardEvent(sessionIdRef.current, "training_user_prompt", {
+        text: trimmed,
+        source: options?.isLanding ? "landing" : "chat",
+        messageIndex: messagesRef.current.length,
+      });
+
       const userMsg: HistoryMessage = { id: uid(), role: "user", text: trimmed };
       const chatMessages = [...messagesRef.current, userMsg];
       messagesRef.current = chatMessages;
@@ -632,10 +643,6 @@ export function MoodboardEngine() {
     ],
   );
 
-  const handleStartFresh = useCallback(() => {
-    startNewSession();
-  }, []);
-
   const handleLandingSubmit = useCallback(() => {
     const freshId = createFreshSessionId();
     sessionIdRef.current = freshId;
@@ -647,6 +654,40 @@ export function MoodboardEngine() {
   const handleComposerSubmit = useCallback(() => {
     void handleUserMessage(composerText);
   }, [composerText, handleUserMessage]);
+
+  const formatChipAnswer = useCallback((value: string | string[]) => {
+    return Array.isArray(value) ? value.join(", ") : value;
+  }, []);
+
+  const handleChipAnswer = useCallback(
+    async (question: MoodboardQuestion, value: string | string[]) => {
+      if (busy) return;
+      const display = formatChipAnswer(value);
+      const nextAnswers = { ...answersRef.current, [question.key]: value };
+      setAnswers(nextAnswers);
+      answersRef.current = nextAnswers;
+
+      void trackMoodboardEvent(sessionIdRef.current, "chip_answer", {
+        questionKey: question.key,
+        questionText: question.question_text,
+        value: display,
+      });
+
+      await handleUserMessage(display);
+    },
+    [busy, formatChipAnswer, handleUserMessage],
+  );
+
+  const handleDismissChipQuestion = useCallback((questionKey: string) => {
+    setDismissedQuestionKeys((prev) => new Set([...prev, questionKey]));
+    void trackMoodboardEvent(sessionIdRef.current, "chip_question_dismissed", {
+      questionKey,
+    });
+  }, []);
+
+  const handleChipSomethingElse = useCallback(() => {
+    composerRef.current?.focus();
+  }, []);
 
   const handleSelectDirection = useCallback(
     async (direction: MoodboardPresentationDirection) => {
@@ -677,6 +718,7 @@ export function MoodboardEngine() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
+          sessionId,
           answers,
           modelId,
           direction: dir,
@@ -702,6 +744,7 @@ export function MoodboardEngine() {
   );
 
   useEffect(() => {
+    setDismissedQuestionKeys(new Set());
     if (!sessionId || lastInitializedSessionIdRef.current === sessionId) return;
     lastInitializedSessionIdRef.current = sessionId;
 
@@ -846,12 +889,18 @@ export function MoodboardEngine() {
   const showElementPicker =
     offerSections && !presentationMode && !generating && !showPreConfirm;
 
+  const showIntakeQuestionPanel =
+    conversationStarted &&
+    !presentationMode &&
+    !generating &&
+    !showPreConfirm &&
+    !showElementPicker &&
+    !loadingPreConfirm;
+
   if (presentationMode) {
     return (
-      <div className="relative flex min-h-screen flex-col bg-[var(--color-bg)]">
-        <MoodboardSessionsSidebar activeSessionId={sessionId} theme="light" />
-        <MoodboardNav theme="light" />
-        <div className="moodboard-output-enter flex-1">
+      <MoodboardShell sessionId={sessionId}>
+        <div className="moodboard-output-enter flex min-h-0 flex-1 flex-col overflow-y-auto">
           <MoodboardOutputShell
             messages={messages}
             brandName={brandName}
@@ -864,112 +913,111 @@ export function MoodboardEngine() {
             onRefine={handleRefine}
           />
         </div>
-      </div>
+      </MoodboardShell>
     );
   }
 
   return (
-    <div
-      className={`relative flex min-h-screen flex-col ${
-        conversationStarted ? "moodboard-chat-shell" : "bg-[var(--color-bg)]"
-      }`}
-    >
-      <MoodboardSessionsSidebar activeSessionId={sessionId} theme="light" />
-      <MoodboardNav theme="light" />
-
+    <MoodboardShell sessionId={sessionId}>
       {sessionSyncing ? (
-        <div
-          className="border-b border-[var(--color-bg)] bg-[var(--color-bg)] px-4 py-1.5 text-center text-xs text-[var(--color-text)]"
-          role="status"
-        >
+        <p className="moodboard-sync-status" role="status">
           Syncing session…
-        </div>
+        </p>
       ) : null}
 
-      <div className="flex min-h-0 flex-1 flex-col bg-[var(--color-bg)]">
-          {!conversationStarted ? (
-            <MoodboardLanding
-              value={composerText}
-              onChange={setComposerText}
-              onSubmit={handleLandingSubmit}
-              modelId={modelId}
-              onModelChange={setModelId}
-              disabled={composerDisabled}
-              submitting={busy && !conversationStarted}
-              onFilesSelected={handleAttachFiles}
-              onStartFresh={handleStartFresh}
+      {!conversationStarted ? (
+        <MoodboardLanding
+          value={composerText}
+          onChange={setComposerText}
+          onSubmit={handleLandingSubmit}
+          modelId={modelId}
+          onModelChange={setModelId}
+          disabled={composerDisabled}
+          submitting={busy && !conversationStarted}
+          onFilesSelected={handleAttachFiles}
+        />
+      ) : (
+        <div className="moodboard-chat-view moodboard-chat-shell flex min-h-0 flex-1 flex-col" data-testid="moodboard-chat">
+          <div className="moodboard-chat-scroll">
+            <MoodboardChatHistory
+              messages={messages}
+              thinking={thinking}
+              generating={generating}
+              genStatus={genStatus}
             />
-          ) : (
-            <div
-              className="relative mx-auto flex w-full max-w-[680px] flex-1 flex-col px-6 pb-6"
-              data-testid="moodboard-chat"
-            >
-              <div className="moodboard-fade-in flex min-h-0 flex-1 flex-col pt-4">
-                <div className="min-h-0 flex-1 overflow-y-auto overscroll-y-contain">
-                  <MoodboardChatHistory
-                    messages={messages}
-                    thinking={thinking}
-                    generating={generating}
-                    genStatus={genStatus}
-                  />
-                  <div ref={messagesEndRef} className="h-4 shrink-0" />
-                </div>
+            <div ref={messagesEndRef} className="h-4 shrink-0" />
+          </div>
 
-                <div className="sticky bottom-0 z-10 shrink-0 bg-gradient-to-t from-[var(--color-bg)] via-[var(--color-bg)] to-transparent pb-2 pt-4">
-                  {showPreConfirm && preConfirmation ? (
-                    <div className="moodboard-card-enter mb-4 rounded-2xl border border-[var(--color-bg)] bg-[var(--color-bg)] p-4 shadow-sm">
-                      <PreConfirmationPanel
-                        preConfirmation={preConfirmation}
-                        onConfirm={handlePreConfirm}
-                        loading={generating || loadingPreConfirm}
-                        brandName={brandName}
-                        variant="inline"
-                      />
-                    </div>
-                  ) : null}
+          <div className="moodboard-composer-dock">
+            {showPreConfirm && preConfirmation ? (
+              <div className="moodboard-card-enter mb-4 rounded-lg border border-[var(--mb-border-strong)] bg-[var(--mb-bg-elevated)] p-4">
+                <PreConfirmationPanel
+                  preConfirmation={preConfirmation}
+                  onConfirm={handlePreConfirm}
+                  loading={generating || loadingPreConfirm}
+                  brandName={brandName}
+                  variant="inline"
+                />
+              </div>
+            ) : null}
 
-                  {showElementPicker ? (
-                    <p className="mb-2 text-center text-xs font-medium text-[var(--color-text)]">
-                      Step 2 — Select moodboard elements, then Generate 3 directions
-                    </p>
-                  ) : null}
+            {showElementPicker ? (
+              <p className="mb-2 text-center text-xs text-[var(--mb-text-muted)]">
+                Select moodboard elements, then continue
+              </p>
+            ) : null}
 
-                  {showElementPicker ? (
-                    <div
-                      className="moodboard-sections-picker-sticky mb-3"
-                      data-testid="moodboard-sections-picker"
-                    >
-                      <MoodboardSectionsPicker
-                        onConfirm={handleSectionsConfirm}
-                        onSomethingElse={() => composerRef.current?.focus()}
-                        loading={loadingPreConfirm || generating}
-                      />
-                    </div>
-                  ) : null}
+            {showIntakeQuestionPanel ? (
+              <IntakeQuestionPanel
+                answers={answers}
+                dismissedKeys={dismissedQuestionKeys}
+                disabled={composerDisabled || thinking}
+                onAnswer={(q, v) => void handleChipAnswer(q, v)}
+                onDismiss={handleDismissChipQuestion}
+                onSomethingElse={handleChipSomethingElse}
+              />
+            ) : null}
 
-                  <MoodboardComposer
-                    ref={composerRef}
-                    value={composerText}
-                    onChange={setComposerText}
-                    onSubmit={handleComposerSubmit}
-                    disabled={composerDisabled}
-                    placeholder={showElementPicker ? "Or reply directly…" : "Write a message..."}
-                    modelId={modelId}
-                    onModelChange={setModelId}
-                    variant="chat"
-                    showAttach
-                    onFilesSelected={handleAttachFiles}
-                    uploadAccept=".pdf,.docx,.txt,.ppt,.pptx"
-                  />
+            {showElementPicker ? (
+              <div
+                className="moodboard-sections-picker-sticky mb-3"
+                data-testid="moodboard-sections-picker"
+              >
+                <MoodboardSectionsPicker
+                  onConfirm={handleSectionsConfirm}
+                  onSomethingElse={() => composerRef.current?.focus()}
+                  loading={loadingPreConfirm || generating}
+                />
+              </div>
+            ) : null}
 
-                  <p className="moodboard-chat-footer">
-                    Powered by Claude · AI can make mistakes
-                  </p>
-                </div>
+            <div className="moodboard-composer-frame moodboard-composer-frame--animated">
+              <div className="moodboard-composer-frame-inner">
+                <MoodboardComposer
+                  ref={composerRef}
+                  value={composerText}
+                  onChange={setComposerText}
+                  onSubmit={handleComposerSubmit}
+                  disabled={composerDisabled}
+                  placeholder={
+                    showElementPicker ? "Or reply directly…" : "Describe an idea, brand, or project..."
+                  }
+                  modelId={modelId}
+                  onModelChange={setModelId}
+                  variant="chat"
+                  showAttach
+                  onFilesSelected={handleAttachFiles}
+                  uploadAccept=".pdf,.docx,.txt,.ppt,.pptx"
+                />
               </div>
             </div>
-          )}
-      </div>
-    </div>
+
+            <p className="moodboard-chat-footer">
+              Powered by Claude · AI can make mistakes
+            </p>
+          </div>
+        </div>
+      )}
+    </MoodboardShell>
   );
 }

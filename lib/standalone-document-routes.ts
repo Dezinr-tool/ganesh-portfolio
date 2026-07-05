@@ -4,6 +4,18 @@ export function isStandaloneDocumentRoute(pathname: string | null): boolean {
   return (
     pathname.startsWith("/dashboard") ||
     pathname.startsWith("/sign") ||
-    pathname.startsWith("/phonepe-proposal")
+    isToolWorkspaceRoute(pathname)
+  );
+}
+
+/** Tool workspaces hide portfolio SiteNav and ConnectButton. */
+export function isToolWorkspaceRoute(pathname: string | null): boolean {
+  if (!pathname) return false;
+  return (
+    pathname.startsWith("/moodboard") ||
+    pathname.startsWith("/tools") ||
+    pathname.startsWith("/ia") ||
+    pathname.startsWith("/design-audit") ||
+    pathname.startsWith("/wireframe")
   );
 }

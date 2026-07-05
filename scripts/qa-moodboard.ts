@@ -29,13 +29,46 @@ async function main() {
   console.log("\n=== Moodboard QA ===\n");
 
   const engine = readFileSync("app/moodboard/_components/moodboard-engine.tsx", "utf8");
+  const shell = readFileSync("app/moodboard/_components/moodboard-shell.tsx", "utf8");
+  const sidebar = readFileSync("app/moodboard/_components/moodboard-sidebar.tsx", "utf8");
   const picker = readFileSync("app/moodboard/_components/moodboard-sections-picker.tsx", "utf8");
   const presentation = readFileSync("app/moodboard/_components/presentation-view.tsx", "utf8");
   const page = readFileSync("app/moodboard/page.tsx", "utf8");
+  const composer = readFileSync("app/moodboard/_components/moodboard-composer.tsx", "utf8");
+  const moodboardCss = readFileSync("app/moodboard/moodboard.css", "utf8");
 
   report(
     "MoodboardEngine on /moodboard",
     page.includes("MoodboardEngine") && engine.includes("MoodboardEngine") ? "pass" : "fail",
+  );
+  report(
+    "Claude-style shell + sidebar (no top nav)",
+    engine.includes("MoodboardShell") &&
+      shell.includes("MoodboardSidebar") &&
+      sidebar.includes("All tools") &&
+      sidebar.includes("ArrowLeftIcon") &&
+      !engine.includes("MoodboardMainHeader")
+      ? "pass"
+      : "fail",
+  );
+  report(
+    "Lucide animated icons (sidebar + composer)",
+    sidebar.includes("SearchIcon") &&
+      sidebar.includes("ArrowLeftIcon") &&
+      composer.includes("PlusIcon") &&
+      composer.includes("ChevronDownIcon") &&
+      composer.includes("ArrowUpIcon")
+      ? "pass"
+      : "fail",
+  );
+  report(
+    "Rotating gradient border (outline + glow)",
+    moodboardCss.includes("--mb-border-angle") &&
+      moodboardCss.includes("mask-composite: exclude") &&
+      moodboardCss.includes("moodboard-border-rotate") &&
+      !moodboardCss.includes("moodboard-border-spin")
+      ? "pass"
+      : "fail",
   );
   report(
     "Sections picker wired (QuestionOptionsCard)",

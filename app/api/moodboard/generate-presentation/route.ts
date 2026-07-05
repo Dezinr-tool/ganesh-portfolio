@@ -11,6 +11,7 @@ import { generatePresentationDirections } from "@/lib/moodboard/presentation-gen
 import { getSelectedOutputSections } from "@/lib/moodboard/output-sections";
 import { extractBrandName } from "@/lib/moodboard/question-flow";
 import { saveMoodboardLearnings } from "@/lib/context-saveback";
+import { saveGenerationTrainingRecord } from "@/lib/moodboard/training-memory";
 import type { MoodboardModelId } from "@/lib/moodboard/types";
 import type { UserPreConfirmation } from "@/lib/pre-generation-types";
 import { PRE_CONFIRMATION_ANSWERS_KEY } from "@/lib/pre-generation-types";
@@ -93,6 +94,16 @@ export async function POST(request: NextRequest) {
         } catch (err) {
           console.error("[moodboard/generate-presentation] saveback failed:", err);
         }
+      }
+      if (sessionId) {
+        void saveGenerationTrainingRecord({
+          sessionId,
+          answers,
+          directions,
+          modelId: GENERATION_MODEL,
+          selectedOutputSections,
+          preConfirmation: userConfirmations as Record<string, unknown> | undefined,
+        });
       }
     }
 

@@ -13,6 +13,7 @@ import {
   type MoodboardExtras,
 } from "@/lib/moodboard/chat-enrichment";
 import { generateIntakeReply, streamIntakeReply } from "@/lib/moodboard/intake-chat";
+import { saveIntakeTrainingSnapshot } from "@/lib/moodboard/training-memory";
 import {
   countCoreFields,
   isReadyToGenerate,
@@ -191,6 +192,13 @@ export async function POST(request: NextRequest) {
 
       if (sessionId) {
         persistSessionAsync(sessionId, payload.answers, messages);
+        void saveIntakeTrainingSnapshot({
+          sessionId,
+          messages,
+          answers: payload.answers,
+          modelId,
+          extras: extras as Record<string, unknown>,
+        });
       }
 
       void enrichmentContinuation.then((finished) => {

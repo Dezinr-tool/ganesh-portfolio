@@ -41,10 +41,11 @@ async function main() {
     await page.goto(`${BASE}/moodboard`, { waitUntil: "networkidle", timeout: 30000 });
     log("Page loads /moodboard", page.url().includes("/moodboard"));
 
-    const heading = page.getByRole("heading", {
-      name: /Great design starts with personality/i,
-    });
-    log("Landing hero visible", await heading.isVisible());
+    const tagline = page.getByText(/Great design starts with personality/i);
+    log("Landing tagline visible", await tagline.isVisible());
+
+    const sidebar = page.getByRole("navigation", { name: "Sessions" });
+    log("Claude-style sidebar visible", await sidebar.isVisible());
 
     const opening =
       "Astro — premium Shopify store for astrology gems. Audience: 35–50 premium buyers. Feel: premium, celestial, editorial. Color: open.";

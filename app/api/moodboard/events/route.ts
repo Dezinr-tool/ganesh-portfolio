@@ -5,6 +5,7 @@ import {
   insertMoodboardEvent,
   isValidMoodboardSessionId,
 } from "@/lib/moodboard/analytics";
+import { saveChipAnswerTrainingRecord } from "@/lib/moodboard/training-memory";
 import { getSessionBySessionId, updateSession } from "@/lib/moodboard/db-store";
 import {
   extractFromMessage,
@@ -69,6 +70,15 @@ export async function POST(request: NextRequest) {
       payload,
       durationMs,
     });
+
+    if (eventType === "chip_answer" && typeof payload.questionKey === "string") {
+      void saveChipAnswerTrainingRecord({
+        sessionId,
+        questionKey: payload.questionKey,
+        questionText: String(payload.questionText ?? payload.questionKey),
+        value: (payload.value as string | string[]) ?? "",
+      });
+    }
 
     if (
       eventType === "session_started" &&

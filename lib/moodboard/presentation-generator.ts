@@ -9,7 +9,7 @@ import type {
   MoodboardReferenceCard,
 } from "./db-types";
 import type { MoodboardModelId } from "./types";
-import { enrichDirectionImages } from "./unsplash";
+import { enrichDirectionReferences } from "./reference-enrichment";
 import {
   OUTPUT_SECTIONS,
   SECTION_GENERATION_SPEC,
@@ -423,6 +423,7 @@ async function generateSingleIntentDirection(input: {
   existingDirections: MoodboardPresentationDirection[];
   model: string;
   onDelta?: (chunk: string) => void;
+  onStatus?: (message: string) => void;
 }): Promise<MoodboardPresentationDirection> {
   const systemPrompt = buildIntentSystemPrompt();
   let retryNote: string | undefined;
@@ -475,7 +476,11 @@ async function generateSingleIntentDirection(input: {
     ...(lastDirection.moodKeywords ?? []),
   ].filter(Boolean);
 
-  await enrichDirectionImages(lastDirection, keywords, input.selectedSections);
+  await enrichDirectionReferences(lastDirection, keywords, input.selectedSections, {
+    industry: input.intent.known_info.Industry ?? input.intent.known_info.industry,
+    projectType: input.intent.project_type ?? undefined,
+    onStatus: input.onStatus,
+  });
   return lastDirection;
 }
 
@@ -528,6 +533,7 @@ export async function generatePresentationDirectionsSequential(input: {
       existingDirections: directions,
       model: config.model,
       onDelta: input.onDelta,
+      onStatus: input.onStatus,
     });
     directions.push(dir);
     await input.onDirection?.(dir, i);
@@ -617,6 +623,15 @@ Return JSON with exactly 1 direction in the directions array.`;
   const text = await callAnthropic(config.model, systemPrompt, userPrompt);
   const directions = parseDirections(text, selectedSections);
   const refined = { ...directions[0], id: input.direction.id };
-  await enrichDirectionImages(refined, [input.direction.directionName], selectedSections);
+  const intent = buildIntentSummary(input.answers, input.extras);
+  await enrichDirectionReferences(
+    refined,
+    [input.direction.directionName, ...(refined.moodKeywords ?? [])],
+    selectedSections,
+    {
+      industry: intent.known_info.Industry ?? intent.known_info.industry,
+      projectType: intent.project_type ?? undefined,
+    },
+  );
   return refined;
 }

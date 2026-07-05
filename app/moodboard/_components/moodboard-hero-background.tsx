@@ -186,7 +186,7 @@ export function MoodboardHeroBackground() {
 
   return (
     <div
-      className="pointer-events-none fixed inset-0 z-0 overflow-hidden blur-[8px]"
+      className="pointer-events-none absolute inset-0 z-0 overflow-hidden blur-[8px]"
       aria-hidden
     >
       <div className="absolute inset-0 bg-[var(--color-bg)]" />

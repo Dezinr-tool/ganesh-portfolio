@@ -2,15 +2,23 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { MoodboardSessionsBar } from "./moodboard-sessions-bar";
 
 const links = [
   { href: "/tools", label: "All Tools" },
   { href: "/moodboard", label: "Session", match: "exact" as const },
-  { href: "/moodboard/sessions", label: "Sessions", match: "prefix" as const },
+  { href: "/moodboard/memory", label: "Memory", match: "prefix" as const },
+  { href: "/moodboard/sessions", label: "All", match: "prefix" as const },
   { href: "/moodboard/admin", label: "Admin", match: "prefix" as const },
 ];
 
-export function MoodboardNav({ theme = "dark" }: { theme?: "dark" | "light" }) {
+export function MoodboardNav({
+  theme = "dark",
+  activeSessionId,
+}: {
+  theme?: "dark" | "light";
+  activeSessionId?: string;
+}) {
   const pathname = usePathname();
   const light = theme === "light";
 
@@ -61,6 +69,9 @@ export function MoodboardNav({ theme = "dark" }: { theme?: "dark" | "light" }) {
           })}
         </nav>
       </div>
+      {activeSessionId ? (
+        <MoodboardSessionsBar activeSessionId={activeSessionId} theme={theme} />
+      ) : null}
     </header>
   );
 }

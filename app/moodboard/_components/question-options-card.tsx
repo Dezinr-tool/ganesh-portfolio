@@ -214,7 +214,7 @@ export function QuestionOptionsCard({
         }`}
       >
         <div className="flex items-start justify-between gap-3">
-          <p className="text-base font-medium leading-snug text-[var(--color-text)]">
+          <p className="text-base font-medium leading-snug text-[var(--mb-text)]">
             {question.question_text}
           </p>
           <div className="flex shrink-0 items-center gap-1 text-[var(--color-text)]">

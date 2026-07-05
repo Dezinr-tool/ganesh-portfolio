@@ -101,7 +101,8 @@ export async function proxy(request: NextRequest) {
       const dest =
         from &&
         (from.startsWith("/moodboard/admin") ||
-          from.startsWith("/moodboard/sessions"))
+          from.startsWith("/moodboard/sessions") ||
+          from.startsWith("/moodboard/memory"))
           ? from
           : "/moodboard/admin";
       return NextResponse.redirect(new URL(dest, request.url));
@@ -115,7 +116,9 @@ export async function proxy(request: NextRequest) {
 
   const requiresMbAdmin =
     pathname.startsWith("/moodboard/admin") ||
-    pathname.startsWith("/api/moodboard/admin");
+    pathname.startsWith("/moodboard/memory") ||
+    pathname.startsWith("/api/moodboard/admin") ||
+    pathname.startsWith("/api/moodboard/memory");
 
   if (requiresMbAdmin && !isMbAdminAuthed) {
     if (pathname.startsWith("/api/")) {
@@ -133,6 +136,8 @@ export const config = {
     "/api/ea/:path*",
     "/moodboard/admin",
     "/moodboard/admin/:path*",
+    "/moodboard/memory",
+    "/moodboard/memory/:path*",
     "/moodboard",
     "/moodboard/:path*",
     "/api/moodboard/:path*",

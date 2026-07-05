@@ -1,45 +1,17 @@
 "use client";
 
 import { useEffect, useImperativeHandle, useRef, forwardRef } from "react";
+import { ArrowUpIcon } from "@/components/ui/arrow-up";
+import { AudioLinesIcon } from "@/components/ui/audio-lines";
+import { ChevronDownIcon } from "@/components/ui/chevron-down";
+import { PlusIcon } from "@/components/ui/plus";
 import { MOODBOARD_MODELS } from "@/lib/moodboard/models";
 import type { MoodboardModelId } from "@/lib/moodboard/types";
 
-function PlusIcon() {
-  return (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden>
-      <path d="M12 5v14M5 12h14" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" />
-    </svg>
-  );
-}
+const ICON_SIZE = 18;
+const CHEVRON_SIZE = 14;
 
-function WaveformSendIcon() {
-  return (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden>
-      <rect x="4" y="10" width="2" height="4" rx="1" fill="currentColor" />
-      <rect x="8" y="7" width="2" height="10" rx="1" fill="currentColor" />
-      <rect x="12" y="9" width="2" height="6" rx="1" fill="currentColor" />
-      <rect x="16" y="6" width="2" height="12" rx="1" fill="currentColor" />
-      <rect x="20" y="8" width="2" height="8" rx="1" fill="currentColor" />
-    </svg>
-  );
-}
-
-function SendArrowIcon() {
-  return (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden>
-      <path
-        d="M12 19V5M12 5l-6 6M12 5l6 6"
-        stroke="currentColor"
-        strokeWidth="2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </svg>
-  );
-}
-
-function shortModelLabel(id: MoodboardModelId, hero?: boolean): string {
-  if (hero && id === "claude-sonnet") return "Sonnet";
+function shortModelLabel(id: MoodboardModelId): string {
   const map: Record<MoodboardModelId, string> = {
     "claude-haiku": "Haiku",
     "claude-sonnet": "Sonnet 4.6",
@@ -158,7 +130,7 @@ export const MoodboardComposer = forwardRef<
                     className="moodboard-composer-icon-btn"
                     aria-label="Attach file"
                   >
-                    <PlusIcon />
+                    <PlusIcon size={ICON_SIZE} aria-hidden />
                   </button>
                 </>
               ) : (
@@ -169,7 +141,7 @@ export const MoodboardComposer = forwardRef<
                   aria-label="Attach"
                   tabIndex={-1}
                 >
-                  <PlusIcon />
+                  <PlusIcon size={ICON_SIZE} aria-hidden />
                 </button>
               )}
             </div>
@@ -182,7 +154,11 @@ export const MoodboardComposer = forwardRef<
                 className="moodboard-composer-send-btn"
                 aria-label="Send"
               >
-                {canSend ? <SendArrowIcon /> : <WaveformSendIcon />}
+                {canSend ? (
+                  <ArrowUpIcon size={ICON_SIZE} aria-hidden />
+                ) : (
+                  <AudioLinesIcon size={ICON_SIZE} aria-hidden />
+                )}
               </button>
             </div>
           </div>
@@ -204,7 +180,7 @@ export const MoodboardComposer = forwardRef<
   }
 
   const shellClass =
-    "flex items-center gap-1 rounded-full border border-[var(--color-text)] bg-[var(--color-bg)] px-2 py-1 shadow-sm";
+    "flex items-center gap-1 rounded-lg border border-[var(--mb-border-strong)] bg-[var(--mb-bg-elevated)] px-2 py-1";
 
   const inputClass =
     "max-h-[120px] min-h-[22px] flex-1 resize-none bg-transparent py-1.5 text-[15px] leading-5 text-[var(--color-text)] outline-none placeholder:text-[var(--color-text)]";
@@ -236,7 +212,7 @@ export const MoodboardComposer = forwardRef<
               className={attachBtnClass}
               aria-label="Attach file"
             >
-              <PlusIcon />
+              <PlusIcon size={ICON_SIZE} aria-hidden />
             </button>
           </>
         ) : null}
@@ -264,7 +240,7 @@ export const MoodboardComposer = forwardRef<
             className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[var(--color-bg)] text-[var(--color-bg)] transition hover:bg-[var(--color-bg)]"
             aria-label="Send"
           >
-            <SendArrowIcon />
+            <ArrowUpIcon size={ICON_SIZE} aria-hidden />
           </button>
         ) : null}
       </div>
@@ -298,7 +274,7 @@ function ModelPicker({
   chat?: boolean;
 }) {
   const model = MOODBOARD_MODELS.find((m) => m.id === modelId);
-  const label = shortModelLabel(modelId, hero);
+  const label = shortModelLabel(modelId);
   const suffix = model?.recommended ? (hero || chat ? " · Default" : " · default") : "";
 
   if (chat) {
@@ -317,8 +293,8 @@ function ModelPicker({
             </option>
           ))}
         </select>
-        <span className="pointer-events-none absolute right-0 text-[10px] text-[var(--color-text)]">
-          ∨
+        <span className="pointer-events-none absolute right-0 flex items-center text-[var(--color-text)]">
+          <ChevronDownIcon size={CHEVRON_SIZE} aria-hidden />
         </span>
       </div>
     );
@@ -334,13 +310,13 @@ function ModelPicker({
       >
         {MOODBOARD_MODELS.map((m) => (
           <option key={m.id} value={m.id} className="bg-[var(--color-text)] text-[var(--color-bg)]">
-            {shortModelLabel(m.id, hero)}
+            {shortModelLabel(m.id)}
             {m.recommended ? (hero ? " · Default" : " · default") : ""}
           </option>
         ))}
       </select>
-      <span className="pointer-events-none absolute right-0 text-[9px] text-[var(--color-text)]">
-        ∨
+      <span className="pointer-events-none absolute right-0 flex items-center text-[var(--color-text)]">
+        <ChevronDownIcon size={CHEVRON_SIZE} aria-hidden />
       </span>
       <span className="sr-only">
         {label}

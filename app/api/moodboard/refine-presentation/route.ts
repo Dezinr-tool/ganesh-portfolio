@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { refinePresentationDirection } from "@/lib/moodboard/presentation-generator";
+import { saveRefinementTrainingRecord } from "@/lib/moodboard/training-memory";
 import type { MoodboardPresentationDirection } from "@/lib/moodboard/db-types";
 import type { MoodboardModelId } from "@/lib/moodboard/types";
 
@@ -26,6 +27,21 @@ export async function POST(request: NextRequest) {
       extras,
       selectedOutputSections,
     });
+
+    const sessionId = body.sessionId as string | undefined;
+    if (sessionId) {
+      void saveRefinementTrainingRecord({
+        sessionId,
+        directionName: direction.directionName,
+        refineNote,
+        beforeSummary: {
+          name: direction.directionName,
+          tagline: direction.tagline,
+          moodKeywords: direction.moodKeywords,
+        },
+        afterDirection: refined,
+      });
+    }
 
     return NextResponse.json({ direction: refined });
   } catch (error) {
