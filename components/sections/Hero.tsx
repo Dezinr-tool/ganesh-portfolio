@@ -1,6 +1,5 @@
 "use client";
 
-import { mohave } from "@/app/fonts";
 import { shouldUseNativeScroll } from "@/lib/mobile-viewport";
 import { useGSAP } from "@gsap/react";
 import gsap from "gsap";
@@ -14,6 +13,7 @@ import {
 } from "framer-motion";
 import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
+import { HeroLiquidEther } from "./HeroLiquidEther";
 
 const portraitImageProps = {
   src: "/ganesh.avif",
@@ -65,7 +65,6 @@ type HeroProps = {
 
 export function Hero({ content }: HeroProps) {
   const sectionRef = useRef<HTMLElement>(null);
-  const ganeshRef = useRef<HTMLSpanElement>(null);
   const photoRef = useRef<HTMLDivElement>(null);
   const badgeRef = useRef<HTMLElement>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
@@ -83,8 +82,6 @@ export function Hero({ content }: HeroProps) {
     return () => window.removeEventListener("resize", syncFoldHeight);
   }, []);
 
-  const ganeshScaleRaw = useTransform(scrollY, [0, 400], [1, 1.15]);
-  const ganeshOpacityRaw = useTransform(scrollY, [0, 400], [1, 0]);
   const photoYRaw = useTransform(scrollY, [0, 600], [0, -150]);
   const photoScaleRaw = useTransform(scrollY, [0, 600], [1, 1.06]);
   const photoOpacityRaw = useTransform(
@@ -97,16 +94,7 @@ export function Hero({ content }: HeroProps) {
 
   const staticOne = useMotionValue(1);
   const staticZero = useMotionValue(0);
-  const ganeshOpacityStatic = useMotionValue(1);
 
-  const ganeshScale = useSpring(
-    reducedMotion ? staticOne : ganeshScaleRaw,
-    SCROLL_SPRING,
-  );
-  const ganeshOpacity = useSpring(
-    reducedMotion ? ganeshOpacityStatic : ganeshOpacityRaw,
-    SCROLL_SPRING,
-  );
   const photoY = useSpring(reducedMotion ? staticZero : photoYRaw, SCROLL_SPRING);
   const photoScale = useSpring(
     reducedMotion ? staticOne : photoScaleRaw,
@@ -127,7 +115,6 @@ export function Hero({ content }: HeroProps) {
 
   useGSAP(
     () => {
-      const ganesh = ganeshRef.current;
       const photo = photoRef.current;
       const badge = badgeRef.current;
       const subtext = subtextRef.current;
@@ -139,7 +126,7 @@ export function Hero({ content }: HeroProps) {
       ).matches;
 
       if (reduced || shouldUseNativeScroll()) {
-        gsap.set([ganesh, photo, badge, subtext, headlineRef.current].filter(Boolean), {
+        gsap.set([photo, badge, subtext, headlineRef.current].filter(Boolean), {
           opacity: 1,
           scale: 1,
           y: 0,
@@ -149,7 +136,6 @@ export function Hero({ content }: HeroProps) {
         return;
       }
 
-      if (ganesh) gsap.set(ganesh, { opacity: 0, scale: 0.97 });
       gsap.set(photo, {
         opacity: 0,
         scale: 1.08,
@@ -164,15 +150,6 @@ export function Hero({ content }: HeroProps) {
 
       const tl = gsap.timeline({ defaults: { ease: "power3.out" } });
 
-      if (ganesh) {
-        tl.to(ganesh, {
-          opacity: 0.1,
-          scale: 1,
-          duration: 0.85,
-          ease: "power2.out",
-        });
-      }
-
       tl.to(
         photo,
         {
@@ -182,7 +159,7 @@ export function Hero({ content }: HeroProps) {
           duration: 1.2,
           ease: "power3.out",
         },
-        ganesh ? 0.45 : 0,
+        0,
       );
 
       if (badge) {
@@ -223,25 +200,15 @@ export function Hero({ content }: HeroProps) {
       className="relative z-0 h-dvh min-h-svh w-full overflow-x-clip bg-[var(--color-bg)] text-[var(--color-text)] md:sticky md:top-0 md:overflow-y-hidden md:min-h-[700px]"
       aria-label="Introduction"
     >
-      {/* GANESH watermark — hidden on mobile where it renders poorly, visible sm+ */}
       <div
-        className="pointer-events-none absolute inset-0 z-0 hidden sm:flex items-center justify-center overflow-hidden select-none"
+        id="liquid-ether-1"
+        className="pointer-events-none absolute inset-0 z-[1] overflow-hidden"
         aria-hidden="true"
-      >
-        <div className="w-full will-change-transform">
-          <motion.div style={{ scale: ganeshScale, opacity: ganeshOpacity }}>
-            <span
-              ref={ganeshRef}
-              className={`${mohave.className} hero-ganesh-watermark block w-full whitespace-nowrap text-center font-bold leading-[0.82] text-[var(--color-text)] will-change-transform`}
-            >
-              GANESH
-            </span>
-          </motion.div>
-        </div>
-      </div>
+      />
+      <HeroLiquidEther />
 
       {/* Portrait — bottom-aligned, full-bleed width */}
-      <div className="pointer-events-none absolute inset-x-0 bottom-0 z-[1] flex items-end justify-center overflow-visible">
+      <div className="pointer-events-none absolute inset-x-0 bottom-0 z-[3] flex items-end justify-center overflow-visible">
         <div className="w-full will-change-transform">
           <motion.div
             style={{
@@ -302,7 +269,7 @@ export function Hero({ content }: HeroProps) {
       {/* Bottom section — mobile: stacked (badge → h1 → subtext). sm+: row layout */}
       <div
         ref={bottomRef}
-        className="pointer-events-none absolute bottom-0 left-0 right-0 z-[2] px-5 pb-6 sm:flex sm:items-start sm:justify-between sm:px-10 sm:pb-12 lg:px-14 lg:pb-14"
+        className="pointer-events-none absolute bottom-0 left-0 right-0 z-[4] px-5 pb-6 sm:flex sm:items-start sm:justify-between sm:px-10 sm:pb-12 lg:px-14 lg:pb-14"
       >
         <motion.div style={{ y: bottomY, opacity: bottomOpacity }}>
           {/* Badge — mobile only, above H1 */}
