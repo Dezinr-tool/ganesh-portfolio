@@ -2,6 +2,15 @@
 
 import { useEffect, useState } from "react";
 import { EANav } from "../_components/ea-nav";
+import {
+  EA_BTN_PRIMARY,
+  EA_CARD,
+  EA_MUTED,
+  EA_PAGE,
+  EA_TAB_ACTIVE,
+  EA_TAB_INACTIVE,
+  EA_TITLE,
+} from "../_components/ea-ui";
 
 type IntelligenceItem = {
   id: string;
@@ -59,9 +68,7 @@ function sentimentLabel(score: number | null): string {
 }
 
 function sentimentColor(score: number | null): string {
-  if (score === null) return "text-[var(--color-text)]";
-  if (score >= 0.3) return "text-[var(--color-accent)]";
-  if (score <= -0.3) return "text-[var(--color-accent)]";
+  if (score === null) return "text-[var(--color-text)] opacity-70";
   return "text-[var(--color-accent)]";
 }
 
@@ -138,13 +145,13 @@ export default function EAInsightsPage() {
   const stats = summary?.stats;
 
   return (
-    <div className="min-h-screen bg-[var(--color-bg)] text-[var(--color-text)]">
+    <div className={EA_PAGE}>
       <EANav />
       <main className="mx-auto max-w-5xl px-6 py-10">
         <div className="mb-8 flex flex-wrap items-end justify-between gap-4">
           <div>
-            <h1 className="text-2xl font-light text-[var(--color-bg)]">Intelligence</h1>
-            <p className="mt-1 text-sm text-[var(--color-text)]">
+            <h1 className={`text-2xl font-light ${EA_TITLE}`}>Intelligence</h1>
+            <p className={`mt-1 text-sm ${EA_MUTED}`}>
               {lastUpdated ? `Last updated ${lastUpdated}` : "Loading…"}
             </p>
           </div>
@@ -152,20 +159,20 @@ export default function EAInsightsPage() {
             type="button"
             onClick={() => void handleGenerateSummary()}
             disabled={generating}
-            className="rounded-lg bg-[var(--color-bg)] px-4 py-2 text-sm font-medium text-[var(--color-text)] transition hover:bg-[var(--color-bg)] disabled:opacity-50"
+            className={EA_BTN_PRIMARY}
           >
             {generating ? "Generating…" : "Generate weekly summary"}
           </button>
         </div>
 
         {error && (
-          <p className="mb-6 rounded-lg border border-[var(--color-accent)] bg-[var(--color-accent)] px-4 py-3 text-sm text-[var(--color-accent)]">
+          <p className="mb-6 rounded-lg border border-[var(--color-accent)] bg-[var(--color-accent)] px-4 py-3 text-sm text-[var(--color-bg)]">
             {error}
           </p>
         )}
 
         {loading ? (
-          <p className="text-sm text-[var(--color-text)]">Loading intelligence…</p>
+          <p className={`text-sm ${EA_MUTED}`}>Loading intelligence…</p>
         ) : (
           <>
             <div className="mb-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -175,17 +182,14 @@ export default function EAInsightsPage() {
                 { label: "Clients profiled", value: stats?.clientCount ?? 0 },
                 { label: "Patterns identified", value: stats?.patternCount ?? 0 },
               ].map((card) => (
-                <div
-                  key={card.label}
-                  className="rounded-xl border border-[var(--color-text)] bg-[var(--color-bg)]/50 p-5"
-                >
-                  <p className="text-2xl font-light text-[var(--color-bg)]">{card.value}</p>
-                  <p className="mt-1 text-xs text-[var(--color-text)]">{card.label}</p>
+                <div key={card.label} className={`${EA_CARD} p-5`}>
+                  <p className="text-2xl font-light text-[var(--color-text)]">{card.value}</p>
+                  <p className="mt-1 text-xs text-[var(--color-text)] opacity-70">{card.label}</p>
                 </div>
               ))}
             </div>
 
-            <section className="mb-8 rounded-xl border border-[var(--color-text)] bg-[var(--color-bg)]/50 p-6">
+            <section className={`mb-8 ${EA_CARD} p-6`}>
               <div className="mb-3 flex items-center justify-between">
                 <h2 className="text-sm font-medium text-[var(--color-text)]">Weekly narrative</h2>
                 <span
@@ -200,7 +204,7 @@ export default function EAInsightsPage() {
               </p>
               {summary?.topLearnings && summary.topLearnings.length > 0 && (
                 <div className="mt-4">
-                  <p className="mb-2 text-xs font-medium uppercase tracking-wide text-[var(--color-text)]">
+                  <p className="mb-2 text-xs font-medium uppercase tracking-wide text-[var(--color-text)] opacity-70">
                     Top learnings
                   </p>
                   <ul className="space-y-1 text-sm text-[var(--color-text)]">
@@ -213,7 +217,7 @@ export default function EAInsightsPage() {
             </section>
 
             <section className="mb-8">
-              <h2 className="mb-3 text-sm font-medium text-[var(--color-text)]">By category</h2>
+              <h2 className={`mb-3 text-sm font-medium ${EA_TITLE}`}>By category</h2>
               <div className="mb-4 flex flex-wrap gap-1">
                 {CATEGORIES.map((cat) => (
                   <button
@@ -221,9 +225,7 @@ export default function EAInsightsPage() {
                     type="button"
                     onClick={() => setActiveTab(cat)}
                     className={`rounded-md px-3 py-1.5 text-xs capitalize transition ${
-                      activeTab === cat
-                        ? "bg-[var(--color-bg)] text-[var(--color-bg)]"
-                        : "text-[var(--color-text)] hover:text-[var(--color-text)]"
+                      activeTab === cat ? EA_TAB_ACTIVE : EA_TAB_INACTIVE
                     }`}
                   >
                     {cat}
@@ -232,17 +234,14 @@ export default function EAInsightsPage() {
               </div>
               <div className="space-y-2">
                 {categoryItems.length === 0 ? (
-                  <p className="text-sm text-[var(--color-text)]">
+                  <p className={`text-sm ${EA_MUTED}`}>
                     No {activeTab} insights yet.
                   </p>
                 ) : (
                   categoryItems.map((item) => (
-                    <div
-                      key={item.id}
-                      className="rounded-lg border border-[var(--color-text)] bg-[var(--color-bg)]/30 px-4 py-3"
-                    >
+                    <div key={item.id} className={`${EA_CARD} px-4 py-3`}>
                       <p className="text-sm text-[var(--color-text)]">{item.insight}</p>
-                      <p className="mt-1 text-xs text-[var(--color-text)]">
+                      <p className="mt-1 text-xs text-[var(--color-text)] opacity-70">
                         Importance {item.importance}
                         {item.clientName ? ` · ${item.clientName}` : ""}
                       </p>
@@ -254,11 +253,11 @@ export default function EAInsightsPage() {
 
             <div className="grid gap-8 lg:grid-cols-2">
               <section>
-                <h2 className="mb-3 text-sm font-medium text-[var(--color-text)]">
+                <h2 className={`mb-3 text-sm font-medium ${EA_TITLE}`}>
                   Client profiles
                 </h2>
                 {clients.length === 0 ? (
-                  <p className="text-sm text-[var(--color-text)]">No clients profiled yet.</p>
+                  <p className={`text-sm ${EA_MUTED}`}>No clients profiled yet.</p>
                 ) : (
                   <div className="space-y-2">
                     {clients.map((client) => (
@@ -270,23 +269,23 @@ export default function EAInsightsPage() {
                             selectedClient?.id === client.id ? null : client,
                           )
                         }
-                        className="w-full rounded-lg border border-[var(--color-text)] bg-[var(--color-bg)]/30 px-4 py-3 text-left transition hover:border-[var(--color-text)]"
+                        className={`w-full ${EA_CARD} px-4 py-3 text-left transition hover:border-[var(--color-bg)]/30`}
                       >
                         <div className="flex items-center justify-between">
-                          <p className="text-sm font-medium text-[var(--color-bg)]">
+                          <p className="text-sm font-medium text-[var(--color-text)]">
                             {client.clientName}
                           </p>
-                          <span className="text-xs text-[var(--color-text)]">
+                          <span className="text-xs text-[var(--color-text)] opacity-70">
                             {client.interactionCount} interactions
                           </span>
                         </div>
                         {client.company && (
-                          <p className="mt-0.5 text-xs text-[var(--color-text)]">
+                          <p className="mt-0.5 text-xs text-[var(--color-text)] opacity-70">
                             {client.company}
                           </p>
                         )}
                         {selectedClient?.id === client.id && (
-                          <div className="mt-3 border-t border-[var(--color-text)] pt-3 text-xs text-[var(--color-text)]">
+                          <div className="mt-3 border-t border-[var(--color-text)]/15 pt-3 text-xs text-[var(--color-text)] opacity-70">
                             {client.preferences.length > 0 && (
                               <p>Preferences: {client.preferences.join(", ")}</p>
                             )}
@@ -307,18 +306,18 @@ export default function EAInsightsPage() {
               </section>
 
               <section>
-                <h2 className="mb-3 text-sm font-medium text-[var(--color-text)]">Patterns</h2>
+                <h2 className={`mb-3 text-sm font-medium ${EA_TITLE}`}>Patterns</h2>
                 {!summary?.patterns?.length ? (
-                  <p className="text-sm text-[var(--color-text)]">No patterns detected yet.</p>
+                  <p className={`text-sm ${EA_MUTED}`}>No patterns detected yet.</p>
                 ) : (
                   <div className="space-y-2">
                     {summary.patterns.map((pattern) => (
                       <div
                         key={pattern.description}
-                        className="rounded-lg border border-[var(--color-text)] bg-[var(--color-bg)]/30 px-4 py-3"
+                        className={`${EA_CARD} px-4 py-3`}
                       >
                         <p className="text-sm text-[var(--color-text)]">{pattern.description}</p>
-                        <p className="mt-1 text-xs text-[var(--color-text)]">
+                        <p className="mt-1 text-xs text-[var(--color-text)] opacity-70">
                           Seen {pattern.evidenceCount} time
                           {pattern.evidenceCount === 1 ? "" : "s"}
                         </p>
@@ -327,8 +326,8 @@ export default function EAInsightsPage() {
                   </div>
                 )}
                 {summary?.suggestions && summary.suggestions.length > 0 && (
-                  <div className="mt-4 rounded-lg border border-[var(--color-text)]/80 bg-[var(--color-bg)]/20 p-4">
-                    <p className="mb-2 text-xs font-medium uppercase tracking-wide text-[var(--color-text)]">
+                  <div className={`mt-4 ${EA_CARD} p-4`}>
+                    <p className="mb-2 text-xs font-medium uppercase tracking-wide text-[var(--color-text)] opacity-70">
                       Suggested actions
                     </p>
                     <ul className="space-y-1 text-sm text-[var(--color-text)]">

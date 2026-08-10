@@ -2,6 +2,14 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { EANav } from "../_components/ea-nav";
+import {
+  EA_ACCENT_FILL,
+  EA_CARD,
+  EA_INPUT,
+  EA_MUTED,
+  EA_PAGE,
+  EA_TITLE,
+} from "../_components/ea-ui";
 import { useEASettings } from "../_components/use-ea-settings";
 
 type FollowUp = {
@@ -18,9 +26,9 @@ type FollowUp = {
 
 function StatusBadge({ status }: { status: FollowUp["status"] }) {
   const styles = {
-    draft: "bg-[var(--color-accent)] text-[var(--color-accent)]",
-    approved: "bg-[var(--color-accent)] text-[var(--color-accent)]",
-    sent: "bg-[var(--color-accent)] text-[var(--color-accent)]",
+    draft: EA_ACCENT_FILL,
+    approved: EA_ACCENT_FILL,
+    sent: EA_ACCENT_FILL,
   } as const;
 
   return (
@@ -82,11 +90,11 @@ function ReviewModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-[var(--color-text)]/70 px-4">
-      <div className="max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-xl border border-[var(--color-text)] bg-[var(--color-bg)] p-6 shadow-xl">
+      <div className="max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-xl border border-[var(--color-text)]/15 bg-[var(--color-bg)] p-6 shadow-xl">
         <div className="mb-5 flex items-start justify-between gap-4">
           <div>
-            <h3 className="text-lg font-medium text-[var(--color-bg)]">Review follow-up</h3>
-            <p className="mt-1 text-sm text-[var(--color-text)]">
+            <h3 className="text-lg font-medium text-[var(--color-text)]">Review follow-up</h3>
+            <p className="mt-1 text-sm text-[var(--color-text)] opacity-70">
               To: {followup.recipientName ?? followup.recipientEmail}
               {followup.meetingTitle ? ` · ${followup.meetingTitle}` : ""}
             </p>
@@ -94,7 +102,7 @@ function ReviewModal({
           <button
             type="button"
             onClick={onClose}
-            className="text-[var(--color-text)] hover:text-[var(--color-text)]"
+            className="text-[var(--color-text)] opacity-70 hover:text-[var(--color-text)] hover:opacity-100"
             aria-label="Close"
           >
             ✕
@@ -103,24 +111,24 @@ function ReviewModal({
 
         <div className="space-y-4">
           <div>
-            <label className="mb-1.5 block text-xs text-[var(--color-text)]">Subject</label>
+            <label className="mb-1.5 block text-xs text-[var(--color-text)] opacity-70">Subject</label>
             <input
               type="text"
               value={subject}
               onChange={(e) => setSubject(e.target.value)}
               readOnly={readOnly}
-              className="w-full rounded-lg border border-[var(--color-text)] bg-[var(--color-text)] px-3 py-2 text-sm text-[var(--color-bg)] outline-none focus:border-[var(--color-text)] read-only:opacity-70"
+              className={`${EA_INPUT} read-only:opacity-70`}
             />
           </div>
 
           <div>
-            <label className="mb-1.5 block text-xs text-[var(--color-text)]">Body</label>
+            <label className="mb-1.5 block text-xs text-[var(--color-text)] opacity-70">Body</label>
             <textarea
               value={body}
               onChange={(e) => setBody(e.target.value)}
               readOnly={readOnly}
               rows={12}
-              className="w-full resize-y rounded-lg border border-[var(--color-text)] bg-[var(--color-text)] px-3 py-2 text-sm text-[var(--color-bg)] outline-none focus:border-[var(--color-text)] read-only:opacity-70"
+              className={`${EA_INPUT} resize-y read-only:opacity-70`}
             />
           </div>
 
@@ -141,7 +149,7 @@ function ReviewModal({
           <button
             type="button"
             onClick={onClose}
-            className="rounded-lg border border-[var(--color-text)] px-4 py-2 text-sm text-[var(--color-text)] hover:bg-[var(--color-bg)]"
+            className="rounded-lg border border-[var(--color-text)]/35 px-4 py-2 text-sm text-[var(--color-text)] hover:bg-[var(--color-text)]/5"
           >
             {readOnly ? "Close" : "Cancel"}
           </button>
@@ -150,7 +158,7 @@ function ReviewModal({
               type="button"
               onClick={handleSend}
               disabled={saving}
-              className="rounded-lg bg-[var(--color-bg)] px-4 py-2 text-sm font-medium text-[var(--color-text)] hover:bg-[var(--color-bg)] disabled:opacity-50"
+              className="rounded-lg bg-[var(--color-text)] px-4 py-2 text-sm font-medium text-[var(--color-bg)] hover:opacity-90 disabled:opacity-50"
             >
               {saving ? "Sending…" : "Approve & Send"}
             </button>
@@ -175,7 +183,7 @@ function FollowUpSection({
   return (
     <section>
       <div className="mb-4 flex items-center gap-3">
-        <h2 className="text-base font-medium text-[var(--color-bg)]">{title}</h2>
+        <h2 className={`text-base font-medium ${EA_TITLE}`}>{title}</h2>
         <span className="rounded-full bg-[var(--color-bg)] px-2.5 py-0.5 text-xs text-[var(--color-text)]">
           {items.length}
         </span>
@@ -186,18 +194,18 @@ function FollowUpSection({
             <button
               type="button"
               onClick={() => onSelect(item)}
-              className="w-full rounded-xl border border-[var(--color-text)] bg-[var(--color-bg)]/80 p-4 text-left transition-colors hover:border-[var(--color-text)]"
+              className={`w-full ${EA_CARD} p-4 text-left transition-colors hover:border-[var(--color-bg)]/30`}
             >
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0">
-                  <p className="text-sm font-medium text-[var(--color-bg)]">
+                  <p className="text-sm font-medium text-[var(--color-text)]">
                     {item.recipientName ?? item.recipientEmail}
                   </p>
-                  <p className="mt-1 truncate text-xs text-[var(--color-text)]">
+                  <p className="mt-1 truncate text-xs text-[var(--color-text)] opacity-70">
                     {item.subject}
                   </p>
                   {item.meetingTitle ? (
-                    <p className="mt-1 text-xs text-[var(--color-text)]">
+                    <p className="mt-1 text-xs text-[var(--color-text)] opacity-70">
                       {item.meetingTitle}
                     </p>
                   ) : null}
@@ -255,23 +263,23 @@ export default function EAFollowUpsPage() {
   const sent = followups.filter((f) => f.status === "sent");
 
   return (
-    <div className="min-h-screen bg-[var(--color-text)] text-[var(--color-text)]">
+    <div className={EA_PAGE}>
       <EANav />
 
       <main className="mx-auto max-w-3xl px-6 py-10">
         <div className="mb-10">
-          <h1 className="text-2xl font-light text-[var(--color-bg)]">Follow-ups</h1>
-          <p className="mt-1 text-sm text-[var(--color-text)]">
+          <h1 className={`text-2xl font-light ${EA_TITLE}`}>Follow-ups</h1>
+          <p className={`mt-1 text-sm ${EA_MUTED}`}>
             {eaName} drafts post-meeting emails — review before sending
           </p>
         </div>
 
         {loading ? (
-          <p className="text-sm text-[var(--color-text)]">Loading follow-ups…</p>
+          <p className={`text-sm ${EA_MUTED}`}>Loading follow-ups…</p>
         ) : followups.length === 0 ? (
-          <div className="rounded-xl border border-dashed border-[var(--color-text)] px-6 py-16 text-center">
-            <p className="text-sm text-[var(--color-text)]">No follow-ups yet</p>
-            <p className="mt-1 text-xs text-[var(--color-text)]">
+          <div className="rounded-xl border border-dashed border-[var(--color-bg)]/25 px-6 py-16 text-center">
+            <p className={`text-sm ${EA_MUTED}`}>No follow-ups yet</p>
+            <p className="mt-1 text-xs text-[var(--color-bg)] opacity-50">
               Drafts are created automatically after meetings are processed
             </p>
           </div>

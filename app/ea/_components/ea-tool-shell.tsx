@@ -1,7 +1,7 @@
 "use client";
 
 import { EANav } from "./ea-nav";
-import { EA_TAB_ACTIVE, EA_TAB_INACTIVE } from "./ea-ui";
+import { EA_MUTED, EA_PAGE, EA_TAB_ACTIVE, EA_TAB_INACTIVE, EA_TITLE } from "./ea-ui";
 
 export function EAToolShell({
   title,
@@ -13,12 +13,12 @@ export function EAToolShell({
   children: React.ReactNode;
 }) {
   return (
-    <div className="min-h-screen bg-[var(--color-text)] text-[var(--color-text)]">
+    <div className={EA_PAGE}>
       <EANav />
       <main className="mx-auto max-w-5xl px-6 py-10">
         <div className="mb-8">
-          <h1 className="text-2xl font-light text-[var(--color-bg)]">{title}</h1>
-          <p className="mt-1 text-sm text-[var(--color-text)]">{subtitle}</p>
+          <h1 className={`text-2xl font-light ${EA_TITLE}`}>{title}</h1>
+          <p className={`mt-1 text-sm ${EA_MUTED}`}>{subtitle}</p>
         </div>
         {children}
       </main>

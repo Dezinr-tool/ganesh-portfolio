@@ -35,6 +35,7 @@ const NAV_ITEMS: NavItem[] = [
   { href: "/dashboard/projects", label: "Projects", exact: false },
   { href: "/dashboard/invoices", label: "Invoices", exact: false },
   { href: "/dashboard/agreements", label: "Agreements", exact: false },
+  { href: "/expense-tracker", label: "Expenses", exact: false },
   { href: "/dashboard/settings", label: "Settings", exact: false },
 ];
 

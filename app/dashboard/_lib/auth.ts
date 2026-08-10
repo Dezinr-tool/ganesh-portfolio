@@ -3,6 +3,7 @@ export const DASHBOARD_AUTH_COOKIE = "dashboard-auth";
 /** Routes gated by dashboard password + cookie (see middleware.ts). */
 export const DASHBOARD_PROTECTED_PREFIXES = [
   "/dashboard",
+  "/expense-tracker",
   "/tools",
   "/design-audit",
   "/ia",
@@ -12,6 +13,7 @@ export const DASHBOARD_PROTECTED_PREFIXES = [
   "/max",
   "/moodboard",
   "/api/invoices",
+  "/api/expense-tracker",
   "/api/agreements",
   "/api/clients",
   "/api/settings",

@@ -72,7 +72,11 @@ export default async function InvoiceDetailPage({
           </Link>
           <DownloadPdfButton invoice={invoice} />
           {invoice.status !== "Draft" ? (
-            <InvoiceStatusButton invoiceId={invoice.id} status={invoice.status} />
+            <InvoiceStatusButton
+              invoiceId={invoice.id}
+              status={invoice.status}
+              paidAt={invoice.paidAt}
+            />
           ) : null}
           <DeleteInvoiceButton
             invoiceId={invoice.id}

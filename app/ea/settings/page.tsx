@@ -2,6 +2,14 @@
 
 import { FormEvent, useCallback, useEffect, useMemo, useState } from "react";
 import { EANav } from "../_components/ea-nav";
+import {
+  EA_ACCENT_FILL,
+  EA_CARD_PADDED,
+  EA_INPUT,
+  EA_MUTED,
+  EA_PAGE,
+  EA_TITLE,
+} from "../_components/ea-ui";
 import { GoogleCalendarIntegration } from "../_components/google-calendar-integration";
 import { saveEASettingsClient, useEASettings } from "../_components/use-ea-settings";
 import { buildEAPreview, DEFAULT_EA_NAME } from "@/lib/ea-settings-helpers";
@@ -271,22 +279,19 @@ export default function EASettingsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[var(--color-text)] text-[var(--color-text)]">
+    <div className={EA_PAGE}>
       <EANav />
 
       <main className="mx-auto max-w-lg px-6 py-10">
         <div className="mb-10">
-          <h1 className="text-2xl font-light text-[var(--color-bg)]">Settings</h1>
-          <p className="mt-1 text-sm text-[var(--color-text)]">
+          <h1 className={`text-2xl font-light ${EA_TITLE}`}>Settings</h1>
+          <p className={`mt-1 text-sm ${EA_MUTED}`}>
             Personalize your executive assistant
           </p>
         </div>
 
-        <form
-          onSubmit={handleSave}
-          className="rounded-xl border border-[var(--color-text)] bg-[var(--color-bg)] p-6"
-        >
-          <label className="mb-1.5 block text-sm text-[var(--color-text)]">EA Name</label>
+        <form onSubmit={handleSave} className={EA_CARD_PADDED}>
+          <label className="mb-1.5 block text-sm text-[#111111]">EA Name</label>
           <input
             type="text"
             value={name}
@@ -296,27 +301,27 @@ export default function EASettingsPage() {
             }}
             placeholder="Virtual EA"
             disabled={loading || saving}
-            className="w-full rounded-lg border border-[var(--color-text)] bg-[var(--color-text)] px-4 py-3 text-sm text-[var(--color-bg)] outline-none placeholder:text-[var(--color-text)] focus:border-[var(--color-text)] disabled:opacity-40"
+            className={`${EA_INPUT} disabled:opacity-40`}
           />
 
-          <div className="mt-4 rounded-lg border border-[var(--color-text)]/80 bg-[var(--color-text)]/40 px-4 py-3">
-            <p className="text-xs uppercase tracking-wide text-[var(--color-text)]">
+          <div className="mt-4 rounded-lg border border-[#111111]/15 bg-[#111111]/05 px-4 py-3">
+            <p className="text-xs uppercase tracking-wide text-[#111111]/70">
               Preview
             </p>
-            <p className="mt-2 text-sm text-[var(--color-text)]">
+            <p className="mt-2 text-sm text-[#111111]">
               {buildEAPreview(name.trim() || DEFAULT_EA_NAME)}
             </p>
           </div>
 
-          {error ? <p className="mt-3 text-sm text-[var(--color-accent)]">{error}</p> : null}
+          {error ? <p className="mt-3 text-sm text-[#FF1E00]">{error}</p> : null}
           {saved ? (
-            <p className="mt-3 text-sm text-[var(--color-accent)]">Settings saved.</p>
+            <p className="mt-3 text-sm text-[#FF1E00]">Settings saved.</p>
           ) : null}
 
           <button
             type="submit"
             disabled={loading || saving || !name.trim()}
-            className="mt-5 rounded-lg bg-[var(--color-bg)] px-5 py-2.5 text-sm font-medium text-[var(--color-text)] transition-colors hover:bg-[var(--color-bg)] disabled:opacity-50"
+            className={`mt-5 px-5 py-2.5 ${EA_ACCENT_FILL} rounded-lg text-sm font-medium transition hover:opacity-90 disabled:opacity-50`}
           >
             {saving ? "Saving…" : "Save"}
           </button>
@@ -343,7 +348,7 @@ export default function EASettingsPage() {
                 setError("Failed to clear history.");
               }
             }}
-            className="mt-3 block text-sm text-[var(--color-text)] underline hover:text-[var(--color-text)]"
+            className="mt-3 block text-sm text-[#111111]/70 underline hover:text-[#111111]"
           >
             Clear chat history
           </button>
@@ -367,11 +372,11 @@ export default function EASettingsPage() {
         )}
         */}
 
-        <section className="mt-8 rounded-xl border border-[var(--color-text)] bg-[var(--color-bg)] p-6">
+        <section className={`mt-8 ${EA_CARD_PADDED}`}>
           <div className="mb-4 flex items-center justify-between">
             <div>
-              <h2 className="text-lg font-medium text-[var(--color-bg)]">Memory</h2>
-              <p className="mt-1 text-sm text-[var(--color-text)]">
+              <h2 className="text-lg font-medium text-[#111111]">Memory</h2>
+              <p className="mt-1 text-sm text-[#111111]/70">
                 Facts and preferences Virtual EA remembers about you
               </p>
             </div>
@@ -379,7 +384,7 @@ export default function EASettingsPage() {
               <button
                 type="button"
                 onClick={() => void handleClearMemories()}
-                className="text-xs text-[var(--color-accent)] underline hover:text-[var(--color-accent)]"
+                className="text-xs text-[#FF1E00] underline hover:opacity-80"
               >
                 Clear all
               </button>
@@ -392,7 +397,7 @@ export default function EASettingsPage() {
               onChange={(e) => setNewMemory(e.target.value)}
               placeholder="Add something for Virtual EA to remember…"
               rows={2}
-              className="w-full resize-none rounded-lg border border-[var(--color-text)] bg-[var(--color-text)] px-4 py-3 text-sm text-[var(--color-bg)] outline-none placeholder:text-[var(--color-text)] focus:border-[var(--color-text)]"
+              className={`${EA_INPUT} resize-none`}
             />
             <div className="flex items-center gap-3">
               <select
@@ -402,7 +407,7 @@ export default function EASettingsPage() {
                     e.target.value as (typeof MEMORY_CATEGORIES)[number],
                   )
                 }
-                className="rounded-lg border border-[var(--color-text)] bg-[var(--color-text)] px-3 py-2 text-sm text-[var(--color-bg)] outline-none focus:border-[var(--color-text)]"
+                className="rounded-lg border border-[#111111]/25 bg-[#FFFFFF] px-3 py-2 text-sm text-[#111111] outline-none focus:border-[#111111]"
               >
                 {MEMORY_CATEGORIES.map((category) => (
                   <option key={category} value={category}>
@@ -413,7 +418,7 @@ export default function EASettingsPage() {
               <button
                 type="submit"
                 disabled={addingMemory || !newMemory.trim()}
-                className="rounded-lg bg-[var(--color-bg)] px-4 py-2 text-sm text-[var(--color-bg)] hover:bg-[var(--color-bg)] disabled:opacity-50"
+                className={`rounded-lg px-4 py-2 text-sm ${EA_ACCENT_FILL} hover:opacity-90 disabled:opacity-50`}
               >
                 {addingMemory ? "Adding…" : "Add memory"}
               </button>
@@ -421,29 +426,29 @@ export default function EASettingsPage() {
           </form>
 
           {memoryError ? (
-            <p className="mb-4 text-sm text-[var(--color-accent)]">{memoryError}</p>
+            <p className="mb-4 text-sm text-[#FF1E00]">{memoryError}</p>
           ) : null}
 
           {memoryLoading ? (
-            <p className="text-sm text-[var(--color-text)]">Loading memories…</p>
+            <p className="text-sm text-[#111111]/70">Loading memories…</p>
           ) : memories.length === 0 ? (
-            <p className="text-sm text-[var(--color-text)]">No memories saved yet.</p>
+            <p className="text-sm text-[#111111]/70">No memories saved yet.</p>
           ) : (
             <div className="space-y-6">
               {Object.entries(groupedMemories).map(([category, items]) => (
                 <div key={category}>
-                  <h3 className="mb-2 text-xs font-medium uppercase tracking-wide text-[var(--color-text)]">
+                  <h3 className="mb-2 text-xs font-medium uppercase tracking-wide text-[#111111]/70">
                     {category}
                   </h3>
                   <ul className="space-y-2">
                     {items.map((memory) => (
                       <li
                         key={memory.id}
-                        className="flex items-start justify-between gap-3 rounded-lg border border-[var(--color-text)] bg-[var(--color-text)]/40 px-3 py-2.5"
+                        className="flex items-start justify-between gap-3 rounded-lg border border-[#111111]/15 bg-[#111111]/05 px-3 py-2.5"
                       >
                         <div>
-                          <p className="text-sm text-[var(--color-text)]">{memory.content}</p>
-                          <p className="mt-1 text-[10px] text-[var(--color-text)]">
+                          <p className="text-sm text-[#111111]">{memory.content}</p>
+                          <p className="mt-1 text-[10px] text-[#111111]/70">
                             {new Date(memory.createdAt).toLocaleDateString(
                               "en-IN",
                               {
@@ -457,7 +462,7 @@ export default function EASettingsPage() {
                         <button
                           type="button"
                           onClick={() => void handleDeleteMemory(memory.id)}
-                          className="shrink-0 text-xs text-[var(--color-text)] hover:text-[var(--color-accent)]"
+                          className="shrink-0 text-xs text-[#111111]/70 hover:text-[#FF1E00]"
                         >
                           Delete
                         </button>
@@ -470,9 +475,9 @@ export default function EASettingsPage() {
           )}
         </section>
 
-        <section className="mt-8 rounded-xl border border-[var(--color-text)] bg-[var(--color-bg)] p-6">
-          <h2 className="text-lg font-medium text-[var(--color-bg)]">Integrations</h2>
-          <p className="mt-1 text-sm text-[var(--color-text)]">
+        <section className={`mt-8 ${EA_CARD_PADDED}`}>
+          <h2 className="text-lg font-medium text-[#111111]">Integrations</h2>
+          <p className="mt-1 text-sm text-[#111111]/70">
             Connect your tools to Virtual EA
           </p>
 

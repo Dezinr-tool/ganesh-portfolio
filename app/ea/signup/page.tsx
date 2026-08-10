@@ -45,13 +45,15 @@ export default function EASignupPage() {
   };
 
   const inputClass =
-    "w-full bg-[var(--color-bg)] text-[var(--color-bg)] border border-[var(--color-text)] rounded-lg px-4 py-3 outline-none focus:border-[var(--color-text)]";
+    "w-full rounded-lg border border-[#111111]/30 bg-[#FFFFFF] px-4 py-3 text-[#111111] outline-none placeholder:text-[#111111]/45 focus:border-[#111111]";
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-[var(--color-text)]">
+    <div className="flex min-h-screen items-center justify-center bg-[#111111] text-[#FFFFFF]">
       <div className="w-full max-w-md p-8">
-        <h1 className="mb-2 text-2xl font-light text-[var(--color-bg)]">Start with {eaName}</h1>
-        <p className="mb-8 text-sm text-[var(--color-text)]">{buildEAPreview(eaName)}</p>
+        <h1 className="mb-2 text-2xl font-light text-[#FFFFFF]">
+          Start with {eaName}
+        </h1>
+        <p className="mb-8 text-sm text-[#FFFFFF]/70">{buildEAPreview(eaName)}</p>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <input
@@ -96,20 +98,23 @@ export default function EASignupPage() {
             className={inputClass}
           />
 
-          {error ? <p className="text-sm text-[var(--color-accent)]">{error}</p> : null}
+          {error ? <p className="text-sm text-[#FF1E00]">{error}</p> : null}
 
           <button
             type="submit"
             disabled={loading}
-            className="w-full rounded-lg bg-[var(--color-bg)] py-3 font-medium text-[var(--color-text)] transition-colors hover:bg-[var(--color-bg)] disabled:opacity-50"
+            className="w-full rounded-lg bg-[#FFFFFF] py-3 font-medium text-[#111111] transition-opacity hover:opacity-90 disabled:opacity-50"
           >
             {loading ? "Creating account…" : "Create account"}
           </button>
         </form>
 
-        <p className="mt-6 text-center text-sm text-[var(--color-text)]">
+        <p className="mt-6 text-center text-sm text-[#FFFFFF]/70">
           Already have an account?{" "}
-          <Link href="/ea/login" className="text-[var(--color-text)] underline hover:text-[var(--color-bg)]">
+          <Link
+            href="/ea/login"
+            className="text-[#FFFFFF] underline underline-offset-2 hover:text-[#FF1E00]"
+          >
             Sign in
           </Link>
         </p>

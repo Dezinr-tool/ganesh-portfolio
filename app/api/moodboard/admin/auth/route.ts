@@ -25,8 +25,7 @@ export async function POST(request: NextRequest) {
       (from.startsWith("/moodboard/admin") ||
         from.startsWith("/tools") ||
         from.startsWith("/knowledge-admin") ||
-        from.startsWith("/moodboard/sessions") ||
-        from.startsWith("/moodboard/memory"))
+        from.startsWith("/moodboard/sessions"))
         ? from
         : "/moodboard/admin";
 

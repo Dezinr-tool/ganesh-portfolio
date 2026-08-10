@@ -2,6 +2,15 @@
 
 import { FormEvent, useState } from "react";
 import { useRouter } from "next/navigation";
+import {
+  EA_BTN_PRIMARY,
+  EA_CHOICE_ACTIVE,
+  EA_CHOICE_INACTIVE,
+  EA_INPUT,
+  EA_MUTED,
+  EA_PAGE,
+  EA_TITLE,
+} from "../_components/ea-ui";
 import { useEASettings } from "../_components/use-ea-settings";
 
 const COMMUNICATION_STYLES = [
@@ -82,63 +91,63 @@ export default function EAOnboardingPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[var(--color-text)] text-[var(--color-bg)] flex items-center justify-center px-4">
+    <div className={`${EA_PAGE} flex items-center justify-center px-4`}>
       <div className="w-full max-w-lg">
-        <p className="text-[var(--color-text)] text-sm mb-2">Welcome to {eaName}</p>
-        <h1 className="text-2xl font-light mb-2">Quick setup</h1>
-        <p className="text-[var(--color-text)] text-sm mb-8">
+        <p className={`${EA_MUTED} mb-2 text-sm`}>Welcome to {eaName}</p>
+        <h1 className={`mb-2 text-2xl font-light ${EA_TITLE}`}>Quick setup</h1>
+        <p className={`${EA_MUTED} mb-8 text-sm`}>
           Tell me a bit about you so I can match your style and timezone.
         </p>
 
         <form onSubmit={handleSubmit} className="space-y-5">
           <label className="block">
-            <span className="text-[var(--color-text)] text-sm">Your name</span>
+            <span className={`${EA_MUTED} text-sm`}>Your name</span>
             <input
               type="text"
               required
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder="Ganesh"
-              className="mt-1 w-full bg-[var(--color-bg)] border border-[var(--color-text)] rounded-lg px-4 py-3 text-[var(--color-bg)] placeholder:text-[var(--color-text)] focus:outline-none focus:border-[var(--color-text)]"
+              className={`mt-1 ${EA_INPUT}`}
             />
           </label>
 
           <label className="block">
-            <span className="text-[var(--color-text)] text-sm">Role</span>
+            <span className={`${EA_MUTED} text-sm`}>Role</span>
             <input
               type="text"
               required
               value={role}
               onChange={(e) => setRole(e.target.value)}
               placeholder="Design Manager"
-              className="mt-1 w-full bg-[var(--color-bg)] border border-[var(--color-text)] rounded-lg px-4 py-3 text-[var(--color-bg)] placeholder:text-[var(--color-text)] focus:outline-none focus:border-[var(--color-text)]"
+              className={`mt-1 ${EA_INPUT}`}
             />
           </label>
 
           <label className="block">
-            <span className="text-[var(--color-text)] text-sm">Industry</span>
+            <span className={`${EA_MUTED} text-sm`}>Industry</span>
             <input
               type="text"
               required
               value={industry}
               onChange={(e) => setIndustry(e.target.value)}
               placeholder="Design / Technology"
-              className="mt-1 w-full bg-[var(--color-bg)] border border-[var(--color-text)] rounded-lg px-4 py-3 text-[var(--color-bg)] placeholder:text-[var(--color-text)] focus:outline-none focus:border-[var(--color-text)]"
+              className={`mt-1 ${EA_INPUT}`}
             />
           </label>
 
           <fieldset>
-            <legend className="text-[var(--color-text)] text-sm mb-2">
+            <legend className={`${EA_MUTED} mb-2 text-sm`}>
               Preferred communication style
             </legend>
             <div className="grid gap-2">
               {COMMUNICATION_STYLES.map((style) => (
                 <label
                   key={style.id}
-                  className={`flex items-start gap-3 rounded-lg border px-4 py-3 cursor-pointer transition-colors ${
+                  className={`flex cursor-pointer items-start gap-3 rounded-lg px-4 py-3 transition-colors ${
                     communicationStyle === style.id
-                      ? "border-[var(--color-bg)] bg-[var(--color-bg)]"
-                      : "border-[var(--color-text)] hover:border-[var(--color-text)]"
+                      ? EA_CHOICE_ACTIVE
+                      : EA_CHOICE_INACTIVE
                   }`}
                 >
                   <input
@@ -151,7 +160,13 @@ export default function EAOnboardingPage() {
                   />
                   <span>
                     <span className="block text-sm">{style.label}</span>
-                    <span className="block text-[var(--color-text)] text-xs mt-0.5">
+                    <span
+                      className={`mt-0.5 block text-xs ${
+                        communicationStyle === style.id
+                          ? "text-[#111111]/70"
+                          : "text-[#FFFFFF]/60"
+                      }`}
+                    >
                       {style.hint}
                     </span>
                   </span>
@@ -161,11 +176,11 @@ export default function EAOnboardingPage() {
           </fieldset>
 
           <label className="block">
-            <span className="text-[var(--color-text)] text-sm">Timezone</span>
+            <span className={`${EA_MUTED} text-sm`}>Timezone</span>
             <select
               value={timezone}
               onChange={(e) => setTimezone(e.target.value)}
-              className="mt-1 w-full bg-[var(--color-bg)] border border-[var(--color-text)] rounded-lg px-4 py-3 text-[var(--color-bg)] focus:outline-none focus:border-[var(--color-text)]"
+              className={`mt-1 ${EA_INPUT}`}
             >
               {TIMEZONES.map((tz) => (
                 <option key={tz} value={tz}>
@@ -176,13 +191,13 @@ export default function EAOnboardingPage() {
           </label>
 
           {error ? (
-            <p className="text-[var(--color-accent)] text-sm">{error}</p>
+            <p className="text-sm text-[#FF1E00]">{error}</p>
           ) : null}
 
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-[var(--color-bg)] text-[var(--color-text)] rounded-lg py-3 font-medium hover:bg-[var(--color-bg)] disabled:opacity-50 transition-colors"
+            className={`w-full ${EA_BTN_PRIMARY}`}
           >
             {loading ? "Saving…" : "Continue to chat"}
           </button>

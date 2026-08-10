@@ -7,7 +7,6 @@ import { MoodboardSessionsBar } from "./moodboard-sessions-bar";
 const links = [
   { href: "/tools", label: "All Tools" },
   { href: "/moodboard", label: "Session", match: "exact" as const },
-  { href: "/moodboard/memory", label: "Memory", match: "prefix" as const },
   { href: "/moodboard/sessions", label: "All", match: "prefix" as const },
   { href: "/moodboard/admin", label: "Admin", match: "prefix" as const },
 ];

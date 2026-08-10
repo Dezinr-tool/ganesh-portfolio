@@ -4,6 +4,15 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useCallback, useEffect, useMemo, useState } from "react";
 import { EANav } from "../_components/ea-nav";
 import {
+  EA_BTN_PRIMARY,
+  EA_BTN_SECONDARY,
+  EA_CARD,
+  EA_INPUT,
+  EA_MUTED,
+  EA_PAGE,
+  EA_TITLE,
+} from "../_components/ea-ui";
+import {
   ActionItemsPanel,
   mapApiTasks,
   totalTaskCount,
@@ -63,17 +72,17 @@ function EventRow({
   onEdit: (event: CalendarEvent) => void;
 }) {
   return (
-    <li className="flex items-start gap-4 border-b border-[var(--color-text)]/60 pb-3 last:border-0 last:pb-0">
-      <span className="w-20 shrink-0 text-xs text-[var(--color-text)]">
+    <li className="flex items-start gap-4 border-b border-[var(--color-text)]/15 pb-3 last:border-0 last:pb-0">
+      <span className="w-20 shrink-0 text-xs text-[var(--color-text)] opacity-70">
         {dateLabel ?? formatTime(event)}
       </span>
       <div className="min-w-0 flex-1">
-        <p className="text-sm text-[var(--color-bg)]">{event.title}</p>
+        <p className="text-sm text-[var(--color-text)]">{event.title}</p>
         {event.location ? (
-          <p className="mt-0.5 text-xs text-[var(--color-text)]">{event.location}</p>
+          <p className="mt-0.5 text-xs text-[var(--color-text)] opacity-70">{event.location}</p>
         ) : null}
         {event.attendees?.length ? (
-          <p className="mt-0.5 text-xs text-[var(--color-text)]">
+          <p className="mt-0.5 text-xs text-[var(--color-text)] opacity-70">
             {event.attendees.join(", ")}
           </p>
         ) : null}
@@ -82,7 +91,7 @@ function EventRow({
         <button
           type="button"
           onClick={() => onEdit(event)}
-          className="rounded-md border border-[var(--color-text)] px-2.5 py-1 text-xs text-[var(--color-text)] transition-colors hover:border-[var(--color-text)] hover:bg-[var(--color-bg)]"
+          className="rounded-md border border-[var(--color-text)]/35 px-2.5 py-1 text-xs text-[var(--color-text)] transition-colors hover:border-[var(--color-text)] hover:bg-[var(--color-text)]/5"
         >
           Edit
         </button>
@@ -189,16 +198,16 @@ function EditEventModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-[var(--color-text)]/70 px-4">
-      <div className="w-full max-w-lg rounded-xl border border-[var(--color-text)] bg-[var(--color-bg)] p-6 shadow-xl">
+      <div className="w-full max-w-lg rounded-xl border border-[var(--color-text)]/15 bg-[var(--color-bg)] p-6 shadow-xl">
         <div className="mb-5 flex items-start justify-between gap-4">
           <div>
-            <h3 className="text-lg font-medium text-[var(--color-bg)]">Edit meeting</h3>
-            <p className="mt-1 text-xs text-[var(--color-text)]">Times are in IST</p>
+            <h3 className="text-lg font-medium text-[var(--color-text)]">Edit meeting</h3>
+            <p className="mt-1 text-xs text-[var(--color-text)] opacity-70">Times are in IST</p>
           </div>
           <button
             type="button"
             onClick={onClose}
-            className="text-[var(--color-text)] transition-colors hover:text-[var(--color-text)]"
+            className="text-[var(--color-text)] opacity-70 transition-colors hover:text-[var(--color-text)] hover:opacity-100"
             aria-label="Close"
           >
             ✕
@@ -207,38 +216,38 @@ function EditEventModal({
 
         <div className="space-y-4">
           <div>
-            <label className="mb-1.5 block text-xs text-[var(--color-text)]">Title</label>
+            <label className="mb-1.5 block text-xs text-[var(--color-text)] opacity-70">Title</label>
             <input
               type="text"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              className="w-full rounded-lg border border-[var(--color-text)] bg-[var(--color-text)] px-3 py-2 text-sm text-[var(--color-bg)] outline-none focus:border-[var(--color-text)]"
+              className={EA_INPUT}
             />
           </div>
 
           <div className="grid gap-4 sm:grid-cols-2">
             <div>
-              <label className="mb-1.5 block text-xs text-[var(--color-text)]">Start</label>
+              <label className="mb-1.5 block text-xs text-[var(--color-text)] opacity-70">Start</label>
               <input
                 type="datetime-local"
                 value={start}
                 onChange={(e) => setStart(e.target.value)}
-                className="w-full rounded-lg border border-[var(--color-text)] bg-[var(--color-text)] px-3 py-2 text-sm text-[var(--color-bg)] outline-none focus:border-[var(--color-text)]"
+                className={EA_INPUT}
               />
             </div>
             <div>
-              <label className="mb-1.5 block text-xs text-[var(--color-text)]">End</label>
+              <label className="mb-1.5 block text-xs text-[var(--color-text)] opacity-70">End</label>
               <input
                 type="datetime-local"
                 value={end}
                 onChange={(e) => setEnd(e.target.value)}
-                className="w-full rounded-lg border border-[var(--color-text)] bg-[var(--color-text)] px-3 py-2 text-sm text-[var(--color-bg)] outline-none focus:border-[var(--color-text)]"
+                className={EA_INPUT}
               />
             </div>
           </div>
 
           <div>
-            <label className="mb-1.5 block text-xs text-[var(--color-text)]">
+            <label className="mb-1.5 block text-xs text-[var(--color-text)] opacity-70">
               Guest emails
             </label>
             <input
@@ -246,44 +255,44 @@ function EditEventModal({
               value={guests}
               onChange={(e) => setGuests(e.target.value)}
               placeholder="hello@designbyganesh.com"
-              className="w-full rounded-lg border border-[var(--color-text)] bg-[var(--color-text)] px-3 py-2 text-sm text-[var(--color-bg)] outline-none focus:border-[var(--color-text)]"
+              className={EA_INPUT}
             />
           </div>
 
           <div>
-            <label className="mb-1.5 block text-xs text-[var(--color-text)]">
+            <label className="mb-1.5 block text-xs text-[var(--color-text)] opacity-70">
               Location
             </label>
             <input
               type="text"
               value={location}
               onChange={(e) => setLocation(e.target.value)}
-              className="w-full rounded-lg border border-[var(--color-text)] bg-[var(--color-text)] px-3 py-2 text-sm text-[var(--color-bg)] outline-none focus:border-[var(--color-text)]"
+              className={EA_INPUT}
             />
           </div>
 
           <div>
-            <label className="mb-1.5 block text-xs text-[var(--color-text)]">
+            <label className="mb-1.5 block text-xs text-[var(--color-text)] opacity-70">
               Description
             </label>
             <textarea
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               rows={3}
-              className="w-full resize-y rounded-lg border border-[var(--color-text)] bg-[var(--color-text)] px-3 py-2 text-sm text-[var(--color-bg)] outline-none focus:border-[var(--color-text)]"
+              className={`${EA_INPUT} resize-y`}
             />
           </div>
 
           {event.meetLink ? (
             <div>
-              <label className="mb-1.5 block text-xs text-[var(--color-text)]">
+              <label className="mb-1.5 block text-xs text-[var(--color-text)] opacity-70">
                 Google Meet
               </label>
               <a
                 href={event.meetLink}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-sm text-[var(--color-accent)] underline underline-offset-2 hover:text-[var(--color-accent)]"
+                className="text-sm text-[var(--color-accent)] underline underline-offset-2 hover:opacity-80"
               >
                 {event.meetLink}
               </a>
@@ -298,7 +307,7 @@ function EditEventModal({
             type="button"
             onClick={handleDelete}
             disabled={deleting || saving}
-            className="rounded-lg border border-[var(--color-accent)] px-4 py-2 text-sm text-[var(--color-accent)] transition-colors hover:border-[var(--color-accent)] hover:bg-[var(--color-accent)] disabled:opacity-50"
+            className="rounded-lg border border-[var(--color-accent)] px-4 py-2 text-sm text-[var(--color-accent)] transition-colors hover:bg-[var(--color-accent)] hover:text-[var(--color-bg)] disabled:opacity-50"
           >
             {deleting ? "Deleting…" : "Delete"}
           </button>
@@ -307,7 +316,7 @@ function EditEventModal({
               type="button"
               onClick={onClose}
               disabled={deleting || saving}
-              className="rounded-lg border border-[var(--color-text)] px-4 py-2 text-sm text-[var(--color-text)] transition-colors hover:bg-[var(--color-bg)] disabled:opacity-50"
+              className="rounded-lg border border-[var(--color-text)]/35 px-4 py-2 text-sm text-[var(--color-text)] transition-colors hover:bg-[var(--color-text)]/5 disabled:opacity-50"
             >
               Cancel
             </button>
@@ -315,7 +324,7 @@ function EditEventModal({
               type="button"
               onClick={handleSave}
               disabled={deleting || saving}
-              className="rounded-lg bg-[var(--color-bg)] px-4 py-2 text-sm font-medium text-[var(--color-text)] transition-colors hover:bg-[var(--color-bg)] disabled:opacity-50"
+              className="rounded-lg bg-[var(--color-text)] px-4 py-2 text-sm font-medium text-[var(--color-bg)] transition-colors hover:opacity-90 disabled:opacity-50"
             >
               {saving ? "Saving…" : "Save changes"}
             </button>
@@ -449,44 +458,37 @@ function DashboardContent() {
   );
 
   return (
-    <div className="min-h-screen bg-[var(--color-text)] text-[var(--color-text)]">
+    <div className={EA_PAGE}>
       <EANav />
 
       <main className="mx-auto max-w-5xl px-6 py-10">
         <div className="mb-10">
-          <h1 className="text-2xl font-light text-[var(--color-bg)]">Dashboard</h1>
-          <p className="mt-1 text-sm text-[var(--color-text)]">
+          <h1 className={`text-2xl font-light ${EA_TITLE}`}>Dashboard</h1>
+          <p className={`mt-1 text-sm ${EA_MUTED}`}>
             {eaName} — your executive assistant at a glance
           </p>
         </div>
 
         {displayStatusMessage ? (
-          <p
-            className={`mb-6 text-sm ${displayStatusMessage.includes("Failed") || displayStatusMessage.includes("Could not") ? "text-[var(--color-accent)]" : "text-[var(--color-accent)]"}`}
-          >
-            {displayStatusMessage}
-          </p>
+          <p className="mb-6 text-sm text-[var(--color-accent)]">{displayStatusMessage}</p>
         ) : null}
 
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {stats.map((stat) => (
-            <div
-              key={stat.label}
-              className="rounded-xl border border-[var(--color-text)] bg-[var(--color-bg)] p-6"
-            >
+            <div key={stat.label} className={`${EA_CARD} p-6`}>
               {"href" in stat && stat.href ? (
                 <button
                   type="button"
                   onClick={() => router.push(stat.href!)}
                   className="block w-full text-left"
                 >
-                  <p className="text-3xl font-light text-[var(--color-bg)]">{stat.value}</p>
-                  <p className="mt-2 text-sm text-[var(--color-text)]">{stat.label}</p>
+                  <p className="text-3xl font-light text-[var(--color-text)]">{stat.value}</p>
+                  <p className="mt-2 text-sm text-[var(--color-text)] opacity-70">{stat.label}</p>
                 </button>
               ) : (
                 <>
-                  <p className="text-3xl font-light text-[var(--color-bg)]">{stat.value}</p>
-                  <p className="mt-2 text-sm text-[var(--color-text)]">{stat.label}</p>
+                  <p className="text-3xl font-light text-[var(--color-text)]">{stat.value}</p>
+                  <p className="mt-2 text-sm text-[var(--color-text)] opacity-70">{stat.label}</p>
                 </>
               )}
             </div>
@@ -494,14 +496,14 @@ function DashboardContent() {
         </div>
 
         {nextMeeting ? (
-          <div className="mt-6 rounded-xl border border-[var(--color-text)] bg-[var(--color-bg)] p-6">
-            <p className="text-xs font-medium uppercase tracking-wider text-[var(--color-text)]">
+          <div className={`mt-6 ${EA_CARD} p-6`}>
+            <p className="text-xs font-medium uppercase tracking-wider text-[var(--color-text)] opacity-70">
               Next meeting
             </p>
-            <p className="mt-2 text-lg font-light text-[var(--color-bg)]">
+            <p className="mt-2 text-lg font-light text-[var(--color-text)]">
               {nextMeeting.title}
             </p>
-            <p className="mt-1 text-sm text-[var(--color-text)]">
+            <p className="mt-1 text-sm text-[var(--color-text)] opacity-70">
               {nextMeeting.isAllDay
                 ? "All day"
                 : new Date(nextMeeting.start).toLocaleString("en-IN", {
@@ -519,7 +521,7 @@ function DashboardContent() {
 
         <section className="mt-10">
           <div className="mb-4 flex items-center justify-between">
-            <h2 className="text-sm font-medium text-[var(--color-bg)]">
+            <h2 className={`text-sm font-medium ${EA_TITLE}`}>
               Today&apos;s Schedule
             </h2>
             {!connected && !loading ? (
@@ -528,22 +530,22 @@ function DashboardContent() {
                 onClick={() => {
                   window.location.href = "/api/ea/calendar/auth";
                 }}
-                className="rounded-lg border border-[var(--color-text)] px-4 py-2 text-sm text-[var(--color-bg)] transition-colors hover:border-[var(--color-text)] hover:bg-[var(--color-bg)]"
+                className={EA_BTN_SECONDARY}
               >
                 Connect Google Calendar
               </button>
             ) : null}
           </div>
 
-          <div className="rounded-xl border border-[var(--color-text)] bg-[var(--color-bg)] p-6">
+          <div className={`${EA_CARD} p-6`}>
             {loading ? (
-              <p className="text-sm text-[var(--color-text)]">Loading schedule…</p>
+              <p className="text-sm text-[var(--color-text)] opacity-70">Loading schedule…</p>
             ) : !connected ? (
-              <p className="text-sm text-[var(--color-text)]">
+              <p className="text-sm text-[var(--color-text)] opacity-70">
                 Connect Google Calendar to see your events here.
               </p>
             ) : todayEvents.length === 0 && upcomingEvents.length === 0 ? (
-              <p className="text-sm text-[var(--color-text)]">
+              <p className="text-sm text-[var(--color-text)] opacity-70">
                 No events scheduled for today.
               </p>
             ) : (
@@ -559,14 +561,14 @@ function DashboardContent() {
                     ))}
                   </ul>
                 ) : (
-                  <p className="text-sm text-[var(--color-text)]">
+                  <p className="text-sm text-[var(--color-text)] opacity-70">
                     No events scheduled for today.
                   </p>
                 )}
 
                 {upcomingEvents.length > 0 ? (
-                  <div className="mt-6 border-t border-[var(--color-text)] pt-6">
-                    <h3 className="text-xs font-medium uppercase tracking-wider text-[var(--color-text)]">
+                  <div className="mt-6 border-t border-[var(--color-text)]/15 pt-6">
+                    <h3 className="text-xs font-medium uppercase tracking-wider text-[var(--color-text)] opacity-70">
                       Upcoming
                     </h3>
                     <ul className="mt-3 space-y-3">
@@ -597,14 +599,14 @@ function DashboardContent() {
           <button
             type="button"
             onClick={() => router.push("/ea/meetings")}
-            className="rounded-lg bg-[var(--color-bg)] px-5 py-2.5 text-sm font-medium text-[var(--color-text)] transition-colors hover:bg-[var(--color-bg)]"
+            className={EA_BTN_PRIMARY}
           >
             New Meeting
           </button>
           <button
             type="button"
             onClick={() => router.push("/ea/chat")}
-            className="rounded-lg border border-[var(--color-text)] px-5 py-2.5 text-sm font-medium text-[var(--color-bg)] transition-colors hover:border-[var(--color-text)] hover:bg-[var(--color-bg)]"
+            className={EA_BTN_SECONDARY}
           >
             Ask EA
           </button>
@@ -626,7 +628,7 @@ export default function EADashboardPage() {
   return (
     <Suspense
       fallback={
-        <div className="min-h-screen bg-[var(--color-text)] flex items-center justify-center text-[var(--color-text)] text-sm">
+        <div className={`${EA_PAGE} flex items-center justify-center text-sm ${EA_MUTED}`}>
           Loading…
         </div>
       }

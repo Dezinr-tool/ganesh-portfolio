@@ -9,19 +9,19 @@ export const metadata = {
 export default function EAPrivacyPage() {
   return (
     <EALegalShell>
-      <main className="mx-auto max-w-3xl px-6 py-16">
-        <p className="text-sm text-[var(--color-text)]">
-          <Link href="/ea/login" className="hover:text-[var(--color-text)]">
+      <div>
+        <p className="text-sm text-[#FFFFFF]/70">
+          <Link href="/ea/login" className="hover:text-[#FFFFFF]">
             ← Back to Virtual EA
           </Link>
         </p>
 
-        <h1 className="mt-6 text-3xl font-light text-[var(--color-bg)]">Privacy Policy</h1>
-        <p className="mt-2 text-sm text-[var(--color-text)]">Last updated: June 2026</p>
+        <h1 className="mt-6 text-3xl font-light text-[#FFFFFF]">Privacy Policy</h1>
+        <p className="mt-2 text-sm text-[#FFFFFF]/70">Last updated: June 2026</p>
 
-        <div className="mt-10 space-y-8 text-sm leading-relaxed text-[var(--color-text)]">
+        <div className="mt-10 space-y-8 text-sm leading-relaxed text-[#FFFFFF]/80">
           <section>
-            <h2 className="text-lg font-medium text-[var(--color-bg)]">Overview</h2>
+            <h2 className="text-lg font-medium text-[#FFFFFF]">Overview</h2>
             <p className="mt-3">
               Virtual EA is an AI-powered executive assistant operated by Ganesh
               Das. This policy explains what data Virtual EA collects, how it is
@@ -30,19 +30,19 @@ export default function EAPrivacyPage() {
           </section>
 
           <section>
-            <h2 className="text-lg font-medium text-[var(--color-bg)]">Your data stays yours</h2>
+            <h2 className="text-lg font-medium text-[#FFFFFF]">Your data stays yours</h2>
             <p className="mt-3">
               Conversation history, meeting notes, action items, memories, and
               calendar-related data are stored in your own Neon Postgres database
               — provisioned and controlled by the account holder. Virtual EA does
               not operate a shared multi-tenant data lake; your data lives in the
               database you connect via{" "}
-              <code className="text-[var(--color-text)]">DATABASE_URL</code>.
+              <code className="text-[#FFFFFF]">DATABASE_URL</code>.
             </p>
           </section>
 
           <section>
-            <h2 className="text-lg font-medium text-[var(--color-bg)]">We do not sell your data</h2>
+            <h2 className="text-lg font-medium text-[#FFFFFF]">We do not sell your data</h2>
             <p className="mt-3">
               Virtual EA does not sell, rent, or trade personal information to
               third parties for advertising or marketing purposes.
@@ -50,7 +50,7 @@ export default function EAPrivacyPage() {
           </section>
 
           <section>
-            <h2 className="text-lg font-medium text-[var(--color-bg)]">Third-party services</h2>
+            <h2 className="text-lg font-medium text-[#FFFFFF]">Third-party services</h2>
             <p className="mt-3">
               Virtual EA uses the following services to provide functionality.
               Data sent to each service is limited to what is needed for that
@@ -58,35 +58,35 @@ export default function EAPrivacyPage() {
             </p>
             <ul className="mt-4 list-inside list-disc space-y-2">
               <li>
-                <strong className="text-[var(--color-text)]">Anthropic API</strong> — processes
+                <strong className="text-[#FFFFFF]">Anthropic API</strong> — processes
                 your chat messages and meeting transcripts to generate AI responses,
                 summaries, and follow-up drafts.
               </li>
               <li>
-                <strong className="text-[var(--color-text)]">Google Calendar</strong> — access
+                <strong className="text-[#FFFFFF]">Google Calendar</strong> — access
                 is requested only for scheduling: reading events, detecting conflicts,
                 and creating calendar entries you ask for. Virtual EA does not use
                 Calendar data for any other purpose.
               </li>
               <li>
-                <strong className="text-[var(--color-text)]">ElevenLabs</strong> — converts
+                <strong className="text-[#FFFFFF]">ElevenLabs</strong> — converts
                 Virtual EA&apos;s text responses to speech when you enable voice
                 output. Only the spoken portion of a reply is sent.
               </li>
               <li>
-                <strong className="text-[var(--color-text)]">OpenAI (optional)</strong> — if
+                <strong className="text-[#FFFFFF]">OpenAI (optional)</strong> — if
                 configured, transcribes meeting audio via Whisper. If not configured,
                 a mock transcript is used instead.
               </li>
               <li>
-                <strong className="text-[var(--color-text)]">Resend</strong> — sends emails
+                <strong className="text-[#FFFFFF]">Resend</strong> — sends emails
                 you explicitly approve (e.g. meeting follow-ups, agreements).
               </li>
             </ul>
           </section>
 
           <section>
-            <h2 className="text-lg font-medium text-[var(--color-bg)]">Cookies &amp; sessions</h2>
+            <h2 className="text-lg font-medium text-[#FFFFFF]">Cookies &amp; sessions</h2>
             <p className="mt-3">
               Virtual EA uses HTTP-only cookies to keep you signed in. Session
               tokens are stored in your database and expire after 30 days of
@@ -95,7 +95,7 @@ export default function EAPrivacyPage() {
           </section>
 
           <section>
-            <h2 className="text-lg font-medium text-[var(--color-bg)]">Data retention &amp; deletion</h2>
+            <h2 className="text-lg font-medium text-[#FFFFFF]">Data retention &amp; deletion</h2>
             <p className="mt-3">
               You can clear chat history and memories from within Virtual EA
               settings. Because data is stored in your own database, you may also
@@ -105,12 +105,12 @@ export default function EAPrivacyPage() {
           </section>
 
           <section>
-            <h2 className="text-lg font-medium text-[var(--color-bg)]">Contact</h2>
+            <h2 className="text-lg font-medium text-[#FFFFFF]">Contact</h2>
             <p className="mt-3">
               Questions about this policy? Email{" "}
               <a
                 href="mailto:hello@designbyganesh.com"
-                className="text-[var(--color-bg)] underline hover:text-[var(--color-text)]"
+                className="text-[var(--color-bg)] underline hover:text-[#FFFFFF]"
               >
                 hello@designbyganesh.com
               </a>
@@ -118,7 +118,7 @@ export default function EAPrivacyPage() {
             </p>
           </section>
         </div>
-      </main>
+      </div>
     </EALegalShell>
   );
 }

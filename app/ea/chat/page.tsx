@@ -114,7 +114,7 @@ function WaveformBars() {
       {[0, 1, 2, 3, 4].map((i) => (
         <span
           key={i}
-          className="w-1 rounded-full bg-[var(--color-bg)]"
+          className="w-1 rounded-full bg-[#111111]"
           style={{
             animation: "waveform 0.8s ease-in-out infinite",
             animationDelay: `${i * 0.12}s`,
@@ -774,7 +774,7 @@ export default function EAChatPage() {
   const isProcessing = voiceState === "processing";
 
   return (
-    <div className="flex h-screen min-h-0 flex-col bg-[var(--color-text)] text-[var(--color-text)]">
+    <div className="flex h-screen min-h-0 flex-col bg-[#111111] text-[#FFFFFF]">
       <style>{`
         @keyframes waveform {
           0%, 100% { height: 20%; }
@@ -795,7 +795,7 @@ export default function EAChatPage() {
         <button
           type="button"
           onClick={() => void markUserGesture()}
-          className="mx-auto mt-3 flex w-full max-w-lg shrink-0 items-center justify-center gap-2 rounded-xl border border-[var(--color-accent)] bg-[var(--color-accent)] px-4 py-3 text-sm font-medium text-[var(--color-accent)] transition-colors hover:bg-[var(--color-accent)]"
+          className="mx-auto mt-3 flex w-full max-w-lg shrink-0 items-center justify-center gap-2 rounded-xl border border-[#FF1E00] bg-[#FF1E00] px-4 py-3 text-sm font-medium text-[#FFFFFF] transition-colors hover:bg-[#FF1E00]"
         >
           🔊 Tap to enable voice
         </button>
@@ -809,7 +809,7 @@ export default function EAChatPage() {
             setShowMemoryPanel(true);
             void loadMemories();
           }}
-          className="rounded-full border border-[var(--color-text)] bg-[var(--color-bg)]/80 px-3 py-1 text-xs text-[var(--color-text)] transition-colors hover:border-[var(--color-text)] hover:text-[var(--color-text)]"
+          className="rounded-full border border-[#111111] bg-[#FFFFFF]/80 px-3 py-1 text-xs text-[#111111] transition-colors hover:border-[#111111] hover:text-[#111111]"
         >
           🧠 {memoryCount} {memoryCount === 1 ? "memory" : "memories"}
         </button>
@@ -821,8 +821,8 @@ export default function EAChatPage() {
               onClick={() => setLang(code)}
               className={`rounded-full px-4 py-1 text-xs font-medium uppercase tracking-wide transition-colors ${
                 lang === code
-                  ? "bg-[var(--color-bg)] text-[var(--color-text)]"
-                  : "text-[var(--color-text)] hover:text-[var(--color-text)]"
+                  ? "bg-[#FFFFFF] text-[#111111]"
+                  : "text-[#FFFFFF]/60 hover:text-[#FFFFFF]"
               }`}
             >
               {code}
@@ -836,24 +836,24 @@ export default function EAChatPage() {
           <button
             type="button"
             aria-label="Close memories"
-            className="fixed inset-0 z-40 bg-[var(--color-text)]/60"
+            className="fixed inset-0 z-40 bg-[#111111]/60"
             onClick={() => setShowMemoryPanel(false)}
           />
-          <div className="fixed inset-x-0 bottom-0 z-50 mx-auto max-h-[70vh] w-full max-w-lg overflow-y-auto rounded-t-2xl border border-[var(--color-text)] bg-[var(--color-bg)] p-4 shadow-2xl">
+          <div className="fixed inset-x-0 bottom-0 z-50 mx-auto max-h-[70vh] w-full max-w-lg overflow-y-auto rounded-t-2xl border border-[#111111] bg-[#FFFFFF] p-4 shadow-2xl">
             <div className="mb-4 flex items-center justify-between">
-              <h2 className="text-sm font-medium text-[var(--color-bg)]">Saved memories</h2>
+              <h2 className="text-sm font-medium text-[#111111]">Saved memories</h2>
               <button
                 type="button"
                 onClick={() => setShowMemoryPanel(false)}
-                className="text-xs text-[var(--color-text)] hover:text-[var(--color-text)]"
+                className="text-xs text-[#111111]/60 hover:text-[#111111]"
               >
                 Close
               </button>
             </div>
             {memoryLoading ? (
-              <p className="text-sm text-[var(--color-text)]">Loading…</p>
+              <p className="text-sm text-[#111111]/60">Loading…</p>
             ) : memories.length === 0 ? (
-              <p className="text-sm text-[var(--color-text)]">
+              <p className="text-sm text-[#111111]/60">
                 No memories yet. Tell Virtual EA to remember something, or add one in
                 Settings.
               </p>
@@ -862,23 +862,23 @@ export default function EAChatPage() {
                 {memories.map((memory) => (
                   <li
                     key={memory.id}
-                    className="rounded-xl border border-[var(--color-text)] bg-[var(--color-text)]/40 p-3"
+                    className="rounded-xl border border-[#111111]/15 bg-[#111111]/5 p-3"
                   >
                     <div className="flex items-start justify-between gap-2">
-                      <p className="text-sm text-[var(--color-text)]">{memory.content}</p>
+                      <p className="text-sm text-[#111111]">{memory.content}</p>
                       <button
                         type="button"
                         onClick={() => void handleDeleteMemory(memory.id)}
-                        className="shrink-0 text-xs text-[var(--color-text)] hover:text-[var(--color-accent)]"
+                        className="shrink-0 text-xs text-[#111111]/45 hover:text-[#FF1E00]"
                       >
                         Delete
                       </button>
                     </div>
                     <div className="mt-2 flex items-center gap-2">
-                      <span className="rounded-full bg-[var(--color-bg)] px-2 py-0.5 text-[10px] uppercase tracking-wide text-[var(--color-text)]">
+                      <span className="rounded-full bg-[#111111] px-2 py-0.5 text-[10px] uppercase tracking-wide text-[#FFFFFF]">
                         {memory.category}
                       </span>
-                      <span className="text-[10px] text-[var(--color-text)]">
+                      <span className="text-[10px] text-[#111111]/45">
                         {new Date(memory.createdAt).toLocaleDateString("en-IN", {
                           month: "short",
                           day: "numeric",
@@ -895,14 +895,14 @@ export default function EAChatPage() {
 
         {/* Calendar confirmation */}
         {calendarConfirmation ? (
-          <div className="mb-4 shrink-0 rounded-xl border border-[var(--color-accent)] bg-[var(--color-accent)] px-4 py-3">
-            <p className="text-xs font-medium uppercase tracking-wide text-[var(--color-accent)]">
+          <div className="mb-4 shrink-0 rounded-xl border border-[#FF1E00] bg-[#FF1E00] px-4 py-3">
+            <p className="text-xs font-medium uppercase tracking-wide text-[#FFFFFF]/70">
               Meeting scheduled
             </p>
-            <p className="mt-1 text-sm font-medium text-[var(--color-bg)]">
+            <p className="mt-1 text-sm font-medium text-[#FFFFFF]">
               {calendarConfirmation.title}
             </p>
-            <p className="mt-1 text-xs text-[var(--color-accent)]">
+            <p className="mt-1 text-xs text-[#FFFFFF]/80">
               {new Date(calendarConfirmation.start).toLocaleString("en-IN", {
                 weekday: "short",
                 month: "short",
@@ -917,12 +917,12 @@ export default function EAChatPage() {
               })}
             </p>
             {calendarConfirmation.location ? (
-              <p className="mt-0.5 text-xs text-[var(--color-accent)]">
+              <p className="mt-0.5 text-xs text-[#FFFFFF]/80">
                 {calendarConfirmation.location}
               </p>
             ) : null}
             {calendarConfirmation.attendees?.length ? (
-              <p className="mt-1 text-xs text-[var(--color-accent)]">
+              <p className="mt-1 text-xs text-[#FFFFFF]/80">
                 Guests: {calendarConfirmation.attendees.join(", ")}
               </p>
             ) : null}
@@ -931,7 +931,7 @@ export default function EAChatPage() {
                 href={calendarConfirmation.meetLink}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="mt-2 inline-block text-xs font-medium text-[var(--color-accent)] underline underline-offset-2 hover:text-[var(--color-accent)]"
+                className="mt-2 inline-block text-xs font-medium text-[#FFFFFF] underline underline-offset-2 hover:text-[#FFFFFF]/90"
               >
                 Join Google Meet
               </a>
@@ -955,8 +955,8 @@ export default function EAChatPage() {
                 <div
                   className={`max-w-[85%] rounded-2xl px-3.5 py-2.5 text-sm leading-relaxed ${
                     msg.role === "user"
-                      ? "bg-[var(--color-bg)] text-[var(--color-text)]"
-                      : "text-[var(--color-text)]"
+                      ? "bg-[#FFFFFF] text-[#111111]"
+                      : "text-[#FFFFFF]"
                   }`}
                 >
                   {msg.content}
@@ -967,8 +967,8 @@ export default function EAChatPage() {
                       disabled={isProcessing || isSpeaking}
                       className={`mt-2 block text-xs transition-colors disabled:opacity-40 ${
                         autoplayBlocked.has(i)
-                          ? "text-[var(--color-accent)] hover:text-[var(--color-accent)]"
-                          : "text-[var(--color-text)] hover:text-[var(--color-text)]"
+                          ? "text-[#FF1E00] hover:text-[#FF1E00]"
+                          : "text-[#FFFFFF]/50 hover:text-[#FFFFFF]/80"
                       }`}
                     >
                       🔊 Tap to hear
@@ -981,9 +981,9 @@ export default function EAChatPage() {
             {isProcessing ? (
               <div className="flex justify-start">
                 <div className="flex gap-1 px-2 py-1">
-                  <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-[var(--color-bg)] [animation-delay:0ms]" />
-                  <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-[var(--color-bg)] [animation-delay:150ms]" />
-                  <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-[var(--color-bg)] [animation-delay:300ms]" />
+                  <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-[#FFFFFF] [animation-delay:0ms]" />
+                  <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-[#FFFFFF] [animation-delay:150ms]" />
+                  <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-[#FFFFFF] [animation-delay:300ms]" />
                 </div>
               </div>
             ) : null}
@@ -995,16 +995,16 @@ export default function EAChatPage() {
         {/* Live transcript */}
         <div className="mb-4 min-h-[2.5rem] text-center">
           {mounted && isListening && liveTranscript ? (
-            <p className="text-base font-light text-[var(--color-bg)]/90">{liveTranscript}</p>
+            <p className="text-base font-light text-[#FFFFFF]/90">{liveTranscript}</p>
           ) : mounted && isListening ? (
-            <p className="text-sm text-[var(--color-text)]">Listening…</p>
+            <p className="text-sm text-[#FFFFFF]/60">Listening…</p>
           ) : null}
         </div>
 
         {/* Mic button */}
         <div className="flex flex-col items-center pb-6">
           {mounted && !speechSupported ? (
-            <p className="mb-4 text-center text-xs text-[var(--color-text)]">
+            <p className="mb-4 text-center text-xs text-[#FFFFFF]/60">
               Voice not supported in this browser. Use text input below.
             </p>
           ) : null}
@@ -1013,11 +1013,11 @@ export default function EAChatPage() {
             {mounted && isListening ? (
               <>
                 <span
-                  className="absolute inset-0 rounded-full border border-[var(--color-bg)]/20"
+                  className="absolute inset-0 rounded-full border border-[#FFFFFF]/20"
                   style={{ animation: "mic-pulse 1.5s ease-out infinite" }}
                 />
                 <span
-                  className="absolute inset-0 rounded-full border border-[var(--color-bg)]/10"
+                  className="absolute inset-0 rounded-full border border-[#FFFFFF]/10"
                   style={{
                     animation: "mic-pulse 1.5s ease-out infinite",
                     animationDelay: "0.5s",
@@ -1039,10 +1039,10 @@ export default function EAChatPage() {
               }
               className={`relative z-10 flex h-28 w-28 items-center justify-center rounded-full transition-all duration-300 disabled:opacity-40 ${
                 isListening
-                  ? "bg-[var(--color-bg)] text-[var(--color-text)] shadow-[0_0_60px_var(--color-bg)]"
+                  ? "bg-[#FFFFFF] text-[#111111] shadow-[0_0_60px_#FFFFFF]"
                   : isSpeaking
-                    ? "bg-[var(--color-bg)] text-[var(--color-bg)] ring-2 ring-[var(--color-bg)]"
-                    : "bg-[var(--color-bg)] text-[var(--color-bg)] ring-1 ring-[var(--color-text)] hover:bg-[var(--color-bg)] hover:ring-[var(--color-text)]"
+                    ? "bg-[#FFFFFF] text-[#111111] ring-2 ring-[#FFFFFF]"
+                    : "bg-[#FFFFFF] text-[#111111] ring-1 ring-[#FFFFFF]/30 hover:bg-[#FFFFFF] hover:ring-[#FFFFFF]/60"
               }`}
             >
               {isSpeaking ? (
@@ -1053,7 +1053,7 @@ export default function EAChatPage() {
             </button>
           </div>
 
-          <p className="mt-4 text-xs text-[var(--color-text)]">
+          <p className="mt-4 text-xs text-[#FFFFFF]/50">
             {showEmailInput
               ? "Type the email below — voice won't work for email addresses"
               : mounted && isListening
@@ -1068,10 +1068,10 @@ export default function EAChatPage() {
 
         {showEmailInput ? (
           <form
-            className="mb-3 rounded-xl border border-[var(--color-accent)] bg-[var(--color-accent)] p-4"
+            className="mb-3 rounded-xl border border-[#FF1E00] bg-[#FF1E00] p-4"
             onSubmit={handleEmailSend}
           >
-            <label className="mb-1.5 block text-xs font-medium text-[var(--color-accent)]">
+            <label className="mb-1.5 block text-xs font-medium text-[#FFFFFF]">
               Enter guest email address
             </label>
             <div className="flex gap-2">
@@ -1090,25 +1090,25 @@ export default function EAChatPage() {
                 }}
                 placeholder="hello@designbyganesh.com"
                 disabled={isProcessing || isSpeaking}
-                className="flex-1 rounded-lg border border-[var(--color-accent)] bg-[var(--color-text)] px-3 py-2.5 text-sm text-[var(--color-bg)] outline-none placeholder:text-[var(--color-text)] focus:border-[var(--color-accent)] disabled:opacity-40"
+                className="flex-1 rounded-lg border border-[#111111]/15 bg-[#FFFFFF] px-3 py-2.5 text-sm text-[#111111] outline-none placeholder:text-[#111111]/45 focus:border-[#111111]/40 disabled:opacity-40"
               />
               <button
                 type="submit"
                 disabled={isProcessing || isSpeaking || !emailInput.trim()}
-                className="rounded-lg bg-[var(--color-accent)] px-4 py-2.5 text-sm font-medium text-[var(--color-text)] transition-colors hover:bg-[var(--color-accent)] disabled:opacity-40"
+                className="rounded-lg bg-[#FFFFFF] px-4 py-2.5 text-sm font-medium text-[#111111] transition-colors hover:bg-[#FFFFFF]/90 disabled:opacity-40"
               >
                 Send
               </button>
             </div>
             {emailError ? (
-              <p className="mt-2 text-xs text-[var(--color-accent)]">{emailError}</p>
+              <p className="mt-2 text-xs text-[#FFFFFF]">{emailError}</p>
             ) : null}
           </form>
         ) : null}
 
         {/* Secondary text input */}
         <form
-          className="border-t border-[var(--color-text)] pt-3"
+          className="border-t border-[#FFFFFF]/15 pt-3"
           onSubmit={handleTextSend}
         >
           <div className="flex gap-2">
@@ -1124,12 +1124,12 @@ export default function EAChatPage() {
               }}
               placeholder="Or type here…"
               disabled={isProcessing || isSpeaking}
-              className="flex-1 rounded-lg border border-[var(--color-text)]/80 bg-transparent px-3 py-2 text-xs text-[var(--color-text)] outline-none placeholder:text-[var(--color-text)] focus:border-[var(--color-text)] disabled:opacity-40"
+              className="flex-1 rounded-lg border border-[#FFFFFF]/20 bg-[#FFFFFF] px-3 py-2 text-xs text-[#111111] outline-none placeholder:text-[#111111]/45 focus:border-[#FFFFFF]/40 disabled:opacity-40"
             />
             <button
               type="submit"
               disabled={isProcessing || isSpeaking || !input.trim()}
-              className="rounded-lg px-3 py-2 text-xs text-[var(--color-text)] transition-colors hover:text-[var(--color-text)] disabled:opacity-30"
+              className="rounded-lg px-3 py-2 text-xs text-[#FFFFFF]/70 transition-colors hover:text-[#FFFFFF] disabled:opacity-30"
             >
               Send
             </button>

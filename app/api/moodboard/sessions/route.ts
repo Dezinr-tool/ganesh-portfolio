@@ -15,6 +15,7 @@ import {
   listAllSessions,
 } from "@/lib/moodboard/analytics";
 import { backfillBrandFromOpening } from "@/lib/moodboard/session-brand-backfill";
+import { deleteMoodboardSession } from "@/lib/moodboard/delete-session";
 
 export const dynamic = "force-dynamic";
 
@@ -99,6 +100,9 @@ export async function PATCH(request: NextRequest) {
       patch.brand_name = extractBrandName(answers);
       patch.project_type = extractProjectType(answers);
     }
+    if (typeof body.brand_name === "string" && body.brand_name.trim()) {
+      patch.brand_name = body.brand_name.trim();
+    }
     if (body.generated_directions) {
       patch.generated_directions = body.generated_directions;
     }
@@ -135,5 +139,25 @@ export async function PATCH(request: NextRequest) {
   } catch (error) {
     console.error("[moodboard/sessions] PATCH error:", error);
     return NextResponse.json({ error: "Failed to update session." }, { status: 500 });
+  }
+}
+
+/** Self-serve delete of one's own session, identified by knowing its (unguessable) id. */
+export async function DELETE(request: NextRequest) {
+  try {
+    const body = await request.json().catch(() => ({}));
+    const sessionId = body.sessionId as string;
+    if (!sessionId || !isValidMoodboardSessionId(sessionId)) {
+      return NextResponse.json({ error: "Invalid session id." }, { status: 400 });
+    }
+
+    const deleted = await deleteMoodboardSession(sessionId);
+    if (!deleted) {
+      return NextResponse.json({ error: "Session not found." }, { status: 404 });
+    }
+    return NextResponse.json({ success: true });
+  } catch (error) {
+    console.error("[moodboard/sessions] DELETE error:", error);
+    return NextResponse.json({ error: "Failed to delete session." }, { status: 500 });
   }
 }

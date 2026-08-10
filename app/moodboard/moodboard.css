@@ -463,10 +463,14 @@
   padding: 0 0 8px;
 }
 
+.moodboard-sidebar-item-row {
+  position: relative;
+}
+
 .moodboard-sidebar-item {
   width: 100%;
   border-radius: 8px;
-  padding: 8px 10px;
+  padding: 8px 34px 8px 10px;
   text-align: left;
   transition: background-color 120ms ease;
   border: 1px solid transparent;
@@ -479,6 +483,10 @@
 .moodboard-sidebar-item--active {
   background: var(--mb-accent-dim);
   border-color: var(--mb-accent-line);
+}
+
+.moodboard-sidebar-item--menu-open {
+  background: var(--mb-bg-hover);
 }
 
 .moodboard-sidebar-item-title {
@@ -499,6 +507,83 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.moodboard-sidebar-item-rename-input {
+  width: 100%;
+  border-radius: 8px;
+  padding: 8px 10px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--mb-text);
+  background: var(--mb-bg-elevated);
+  border: 1px solid var(--mb-accent-line);
+  outline: none;
+}
+
+.moodboard-sidebar-item-more {
+  position: absolute;
+  top: 6px;
+  right: 4px;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 6px;
+  color: var(--mb-text-faint);
+  transition: background-color 120ms ease, color 120ms ease;
+}
+
+.moodboard-sidebar-item-row:hover .moodboard-sidebar-item-more,
+.moodboard-sidebar-item-more--visible,
+.moodboard-sidebar-item-more:focus-visible {
+  display: flex;
+}
+
+.moodboard-sidebar-item-more:hover {
+  background: var(--mb-border-strong);
+  color: var(--mb-text);
+}
+
+.moodboard-sidebar-item-menu {
+  position: fixed;
+  z-index: 60;
+  min-width: 168px;
+  padding: 6px;
+  border-radius: 10px;
+  border: 1px solid var(--mb-border-strong);
+  background: var(--mb-bg-elevated);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.45);
+}
+
+.moodboard-sidebar-item-menu-row {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: 7px 10px;
+  border-radius: 6px;
+  font-size: 13px;
+  color: var(--mb-text);
+  transition: background-color 120ms ease;
+}
+
+.moodboard-sidebar-item-menu-row:hover {
+  background: var(--mb-bg-hover);
+}
+
+.moodboard-sidebar-item-menu-row--danger {
+  color: #f87171;
+}
+
+.moodboard-sidebar-item-menu-row--danger:hover {
+  background: rgba(248, 113, 113, 0.1);
+}
+
+.moodboard-sidebar-item-menu-divider {
+  height: 1px;
+  margin: 6px 4px;
+  background: var(--mb-border);
 }
 
 .moodboard-sidebar-group {
@@ -1626,7 +1711,7 @@
   background: var(--color-text);
 }
 
-/* Memory — agent training corpus (/moodboard/memory) */
+/* Memory — agent training corpus (/memory-vault) */
 .moodboard-memory-page {
   min-height: 100vh;
 }
@@ -1875,13 +1960,3 @@
   word-break: break-word;
 }
 
-.moodboard-sidebar-footer-links {
-  padding: 8px 12px 12px;
-  border-top: 1px solid var(--mb-border);
-}
-
-.moodboard-sidebar-footer-links .moodboard-sidebar-footer-link {
-  display: block;
-  padding: 8px 10px;
-  font-size: 13px;
-}

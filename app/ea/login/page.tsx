@@ -69,71 +69,89 @@ export default function EALoginPage() {
   };
 
   const inputClass =
-    "w-full bg-[var(--color-bg)] text-[var(--color-bg)] border border-[var(--color-text)] rounded-lg px-4 py-3 outline-none focus:border-[var(--color-text)]";
+    "w-full rounded-lg border border-[#111111]/30 bg-[#FFFFFF] px-4 py-3 text-[#111111] outline-none placeholder:text-[#111111]/45 focus:border-[#111111]";
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-[var(--color-text)]">
+    <div className="flex min-h-screen items-center justify-center bg-[#111111] text-[#FFFFFF]">
       <div className="w-full max-w-sm p-8">
-        <h1 className="mb-2 text-2xl font-light text-[var(--color-bg)]">{eaName}</h1>
-        <p className="mb-8 text-sm text-[var(--color-text)]">{buildEAPreview(eaName)}</p>
+        <h1 className="mb-2 text-2xl font-light text-[#FFFFFF]">{eaName}</h1>
+        <p className="mb-8 text-sm text-[#FFFFFF]/70">{buildEAPreview(eaName)}</p>
 
         {!showLegacy ? (
           <form onSubmit={handleLogin} className="space-y-4">
-            <input
-              type="email"
-              placeholder="Email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-              className={inputClass}
-            />
-            <input
-              type="password"
-              placeholder="Password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              className={inputClass}
-            />
+            <label className="block space-y-1.5">
+              <span className="text-xs font-medium uppercase tracking-wider text-[#FFFFFF]/60">
+                Email
+              </span>
+              <input
+                type="email"
+                placeholder="you@example.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+                autoComplete="email"
+                className={inputClass}
+              />
+            </label>
+            <label className="block space-y-1.5">
+              <span className="text-xs font-medium uppercase tracking-wider text-[#FFFFFF]/60">
+                Password
+              </span>
+              <input
+                type="password"
+                placeholder="••••••••"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                autoComplete="current-password"
+                className={inputClass}
+              />
+            </label>
 
-            {error ? <p className="text-sm text-[var(--color-accent)]">{error}</p> : null}
+            {error ? <p className="text-sm text-[#FF1E00]">{error}</p> : null}
 
             <button
               type="submit"
               disabled={loading}
-              className="w-full rounded-lg bg-[var(--color-bg)] py-3 font-medium text-[var(--color-text)] transition-colors hover:bg-[var(--color-bg)] disabled:opacity-50"
+              className="w-full rounded-lg bg-[#FFFFFF] py-3 font-medium text-[#111111] transition-opacity hover:opacity-90 disabled:opacity-50"
             >
               {loading ? "Signing in…" : "Sign in"}
             </button>
           </form>
         ) : (
           <div className="space-y-4">
-            <input
-              type="password"
-              placeholder="Legacy access password"
-              value={legacyPassword}
-              onChange={(e) => setLegacyPassword(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && handleLegacyLogin()}
-              className={inputClass}
-            />
-            {error ? <p className="text-sm text-[var(--color-accent)]">{error}</p> : null}
+            <label className="block space-y-1.5">
+              <span className="text-xs font-medium uppercase tracking-wider text-[#FFFFFF]/60">
+                Access password
+              </span>
+              <input
+                type="password"
+                placeholder="Enter password"
+                value={legacyPassword}
+                onChange={(e) => setLegacyPassword(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && void handleLegacyLogin()}
+                autoComplete="current-password"
+                className={inputClass}
+              />
+            </label>
+            {error ? <p className="text-sm text-[#FF1E00]">{error}</p> : null}
             <button
               type="button"
-              onClick={handleLegacyLogin}
+              onClick={() => void handleLegacyLogin()}
               disabled={loading}
-              className="w-full rounded-lg bg-[var(--color-bg)] py-3 font-medium text-[var(--color-text)] transition-colors hover:bg-[var(--color-bg)] disabled:opacity-50"
+              className="w-full rounded-lg bg-[#FFFFFF] py-3 font-medium text-[#111111] transition-opacity hover:opacity-90 disabled:opacity-50"
             >
               {loading ? "Entering…" : "Enter"}
             </button>
           </div>
         )}
 
-        <div className="mt-6 space-y-3 text-center text-sm">
-          <p className="text-[var(--color-text)]">
+        <div className="mt-6 space-y-3 text-center text-sm text-[#FFFFFF]/70">
+          <p>
             No account?{" "}
             <Link
               href="/ea/signup"
-              className="text-[var(--color-text)] underline hover:text-[var(--color-bg)]"
+              className="text-[#FFFFFF] underline underline-offset-2 hover:text-[#FF1E00]"
             >
               Sign up
             </Link>
@@ -144,7 +162,7 @@ export default function EALoginPage() {
               setShowLegacy((value) => !value);
               setError("");
             }}
-            className="text-[var(--color-text)] underline hover:text-[var(--color-text)]"
+            className="text-[#FFFFFF]/70 underline underline-offset-2 hover:text-[#FFFFFF]"
           >
             {showLegacy ? "Use email login" : "Legacy password access"}
           </button>

@@ -1,0 +1,349 @@
+.expense-tracker {
+  --et-cell-h: 1.75rem;
+  --et-gutter: 2.25rem;
+  --et-col-a: 7.5rem;
+  --et-col-b: minmax(10rem, 1.4fr);
+  --et-col-c: 8.5rem;
+  --et-col-d: minmax(8rem, 1fr);
+  --et-tabs-h: 2.35rem;
+  --et-bar-h: 2.5rem;
+}
+
+.expense-tracker .et-shell {
+  display: flex;
+  flex-direction: column;
+  height: 100dvh;
+  min-height: 100dvh;
+  overflow: hidden;
+  background: var(--background);
+}
+
+.expense-tracker .et-menubar {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-shrink: 0;
+  height: var(--et-bar-h);
+  padding: 0 0.75rem;
+  border-bottom: 1px solid var(--border);
+  background: color-mix(in oklab, var(--muted) 55%, var(--background));
+}
+
+.expense-tracker .et-menubar__title {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+}
+
+.expense-tracker .et-menubar__sep {
+  width: 1px;
+  height: 1rem;
+  background: var(--border);
+  flex-shrink: 0;
+}
+
+.expense-tracker .et-formula {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex: 1;
+  min-width: 0;
+}
+
+.expense-tracker .et-formula__ref {
+  flex-shrink: 0;
+  min-width: 2.5rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: var(--muted-foreground);
+}
+
+.expense-tracker .et-formula__box {
+  flex: 1;
+  min-width: 0;
+  height: 1.65rem;
+  border: 1px solid var(--border);
+  border-radius: 2px;
+  background: var(--background);
+  padding: 0 0.55rem;
+  font-size: 0.8125rem;
+  font-variant-numeric: tabular-nums;
+  color: var(--foreground);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  display: flex;
+  align-items: center;
+}
+
+.expense-tracker .et-toolbar-btn {
+  flex-shrink: 0;
+  height: 1.65rem;
+  padding: 0 0.65rem;
+  border: 1px solid var(--border);
+  border-radius: 2px;
+  background: var(--background);
+  font-size: 0.75rem;
+  font-weight: 550;
+  color: var(--foreground);
+  transition: background 120ms ease, border-color 120ms ease;
+}
+
+.expense-tracker .et-toolbar-btn:hover:not(:disabled) {
+  border-color: var(--foreground);
+}
+
+.expense-tracker .et-toolbar-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.expense-tracker .et-error {
+  flex-shrink: 0;
+  margin: 0;
+  padding: 0.4rem 0.75rem;
+  border-bottom: 1px solid var(--border);
+  background: var(--secondary);
+  font-size: 0.8125rem;
+}
+
+.expense-tracker .et-sheet-wrap {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  position: relative;
+}
+
+.expense-tracker .et-sheet {
+  display: grid;
+  grid-template-columns: var(--et-gutter) var(--et-col-a) var(--et-col-b) var(--et-col-c) var(--et-col-d);
+  width: max(100%, 42rem);
+  min-height: 100%;
+  border-collapse: collapse;
+  background: var(--background);
+}
+
+.expense-tracker .et-corner,
+.expense-tracker .et-colhead,
+.expense-tracker .et-rowhead {
+  position: sticky;
+  z-index: 2;
+  background: color-mix(in oklab, var(--muted) 70%, var(--background));
+  border-right: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+  font-size: 0.6875rem;
+  font-weight: 600;
+  color: var(--muted-foreground);
+  text-align: center;
+  height: var(--et-cell-h);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  user-select: none;
+}
+
+.expense-tracker .et-corner {
+  top: 0;
+  left: 0;
+  z-index: 4;
+}
+
+.expense-tracker .et-colhead {
+  top: 0;
+  z-index: 3;
+}
+
+.expense-tracker .et-rowhead {
+  left: 0;
+  z-index: 2;
+  font-variant-numeric: tabular-nums;
+}
+
+.expense-tracker .et-cell {
+  height: var(--et-cell-h);
+  border-right: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+  padding: 0 0.45rem;
+  font-size: 0.8125rem;
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  min-width: 0;
+  background: var(--background);
+  color: var(--foreground);
+  cursor: cell;
+  outline: none;
+}
+
+.expense-tracker .et-cell[data-selected="true"] {
+  outline: 2px solid var(--foreground);
+  outline-offset: -2px;
+  z-index: 1;
+  position: relative;
+}
+
+.expense-tracker .et-cell[data-kind="section"] {
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  background: color-mix(in oklab, var(--muted) 40%, var(--background));
+  cursor: default;
+}
+
+.expense-tracker .et-cell[data-kind="header"] {
+  font-weight: 600;
+  font-size: 0.75rem;
+  background: color-mix(in oklab, var(--muted) 35%, var(--background));
+  cursor: default;
+}
+
+.expense-tracker .et-cell[data-kind="total"],
+.expense-tracker .et-cell[data-kind="savings"] {
+  font-weight: 600;
+  background: color-mix(in oklab, var(--muted) 25%, var(--background));
+  cursor: default;
+}
+
+.expense-tracker .et-cell[data-kind="savings"] {
+  font-size: 0.875rem;
+}
+
+.expense-tracker .et-cell[data-kind="savings"][data-neg="true"] {
+  color: var(--destructive);
+}
+
+.expense-tracker .et-cell[data-readonly="true"] {
+  cursor: default;
+  color: var(--muted-foreground);
+}
+
+.expense-tracker .et-cell[data-off="true"] {
+  color: var(--muted-foreground);
+  text-decoration: line-through;
+}
+
+.expense-tracker .et-cell__text {
+  min-width: 0;
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+.expense-tracker .et-cell__text--right {
+  text-align: right;
+}
+
+.expense-tracker .et-cell input.et-cell-input {
+  width: 100%;
+  height: calc(var(--et-cell-h) - 4px);
+  border: 0;
+  background: transparent;
+  padding: 0;
+  margin: 0;
+  font: inherit;
+  font-variant-numeric: tabular-nums;
+  color: inherit;
+  outline: none;
+}
+
+.expense-tracker .et-cell input.et-cell-input--amt {
+  text-align: right;
+}
+
+.expense-tracker .et-check {
+  width: 0.85rem;
+  height: 0.85rem;
+  flex-shrink: 0;
+  accent-color: var(--foreground);
+  cursor: pointer;
+}
+
+.expense-tracker .et-cell-link {
+  background: none;
+  border: 0;
+  padding: 0;
+  font: inherit;
+  color: var(--foreground);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  cursor: pointer;
+  text-align: left;
+}
+
+.expense-tracker .et-cell-link:hover {
+  color: var(--foreground);
+}
+
+.expense-tracker .et-tabs {
+  flex-shrink: 0;
+  display: flex;
+  align-items: stretch;
+  gap: 0;
+  height: var(--et-tabs-h);
+  border-top: 1px solid var(--border);
+  background: color-mix(in oklab, var(--muted) 50%, var(--background));
+  overflow-x: auto;
+  padding: 0 0.35rem;
+}
+
+.expense-tracker .et-tab {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  height: calc(var(--et-tabs-h) - 1px);
+  margin-top: 1px;
+  padding: 0 0.85rem;
+  border: 1px solid transparent;
+  border-bottom: 0;
+  border-radius: 3px 3px 0 0;
+  background: transparent;
+  font-size: 0.75rem;
+  font-weight: 550;
+  color: var(--muted-foreground);
+  white-space: nowrap;
+  transition: background 120ms ease, color 120ms ease, border-color 120ms ease;
+}
+
+.expense-tracker .et-tab:hover {
+  background: color-mix(in oklab, var(--muted) 30%, var(--background));
+  color: var(--foreground);
+}
+
+.expense-tracker .et-tab[data-active="true"] {
+  background: var(--background);
+  border-color: var(--border);
+  color: var(--foreground);
+  box-shadow: 0 -1px 0 var(--background);
+}
+
+.expense-tracker .et-tab--add {
+  min-width: 2rem;
+  justify-content: center;
+  font-size: 1rem;
+  font-weight: 500;
+  padding: 0 0.65rem;
+}
+
+.expense-tracker .et-tab__amt {
+  font-size: 0.6875rem;
+  font-variant-numeric: tabular-nums;
+  opacity: 0.75;
+}
+
+@media (max-width: 720px) {
+  .expense-tracker {
+    --et-col-a: 5.5rem;
+    --et-col-c: 6.5rem;
+    --et-gutter: 1.75rem;
+  }
+
+  .expense-tracker .et-menubar__title {
+    display: none;
+  }
+}

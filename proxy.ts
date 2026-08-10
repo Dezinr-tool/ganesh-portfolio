@@ -15,6 +15,10 @@ import {
   MB_ADMIN_AUTH_COOKIE,
   hasMbAdminAuth,
 } from "./lib/mb-admin-auth-edge";
+import {
+  MEMORY_VAULT_AUTH_COOKIE,
+  verifyMemoryVaultAuthCookie,
+} from "./lib/memory-vault-auth";
 
 const MB_ADMIN_LOGIN = "/moodboard/admin/login";
 
@@ -100,9 +104,7 @@ export async function proxy(request: NextRequest) {
       const from = request.nextUrl.searchParams.get("from");
       const dest =
         from &&
-        (from.startsWith("/moodboard/admin") ||
-          from.startsWith("/moodboard/sessions") ||
-          from.startsWith("/moodboard/memory"))
+        (from.startsWith("/moodboard/admin") || from.startsWith("/moodboard/sessions"))
           ? from
           : "/moodboard/admin";
       return NextResponse.redirect(new URL(dest, request.url));
@@ -115,16 +117,39 @@ export async function proxy(request: NextRequest) {
   }
 
   const requiresMbAdmin =
-    pathname.startsWith("/moodboard/admin") ||
-    pathname.startsWith("/moodboard/memory") ||
-    pathname.startsWith("/api/moodboard/admin") ||
-    pathname.startsWith("/api/moodboard/memory");
+    pathname.startsWith("/moodboard/admin") || pathname.startsWith("/api/moodboard/admin");
 
   if (requiresMbAdmin && !isMbAdminAuthed) {
     if (pathname.startsWith("/api/")) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
     return NextResponse.redirect(mbAdminLoginUrl(request, pathname));
+  }
+
+  // Memory vault — fully separate password, not reachable from the moodboard app or dashboard.
+  if (pathname === "/api/memory-vault/auth") {
+    return NextResponse.next();
+  }
+
+  if (pathname.startsWith("/memory-vault") || pathname.startsWith("/api/memory-vault")) {
+    const memoryVaultCookie = request.cookies.get(MEMORY_VAULT_AUTH_COOKIE)?.value;
+    const isMemoryVaultAuthed = await verifyMemoryVaultAuthCookie(memoryVaultCookie);
+
+    if (pathname.startsWith("/memory-vault/login")) {
+      if (isMemoryVaultAuthed) {
+        return NextResponse.redirect(new URL("/memory-vault", request.url));
+      }
+      return NextResponse.next();
+    }
+
+    if (!isMemoryVaultAuthed) {
+      if (pathname.startsWith("/api/")) {
+        return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      }
+      const loginUrl = new URL("/memory-vault/login", request.url);
+      loginUrl.searchParams.set("from", pathname);
+      return NextResponse.redirect(loginUrl);
+    }
   }
 
   return NextResponse.next();
@@ -136,11 +161,12 @@ export const config = {
     "/api/ea/:path*",
     "/moodboard/admin",
     "/moodboard/admin/:path*",
-    "/moodboard/memory",
-    "/moodboard/memory/:path*",
     "/moodboard",
     "/moodboard/:path*",
     "/api/moodboard/:path*",
+    "/memory-vault",
+    "/memory-vault/:path*",
+    "/api/memory-vault/:path*",
     "/tools",
     "/tools/:path*",
     "/design-audit",

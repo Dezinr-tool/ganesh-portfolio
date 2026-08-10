@@ -1,0 +1,68 @@
+{
+  "version": 1,
+  "lastUpdated": "2026-07-03",
+  "entryCount": 2,
+  "description": "Foundery Product Detail Page skill. Always requests Figma (home page + PDP), creates PDP styled to match home page, uses Shapes section structure as layout reference. Integrates with project skills library.",
+  "files": [
+    {
+      "name": "SKILL.md",
+      "topic": "PDP For Foundery",
+      "topics": ["Figma intake", "home page styling", "PDP section structure", "PHP implementation", "QA checklist", "companion skills integration"]
+    },
+    {
+      "name": "reference.md",
+      "topic": "Section Reference",
+      "topics": ["HTML/CSS snippets", "flavor scales", "gallery frame", "GSAP marquee", "demo product data"]
+    }
+  ],
+  "companionSkills": [
+    {
+      "folder": "ux-rules",
+      "files": ["conversion-ux.md", "web-ux.md", "accessibility.md", "mobile-ux.md", "heuristics.md"],
+      "required": true
+    },
+    {
+      "folder": "ia",
+      "files": ["ia-patterns-by-industry.md", "navigation-patterns.md"],
+      "required": true
+    },
+    {
+      "folder": "design-frameworks",
+      "files": ["atomic-design.md"],
+      "required": false
+    }
+  ],
+  "userSkills": [
+    {
+      "name": "transitions-dev",
+      "use": "GSAP animations, carousel and tab transitions"
+    },
+    {
+      "name": "ui-ux-pro-max",
+      "use": "Typography and visual refinement beyond Shapes defaults"
+    }
+  ],
+  "implementation": {
+    "phpSource": "pdp/index.php",
+    "css": "pdp/css/pdp.css",
+    "js": "pdp/js/pdp.js",
+    "staticPreview": "public/pdp/index.html",
+    "syncScript": "npm run sync:pdp-skill"
+  },
+  "downloads": [
+    {
+      "label": "PDP For Foundery skill",
+      "source": ".agents/skills/pdp-for-foundery/SKILL.md",
+      "publicPath": "/downloads/pdp-for-foundery-skill.md"
+    },
+    {
+      "label": "Section reference",
+      "source": ".agents/skills/pdp-for-foundery/reference.md",
+      "publicPath": "/downloads/pdp-for-foundery-reference.md"
+    }
+  ],
+  "references": [
+    "https://shapes-preset-pantry.myshopify.com/products/crispy-chili-oil",
+    "https://themes.shopify.com/themes/shapes/presets/shapes"
+  ]
+}

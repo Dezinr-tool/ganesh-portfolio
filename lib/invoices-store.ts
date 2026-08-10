@@ -12,6 +12,16 @@ import {
 import { parseClientEmails, serializeClientEmails } from "@/app/dashboard/_lib/client-emails";
 import { sql } from "@/lib/db";
 
+let paidAtColumnReady = false;
+
+async function ensureInvoicePaidAtColumn() {
+  if (paidAtColumnReady) return;
+  await sql.query(`
+    ALTER TABLE invoices ADD COLUMN IF NOT EXISTS paid_at DATE
+  `);
+  paidAtColumnReady = true;
+}
+
 type InvoiceRow = {
   id: string;
   invoice_number: string;
@@ -29,6 +39,7 @@ type InvoiceRow = {
   total: string | number;
   notes: string | null;
   status: string;
+  paid_at: Date | string | null;
   created_at: Date | string;
 };
 
@@ -115,11 +126,13 @@ function rowToInvoice(row: InvoiceRow): Invoice {
     total: parseNumber(row.total),
     notes: row.notes ?? "",
     status: statusFromDb(row.status),
+    paidAt: row.paid_at ? toDateString(row.paid_at) : null,
     createdAt: toTimestamp(row.created_at),
   };
 }
 
 export async function readInvoices(): Promise<Invoice[]> {
+  await ensureInvoicePaidAtColumn();
   const { rows } = await sql<InvoiceRow>`
     SELECT
       id,
@@ -138,6 +151,7 @@ export async function readInvoices(): Promise<Invoice[]> {
       total,
       notes,
       status,
+      paid_at,
       created_at
     FROM invoices
     ORDER BY created_at DESC
@@ -147,6 +161,7 @@ export async function readInvoices(): Promise<Invoice[]> {
 }
 
 export async function getInvoiceById(id: string): Promise<Invoice | null> {
+  await ensureInvoicePaidAtColumn();
   const { rows } = await sql<InvoiceRow>`
     SELECT
       id,
@@ -165,6 +180,7 @@ export async function getInvoiceById(id: string): Promise<Invoice | null> {
       total,
       notes,
       status,
+      paid_at,
       created_at
     FROM invoices
     WHERE id = ${id}
@@ -254,6 +270,7 @@ export async function createInvoice(input: CreateInvoiceInput): Promise<Invoice>
       total,
       notes,
       status,
+      paid_at,
       created_at
   `;
 
@@ -321,6 +338,7 @@ export async function updateInvoice(
       total,
       notes,
       status,
+      paid_at,
       created_at
   `;
 
@@ -331,10 +349,20 @@ export async function updateInvoice(
 export async function updateInvoiceStatus(
   id: string,
   status: InvoiceStatus,
+  paidAt?: string | null,
 ): Promise<Invoice | null> {
+  await ensureInvoicePaidAtColumn();
+
+  const paidAtValue =
+    status === "Paid"
+      ? paidAt || new Date().toISOString().slice(0, 10)
+      : null;
+
   const { rows } = await sql<InvoiceRow>`
     UPDATE invoices
-    SET status = ${statusToDb(status)}
+    SET
+      status = ${statusToDb(status)},
+      paid_at = ${paidAtValue}
     WHERE id = ${id}
     RETURNING
       id,
@@ -353,6 +381,7 @@ export async function updateInvoiceStatus(
       total,
       notes,
       status,
+      paid_at,
       created_at
   `;
 

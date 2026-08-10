@@ -9,6 +9,7 @@ export type SessionIndexEntry = {
   brandName: string | null;
   status: string;
   updatedAt: string;
+  pinned?: boolean;
 };
 
 const INDEX_KEY = "moodboard-session-index";
@@ -77,6 +78,7 @@ export function mergeSessionLists(
   local: SessionIndexEntry[],
   remote: SessionIndexEntry[],
 ): SessionIndexEntry[] {
+  const pinned = new Map(local.map((e) => [e.sessionId, e.pinned]));
   const map = new Map<string, SessionIndexEntry>();
   for (const entry of [...local, ...remote]) {
     const existing = map.get(entry.sessionId);
@@ -84,7 +86,68 @@ export function mergeSessionLists(
       map.set(entry.sessionId, entry);
     }
   }
-  return [...map.values()].sort(
-    (a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime(),
+  for (const [sessionId, isPinned] of pinned) {
+    const entry = map.get(sessionId);
+    if (entry) entry.pinned = isPinned;
+  }
+  return [...map.values()].sort((a, b) => {
+    if (!!a.pinned !== !!b.pinned) return a.pinned ? -1 : 1;
+    return new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime();
+  });
+}
+
+/** Rename a session's brand title, locally and best-effort on the backend. */
+export async function renameSessionInIndex(
+  sessionId: string,
+  brandName: string,
+): Promise<void> {
+  const trimmed = brandName.trim();
+  if (!trimmed) return;
+
+  const entries = loadSessionIndex();
+  const entry = entries.find((e) => e.sessionId === sessionId);
+  upsertSessionIndex({
+    sessionId,
+    brandName: trimmed,
+    status: entry?.status ?? "in_progress",
+    updatedAt: new Date().toISOString(),
+    pinned: entry?.pinned,
+  });
+
+  try {
+    await fetch("/api/moodboard/sessions", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ sessionId, brand_name: trimmed }),
+    });
+  } catch {
+    /* local rename still applied */
+  }
+}
+
+export function toggleSessionPinned(sessionId: string): void {
+  const entries = loadSessionIndex();
+  const entry = entries.find((e) => e.sessionId === sessionId);
+  if (!entry) return;
+  saveSessionIndex(
+    entries.map((e) =>
+      e.sessionId === sessionId ? { ...e, pinned: !e.pinned } : e,
+    ),
   );
+}
+
+/** Remove a session from the sidebar and delete it on the backend. */
+export async function deleteSessionEverywhere(sessionId: string): Promise<void> {
+  const entries = loadSessionIndex();
+  saveSessionIndex(entries.filter((e) => e.sessionId !== sessionId));
+
+  try {
+    await fetch("/api/moodboard/sessions", {
+      method: "DELETE",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ sessionId }),
+    });
+  } catch {
+    /* local removal still applied */
+  }
 }

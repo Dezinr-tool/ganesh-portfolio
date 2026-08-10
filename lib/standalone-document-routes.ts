@@ -3,6 +3,7 @@ export function isStandaloneDocumentRoute(pathname: string | null): boolean {
   if (!pathname) return false;
   return (
     pathname.startsWith("/dashboard") ||
+    pathname.startsWith("/expense-tracker") ||
     pathname.startsWith("/sign") ||
     isToolWorkspaceRoute(pathname)
   );

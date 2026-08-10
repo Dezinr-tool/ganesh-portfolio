@@ -39,6 +39,8 @@ export type Invoice = {
   total: number;
   notes: string;
   status: InvoiceStatus;
+  /** YYYY-MM-DD when marked Paid; null if unpaid/draft. */
+  paidAt: string | null;
   createdAt: string;
 };
 

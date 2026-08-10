@@ -48,7 +48,10 @@ export async function PATCH(
 ) {
   try {
     const { id } = await context.params;
-    const body = (await request.json()) as { status?: string };
+    const body = (await request.json()) as {
+      status?: string;
+      paidAt?: string | null;
+    };
     const status = normalizeStatus(body.status);
 
     if (!status) {
@@ -58,7 +61,22 @@ export async function PATCH(
       );
     }
 
-    const invoice = await updateInvoiceStatus(id, status);
+    if (status === "Paid") {
+      const paidAt = body.paidAt?.trim();
+      if (!paidAt || !/^\d{4}-\d{2}-\d{2}$/.test(paidAt)) {
+        return NextResponse.json(
+          { error: "paidAt (YYYY-MM-DD) is required when marking Paid." },
+          { status: 400 },
+        );
+      }
+      const invoice = await updateInvoiceStatus(id, status, paidAt);
+      if (!invoice) {
+        return NextResponse.json({ error: "Invoice not found." }, { status: 404 });
+      }
+      return NextResponse.json(invoice);
+    }
+
+    const invoice = await updateInvoiceStatus(id, status, null);
 
     if (!invoice) {
       return NextResponse.json({ error: "Invoice not found." }, { status: 404 });
