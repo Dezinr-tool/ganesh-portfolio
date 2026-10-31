@@ -65,11 +65,14 @@ export async function POST(
       );
     }
 
+    // The agreement is already signed; a failed notification must not tell the client it wasn't.
     await sendSignedConfirmationToGanesh(
       agreement.title,
       agreement.clientName,
       agreement.clientCompany,
-    );
+    ).catch((error) => {
+      console.error("Signed-agreement notification failed:", error);
+    });
 
     return NextResponse.json(agreement);
   } catch (error) {

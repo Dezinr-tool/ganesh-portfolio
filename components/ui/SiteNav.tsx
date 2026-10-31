@@ -7,10 +7,11 @@ import { XIcon, type XIconHandle } from "./XIcon";
 import "./site-nav.css";
 import { isStandaloneDocumentRoute } from "@/lib/standalone-document-routes";
 
+// Home-page sections; from any other page these navigate to the home page anchor.
 const NAV_LINKS = [
-  { label: "works", href: "#works" },
-  { label: "about", href: "#about" },
-  { label: "contact", href: "#footer" },
+  { label: "works", href: "/#works" },
+  { label: "about", href: "/#about" },
+  { label: "contact", href: "/#footer" },
 ];
 
 const SOCIAL = [
@@ -73,12 +74,15 @@ export function SiteNav() {
     return () => document.body.classList.remove("site-nav-open");
   }, [open]);
 
-  const handleNavClick = (href: string) => {
+  const handleNavClick = (event: React.MouseEvent<HTMLAnchorElement>, href: string) => {
     setOpen(false); menuIconRef.current?.stopAnimation();
+    const target = document.getElementById(href.split("#")[1] ?? "");
+    // Off the home page the section doesn't exist, so let the link navigate there.
+    if (!target) return;
+    event.preventDefault();
     // Smooth scroll after panel closes
     setTimeout(() => {
-      const id = href.replace("#", "");
-      document.getElementById(id)?.scrollIntoView({ behavior: "smooth" });
+      target.scrollIntoView({ behavior: "smooth" });
     }, 320);
   };
 
@@ -92,7 +96,7 @@ export function SiteNav() {
       <button
         className={`site-nav__trigger${open ? " is-open" : ""}`}
         onClick={() => { setOpen(true); menuIconRef.current?.startAnimation(); xIconRef.current?.startAnimation(); }}
-        aria-label="Open navigation"
+        aria-label="Open navigation menu"
         aria-expanded={open}
       >
         <MenuIcon ref={menuIconRef} className="site-nav__trigger-icon" size={14} aria-hidden="true" />
@@ -113,6 +117,8 @@ export function SiteNav() {
         role="dialog"
         aria-modal="true"
         aria-label="Site navigation"
+        // Off-screen while closed: keep its links out of the tab order and the a11y tree.
+        inert={!open}
       >
         <div className="site-nav__panel-inner">
           {/* Close */}
@@ -128,13 +134,14 @@ export function SiteNav() {
           {/* Nav links */}
           <nav className="site-nav__links" aria-label="Main navigation">
             {NAV_LINKS.map((link) => (
-              <button
+              <a
                 key={link.href}
+                href={link.href}
                 className="site-nav__link"
-                onClick={() => handleNavClick(link.href)}
+                onClick={(event) => handleNavClick(event, link.href)}
               >
                 {link.label}
-              </button>
+              </a>
             ))}
           </nav>
 

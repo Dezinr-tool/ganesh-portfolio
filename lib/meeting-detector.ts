@@ -26,8 +26,10 @@ function extractUrlsFromEvent(event: CalendarEventItem): string[] {
     event.description,
   ].filter(Boolean) as string[];
 
+  // Anchor on the host so bare domains (meet.google.com/…) and subdomains (acme.zoom.us/…) both
+  // match, but a platform name in some other site's path or query does not.
   const urlPattern =
-    /https?:\/\/[^\s<>"']+(?:meet\.google\.com|zoom\.us|teams\.microsoft\.com)[^\s<>"']*/gi;
+    /https?:\/\/(?:[a-z0-9-]+\.)*(?:meet\.google\.com|zoom\.us|teams\.microsoft\.com)(?:[/?#][^\s<>"']*)?/gi;
 
   for (const source of sources) {
     const matches = source.match(urlPattern) ?? [];

@@ -12,7 +12,7 @@ export async function requireKnowledgeAdmin(request?: NextRequest) {
 
   const cookieStore = await cookies();
   const auth = cookieStore.get(MB_ADMIN_AUTH_COOKIE)?.value;
-  if (!verifyMbAdminAuthCookie(auth)) {
+  if (!(await verifyMbAdminAuthCookie(auth))) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
   return null;

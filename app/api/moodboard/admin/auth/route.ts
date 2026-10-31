@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import {
   MB_ADMIN_AUTH_COOKIE,
-  MB_ADMIN_SESSION_VALUE,
+  createMbAdminAuthToken,
 } from "@/lib/mb-admin-auth";
 
 export async function POST(request: NextRequest) {
@@ -30,7 +30,7 @@ export async function POST(request: NextRequest) {
         : "/moodboard/admin";
 
     const response = NextResponse.json({ success: true, redirect: redirectTo });
-    response.cookies.set(MB_ADMIN_AUTH_COOKIE, MB_ADMIN_SESSION_VALUE, {
+    response.cookies.set(MB_ADMIN_AUTH_COOKIE, await createMbAdminAuthToken(expected), {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       sameSite: "lax",

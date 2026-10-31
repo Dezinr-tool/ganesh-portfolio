@@ -1,6 +1,6 @@
-import crypto from "crypto";
 import { NextResponse } from "next/server";
 import { updateInvoiceStatus } from "@/lib/invoices-store";
+import { getRazorpay, isValidPaymentSignature } from "@/lib/razorpay";
 
 export async function POST(req: Request) {
   let body: {
@@ -25,18 +25,25 @@ export async function POST(req: Request) {
     );
   }
 
-  // HMAC-SHA256(order_id + "|" + payment_id, KEY_SECRET)
-  const expectedSignature = crypto
-    .createHmac("sha256", process.env.RAZORPAY_KEY_SECRET!)
-    .update(`${razorpay_order_id}|${razorpay_payment_id}`)
-    .digest("hex");
-
-  if (expectedSignature !== razorpay_signature) {
+  if (!isValidPaymentSignature(razorpay_order_id, razorpay_payment_id, razorpay_signature)) {
     return NextResponse.json({ error: "Payment signature verification failed" }, { status: 400 });
   }
 
   // Signature verified — mark the invoice as paid if invoice_id provided
   if (invoice_id) {
+    // The signature only covers order + payment, so confirm the order was created for this invoice.
+    let orderInvoiceId: unknown;
+    try {
+      const order = await getRazorpay().orders.fetch(razorpay_order_id);
+      orderInvoiceId = order.notes?.invoice_id;
+    } catch (err) {
+      console.error("[razorpay/verify-payment] Failed to fetch order:", err);
+      return NextResponse.json({ error: "Could not confirm the payment order" }, { status: 502 });
+    }
+    if (orderInvoiceId !== invoice_id) {
+      return NextResponse.json({ error: "Payment does not belong to this invoice" }, { status: 400 });
+    }
+
     try {
       await updateInvoiceStatus(invoice_id, "Paid");
     } catch (err) {

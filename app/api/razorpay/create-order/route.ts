@@ -1,11 +1,6 @@
-import Razorpay from "razorpay";
 import { NextResponse } from "next/server";
 import { getInvoiceById } from "@/lib/invoices-store";
-
-const razorpay = new Razorpay({
-  key_id: process.env.RAZORPAY_KEY_ID!,
-  key_secret: process.env.RAZORPAY_KEY_SECRET!,
-});
+import { getRazorpay } from "@/lib/razorpay";
 
 export async function POST(req: Request) {
   let invoiceId: string;
@@ -36,10 +31,12 @@ export async function POST(req: Request) {
   }
 
   try {
-    const order = await razorpay.orders.create({
+    const order = await getRazorpay().orders.create({
       amount: amountPaise,
       currency: "INR",
       receipt: invoice.invoiceNumber,
+      // verify-payment checks this so a payment can only settle the invoice it was made for.
+      notes: { invoice_id: invoice.id },
     });
 
     return NextResponse.json({

@@ -119,6 +119,13 @@ export const MILESTONE_PAYMENT_METHOD =
 export const MILESTONE_INVOICE_TERMS =
   "Invoices will be raised at each milestone. Payment is expected within 3 working days of invoice receipt.";
 
+/** Like `Number(value) || fallback`, but keeps a deliberate 0 (e.g. no revisions, 0% interest). */
+export function numberOrDefault(value: unknown, fallback: number): number {
+  if (value === "" || value == null) return fallback;
+  const n = Number(value);
+  return Number.isFinite(n) ? n : fallback;
+}
+
 export function deriveAdvancePercent(
   structure: PaymentStructure,
 ): number | null {
@@ -330,8 +337,8 @@ export function buildAgreementInput(body: CreateAgreementInput): CreateAgreement
     customPaymentTerms: body.customPaymentTerms?.trim() ?? "",
     latePaymentClause: body.latePaymentClause ?? true,
     latePaymentDays: Number(body.latePaymentDays) || 7,
-    latePaymentInterest: Number(body.latePaymentInterest) || 2,
-    revisionsIncluded: Number(body.revisionsIncluded) || 2,
+    latePaymentInterest: numberOrDefault(body.latePaymentInterest, 2),
+    revisionsIncluded: numberOrDefault(body.revisionsIncluded, 2),
     revisionScopeNote: body.revisionScopeNote?.trim() ?? "",
     ipTransfer: body.ipTransfer ?? true,
     confidentiality: body.confidentiality ?? true,

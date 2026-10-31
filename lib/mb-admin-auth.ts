@@ -1,17 +1,21 @@
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
+import {
+  MB_ADMIN_AUTH_COOKIE,
+  createMbAdminAuthToken,
+  hasMbAdminAuth,
+} from "@/lib/mb-admin-auth-edge";
 
-export const MB_ADMIN_AUTH_COOKIE = "mb_admin_auth";
-export const MB_ADMIN_SESSION_VALUE = "true";
+export { MB_ADMIN_AUTH_COOKIE, createMbAdminAuthToken };
 
-export function verifyMbAdminAuthCookie(cookieValue: string | undefined): boolean {
-  return cookieValue === MB_ADMIN_SESSION_VALUE;
+export function verifyMbAdminAuthCookie(cookieValue: string | undefined): Promise<boolean> {
+  return hasMbAdminAuth(cookieValue);
 }
 
 export async function requireMbAdmin() {
   const cookieStore = await cookies();
   const auth = cookieStore.get(MB_ADMIN_AUTH_COOKIE)?.value;
-  if (!verifyMbAdminAuthCookie(auth)) {
+  if (!(await verifyMbAdminAuthCookie(auth))) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
   return null;

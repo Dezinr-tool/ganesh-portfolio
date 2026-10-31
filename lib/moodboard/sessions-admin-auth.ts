@@ -14,7 +14,7 @@ export async function requireSessionsAdmin(
 
   const cookieStore = await cookies();
   const auth = cookieStore.get(MB_ADMIN_AUTH_COOKIE)?.value;
-  if (verifyMbAdminAuthCookie(auth)) return null;
+  if (await verifyMbAdminAuthCookie(auth)) return null;
 
   return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 }

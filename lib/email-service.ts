@@ -1,6 +1,4 @@
-import { Resend } from "resend";
-
-const resend = new Resend(process.env.RESEND_API_KEY);
+import { getResend } from "@/lib/resend-client";
 
 const FROM_EMAIL =
   process.env.RESEND_FROM_EMAIL ?? "hello@designbyganesh.com";
@@ -23,7 +21,7 @@ export async function sendEmail(
     throw new Error("RESEND_API_KEY is not configured.");
   }
 
-  const { data, error } = await resend.emails.send({
+  const { data, error } = await getResend().emails.send({
     from: FROM_EMAIL,
     to: input.to,
     subject: input.subject,

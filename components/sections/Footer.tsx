@@ -137,11 +137,16 @@ export function Footer({ siteSettings, socialLinks }: FooterContent) {
 
       // On mobile, the circle clipPath animation + ScrollTrigger scrub is unreliable
       // on iOS (lenis.scroll may not update, leaving content at opacity:0 forever).
+      // The circle is a fixed full-viewport layer, so showing it here would black out the whole
+      // page; paint only the footer's own box dark instead.
       if (isMobile) {
-        setCircleStageVisible(circle, true);
-        gsap.set(circle, { clipPath: "circle(150% at 50% 100%)", backgroundColor: FOOTER_BLACK });
+        setCircleStageVisible(circle, false);
+        gsap.set(pin, { backgroundColor: FOOTER_BLACK });
         gsap.set(content, { opacity: 1, y: 0 });
-        return;
+        return () => {
+          gsap.set(pin, { clearProps: "backgroundColor" });
+          gsap.set(content, { clearProps: "opacity,transform" });
+        };
       }
 
       setCircleStageVisible(circle, false);

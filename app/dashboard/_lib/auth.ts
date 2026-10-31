@@ -16,6 +16,7 @@ export const DASHBOARD_PROTECTED_PREFIXES = [
   "/api/expense-tracker",
   "/api/agreements",
   "/api/clients",
+  "/api/projects",
   "/api/settings",
   "/api/dashboard",
   "/api/design-audit",

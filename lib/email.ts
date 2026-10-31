@@ -1,6 +1,4 @@
-import { Resend } from "resend";
-
-const resend = new Resend(process.env.RESEND_API_KEY);
+import { getResend } from "@/lib/resend-client";
 
 const FROM_EMAIL =
   process.env.RESEND_FROM_EMAIL ?? "hello@designbyganesh.com";
@@ -31,7 +29,7 @@ export async function sendAgreementToClient(
 
   const signUrl = `${SITE_URL}/sign/${token}`;
 
-  const { error } = await resend.emails.send({
+  const { error } = await getResend().emails.send({
     from,
     to: recipients,
     replyTo: GANESH_EMAIL,
@@ -56,7 +54,7 @@ export async function sendSignedConfirmationToGanesh(
   clientName: string,
   clientCompany: string,
 ) {
-  await resend.emails.send({
+  await getResend().emails.send({
     from: FROM_EMAIL,
     to: GANESH_EMAIL,
     replyTo: GANESH_EMAIL,

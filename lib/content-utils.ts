@@ -12,5 +12,8 @@ export function splitEmailLines(email: string): [string, string] {
 
 export function phoneHref(phone: string): string {
   const digits = phone.replace(/\D/g, '')
-  return digits ? `tel:+${digits.startsWith('91') ? digits : `91${digits}`}` : `tel:${phone}`
+  if (!digits) return `tel:${phone}`
+  // A 10-digit number is always a local Indian number, even if it starts with 91.
+  const hasCountryCode = digits.length > 10 && digits.startsWith('91')
+  return `tel:+${hasCountryCode ? digits : `91${digits}`}`
 }

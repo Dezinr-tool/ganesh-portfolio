@@ -43,7 +43,7 @@ export async function proxy(request: NextRequest) {
   const eaCookie = request.cookies.get(EA_AUTH_COOKIE)?.value;
   const isEaAuthed = hasEaMiddlewareAuth(eaToken, eaCookie);
   const mbAdminCookie = request.cookies.get(MB_ADMIN_AUTH_COOKIE)?.value;
-  const isMbAdminAuthed = hasMbAdminAuth(mbAdminCookie);
+  const isMbAdminAuthed = await hasMbAdminAuth(mbAdminCookie);
 
   if (pathname.startsWith("/ea/login") || pathname.startsWith("/ea/signup")) {
     if (isEaAuthed) {
@@ -188,7 +188,10 @@ export const config = {
     "/api/invoices/:path*",
     "/api/agreements/:path*",
     "/api/clients/:path*",
-    "/api/settings",
+    "/api/settings/:path*",
     "/api/dashboard/:path*",
+    "/api/projects/:path*",
+    "/expense-tracker/:path*",
+    "/api/expense-tracker/:path*",
   ],
 };
