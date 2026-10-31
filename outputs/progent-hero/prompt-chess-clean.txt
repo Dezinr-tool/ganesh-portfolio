@@ -1,3 +1,0 @@
-Tool: built-in image_gen edit
-Edit target: user-supplied chess advertisement.
-Prompt: Remove all upper-left advertising copy, upper-right brand logo, lower-left website, lower-right phone number, thin yellow decorative arc and dot. Reconstruct clean white background. Preserve white robotic arm entering from upper right, hand grasping green chess king, reflective white-grey chessboard, surrounding grey pieces with original motion blur and large warm yellow circle. Preserve arrangement, perspective, colors, lighting, reflections and portrait aspect ratio. No additions, text, logos or watermark.
