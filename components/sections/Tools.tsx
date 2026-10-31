@@ -103,7 +103,7 @@ export const TOOL_EXPERIENCE_ROWS: ToolExperienceRow[] = [
   {
     id: "ai-tools",
     label: "AI",
-    title: "AI & Modern Tools",
+    title: "AI-assisted Design",
     tenureLabel: "3+ yrs",
     marqueeLabels: ["CURSOR", "CLAUDE", "FIGMA AI", "AUTOMATION"],
     marqueeImages: [
@@ -385,7 +385,7 @@ function ExperienceRow({
             <span className="tools-experience__tenure-sep" aria-hidden="true">
               ·
             </span>
-            <span>Present</span>
+            <span>of practice</span>
           </p>
         </div>
       </button>
@@ -439,6 +439,8 @@ export function Tools() {
       aria-label="Experience and tools"
     >
       <div ref={innerRef} className="section-stage__inner">
+      <h2 className="tools-experience__heading">What I bring to the team.</h2>
+      <p className="tools-experience__intro">From the first question to the final details.</p>
       <ol className="tools-experience__list">
         {TOOL_EXPERIENCE_ROWS.map((row) => (
           <ExperienceRow

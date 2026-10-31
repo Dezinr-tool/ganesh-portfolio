@@ -7,7 +7,8 @@ export type CaseStudy = {
   slug: string
   title: string
   mainImage: string
-  /** CHALANGE, SERVICE, INDUSTRY, YEAR */
+  heroVideo?: string | null
+  /** BRIEF, SERVICE, INDUSTRY, STATUS */
   services: [string, string, string, string]
   barcodeTitle: string
   sections: CaseStudySection[]
@@ -23,4 +24,4 @@ export type CaseStudy = {
   dsgn7: { title: string; image: string; bg: string; video?: string | null }
 }
 
-export const SERVICE_LABELS = ['CHALANGE', 'SERVICE', 'INDUSTRY', 'YEAR'] as const
+export const SERVICE_LABELS = ['BRIEF', 'SERVICE', 'INDUSTRY', 'STATUS'] as const

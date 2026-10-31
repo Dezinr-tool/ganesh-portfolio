@@ -227,6 +227,14 @@
   color: var(--color-text);
 }
 
+/* The title sits in a column about half the screen wide. 6.6vw keeps the longest word,
+   PROTOTYPING, inside it from tablet width up. */
+@media (min-width: 768px) {
+  .tools-experience__title {
+    font-size: clamp(2.25rem, 6.6vw, 5.5rem);
+  }
+}
+
 .tools-experience__tenure {
   display: inline-flex;
   flex-wrap: wrap;
@@ -255,3 +263,7 @@
     will-change: auto;
   }
 }
+
+.tools-experience__heading, .tools-experience__intro { margin: 0 var(--section-px) 1rem; }
+.tools-experience__heading { font-family: var(--font-display); font-size: clamp(2rem, 5vw, 4rem); line-height: 1.1; }
+.tools-experience__intro { margin-bottom: 2.5rem; font-size: 1rem; }

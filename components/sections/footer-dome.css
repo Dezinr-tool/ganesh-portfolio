@@ -440,3 +440,22 @@
     transition: none;
   }
 }
+
+.footer-contact-heading { font-family: var(--font-display); font-size: clamp(1.75rem, 4vw, 3.5rem); line-height: 1.15; margin: 0 0 2.5rem; max-width: 22ch; }
+
+/* Let contact details grow rather than clipping at the viewport boundary. */
+.footer-pin { height: auto; min-height: 100svh; }
+.footer-content { display: flex; flex-direction: column; min-height: 100svh; height: auto; gap: 3rem; }
+.footer-top { position: relative; inset: auto; padding-inline: clamp(1.5rem, 4vw, 5rem); }
+.footer-bottom { position: relative; inset: auto; margin-top: auto; padding-bottom: max(1.5rem, env(safe-area-inset-bottom)); }
+@media (max-width: 56.25rem) {
+  .footer-top { padding: 0 1.25rem; }
+  .footer-content { gap: 2.5rem; }
+}
+
+/* An opaque surface keeps fixed hero artwork from bleeding through contact text. */
+.footer-pin { background-color: #111111; }
+@media (max-width: 56.25rem) {
+  .footer-circle-reveal { display: none !important; }
+  .footer-content { opacity: 1 !important; transform: none !important; }
+}

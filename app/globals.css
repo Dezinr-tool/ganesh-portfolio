@@ -783,6 +783,7 @@ body {
   max-width: min(96vw, 72rem);
   overflow-wrap: normal;
   word-break: normal;
+  font-size: clamp(1.5rem, 2.6vw, 2.5rem);
   line-height: 1.12;
 }
 
@@ -1014,4 +1015,10 @@ body {
   .scroll-progress {
     height: 2px;
   }
+}
+/* The story must grow with its copy, including phone landscape and zoom. */
+.about-scroll-section { padding-block: clamp(5rem, 12svh, 9rem); }
+@media (max-width: 56.25rem) {
+  .about-scroll-section .hero-reveal-copy { font-size: clamp(1.3125rem, 5.4vw, 1.875rem); line-height: 1.25; }
+  .about-scroll-section .hero-reveal-copy__body { justify-content: flex-start; text-align: left; }
 }

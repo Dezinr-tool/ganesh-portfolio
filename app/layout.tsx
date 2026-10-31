@@ -11,7 +11,7 @@ import "./globals.css";
 const siteUrl = "https://www.designbyganesh.com";
 const title = "Ganesh Das — Design & Strategy Partner";
 const description =
-  "Design & Strategy Partner for Startups. Ganesh Das helps founders build products people love — D2C, B2B & B2B2C specialist with 14+ years across funded Indian startups.";
+  "Ganesh Das is a designer in Mumbai with 15+ years of experience. Product design, research, and design systems for founders and product teams.";
 const ogImage = {
   url: "/og-image.jpg",
   width: 1200,
@@ -77,7 +77,7 @@ export default async function RootLayout({
       <head>
         <script
           dangerouslySetInnerHTML={{
-            __html: `(function(){try{var p=location.pathname;if(p.indexOf("/dashboard")===0||p.indexOf("/expense-tracker")===0||p.indexOf("/sign")===0)return;if(sessionStorage.getItem("portfolio-loaded")==="1")return;if(window.matchMedia("(prefers-reduced-motion: reduce)").matches)return;if(window.matchMedia("(max-width: 56.25rem)").matches)return;if(window.matchMedia("(pointer: coarse)").matches)return;document.documentElement.classList.add("page-loader-active")}catch(e){}})();`,
+            __html: `(function(){try{var p=location.pathname;if(p.indexOf("/dashboard")===0||p.indexOf("/expense-tracker")===0||p.indexOf("/sign")===0)return;if(sessionStorage.getItem("portfolio-loaded")==="1")return;if(window.matchMedia("(prefers-reduced-motion: reduce)").matches)return;document.documentElement.classList.add("page-loader-active");setTimeout(function(){document.documentElement.classList.remove("page-loader-active")},6000)}catch(e){}})();`,
           }}
         />
       </head>

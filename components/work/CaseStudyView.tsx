@@ -285,14 +285,28 @@ export function CaseStudyView({ study, moreWorks }: CaseStudyViewProps) {
         </Link>
 
         <div className="case-study__hero-image">
-          <Image
-            src={study.mainImage}
-            alt={study.title}
-            width={1050}
-            height={670}
-            priority
-            className="case-study__hero-img"
-          />
+          {study.heroVideo ? (
+            <video
+              className="case-study__hero-img case-study__hero-video"
+              autoPlay
+              muted
+              loop
+              playsInline
+              preload="metadata"
+              aria-label={`${study.title} website intro`}
+            >
+              <source src={study.heroVideo} type="video/mp4" />
+            </video>
+          ) : (
+            <Image
+              src={study.mainImage}
+              alt={study.title}
+              width={1050}
+              height={670}
+              priority
+              className="case-study__hero-img"
+            />
+          )}
         </div>
 
         <h1

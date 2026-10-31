@@ -25,6 +25,7 @@ export function AboutRevealCopy({
     <p
       ref={paragraphRef}
       className={`hero-reveal-copy text-body-lg ${className}`.trim()}
+      aria-label={bodyText}
       {...rest}
     >
       <span className="hero-reveal-copy__body" data-reveal-line>

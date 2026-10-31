@@ -332,3 +332,12 @@
     margin-top: 0;
   }
 }
+
+@media (max-width: 56.25rem), (prefers-reduced-motion: reduce) {
+  .vs-card { height: auto; min-height: 22rem; }
+  .vs-card__content { position: relative; min-height: 22rem; overflow: visible; }
+  .vs-card__body { overflow-wrap: anywhere; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .vs-cards__wheel { grid-template-columns: repeat(auto-fit, minmax(min(100%, 16rem), 1fr)); }
+}

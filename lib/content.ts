@@ -51,9 +51,9 @@ export const SITE_SETTINGS: SiteSettings = {
   phone: '73044 92888',
   location: '3101, Venus, Forest Enclave, Hiranandani\nFortunecity, Maharashtra 410207',
   footerCopyright:
-    'All Right Reserved. Ganesh Das.\nAny Reproduction, Distribution, Or Use Of The\nMaterials Without Permission Is Prohibited.',
-  worksSectionTitle: 'recent works',
-  testimonialsHeading: "Words from the people who've seen me work.",
+    'Ganesh Das. All rights reserved.\nPlease ask before using my work.',
+  worksSectionTitle: 'Selected work',
+  testimonialsHeading: "From people I’ve worked with.",
 }
 
 export const HERO: HeroContent = {
@@ -71,7 +71,7 @@ export const ABOUT: AboutContent = {
 export const SOCIAL_LINKS: SocialLinks = {
   dribbble: 'https://dribbble.com/ganeshdas',
   behance: 'https://behance.net/ganeshdas',
-  linkedin: 'https://linkedin.com/in/ganeshdas',
+  linkedin: 'https://www.linkedin.com/in/g009/',
   instagram: '',
 }
 

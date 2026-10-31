@@ -37,6 +37,7 @@ export function AboutText({ sectionLabel, bodyText }: AboutTextProps) {
 
       const isMobile = window.matchMedia(MOBILE_VIEWPORT_MQ).matches;
 
+      const originalCopy = copyRoot.innerHTML;
       const chars = splitRevealCopy(copyRoot);
 
       // On mobile: skip the pin (200% extra height locks Lenis scroll on iOS).
@@ -45,7 +46,7 @@ export function AboutText({ sectionLabel, bodyText }: AboutTextProps) {
         applyRevealCopyHighlight(chars, 1);
         const label = section.querySelector<HTMLElement>(".text-consultant-label");
         if (label) gsap.set(label, { autoAlpha: 1, y: 0 });
-        return;
+        return () => { copyRoot.innerHTML = originalCopy; };
       }
 
       const pinZIndex = 100;
@@ -74,16 +75,17 @@ export function AboutText({ sectionLabel, bodyText }: AboutTextProps) {
 
       return () => {
         ScrollTrigger.getById("about-copy-highlight")?.kill();
+        copyRoot.innerHTML = originalCopy;
       };
     },
-    { scope: sectionRef, dependencies: [reducedMotion] },
+    { scope: sectionRef, dependencies: [reducedMotion, bodyText], revertOnUpdate: true },
   );
 
   return (
     <section
       ref={sectionRef}
       id="about"
-      className="about-scroll-section relative isolate z-20 flex h-svh min-h-svh w-full items-center justify-center bg-[var(--color-bg)] text-[var(--color-text)]"
+      className="about-scroll-section relative isolate z-20 flex min-h-svh w-full items-center justify-center bg-[var(--color-bg)] text-[var(--color-text)]"
       aria-label="About me"
     >
       <div className="mx-auto flex w-full max-w-[min(96vw,76rem)] flex-col items-start px-5 text-left sm:items-center sm:text-center sm:px-8 lg:px-12">

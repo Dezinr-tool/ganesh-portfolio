@@ -6,7 +6,7 @@ import { scheduleScrollTriggerRefresh } from "@/lib/scroll-refresh";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import Link from "next/link";
-import { useReducedMotion } from "framer-motion";
+import { useReducedMotionHydrated } from "@/lib/use-reduced-motion-hydrated";
 import { useEffect, useRef, useState } from "react";
 import type { SiteSettings, SocialLinks } from "@/lib/content";
 import { phoneHref, splitEmailLines, splitLines } from "@/lib/content-utils";
@@ -97,9 +97,8 @@ export function Footer({ siteSettings, socialLinks }: FooterContent) {
   const addressLines = splitLines(siteSettings.location, ADDRESS_FALLBACK);
   const siteName = siteSettings.siteName ?? "Ganesh Das";
   const copyrightLines = splitLines(siteSettings.footerCopyright, [
-    "All Right Reserved. Ganesh Das.",
-    "Any Reproduction, Distribution, Or Use Of The",
-    "Materials Without Permission Is Prohibited.",
+    "Ganesh Das. All rights reserved.",
+    "Please ask before using my work.",
   ]);
   const bracketNavLinks = buildBracketNavLinks(socialLinks);
   const sectionRef = useRef<HTMLElement>(null);
@@ -107,7 +106,7 @@ export function Footer({ siteSettings, socialLinks }: FooterContent) {
   const circleRef = useRef<HTMLDivElement>(null);
   const pinRef = useRef<HTMLDivElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
-  const reducedMotion = useReducedMotion() ?? false;
+  const reducedMotion = useReducedMotionHydrated();
   const isAnimated = !reducedMotion;
 
   useGSAP(
@@ -245,6 +244,7 @@ export function Footer({ siteSettings, socialLinks }: FooterContent) {
         <div ref={pinRef} className="footer-pin">
           <div ref={contentRef} className="footer-content">
             <div className="footer-top">
+              <h2 className="footer-contact-heading">Have something in mind? Let’s talk.</h2>
               <div className="footer-contact-row">
                 <nav className="footer-location footer-contact-row__nav" aria-label="Footer navigation">
                   {PRIMARY_NAV_LINKS.map((link) => (

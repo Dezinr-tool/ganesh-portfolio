@@ -21,7 +21,7 @@ test.beforeEach(async ({ page }) => {
 
 const PUBLIC_PAGES: [path: string, text: RegExp][] = [
   ["/", /know what to do with it/i],
-  ["/work/anima", /anima/i],
+  ["/work/cove-lane", /cove/i],
   ["/ea/login", /log in|sign in/i],
   ["/ea/signup", /sign up|create/i],
   ["/ea/privacy", /privacy/i],

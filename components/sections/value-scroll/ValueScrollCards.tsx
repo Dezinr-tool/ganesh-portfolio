@@ -3,7 +3,7 @@ import { ValueScrollCard } from "./ValueScrollCard";
 
 export function ValueScrollCards() {
   return (
-    <section className="vs-cards" aria-label="Capabilities">
+    <section id="services" className="vs-cards" aria-label="Capabilities">
       <div className="vs-cards__pin">
         <div className="vs-cards__stage">
           <div className="vs-cards__wheel">

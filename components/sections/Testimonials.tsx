@@ -30,8 +30,6 @@ export const TESTIMONIALS: Testimonial[] = [
     role: "Product Manager",
     company: "Testbook",
     accent: "#e8f4f0",
-    image:
-      "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=600&q=80&auto=format&fit=crop",
   },
   {
     id: "narendra-tripathi",
@@ -42,8 +40,6 @@ export const TESTIMONIALS: Testimonial[] = [
     role: "Product Leader",
     company: "Toothsi",
     accent: "#f0ede8",
-    image:
-      "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=600&q=80&auto=format&fit=crop",
   },
   {
     id: "hanoze-boga",
@@ -54,8 +50,6 @@ export const TESTIMONIALS: Testimonial[] = [
     role: "Design Head",
     company: "JioSaavn",
     accent: "#eaf0f8",
-    image:
-      "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=600&q=80&auto=format&fit=crop",
   },
   {
     id: "anuj-kapur",
@@ -66,14 +60,11 @@ export const TESTIMONIALS: Testimonial[] = [
     role: "Business Head, App & Growth",
     company: "Paisabazaar",
     accent: "#f5f0ea",
-    image:
-      "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=600&q=80&auto=format&fit=crop",
   },
 ];
 
-const CHAR_LIMIT = 130;
-function truncate(text: string) {
-  return text.length > CHAR_LIMIT ? text.slice(0, CHAR_LIMIT).trimEnd() + "…" : text;
+function initials(name: string) {
+  return name.split(/\s+/).map(part => part[0]).slice(0, 2).join("");
 }
 
 const THUMB_BLUR_STEPS = [
@@ -115,6 +106,7 @@ function RecommendationCard({ item }: { item: Testimonial }) {
   return (
     <article className="t-card t-card--recommendation" role="listitem">
       <div className="t-card__media">
+        {!item.image && <span className="t-card__initials" aria-hidden="true">{initials(item.name)}</span>}
         {item.image && (
           <TestimonialThumbnail
             src={item.image}
@@ -125,7 +117,7 @@ function RecommendationCard({ item }: { item: Testimonial }) {
       </div>
       <div className="t-card__body">
         <span className="t-card__quote-mark" aria-hidden="true">&ldquo;</span>
-        <p className="t-card__quote">{truncate(item.quote)}</p>
+        <p className="t-card__quote">{item.quote}</p>
         <p className="t-card__attribution">
           — {item.name}, {item.company}
         </p>
@@ -139,6 +131,7 @@ function ClientReviewCard({ item }: { item: Testimonial }) {
   const innerRef = useRef<HTMLDivElement>(null);
 
   const handleMouseEnter = useCallback(() => {
+    if (!window.matchMedia("(hover: hover) and (pointer: fine)").matches || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
     const tl = gsap.timeline();
     tl.to(cardRef.current, { y: -14, scale: 1.04, duration: 0.22, ease: "power2.out" }, 0);
     tl.to(innerRef.current, { rotationY: 180, duration: 0.6, ease: "back.out(1.4)" }, 0.06);
@@ -161,6 +154,7 @@ function ClientReviewCard({ item }: { item: Testimonial }) {
       <div ref={innerRef} className="t-card__flip-inner">
         {/* Front — photo */}
         <div className="t-card__front t-card__flip-face">
+          {!item.image && <span className="t-card__initials" aria-hidden="true">{initials(item.name)}</span>}
           {item.image && (
             <img
               src={item.image}
@@ -183,7 +177,7 @@ function ClientReviewCard({ item }: { item: Testimonial }) {
           style={{ background: item.accent ?? "#f0ede8" }}
         >
           <span className="t-card__quote-mark" aria-hidden="true">&ldquo;</span>
-          <p className="t-card__quote">{truncate(item.quote)}</p>
+          <p className="t-card__quote">{item.quote}</p>
           <p className="t-card__attribution">
             — {item.name}, {item.company}
           </p>

@@ -18,9 +18,10 @@ html.page-loader-active [data-page-loader] {
   --sub-radius: clamp(69px, 9vw, 123px);
 
   background-color: var(--color-bg);
+  height: 100vh;
   height: 100dvh;
   left: 0;
-  overflow: visible;
+  overflow: hidden;
   pointer-events: auto;
   position: fixed;
   top: 0;
@@ -96,7 +97,6 @@ html.page-loader-active [data-page-loader] {
   transform-origin: center center;
   transform-style: preserve-3d;
   white-space: pre;
-  will-change: transform;
 }
 
 .page-loader__glyph--hero {
@@ -168,17 +168,11 @@ html.page-loader-active [data-page-loader] {
   }
 }
 
-/* Failsafe: never trap the page on touch / narrow viewports if loader stalls */
+/* Keep the animated mark and counter inside narrow/short viewports. */
 @media (max-width: 56.25rem), (pointer: coarse) {
-  html.page-loader-active {
-    overflow: auto;
-  }
-
-  html.page-loader-active body > * {
-    visibility: visible;
-  }
-
-  html.page-loader-active [data-page-loader] {
-    display: none;
-  }
+  .page-loader { --hero-radius: min(25vw, 120px); --sub-radius: min(21vw, 100px); }
+  .page-loader__counter { bottom: max(1.5rem, env(safe-area-inset-bottom)); font-size: 0.875rem; }
+}
+@media (max-height: 420px) {
+  .page-loader__scene { transform: scale(.8) rotateX(9deg) rotateZ(-20deg); }
 }

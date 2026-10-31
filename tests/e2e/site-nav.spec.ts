@@ -43,7 +43,7 @@ test.describe("site navigation", () => {
   });
 
   test("nav links work from a page that has no home sections", async ({ page }) => {
-    await page.goto("/work/anima", { waitUntil: "load" });
+    await page.goto("/work/cove-lane", { waitUntil: "load" });
     await page.getByRole("button", { name: /menu/i }).click();
     await page.getByRole("navigation", { name: "Main navigation" }).getByRole("link", { name: "works" }).click();
     await expect(page).toHaveURL(/\/#works$/);

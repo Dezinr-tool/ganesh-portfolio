@@ -16,12 +16,12 @@ import { isStandaloneDocumentRoute } from "@/lib/standalone-document-routes";
 const SESSION_KEY = "portfolio-loaded";
 const FONT_WAIT_MS = 1500;
 const REF_WAIT_FRAMES = 24;
-const SAFETY_EXIT_MS = 10_000;
+const SAFETY_EXIT_MS = 5_000;
 
-const ENTER_DELAY = 0.4;
-const ENTER_DURATION = 1.8;
+const ENTER_DELAY = 0.1;
+const ENTER_DURATION = 0.65;
 const TEXT_STAGGER = 0.08;
-const COUNTER_DURATION = 2.2;
+const COUNTER_DURATION = 0.9;
 
 const HERO_TEXT = "DESIGN & STRATEGY FOR STARTUPS";
 const SUB_TEXT = "UX/UI DESIGN • PRODUCT THINKING • D2C & B2B";
@@ -54,11 +54,7 @@ function prefersReducedMotion(): boolean {
 
 function shouldSkipLoader(): boolean {
   if (typeof window === "undefined") return false;
-  return (
-    prefersReducedMotion() ||
-    window.matchMedia("(max-width: 56.25rem)").matches ||
-    window.matchMedia("(pointer: coarse)").matches
-  );
+  return prefersReducedMotion();
 }
 
 function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T | undefined> {
@@ -266,8 +262,9 @@ export function PageLoader() {
       counterValueRef.current.value = 0;
       counterEl.textContent = "0%";
 
-      gsap.set(root, { y: 0, opacity: 1, overflow: "visible" });
-      gsap.set([heroGroup, subGroup], { y: "100vh" });
+      const compact = window.matchMedia("(max-width: 56.25rem), (pointer: coarse)").matches;
+      gsap.set(root, { y: 0, opacity: 1, overflow: "hidden" });
+      gsap.set([heroGroup, subGroup], { y: compact ? 32 : 80, opacity: 0 });
       gsap.set(counterEl, { opacity: 0 });
       gsap.set([heroCylinder, subCylinder], { rotateY: 0 });
 
@@ -302,6 +299,7 @@ export function PageLoader() {
 
       timeline.to([heroGroup, subGroup], {
         y: 0,
+        opacity: 1,
         duration: ENTER_DURATION,
         delay: ENTER_DELAY,
         ease: "power4.out",
@@ -336,10 +334,11 @@ export function PageLoader() {
         ease: "power2.out",
       });
 
-      // Mirror enter: same distance, duration, stagger — keep overflow visible so 3D glyphs stay masked like entry.
+      // Short transform/opacity exit keeps the viewport stable on touch devices.
       timeline.to([heroGroup, subGroup], {
-        y: "100vh",
-        duration: ENTER_DURATION,
+        y: compact ? -24 : -60,
+        opacity: 0,
+        duration: 0.35,
         ease: "power4.in",
         stagger: TEXT_STAGGER,
       });
@@ -351,9 +350,9 @@ export function PageLoader() {
       });
 
       timeline.to(root, {
-        y: "-100%",
+        y: 0,
         opacity: 0,
-        duration: 0.55,
+        duration: 0.3,
         ease: "power4.inOut",
       });
 
@@ -379,7 +378,7 @@ export function PageLoader() {
       className="page-loader"
       data-page-loader=""
       role="status"
-      aria-live="polite"
+      aria-live="off"
       aria-label="Loading site"
     >
       <div className="page-loader__viewport">

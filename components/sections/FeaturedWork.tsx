@@ -3,7 +3,7 @@
 import { useGSAP } from "@gsap/react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
-import { useReducedMotion } from "framer-motion";
+import { useReducedMotionHydrated } from "@/lib/use-reduced-motion-hydrated";
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { registerGsapPlugins } from "@/lib/gsap-scroll";
@@ -46,7 +46,7 @@ export function FeaturedWork({
   const linkRef = useRef<HTMLAnchorElement>(null);
   const swipePillRef = useRef<HTMLDivElement>(null);
   const cursorRef = useRef<HTMLDivElement>(null);
-  const reducedMotion = useReducedMotion() ?? false;
+  const reducedMotion = useReducedMotionHydrated();
 
   const [activeCategory, setActiveCategory] = useState<WorksCategory>("product-design");
   const [activeIndex, setActiveIndex] = useState(0);

@@ -4,7 +4,7 @@ test.describe("home page on a phone @mobile", () => {
   test.beforeEach(async ({ page, isMobile }) => {
     test.skip(!isMobile, "phone layout only");
     await page.addInitScript(() => sessionStorage.setItem("portfolio-loaded", "1"));
-    await page.goto("/", { waitUntil: "load" });
+    await page.goto("/", { waitUntil: "domcontentloaded" });
   });
 
   test("the hero is not covered by the footer's dark overlay", async ({ page }) => {
@@ -22,6 +22,6 @@ test.describe("home page on a phone @mobile", () => {
   test("the footer content is visible once you reach it", async ({ page }) => {
     const footer = page.locator("#footer");
     await footer.scrollIntoViewIfNeeded();
-    await expect(footer.getByText(/All Right Reserved/i)).toBeVisible();
+    await expect(footer.getByText(/All rights reserved/i)).toBeVisible();
   });
 });
