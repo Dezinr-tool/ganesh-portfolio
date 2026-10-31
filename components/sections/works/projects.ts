@@ -43,6 +43,24 @@ export const WORKS_PROJECTS: WorksProject[] = [
     href: "/work/progent",
     category: "branding",
   },
+  {
+    id: "snabbit",
+    title: "Snabbit",
+    month: "Brand",
+    year: "Case study",
+    image: "/img/projects/snabbit/website.png",
+    href: "/work/snabbit",
+    category: "branding",
+  },
+  {
+    id: "verbaflo",
+    title: "VerbaFlo",
+    month: "UX",
+    year: "Case study",
+    image: "/img/projects/verbaflo/hero-mockup.webp",
+    href: "/work/verbaflo",
+    category: "product-design",
+  },
 ];
 
 export function getProjectsByCategory(

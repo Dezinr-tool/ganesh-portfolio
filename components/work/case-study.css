@@ -13,51 +13,6 @@
   padding-inline: clamp(0.9375rem, 2vw, 1.5rem);
 }
 
-.case-study__back {
-  position: fixed;
-  top: clamp(5rem, 10vw, 8.75rem);
-  left: clamp(1.25rem, 4vw, 4.375rem);
-  z-index: 100;
-  display: flex;
-  align-items: center;
-  overflow: hidden;
-  color: var(--color-text);
-  font-family: var(--font-sans);
-  font-size: clamp(0.875rem, 1.25vw, 1.25rem);
-  font-weight: 300;
-  letter-spacing: -0.02em;
-  line-height: 1;
-  text-transform: uppercase;
-  text-decoration: none;
-  opacity: 0;
-  transition: color 0.35s ease;
-}
-
-.case-study__back svg {
-  width: 0.9375rem;
-  margin-right: 0.75rem;
-  transition: transform 0.6s cubic-bezier(0.11, 0.82, 0.39, 0.92);
-}
-
-.case-study__back.is-light {
-  color: var(--color-bg);
-}
-
-@media (min-width: 68.76rem) {
-  .case-study__back:hover svg {
-    transform: translateX(-100%);
-  }
-
-  .case-study__back:hover span {
-    transform: translateX(-1.6875rem);
-  }
-}
-
-.case-study__back span {
-  display: inline-block;
-  transition: transform 0.6s cubic-bezier(0.11, 0.82, 0.39, 0.92);
-}
-
 .case-study__hero-image {
   display: flex;
   align-items: center;
@@ -358,7 +313,14 @@
 .case-study__dsgn4-image img,
 .case-study__dsgn5-image img,
 .case-study__dsgn6-image img,
-.case-study__dsgn7-image img {
+.case-study__dsgn7-image img,
+.case-study__background-image video,
+.case-study__dsgn3-image video,
+.case-study__dsgn4-image video,
+.case-study__dsgn5-image video,
+.case-study__dsgn6-image video,
+.case-study__dsgn7-image video {
+  display: block;
   width: 100%;
   height: auto;
   object-fit: contain;

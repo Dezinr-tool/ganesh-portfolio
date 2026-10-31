@@ -4,6 +4,8 @@ import type { CaseStudy } from "@/lib/work/case-studies";
 const COVE = "/img/projects/cove-lane";
 const TOTOKO = "/img/projects/totoko/figma-brief.png";
 const PROGENT = "/img/projects/progent/figma-home-page.png";
+const SNABBIT = "/img/projects/snabbit";
+const VERBAFLO = "/img/projects/verbaflo";
 
 const shared = (title: string, image: string, services: CaseStudy["services"], sections: CaseStudy["sections"]): CaseStudy => ({
   slug: title.toLowerCase().replace(/[^a-z0-9]+/g, "-"),
@@ -111,6 +113,175 @@ const CASE_STUDIES: CaseStudy[] = [
     dsgn5: { title: "give every touchpoint a role", image: "/img/projects/progent/figma-home-page.png" },
     dsgn6: { title: "responsive by default", image: "/img/projects/progent/figma-challenge.png" },
     dsgn7: { title: "ready to scale", image: "/img/projects/progent/figma-agent-layer.png", bg: PROGENT, video: "/img/projects/progent/progent-intro.mp4" },
+  },
+  {
+    ...shared("Snabbit", `${SNABBIT}/website.png`, ["Brand-led website", "UX/UI + illustration", "Q-commerce", "4 weeks"], [
+      {
+        label: "BRIEF",
+        paragraphs: [
+          "Snabbit is a quick-service app that sends trained help to people's homes within minutes, for cleaning, laundry and other household jobs.",
+          "It needed a marketing website as lively as the brand itself, and one that made booking feel effortless.",
+        ],
+      },
+      {
+        label: "CHALLENGE",
+        paragraphs: [
+          "Keep Snabbit's playful energy intact on screen, simplify how people move through the site, and design around what customers expect before they book.",
+        ],
+      },
+      {
+        label: "SOLUTION",
+        paragraphs: [
+          "Moodboards and wireframes came first, followed by several rounds of refinement into a clean, easy interface. Custom illustrations carry the story, and printed collateral extends the same look offline.",
+        ],
+      },
+      {
+        label: "MOODBOARD",
+        paragraphs: [
+          "We kept Snabbit's signature pink and built the palette around it. Sofia Sans brings a modern, friendly voice to headlines, while Avantt gives body text structure.",
+        ],
+      },
+      {
+        label: "WIREFRAMES",
+        paragraphs: [
+          "High-fidelity wireframes set the structure of the landing page, so every block had its place before styling began.",
+        ],
+      },
+      {
+        label: "WEBSITE",
+        paragraphs: [
+          "Services sit up front in clear categories, followed by a simple walkthrough of how booking works. Benefits and ratings are easy to spot, and small brand touches add some delight.",
+        ],
+      },
+      {
+        label: "APPROACH",
+        paragraphs: [
+          "Close collaboration with the team shaped every decision. Layouts are built to move visitors towards booking, and the wireframes were refined over several rounds.",
+        ],
+      },
+      {
+        label: "RESPONSIVE",
+        paragraphs: [
+          "The layout adapts across phone, tablet and desktop while staying consistent and easy to use.",
+        ],
+      },
+      {
+        label: "ILLUSTRATION",
+        paragraphs: [
+          "A moodboard fixed the illustration style: professional yet warm. Custom characters give each service a friendly face.",
+        ],
+      },
+      {
+        label: "COLLATERAL",
+        paragraphs: [
+          "Canopy, standees, flyers, bus-shelter posters and pole banners all follow the same illustration style and brand elements, keeping Snabbit recognisable offline.",
+        ],
+      },
+      {
+        label: "IMPACT",
+        paragraphs: [
+          "The Snabbit team welcomed the fresher identity and sharper messaging, which sets the brand up for stronger recall and engagement.",
+        ],
+      },
+      {
+        label: "ROLE",
+        paragraphs: [
+          "Product design: UX/UI, user research, responsive and mobile web, tone and personality.",
+          "Brand: colour, creative direction, iconography, illustration, collateral and moodboards.",
+        ],
+      },
+    ]),
+    heroVideo: `${SNABBIT}/homepage.mp4`,
+    websiteUrl: "https://snabbit.com/",
+    websiteLabel: "visit website",
+    backgroundMain: `${SNABBIT}/website.png`,
+    backgroundTop: { title: "moodboard + type", image: `${SNABBIT}/moodboard.png` },
+    backgroundMiddle: { title: "high-fidelity wireframes", image: `${SNABBIT}/wireframes.png` },
+    dsgn3: { title: "website design", image: `${SNABBIT}/website.png` },
+    dsgn4: { title: "design approach", image: `${SNABBIT}/design-approach-poster.jpg`, video: `${SNABBIT}/design-approach.mp4`, bg: null },
+    dsgn5: { title: "responsive design", image: `${SNABBIT}/responsive-poster.jpg`, video: `${SNABBIT}/responsive.mp4` },
+    dsgn6: { title: "illustrations", image: `${SNABBIT}/illustrations.svg` },
+    dsgn7: { title: "marketing collateral", image: `${SNABBIT}/collateral.png`, bg: `${SNABBIT}/website.png`, video: null },
+  },
+  {
+    ...shared("VerbaFlo", `${VERBAFLO}/hero-mockup.webp`, ["CRM + workflow redesign", "Product design + UX audit", "AI automation, B2B SaaS", "Retainer"], [
+      {
+        label: "BRIEF",
+        paragraphs: [
+          "VerbaFlo is an AI-powered CRM and workflow platform that helps real estate teams reach leads, automate follow-ups and convert more of them.",
+          "As UX and product design partners on a retainer, we helped turn it into a platform ready to scale.",
+        ],
+      },
+      {
+        label: "CHALLENGE",
+        paragraphs: [
+          "The product grew fast, and features piled up faster than the experience could keep pace: scattered navigation, inconsistent patterns, duplicated components and tangled workflows, with no shared design system to hold it together.",
+        ],
+      },
+      {
+        label: "SOLUTION",
+        paragraphs: [
+          "We audited the product, reorganised its structure, built one design system for the whole platform and redesigned its core modules around it.",
+        ],
+      },
+      {
+        label: "APPROACH",
+        paragraphs: [
+          "We aligned stakeholders, checked real user workflows against the product and mapped where the experience broke down. Then we reworked the automation logic and design foundations so the platform could keep evolving.",
+        ],
+      },
+      {
+        label: "AUDIT",
+        paragraphs: [
+          "A full audit of workflows, navigation and components surfaced the systemic issues behind the inconsistency, and gave the redesign a clear starting point.",
+        ],
+      },
+      {
+        label: "STRUCTURE",
+        paragraphs: [
+          "Instead of patching screens one by one, we reorganised the information architecture into clear, predictable journeys and introduced a single design system for components, interactions and visual language.",
+        ],
+      },
+      {
+        label: "CRM",
+        paragraphs: [
+          "The CRM was rebuilt around sales agents, account managers and admins, with simpler lead management, clearer hierarchy and consistent patterns that speed up decisions.",
+        ],
+      },
+      {
+        label: "WORKFLO",
+        paragraphs: [
+          "WorkFlo, the automation builder, became easier to use: simpler journey creation, standard patterns and better visibility into scheduled and dynamic journeys.",
+        ],
+      },
+      {
+        label: "SCREENS",
+        paragraphs: [
+          "The redesign covers the CRM, workflow automation, analytics, dashboards and property management, so the whole platform now reads as one product.",
+        ],
+      },
+      {
+        label: "IMPACT",
+        paragraphs: [
+          "The platform now rests on a scalable UX foundation that makes teams more efficient and gives future features a consistent place to land.",
+        ],
+      },
+      {
+        label: "ROLE",
+        paragraphs: [
+          "Product design: app design, design system, UI/UX and user research.",
+          "Development: front-end development. Content: content writing.",
+        ],
+      },
+    ]),
+    backgroundMain: `${VERBAFLO}/workflo.webp`,
+    backgroundTop: { title: "the approach", image: `${VERBAFLO}/approach.webp` },
+    backgroundMiddle: { title: "ux audit", image: `${VERBAFLO}/ux-audit.webp` },
+    dsgn3: { title: "design system", image: `${VERBAFLO}/design-system.webp` },
+    dsgn4: { title: "information architecture", image: `${VERBAFLO}/information-architecture-poster.jpg`, video: `${VERBAFLO}/information-architecture.mp4`, bg: null },
+    dsgn5: { title: "crm", image: `${VERBAFLO}/crm-poster.jpg`, video: `${VERBAFLO}/crm.mp4` },
+    dsgn6: { title: "workflo", image: `${VERBAFLO}/workflo-poster.jpg`, video: `${VERBAFLO}/workflo.mp4` },
+    dsgn7: { title: "all screens", image: `${VERBAFLO}/all-screens-poster.jpg`, bg: `${VERBAFLO}/workflo.webp`, video: `${VERBAFLO}/all-screens.mp4` },
   },
 ];
 

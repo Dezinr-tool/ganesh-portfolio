@@ -15,12 +15,13 @@ export type CaseStudy = {
   websiteUrl?: string
   websiteLabel?: string
   backgroundMain: string
-  backgroundTop: { title: string; image: string }
-  backgroundMiddle: { title: string; image: string }
-  dsgn3: { image: string; title: string }
-  dsgn4: { title: string; image: string; bg?: string | null }
-  dsgn5: { title: string; image: string }
-  dsgn6: { title: string; image: string }
+  /** In every gallery slot, `video` plays in place of `image`, which then serves as its poster. */
+  backgroundTop: { title: string; image: string; video?: string | null }
+  backgroundMiddle: { title: string; image: string; video?: string | null }
+  dsgn3: { image: string; title: string; video?: string | null }
+  dsgn4: { title: string; image: string; bg?: string | null; video?: string | null }
+  dsgn5: { title: string; image: string; video?: string | null }
+  dsgn6: { title: string; image: string; video?: string | null }
   dsgn7: { title: string; image: string; bg: string; video?: string | null }
 }
 

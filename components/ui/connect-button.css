@@ -145,10 +145,11 @@
   line-height: 1.3;
 }
 
-/* Hide when site nav is open */
+/* Hide when site nav is open. The component also sets opacity and pointer-events inline
+   (to show the button only past the hero), so these need !important to win. */
 body.site-nav-open .connect-btn__root {
-  opacity: 0;
-  pointer-events: none;
+  opacity: 0 !important;
+  pointer-events: none !important;
 }
 
 /* ── Mobile ── */

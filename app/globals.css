@@ -99,6 +99,11 @@ body {
   outline-offset: 2px;
 }
 
+/* Case studies open on their own title: no skip link to show there. */
+body:has(main.case-study) .skip-link {
+  display: none;
+}
+
 /* Scroll progress — subtle top indicator */
 .scroll-progress {
   position: fixed;
