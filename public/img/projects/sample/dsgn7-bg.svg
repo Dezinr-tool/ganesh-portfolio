@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1920" height="1080" viewBox="0 0 1920 1080">
+<rect width="1920" height="1080" fill="#4a3f2c"/>
+<path d="M0 0L1920 1080M1920 0L0 1080" stroke="#7a6c4c" stroke-width="3" opacity=".55"/>
+<g font-family="Helvetica, Arial, sans-serif" fill="#ffffff" text-anchor="middle">
+<text x="960.0" y="518.4" font-size="36" font-weight="700" letter-spacing="2">DSGN 7 BACKGROUND</text>
+<text x="960.0" y="556.2" font-size="23" font-weight="700">1920 × 1080 px · fills the width, cropped to fit</text>
+<text x="960.0" y="588.6" font-size="19" opacity=".8">Full-width photo behind DSGN 7</text>
+</g></svg>

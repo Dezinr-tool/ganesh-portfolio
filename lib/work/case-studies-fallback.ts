@@ -286,8 +286,39 @@ const CASE_STUDIES: CaseStudy[] = [
   },
 ];
 
+/**
+ * Layout guide at /work/sample: every slot holds a labelled placeholder showing its name and size.
+ * Not listed on the works page, so it only opens by direct link.
+ */
+const SAMPLE_PATH = "/img/projects/sample";
+const SAMPLE_STUDY: CaseStudy = {
+  slug: "sample",
+  title: "Sample",
+  mainImage: `${SAMPLE_PATH}/hero-poster.jpg`,
+  heroVideo: `${SAMPLE_PATH}/hero.mp4`,
+  heroPoster: `${SAMPLE_PATH}/hero-poster.jpg`,
+  services: ["Brief: what was asked", "Service: what we did", "Industry: the sector", "Status: live or retainer"],
+  barcodeTitle: "( sample )",
+  sections: [
+    { label: "BRIEF", paragraphs: ["A short paragraph on what the client needed. Each section is a label on the left and its text on the right."] },
+    { label: "CHALLENGE", paragraphs: ["The problem we found. Add as many sections as the story needs, each with one or more paragraphs."] },
+    { label: "SOLUTION", paragraphs: ["What we did about it, in a couple of sentences."] },
+    { label: "ROLE", paragraphs: ["Your part in the project."] },
+  ],
+  websiteUrl: "https://example.com",
+  websiteLabel: "visit website",
+  backgroundMain: `${SAMPLE_PATH}/bg-main.svg`,
+  backgroundTop: { title: "title for dsgn 1", image: `${SAMPLE_PATH}/dsgn1.svg` },
+  backgroundMiddle: { title: "title for dsgn 2", image: `${SAMPLE_PATH}/dsgn2.svg` },
+  dsgn3: { title: "title for dsgn 3", image: `${SAMPLE_PATH}/dsgn3.svg` },
+  dsgn4: { title: "title for dsgn 4", image: `${SAMPLE_PATH}/dsgn4.svg`, bg: `${SAMPLE_PATH}/dsgn4-bg.svg` },
+  dsgn5: { title: "title for dsgn 5", image: `${SAMPLE_PATH}/dsgn5.svg` },
+  dsgn6: { title: "title for dsgn 6", image: `${SAMPLE_PATH}/dsgn6.svg` },
+  dsgn7: { title: "title for dsgn 7", image: `${SAMPLE_PATH}/dsgn7.svg`, bg: `${SAMPLE_PATH}/dsgn7-bg.svg`, video: null },
+};
+
 export function getCaseStudyBySlugFallback(slug: string): CaseStudy | undefined {
-  return CASE_STUDIES.find((study) => study.slug === slug);
+  return [...CASE_STUDIES, SAMPLE_STUDY].find((study) => study.slug === slug);
 }
 
 export function getAllCaseSlugsFallback(): string[] {

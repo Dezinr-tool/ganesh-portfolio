@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="640" viewBox="0 0 900 640">
+<rect width="900" height="640" fill="#d8c9cf"/>
+<path d="M0 0L900 640M900 0L0 640" stroke="#8d7480" stroke-width="2" opacity=".55"/>
+<rect x="12.8" y="12.8" width="874.4" height="614.4" fill="none" stroke="#8d7480" stroke-width="3" stroke-dasharray="16 10"/>
+<g font-family="Helvetica, Arial, sans-serif" fill="#1a1a1a" text-anchor="middle">
+<rect x="126.0" y="217.6" width="648.0" height="204.8" fill="#d8c9cf" opacity=".92"/>
+<text x="450.0" y="307.2" font-size="54" font-weight="700" letter-spacing="2">DSGN 5</text>
+<text x="450.0" y="352.0" font-size="25" font-weight="700">900 × 640 px  ·  export at 1800 × 1280 px</text>
+<text x="450.0" y="387.2" font-size="19" opacity=".8">Image beside its title</text>
+</g></svg>
