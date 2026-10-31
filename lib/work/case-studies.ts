@@ -7,7 +7,10 @@ export type CaseStudy = {
   slug: string
   title: string
   mainImage: string
+  /** Full-bleed 16:9 intro video at the top of the page. */
   heroVideo?: string | null
+  /** First frame shown while `heroVideo` loads. */
+  heroPoster?: string | null
   /** BRIEF, SERVICE, INDUSTRY, STATUS */
   services: [string, string, string, string]
   barcodeTitle: string

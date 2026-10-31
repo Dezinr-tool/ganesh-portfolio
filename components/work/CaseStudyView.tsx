@@ -145,7 +145,8 @@ export function CaseStudyView({ study, moreWorks }: CaseStudyViewProps) {
       if (heroImg) {
         gsap.set(heroImg, {
           clipPath: "polygon(0 0, 100% 0, 100% 0, 0 0)",
-          scale: 0.95,
+          // A full-bleed video has no room to scale up from without leaving gaps at the edges.
+          scale: heroImg.tagName === "VIDEO" ? 1 : 0.95,
         });
         gsap.to(heroImg, {
           clipPath: "polygon(0 0, 100% 0, 100% 100%, 0 100%)",
@@ -289,21 +290,26 @@ export function CaseStudyView({ study, moreWorks }: CaseStudyViewProps) {
       className={`case-study case-study--${study.slug}`}
       tabIndex={-1}
     >
+      {study.heroVideo ? (
+        <div className="case-study__hero-image case-study__hero-image--video">
+          <video
+            className="case-study__hero-img case-study__hero-video"
+            autoPlay
+            muted
+            loop
+            playsInline
+            preload="auto"
+            poster={study.heroPoster ?? undefined}
+            aria-label={`${study.title} website intro`}
+          >
+            <source src={study.heroVideo} type="video/mp4" />
+          </video>
+        </div>
+      ) : null}
+
       <div className="case-study__container">
-        <div className="case-study__hero-image">
-          {study.heroVideo ? (
-            <video
-              className="case-study__hero-img case-study__hero-video"
-              autoPlay
-              muted
-              loop
-              playsInline
-              preload="metadata"
-              aria-label={`${study.title} website intro`}
-            >
-              <source src={study.heroVideo} type="video/mp4" />
-            </video>
-          ) : (
+        {study.heroVideo ? null : (
+          <div className="case-study__hero-image">
             <Image
               src={study.mainImage}
               alt={study.title}
@@ -312,8 +318,8 @@ export function CaseStudyView({ study, moreWorks }: CaseStudyViewProps) {
               priority
               className="case-study__hero-img"
             />
-          )}
-        </div>
+          </div>
+        )}
 
         <h1
           ref={splitTitleRef}

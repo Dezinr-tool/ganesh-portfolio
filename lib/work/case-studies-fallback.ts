@@ -192,6 +192,7 @@ const CASE_STUDIES: CaseStudy[] = [
       },
     ]),
     heroVideo: `${SNABBIT}/homepage.mp4`,
+    heroPoster: `${SNABBIT}/homepage-poster.jpg`,
     websiteUrl: "https://snabbit.com/",
     websiteLabel: "visit website",
     backgroundMain: `${SNABBIT}/website.png`,
