@@ -1131,3 +1131,48 @@ Date: 2026-06-06
 - Populate `ea_summaries` table on weekly summary generation
 - Google Meet auto-transcript fetch already exists at `/api/ea/meetings/sync` — test with live Meet + transcription enabled
 
+
+## QA Run — 2026-10-26 (TDD: unit + integration + e2e)
+
+Test setup added: Vitest (`npm test`, `test:unit`, `test:integration`, `test:coverage`) and Playwright (`npm run test:e2e`, desktop + Pixel 7).
+Totals: 216 unit/integration tests passing, 59 e2e passing (3 mobile-only skipped on desktop). `npm run build` passes.
+Every fix below started with a failing test (red → green).
+
+### 🔧 Fixed this session
+- **Mobile home page was a black screen** (≤900px): footer's fixed full-viewport circle was forced visible on mobile and covered the whole page. Mobile now paints only the footer box dark. (`components/sections/Footer.tsx`, `tests/e2e/home-mobile.spec.ts`)
+- **Expense tracker + projects API were public**: `/expense-tracker`, `/api/expense-tracker/*`, `/api/projects/*` were missing from the proxy matcher / protected list; `/api/settings/*` sub-paths too. (`proxy.ts`, `app/dashboard/_lib/auth.ts`)
+- **Razorpay: a payment could mark a different invoice Paid**: orders now carry `notes.invoice_id`, verify-payment fetches the order and checks it; signature compare is constant-time. (`lib/razorpay.ts`, `app/api/razorpay/*`)
+- **Moodboard admin cookie was forgeable** (`mb_admin_auth=true`): now a SHA-256 token derived from the admin password. Existing admin sessions must log in once more.
+- **Agreements turned 0 revisions / 0% late interest into 2**: `Number(x) || 2` replaced with `numberOrDefault`. (form + `buildAgreementInput`)
+- **EA meeting detection missed plain Meet/Zoom/Teams links** (`https://meet.google.com/...`); regex is now host-anchored and ignores lookalike URLs. (`lib/meeting-detector.ts`)
+- **`phoneHref` dropped +91 for 10-digit numbers starting with 91**. (`lib/content-utils.ts`)
+- **Build crashed without `RESEND_API_KEY`**: Resend client is now created lazily. (`lib/resend-client.ts`)
+- **Agreement signing returned 500 if the notification email failed** although the agreement was signed. (`app/api/sign/[token]/route.ts`)
+- **Site nav**: links did nothing off the home page (now `/#works` etc.), closed panel's 9 links were keyboard-focusable while invisible (now `inert`), button label didn't contain its visible text "menu" (WCAG 2.5.3).
+
+### ⚠️ Needs a decision / human
+- EA legacy cookie stores base64 of `EA_PASSWORD` (reversible) and also accepts the raw password; changing it logs everyone out.
+- `/max/privacy` and `/max/terms` are behind the dashboard password (EA's are public) — fine only if they are never linked publicly.
+- Invoice `paidAt` default uses the UTC date, so a payment between 00:00–05:30 IST is recorded on the previous day.
+- Dashboard login page has no heading element (a11y); "LET'S TALK" button overlaps the footer copyright on phones.
+- `site-nav.css` uses `#f5f4f0` / `#0a0a0b`, outside the 3-colour design rule.
+- DB-backed pages (dashboard, EA, moodboard) were tested through mocked stores only — no local `POSTGRES_URL`/`.env.local`.
+- `npm audit`: 29 vulnerabilities (3 critical), not changed.
+
+### 📋 Next steps
+- Add `.env.local` (or a test DB) and extend e2e to logged-in dashboard flows.
+- Remaining API routes without tests: EA chat/meetings/memory, moodboard generate/chat, IA, wireframe, design-audit (AI-backed; mock the Anthropic client).
+
+## QA — Hero gradient (reference: lukebaffait.fr), 2026-10-31
+
+Built test-first. New: `tests/unit/hero-mesh-motion.test.ts`, `tests/e2e/hero-gradient.spec.ts`, `tests/e2e/hero-gradient-gpu.spec.ts`, `tests/e2e/hero-sheen.spec.ts`.
+
+Checked side by side with the reference at 1280×720 and on a phone viewport.
+
+Differences left on purpose:
+- Palette matches the reference (orange, reds, wine, plum, purple, near-black), at the owner's request. The hero gradient is an exception to the 3-colour rule.
+- Reference draws its gradient from an image file. Ours draws the shape in a shader, so its outline is close but not identical.
+- Reference headline typography is not applied.
+- Teal headline sheen: the reference gets it from `mix-blend-mode: difference` (#F0F0F0 text over red). Prototyped on our hero: the red never reaches our headline, and the shirt turned the text a fixed blue. So `useHeadlineSheen` paints a teal spot into the text and moves it with the cursor instead. Same look and lag, but the teal is tied to the cursor, not to where the red sits. On touch screens it drifts on its own. Reduced motion gets plain text.
+
+Measured: 60 fps on an Apple M2. Cursor reaction is the same order as the reference. On very slow GPUs the buffer shrinks, then animation stops on a still frame.

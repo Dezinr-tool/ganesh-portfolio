@@ -13,7 +13,8 @@ import {
 } from "framer-motion";
 import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
-import { HeroLiquidEther } from "./HeroLiquidEther";
+import { HeroMeshBackground } from "./HeroMeshBackground";
+import { useHeadlineSheen } from "./useHeadlineSheen";
 
 const portraitImageProps = {
   src: "/ganesh.avif",
@@ -70,6 +71,8 @@ export function Hero({ content }: HeroProps) {
   const bottomRef = useRef<HTMLDivElement>(null);
   const subtextRef = useRef<HTMLParagraphElement>(null);
   const headlineRef = useRef<HTMLHeadingElement>(null);
+
+  useHeadlineSheen(headlineRef);
 
   const reducedMotion = useReducedMotion();
   const { scrollY } = useScroll();
@@ -197,15 +200,10 @@ export function Hero({ content }: HeroProps) {
     <section
       ref={sectionRef}
       id="hero"
-      className="relative z-0 h-dvh min-h-svh w-full overflow-x-clip bg-[var(--color-bg)] text-[var(--color-text)] md:sticky md:top-0 md:overflow-y-hidden md:min-h-[700px]"
+      className="hero-dark relative z-0 h-dvh min-h-svh w-full overflow-x-clip bg-[var(--color-bg)] text-[var(--color-text)] md:sticky md:top-0 md:overflow-y-hidden md:min-h-[700px]"
       aria-label="Introduction"
     >
-      <div
-        id="liquid-ether-1"
-        className="pointer-events-none absolute inset-0 z-[1] overflow-hidden"
-        aria-hidden="true"
-      />
-      <HeroLiquidEther />
+      <HeroMeshBackground />
 
       {/* Portrait — bottom-aligned, full-bleed width */}
       <div className="pointer-events-none absolute inset-x-0 bottom-0 z-[3] flex items-end justify-center overflow-visible">

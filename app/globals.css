@@ -575,10 +575,6 @@ body {
     -webkit-backdrop-filter: blur(calc(12px + var(--hero-merge) * 16px)) saturate(1.08);
     backdrop-filter: blur(calc(12px + var(--hero-merge) * 16px)) saturate(1.08);
   }
-
-  .hero-mesh-bg__grain {
-    opacity: 0.35;
-  }
 }
 
 /* Hero → about scroll — stage holds hero track + absolutely anchored about */
@@ -891,8 +887,44 @@ body {
 }
 
 /* Hero mesh background — soft animated gradient field */
+/* Hero fold sits on the dark gradient: everything inside reads these flipped tokens */
+.hero-dark {
+  --color-bg: #111111;
+  --color-text: #f0f0f0;
+}
+
+/* Teal spot in the headline, moved by useHeadlineSheen. It is the colour the reference's
+   difference-blended text turns over its red gradient. Blending for real would not work here:
+   the red never reaches our headline, and the portrait would tint the text instead. */
+[data-hero-headline] {
+  --sheen-x: 50%;
+  --sheen-y: 50%;
+  /* Room for descenders: text clipping paints nothing outside the box. */
+  padding-bottom: 0.12em;
+  margin-bottom: -0.12em;
+  background-image: radial-gradient(
+    ellipse 3.4em 1.8em at var(--sheen-x) var(--sheen-y),
+    #5fd8d2 0%,
+    #a8e4df 45%,
+    #f0f0f0 100%
+  );
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+@media (prefers-reduced-motion: reduce), (forced-colors: active) {
+  [data-hero-headline] {
+    background-image: none;
+    -webkit-text-fill-color: currentcolor;
+  }
+}
+
+/* Shown until the first frame, and for good when WebGL2 is unavailable */
 .hero-mesh-bg {
-  background: var(--color-bg);
+  background:
+    radial-gradient(ellipse 45% 70% at 62% 0%, var(--color-accent), transparent),
+    var(--color-bg);
 }
 
 .hero-mesh-bg__canvas {
@@ -900,24 +932,6 @@ body {
   inset: 0;
   width: 100%;
   height: 100%;
-  will-change: contents;
-}
-
-.hero-mesh-bg__grain {
-  position: absolute;
-  inset: 0;
-  opacity: 0.06;
-  mix-blend-mode: soft-light;
-  pointer-events: none;
-  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
-  background-size: 180px 180px;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .hero-mesh-bg__canvas {
-    filter: blur(64px) saturate(1.05);
-    transform: none;
-  }
 }
 
 /* Design Manager status dot — live green blink + pulse ripple */

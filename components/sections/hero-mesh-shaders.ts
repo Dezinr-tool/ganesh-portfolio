@@ -1,227 +1,174 @@
-/** Shaders ported from lukebaffait.fr hero-project (CoreRenderer flowField + image + blur) */
+/**
+ * Hero gradient passes: a soft red shape, warped by a slow noise flow field whose
+ * domain shifts with the cursor, then streaked by a vertical blur.
+ * The palette follows the reference gradient, as an agreed exception to the 3-colour rule.
+ */
 
 export const HERO_MESH_VERT = `#version 300 es
 precision mediump float;
 
 in vec2 aPosition;
-out vec2 vTextureCoord;
+out vec2 vUv;
 
 void main() {
-  vTextureCoord = aPosition * 0.5 + 0.5;
+  vUv = aPosition * 0.5 + 0.5;
   gl_Position = vec4(aPosition, 0.0, 1.0);
 }
 `;
 
-/** Image layer — subtle 3D tilt from mouse (Luke vertex shader) */
-export const HERO_MESH_VERT_IMAGE = `#version 300 es
-precision mediump float;
-
-in vec2 aPosition;
-uniform vec2 uMousePos;
-out vec2 vTextureCoord;
-
-const float PI = 3.14159265359;
-
-void main() {
-  float angleX = uMousePos.y * 0.5 - 0.25;
-  float angleY = (1.0 - uMousePos.x) * 0.5 - 0.25;
-
-  vec3 p = vec3(aPosition, 0.0);
-  p.y = p.y * cos(angleX) - p.z * sin(angleX);
-  p.z = p.y * sin(angleX) + p.z * cos(angleX);
-  float py = p.y;
-  p.x = p.x * cos(angleY) + p.z * sin(angleY);
-  p.z = -p.x * sin(angleY) + p.z * cos(angleY);
-  p.y = py;
-
-  vTextureCoord = aPosition * 0.5 + 0.5;
-  gl_Position = vec4(p.xy, 0.0, 1.0);
-}
-`;
-
-/** Pass 1: white bg + cover-fit background.png */
-export const HERO_MESH_FRAG_COMPOSITE = `#version 300 es
+/** Layered glow: a hot top edge, a crimson tongue reaching down, plum and purple in the falloff. */
+export const HERO_MESH_FRAG_SOURCE = `#version 300 es
 precision highp float;
 
-in vec2 vTextureCoord;
-uniform sampler2D uSourceImage;
+in vec2 vUv;
 uniform vec2 uResolution;
-uniform vec2 uImageSize;
-
 out vec4 fragColor;
 
-vec4 sampleCover(vec2 uv) {
-  float imageAspect = uImageSize.x / uImageSize.y;
-  float canvasAspect = uResolution.x / uResolution.y;
-  vec2 fitSize = vec2(
-    canvasAspect < imageAspect ? uResolution.y * imageAspect : uResolution.x,
-    canvasAspect < imageAspect ? uResolution.y : uResolution.x / imageAspect
-  );
-  vec2 offset = (uResolution - fitSize) * 0.5;
-  vec2 canvasPos = vec2(uv.x * uResolution.x, (1.0 - uv.y) * uResolution.y);
-  vec2 imageUV = (canvasPos - offset) / fitSize;
+const float SOURCE_ASPECT = 1432.0 / 928.0;
 
-  if (imageUV.x < 0.0 || imageUV.x > 1.0 || imageUV.y < 0.0 || imageUV.y > 1.0) {
-    return vec4(0.0);
-  }
+const vec3 BASE = vec3(12.0, 14.0, 12.0) / 255.0;
+const vec3 PLUM = vec3(42.0, 20.0, 28.0) / 255.0;
+const vec3 UMBER = vec3(58.0, 26.0, 20.0) / 255.0;
+const vec3 PURPLE = vec3(74.0, 26.0, 68.0) / 255.0;
+const vec3 WINE = vec3(138.0, 26.0, 34.0) / 255.0;
+const vec3 MAROON = vec3(128.0, 30.0, 25.0) / 255.0;
+const vec3 BRICK = vec3(190.0, 52.0, 28.0) / 255.0;
+const vec3 RUST = vec3(168.0, 41.0, 24.0) / 255.0;
+const vec3 CRIMSON = vec3(224.0, 32.0, 32.0) / 255.0;
+const vec3 RED = vec3(250.0, 43.0, 31.0) / 255.0;
+const vec3 CORAL = vec3(216.0, 74.0, 48.0) / 255.0;
+const vec3 ORANGE = vec3(255.0, 106.0, 58.0) / 255.0;
 
-  return texture(uSourceImage, vec2(imageUV.x, 1.0 - imageUV.y));
+float blob(vec2 p, vec2 center, vec2 spread) {
+  vec2 d = (p - center) / spread;
+  return exp(-0.5 * dot(d, d));
 }
 
 void main() {
-  vec4 bg = vec4(1.0, 1.0, 1.0, 1.0);
-  vec4 color = sampleCover(vTextureCoord);
-  color.rgb = clamp(color.rgb, 0.0, 1.0);
-  fragColor = color + bg * (1.0 - color.a);
+  float canvasAspect = uResolution.x / max(uResolution.y, 1.0);
+  vec2 fit = canvasAspect < SOURCE_ASPECT
+    ? vec2(canvasAspect / SOURCE_ASPECT, 1.0)
+    : vec2(1.0, SOURCE_ASPECT / canvasAspect);
+  vec2 p = vec2(vUv.x, 1.0 - vUv.y);
+  p = (p - 0.5) * fit + 0.5;
+
+  vec3 color = BASE;
+  color = mix(color, PLUM, blob(p, vec2(0.58, 0.58), vec2(0.17, 0.17)) * 0.9);
+  color = mix(color, UMBER, blob(p, vec2(0.86, 0.50), vec2(0.16, 0.13)) * 0.9);
+  color = mix(color, PURPLE, blob(p, vec2(1.00, 0.48), vec2(0.035, 0.12)) * 0.9);
+  color = mix(color, WINE, blob(p, vec2(0.60, 0.50), vec2(0.07, 0.11)));
+  color = mix(color, MAROON, blob(p, vec2(0.19, 0.02), vec2(0.07, 0.16)) * 0.9);
+  color = mix(color, BRICK, blob(p, vec2(0.38, 0.11), vec2(0.15, 0.15)));
+  color = mix(color, RUST, blob(p, vec2(0.85, 0.32), vec2(0.13, 0.11)));
+  color = mix(color, CRIMSON, blob(p, vec2(0.61, 0.33), vec2(0.075, 0.13)));
+  color = mix(color, RED, blob(p, vec2(0.88, 0.14), vec2(0.10, 0.12)));
+  color = mix(color, RED, blob(p, vec2(0.62, 0.18), vec2(0.12, 0.11)));
+  color = mix(color, CORAL, blob(p, vec2(0.48, 0.04), vec2(0.12, 0.07)) * 0.8);
+  color = mix(color, ORANGE, blob(p, vec2(0.62, 0.06), vec2(0.09, 0.09)));
+
+  fragColor = vec4(color, 1.0);
 }
 `;
 
-/** Pass 2: flow field — exact Luke distortUV */
 export const HERO_MESH_FRAG_FLOW = `#version 300 es
 precision highp float;
 
-in vec2 vTextureCoord;
+in vec2 vUv;
 uniform sampler2D uTexture;
 uniform vec2 uResolution;
-uniform vec2 uMousePos;
-uniform vec2 uAutoDrift;
+uniform vec2 uPointer;
 uniform float uTime;
-
 out vec4 fragColor;
 
-const int MAX_ITERATIONS = 8;
-const float PI = 3.14159265359;
+const int FLOW_STEPS = 8;
+const float STEP_LENGTH = 0.02;
+const float SPREAD = 0.168;
+const float TURN = 37.66;
+const float WARP_MIX = 0.51;
 
-float ease1(float t) {
-  return t;
+vec3 lattice(vec3 p) {
+  p = fract(p * vec3(0.1031, 0.11369, 0.13787));
+  p += dot(p, p.yxz + 19.19);
+  return -1.0 + 2.0 * fract(vec3((p.x + p.y) * p.z, (p.x + p.z) * p.y, (p.y + p.z) * p.x));
 }
 
-vec3 hash33(vec3 p3) {
-  p3 = fract(p3 * vec3(0.1031, 0.11369, 0.13787));
-  p3 += dot(p3, p3.yxz + 19.19);
-  return -1.0 + 2.0 * fract(vec3(
-    (p3.x + p3.y) * p3.z,
-    (p3.x + p3.z) * p3.y,
-    (p3.y + p3.z) * p3.x
-  ));
-}
-
-float perlinNoise(vec3 p) {
-  vec3 pi = floor(p);
-  vec3 pf = p - pi;
-  vec3 w = pf * pf * (3.0 - 2.0 * pf);
-
-  float n000 = dot(pf - vec3(0.0, 0.0, 0.0), hash33(pi + vec3(0.0, 0.0, 0.0)));
-  float n100 = dot(pf - vec3(1.0, 0.0, 0.0), hash33(pi + vec3(1.0, 0.0, 0.0)));
-  float n010 = dot(pf - vec3(0.0, 1.0, 0.0), hash33(pi + vec3(0.0, 1.0, 0.0)));
-  float n110 = dot(pf - vec3(1.0, 1.0, 0.0), hash33(pi + vec3(1.0, 1.0, 0.0)));
-  float n001 = dot(pf - vec3(0.0, 0.0, 1.0), hash33(pi + vec3(0.0, 0.0, 1.0)));
-  float n101 = dot(pf - vec3(1.0, 0.0, 1.0), hash33(pi + vec3(1.0, 0.0, 1.0)));
-  float n011 = dot(pf - vec3(0.0, 1.0, 1.0), hash33(pi + vec3(0.0, 1.0, 1.0)));
-  float n111 = dot(pf - vec3(1.0, 1.0, 1.0), hash33(pi + vec3(1.0, 1.0, 1.0)));
-
-  float nx00 = mix(n000, n100, w.x);
-  float nx01 = mix(n001, n101, w.x);
-  float nx10 = mix(n010, n110, w.x);
-  float nx11 = mix(n011, n111, w.x);
-  float nxy0 = mix(nx00, nx10, w.y);
-  float nxy1 = mix(nx01, nx11, w.y);
-  return mix(nxy0, nxy1, w.z);
-}
-
-vec2 distortUV(vec2 uv) {
-  vec2 st = uv;
-  float aspectRatio = uResolution.x / max(uResolution.y, 0.001);
-  vec2 aspectVec = vec2(aspectRatio, 1.0);
-  vec2 mPos = vec2(0.5, 0.5) + (uMousePos - 0.5) + uAutoDrift * 0.22;
-  st += uAutoDrift * 0.065;
-  vec2 pos = mix(vec2(0.5, 0.5), mPos, 1.0);
-  float dist = ease1(max(0.0, 1.0 - length(st * aspectVec - mPos * aspectVec) * 4.0));
-  float sprd = (0.158 + 0.01) / ((aspectRatio + 1.0) / 2.0);
-  float amt = 2.0 * 0.01 * dist;
-
-  if (amt <= 0.0) {
-    return st;
+float gradientNoise(vec3 p) {
+  vec3 cell = floor(p);
+  vec3 f = p - cell;
+  vec3 s = f * f * (3.0 - 2.0 * f);
+  float value = 0.0;
+  for (int i = 0; i < 8; i++) {
+    vec3 corner = vec3(float(i & 1), float((i >> 1) & 1), float((i >> 2) & 1));
+    vec3 w = mix(1.0 - s, s, corner);
+    value += w.x * w.y * w.z * dot(f - corner, lattice(cell + corner));
   }
-
-  vec2 invPos = 1.0 - pos;
-  float freq = 5.0 * sprd;
-  float t = 0.19 * 5.0 + uTime * 0.029;
-  float degrees = 360.0 * (0.999 * 6.0);
-  float rad = degrees * PI / 180.0;
-
-  for (int i = 0; i < MAX_ITERATIONS; i++) {
-    vec2 clampedSt = clamp(st, -1.0, 2.0);
-    vec2 scaled = (clampedSt - 0.5) * aspectVec + invPos;
-    float perlin = perlinNoise(vec3((scaled - 0.5) * freq, t)) - 0.5;
-    float ang = perlin * rad;
-    st += vec2(cos(ang), sin(ang)) * amt;
-  }
-
-  return mix(uv, clamp(st, 0.0, 1.0), 0.51);
+  return value;
 }
 
 void main() {
-  vec2 uv = distortUV(vTextureCoord);
-  fragColor = texture(uTexture, uv);
+  float aspect = uResolution.x / max(uResolution.y, 1.0);
+  vec2 stretch = vec2(aspect, 1.0);
+  float frequency = 5.0 * SPREAD / ((aspect + 1.0) * 0.5);
+  vec2 st = vUv;
+
+  for (int i = 0; i < FLOW_STEPS; i++) {
+    vec2 field = (clamp(st, -1.0, 2.0) - 0.5) * stretch + (1.0 - uPointer);
+    float angle = (gradientNoise(vec3((field - 0.5) * frequency, uTime)) - 0.5) * TURN;
+    st += vec2(cos(angle), sin(angle)) * STEP_LENGTH;
+  }
+
+  fragColor = texture(uTexture, mix(vUv, clamp(st, 0.0, 1.0), WARP_MIX));
 }
 `;
 
-/** Pass 3–6: Luke gaussian blur (kernel 36, strength 0.5) */
+/** Vertical gaussian, strongest mid-screen and easing off toward the corners. */
 export const HERO_MESH_FRAG_BLUR = `#version 300 es
 precision highp float;
 
-in vec2 vTextureCoord;
+in vec2 vUv;
 uniform sampler2D uTexture;
-uniform vec2 uResolution;
-uniform vec2 uDirection;
-uniform int uPassIndex;
-
+uniform float uAspect;
+uniform float uStrength;
 out vec4 fragColor;
 
-const int KERNEL_SIZE = 36;
-
-float getGaussianWeight(int index) {
-  float x = float(index - KERNEL_SIZE / 2) / float(KERNEL_SIZE / 2);
-  return exp(-x * x * 3.2);
-}
+const int TAPS = 36;
+const float SIGMA = 6.0;
+const float CENTER_WEIGHT = 1.32;
 
 void main() {
-  vec2 uv = vTextureCoord;
-  vec2 pos = vec2(0.5, 0.5);
-  float inner = distance(uv, pos);
-  float outer = max(0.0, 1.0 - distance(uv, pos));
-  float amt = uPassIndex <= 1 ? 6.0 : 11.0;
-  float amount = 0.5 * amt * mix(inner, outer, 1.32);
-  vec2 dir = uDirection * amount / max(uResolution, vec2(1.0));
+  float fromCenter = distance(vUv, vec2(0.5));
+  float amount = uStrength * mix(fromCenter, max(0.0, 1.0 - fromCenter), CENTER_WEIGHT);
+  float total = 0.0;
+  vec3 color = vec3(0.0);
 
-  float wSum = 0.0;
-  vec4 color = vec4(0.0);
-
-  for (int i = 0; i < KERNEL_SIZE; i++) {
-    float w = getGaussianWeight(i);
-    float fi = float(i - KERNEL_SIZE / 2);
-    color += texture(uTexture, uv + dir * fi * 0.001) * w;
-    wSum += w;
+  for (int i = 0; i < TAPS; i++) {
+    float x = float(i) - float(TAPS) * 0.5 + 0.5;
+    float weight = exp(-0.5 * x * x / (SIGMA * SIGMA));
+    color += texture(uTexture, vUv + vec2(0.0, x * 0.001 * amount * uAspect)).rgb * weight;
+    total += weight;
   }
 
-  fragColor = color / wSum;
+  fragColor = vec4(color / total, 1.0);
 }
 `;
 
+/** Upscales to the screen, with dither so the dark falloff does not band. */
 export const HERO_MESH_FRAG_PRESENT = `#version 300 es
 precision highp float;
 
-in vec2 vTextureCoord;
+in vec2 vUv;
 uniform sampler2D uTexture;
-
 out vec4 fragColor;
 
+float dither(vec2 p) {
+  return fract(52.9829189 * fract(dot(p, vec2(0.06711056, 0.00583715)))) - 0.5;
+}
+
 void main() {
-  vec3 col = texture(uTexture, vTextureCoord).rgb;
-  col = pow(col, vec3(0.98));
-  fragColor = vec4(col, 1.0);
+  vec3 color = texture(uTexture, vUv).rgb;
+  fragColor = vec4(color + dither(gl_FragCoord.xy) / 255.0, 1.0);
 }
 `;
 
-export const HERO_IMAGE_SIZE = { width: 1432, height: 928 } as const;
+/** Blur strengths of the two vertical passes. */
+export const HERO_MESH_BLUR_STRENGTHS = [3, 5.5] as const;
