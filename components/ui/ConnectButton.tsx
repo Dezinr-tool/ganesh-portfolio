@@ -5,7 +5,7 @@ import "./connect-button.css";
 import { getLenisInstance, LENIS_READY_EVENT } from "@/lib/lenis-scroll";
 import { getScrollY } from "@/lib/mobile-viewport";
 import { isStandaloneDocumentRoute } from "@/lib/standalone-document-routes";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { usePathname } from "next/navigation";
 
 const CONTACT = {
@@ -21,6 +21,8 @@ type Option = {
   sublabel: string;
   icon: React.ReactNode;
   href: string;
+  /** Copied to the clipboard on click, for when the device has no app to open `href`. */
+  copy?: string;
 };
 
 const OPTIONS: Option[] = [
@@ -30,6 +32,7 @@ const OPTIONS: Option[] = [
     sublabel: CONTACT.email,
     icon: <Mail size={20} strokeWidth={1.5} />,
     href: `mailto:${CONTACT.email}`,
+    copy: CONTACT.email,
   },
   {
     id: "call",
@@ -58,7 +61,26 @@ export function ConnectButton() {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
   const [pastHero, setPastHero] = useState(false);
+  const [copiedId, setCopiedId] = useState<string | null>(null);
   const ref = useRef<HTMLDivElement>(null);
+  const copiedTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
+
+  useEffect(() => () => clearTimeout(copiedTimer.current), []);
+
+  // A mailto link does nothing on a device with no mail app, so the address is copied as well.
+  const handleOption = useCallback((opt: Option) => {
+    if (!opt.copy) {
+      setOpen(false);
+      return;
+    }
+    navigator.clipboard?.writeText(opt.copy).catch(() => {});
+    setCopiedId(opt.id);
+    clearTimeout(copiedTimer.current);
+    copiedTimer.current = setTimeout(() => {
+      setOpen(false);
+      setCopiedId(null);
+    }, 2200);
+  }, []);
 
   useEffect(() => {
     const check = () => {
@@ -136,12 +158,14 @@ export function ConnectButton() {
             target={opt.id === "email" || opt.id === "call" ? "_self" : "_blank"}
             rel="noopener noreferrer"
             className="connect-btn__option"
-            onClick={() => setOpen(false)}
+            onClick={() => handleOption(opt)}
           >
             <span className="connect-btn__option-icon">{opt.icon}</span>
             <span className="connect-btn__option-text">
               <span className="connect-btn__option-label">{opt.label}</span>
-              <span className="connect-btn__option-sublabel">{opt.sublabel}</span>
+              <span className="connect-btn__option-sublabel" aria-live="polite">
+                {copiedId === opt.id ? "Email copied" : opt.sublabel}
+              </span>
             </span>
           </a>
         ))}

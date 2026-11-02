@@ -55,3 +55,33 @@ test("the contact button comes back once the menu closes @mobile", async ({ page
   await expect(page.getByRole("button", { name: /menu/i })).toHaveAttribute("aria-expanded", "false");
   await expect.poll(() => page.evaluate(() => getComputedStyle(document.querySelector(".connect-btn__root")!).opacity)).toBe("1");
 });
+
+test.describe("the email option", () => {
+  test.use({ permissions: ["clipboard-read", "clipboard-write"] });
+
+  async function openPanel(page: Page) {
+    await page.goto("/work/cove-lane", { waitUntil: "load" });
+    await expect.poll(() => page.evaluate(() => getComputedStyle(document.querySelector(".connect-btn__root")!).opacity)).toBe("1");
+    await page.locator(".connect-btn__pill").click();
+    await expect(page.locator(".connect-btn__panel")).toHaveClass(/is-open/);
+  }
+
+  test("still points at a mailto link @mobile", async ({ page }) => {
+    await openPanel(page);
+    await expect(page.locator('.connect-btn__option[href^="mailto:"]')).toHaveAttribute("href", "mailto:hello@designbyganesh.com");
+  });
+
+  test("copies the address and says so, in case no mail app opens @mobile", async ({ page }) => {
+    await openPanel(page);
+    // A mailto link navigates nowhere in a test browser; block it so the page stays put.
+    await page.route("mailto:*", (route) => route.abort());
+    await page.locator('.connect-btn__option[href^="mailto:"]').click();
+
+    await expect(page.locator(".connect-btn__panel")).toHaveClass(/is-open/);
+    await expect(page.locator('.connect-btn__option[href^="mailto:"]')).toContainText(/copied/i);
+    expect(await page.evaluate(() => navigator.clipboard.readText())).toBe("hello@designbyganesh.com");
+
+    // The panel closes itself after a moment.
+    await expect(page.locator(".connect-btn__panel")).not.toHaveClass(/is-open/, { timeout: 6000 });
+  });
+});
