@@ -73,8 +73,8 @@ test.describe("the email option", () => {
 
   test("copies the address and says so, in case no mail app opens @mobile", async ({ page }) => {
     await openPanel(page);
-    // A mailto link navigates nowhere in a test browser; block it so the page stays put.
-    await page.route("mailto:*", (route) => route.abort());
+    // Keep the test off the network: on desktop the click opens Gmail in a new tab.
+    await page.context().route("https://mail.google.com/**", (route) => route.abort());
     await page.locator('.connect-btn__option[href^="mailto:"]').click();
 
     await expect(page.locator(".connect-btn__panel")).toHaveClass(/is-open/);
@@ -83,5 +83,33 @@ test.describe("the email option", () => {
 
     // The panel closes itself after a moment.
     await expect(page.locator(".connect-btn__panel")).not.toHaveClass(/is-open/, { timeout: 6000 });
+  });
+
+  test("opens a Gmail compose window addressed to me on desktop", async ({ page, isMobile }) => {
+    test.skip(isMobile, "phones hand mailto links to their own mail app");
+    await openPanel(page);
+    const requested: string[] = [];
+    await page.context().route("https://mail.google.com/**", (route) => {
+      requested.push(route.request().url());
+      return route.abort();
+    });
+    await page.locator('.connect-btn__option[href^="mailto:"]').click();
+    await expect.poll(() => requested.length).toBeGreaterThan(0);
+    const url = new URL(requested[0]);
+    expect(url.origin + url.pathname).toBe("https://mail.google.com/mail/");
+    expect(url.searchParams.get("view")).toBe("cm");
+    expect(url.searchParams.get("to")).toBe("hello@designbyganesh.com");
+    // The page behind stays where it was.
+    expect(page.url()).toContain("/work/cove-lane");
+  });
+
+  test("leaves mailto to the phone's own mail app @mobile", async ({ page, isMobile }) => {
+    test.skip(!isMobile, "desktop opens Gmail instead");
+    await openPanel(page);
+    let opened = false;
+    page.on("popup", () => { opened = true; });
+    await page.locator('.connect-btn__option[href^="mailto:"]').click();
+    await page.waitForTimeout(600);
+    expect(opened).toBe(false);
   });
 });

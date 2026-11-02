@@ -23,6 +23,8 @@ type Option = {
   href: string;
   /** Copied to the clipboard on click, for when the device has no app to open `href`. */
   copy?: string;
+  /** Opened in a new tab instead of `href` on a desktop browser, where mailto often has no app behind it. */
+  desktopHref?: string;
 };
 
 const OPTIONS: Option[] = [
@@ -33,6 +35,8 @@ const OPTIONS: Option[] = [
     icon: <Mail size={20} strokeWidth={1.5} />,
     href: `mailto:${CONTACT.email}`,
     copy: CONTACT.email,
+    // /mail/ with no /u/N goes to the browser's default (primary) Google account.
+    desktopHref: `https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(CONTACT.email)}`,
   },
   {
     id: "call",
@@ -67,8 +71,12 @@ export function ConnectButton() {
 
   useEffect(() => () => clearTimeout(copiedTimer.current), []);
 
-  // A mailto link does nothing on a device with no mail app, so the address is copied as well.
-  const handleOption = useCallback((opt: Option) => {
+  // A mailto link does nothing on a device with no mail app, so desktop opens Gmail and the address is copied as well.
+  const handleOption = useCallback((event: React.MouseEvent<HTMLAnchorElement>, opt: Option) => {
+    if (opt.desktopHref && window.matchMedia("(hover: hover) and (pointer: fine)").matches) {
+      event.preventDefault();
+      window.open(opt.desktopHref, "_blank", "noopener,noreferrer");
+    }
     if (!opt.copy) {
       setOpen(false);
       return;
@@ -158,7 +166,7 @@ export function ConnectButton() {
             target={opt.id === "email" || opt.id === "call" ? "_self" : "_blank"}
             rel="noopener noreferrer"
             className="connect-btn__option"
-            onClick={() => handleOption(opt)}
+            onClick={(event) => handleOption(event, opt)}
           >
             <span className="connect-btn__option-icon">{opt.icon}</span>
             <span className="connect-btn__option-text">
